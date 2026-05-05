@@ -3,6 +3,7 @@ from .views import (
     SalonRegisterView, SalonListView, SalonDetailView,
     SalonApproveView, SalonRejectView, PendingSalonsView,
     AllSalonsAdminView, AvailableSlotsView, MySalonView,
+    SalonStaffListCreateView, SalonStaffDetailView,
 )
 
 urlpatterns = [
@@ -11,6 +12,8 @@ urlpatterns = [
     path('salons/<int:pk>/', SalonDetailView.as_view(), name='salon-detail'),
     path('salons/<int:pk>/approve/', SalonApproveView.as_view(), name='salon-approve'),
     path('salons/<int:pk>/reject/', SalonRejectView.as_view(), name='salon-reject'),
+    path('salons/<int:pk>/staff/', SalonStaffListCreateView.as_view(), name='salon-staff'),
+    path('salons/<int:pk>/staff/<int:staff_pk>/', SalonStaffDetailView.as_view(), name='salon-staff-detail'),
     path('salons/<int:pk>/calendar/available-slots/', AvailableSlotsView.as_view(), name='salon-slots'),
     path('admin/salons/pending/', PendingSalonsView.as_view(), name='admin-pending-salons'),
     path('admin/salons/', AllSalonsAdminView.as_view(), name='admin-all-salons'),

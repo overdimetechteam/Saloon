@@ -1,6 +1,13 @@
 from rest_framework import serializers
-from .models import Salon, SalonCalendar
+from .models import Salon, SalonCalendar, SalonStaff
 from users.models import CustomUser
+
+
+class SalonStaffSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SalonStaff
+        fields = ['id', 'salon', 'full_name', 'role', 'phone', 'is_active', 'created_at']
+        read_only_fields = ['id', 'salon', 'created_at']
 
 
 class SalonCalendarSerializer(serializers.ModelSerializer):

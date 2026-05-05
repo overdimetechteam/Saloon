@@ -5,8 +5,8 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from datetime import datetime, timedelta
-from .models import Salon, SalonCalendar
-from .serializers import SalonSerializer, SalonRegisterSerializer
+from .models import Salon, SalonCalendar, SalonStaff
+from .serializers import SalonSerializer, SalonRegisterSerializer, SalonStaffSerializer
 from users.permissions import IsSystemAdmin, IsSalonOwner
 from bookings.models import Booking
 
@@ -105,12 +105,60 @@ class MySalonView(APIView):
         return Response(SalonSerializer(salon).data)
 
 
+class SalonStaffListCreateView(APIView):
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [AllowAny()]
+        return [IsAuthenticated()]
+
+    def get(self, request, pk):
+        salon = get_object_or_404(Salon, pk=pk)
+        staff = salon.staff.filter(is_active=True).order_by('created_at')
+        return Response(SalonStaffSerializer(staff, many=True).data)
+
+    def post(self, request, pk):
+        salon = get_object_or_404(Salon, pk=pk)
+        if request.user.role != 'salon_owner' or salon.owner_id != request.user.id:
+            return Response({'detail': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
+        serializer = SalonStaffSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(salon=salon)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class SalonStaffDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, pk, staff_pk):
+        salon = get_object_or_404(Salon, pk=pk)
+        if request.user.role != 'salon_owner' or salon.owner_id != request.user.id:
+            return Response({'detail': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
+        member = get_object_or_404(SalonStaff, pk=staff_pk, salon=salon)
+        serializer = SalonStaffSerializer(member, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk, staff_pk):
+        salon = get_object_or_404(Salon, pk=pk)
+        if request.user.role != 'salon_owner' or salon.owner_id != request.user.id:
+            return Response({'detail': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
+        member = get_object_or_404(SalonStaff, pk=staff_pk, salon=salon)
+        member.is_active = False
+        member.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
 class AvailableSlotsView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request, pk):
         salon = get_object_or_404(Salon, pk=pk, status='active')
         date_str = request.query_params.get('date')
+        staff_id = request.query_params.get('staff_id')
+
         if not date_str:
             return Response({'detail': 'date parameter required'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -137,13 +185,24 @@ class AvailableSlotsView(APIView):
         close_dt = datetime.strptime(f"{date_str} {close_time}", '%Y-%m-%d %H:%M')
 
         taken_statuses = ['pending', 'confirmed', 'rescheduled', 'awaiting_client']
-        taken_datetimes = set(
-            Booking.objects.filter(
-                salon=salon,
-                requested_datetime__date=slot_date,
-                status__in=taken_statuses,
-            ).values_list('requested_datetime', flat=True)
-        )
+
+        if staff_id:
+            specific_staff = get_object_or_404(SalonStaff, pk=staff_id, salon=salon, is_active=True)
+            taken_datetimes = set(
+                Booking.objects.filter(
+                    staff_member=specific_staff,
+                    requested_datetime__date=slot_date,
+                    status__in=taken_statuses,
+                ).values_list('requested_datetime', flat=True)
+            )
+        else:
+            taken_datetimes = set(
+                Booking.objects.filter(
+                    salon=salon,
+                    requested_datetime__date=slot_date,
+                    status__in=taken_statuses,
+                ).values_list('requested_datetime', flat=True)
+            )
 
         slots = []
         current = open_dt

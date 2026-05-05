@@ -22,11 +22,13 @@ class BookingSerializer(serializers.ModelSerializer):
     alternative_slots = AlternativeSlotSerializer(many=True, read_only=True)
     client_email = serializers.EmailField(source='client.email', read_only=True)
     salon_name = serializers.CharField(source='salon.name', read_only=True)
+    staff_member_name = serializers.CharField(source='staff_member.full_name', read_only=True, default=None)
 
     class Meta:
         model = Booking
         fields = [
             'id', 'client', 'client_email', 'salon', 'salon_name',
+            'staff_member', 'staff_member_name',
             'requested_datetime', 'status', 'negotiation_round', 'notes',
             'created_at', 'updated_at', 'booking_services', 'alternative_slots',
         ]
@@ -38,6 +40,7 @@ class BookingCreateSerializer(serializers.Serializer):
     requested_datetime = serializers.DateTimeField()
     salon_service_ids = serializers.ListField(child=serializers.IntegerField(), min_length=1)
     notes = serializers.CharField(required=False, allow_blank=True)
+    staff_member_id = serializers.IntegerField(required=False, allow_null=True)
 
     def validate_salon_service_ids(self, value):
         salon_id = self.initial_data.get('salon')

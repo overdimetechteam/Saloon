@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../../api/axios';
-import { c, shadow, STATUS_META } from '../../styles/theme';
+import { c, STATUS_META } from '../../styles/theme';
 
 export default function UserBookingDetail() {
   const { id } = useParams();
@@ -19,65 +19,120 @@ export default function UserBookingDetail() {
   };
 
   const selectSlot = async slotId => {
-    try { await api.post(`/bookings/${id}/select-slot/`, { slot_id: slotId }); setMsg('Slot selected! The salon will confirm shortly.'); load(); }
-    catch (err) { setError(err.response?.data?.detail || 'Error selecting slot'); }
+    try { await api.post(`/bookings/${id}/select-slot/`, { slot_id: slotId }); setMsg('Slot confirmed! The salon will finalise shortly.'); load(); }
+    catch (err) { setError(err.response?.data?.detail || 'Error'); }
   };
 
-  if (!booking) return <div style={s.loading}>Loading…</div>;
+  if (!booking) return (
+    <div style={s.loader}>
+      <div style={s.loaderSpinner} />
+    </div>
+  );
 
   const meta = STATUS_META[booking.status] || { label: booking.status, color: '#888', bg: '#f0f0f0' };
   const currentRound = booking.negotiation_round;
   const currentSlots = (booking.alternative_slots || []).filter(sl => sl.round_number === currentRound && !sl.is_selected);
+  const dt = new Date(booking.requested_datetime);
 
   return (
     <div style={s.page}>
-      <Link to="/user/bookings" style={s.back}>← Back to Bookings</Link>
+      <Link to="/user/bookings" style={s.back} className="fade-in">
+        ← Back to Bookings
+      </Link>
 
-      <div style={s.card}>
-        <div style={s.cardHead}>
+      <div style={s.card} className="fade-up">
+        {/* Status bar at top */}
+        <div style={{ ...s.statusBar, background: meta.bg, borderBottom: `1px solid ${meta.color}25` }}>
+          <div style={{ ...s.statusGlow, background: meta.color }} />
+          <span style={{ ...s.statusLabel, color: meta.color }}>{meta.label}</span>
+          <span style={s.bookingNum}>Booking #{booking.id}</span>
+        </div>
+
+        {/* Salon info */}
+        <div style={s.heroSection}>
+          <div style={s.salonInitial}>{booking.salon_name?.[0]?.toUpperCase()}</div>
           <div>
             <h2 style={s.salonName}>{booking.salon_name}</h2>
-            <p style={s.sub}>Booking #{booking.id}</p>
+            <div style={s.dtDisplay}>
+              <span>◷</span>
+              {dt.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+              {' at '}
+              {dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            </div>
           </div>
-          <span style={{ ...s.badge, color: meta.color, background: meta.bg }}>{meta.label}</span>
         </div>
 
         {error && <div style={s.alert}>{error}</div>}
-        {msg && <div style={s.success}>{msg}</div>}
+        {msg   && <div style={s.success}>{msg}</div>}
 
+        {/* Info grid */}
         <div style={s.infoGrid}>
-          <div style={s.infoItem}><span style={s.infoLabel}>Date & Time</span><span style={s.infoVal}>{new Date(booking.requested_datetime).toLocaleString()}</span></div>
-          <div style={s.infoItem}><span style={s.infoLabel}>Negotiation Round</span><span style={s.infoVal}>{booking.negotiation_round} / 5</span></div>
-          {booking.notes && <div style={{ ...s.infoItem, gridColumn: '1 / -1' }}><span style={s.infoLabel}>Notes</span><span style={s.infoVal}>{booking.notes}</span></div>}
+          <div style={s.infoCell}>
+            <div style={s.infoCellLabel}>Negotiation Round</div>
+            <div style={s.infoCellVal}>
+              {booking.negotiation_round} / 5
+              <div style={s.roundBar}>
+                {[1,2,3,4,5].map(n => (
+                  <div key={n} style={{ ...s.roundDot, background: n <= booking.negotiation_round ? meta.color : '#E5E7EB' }} />
+                ))}
+              </div>
+            </div>
+          </div>
+          {booking.notes && (
+            <div style={{ ...s.infoCell, gridColumn: '1 / -1' }}>
+              <div style={s.infoCellLabel}>Your Notes</div>
+              <div style={{ ...s.infoCellVal, fontWeight: 400, fontStyle: 'italic', color: c.textSub }}>"{booking.notes}"</div>
+            </div>
+          )}
         </div>
 
+        {/* Services */}
         {booking.booking_services?.length > 0 && (
-          <div style={s.section}>
-            <h4 style={s.sectionTitle}>Services Booked</h4>
-            <div style={s.serviceList}>
+          <div style={s.servicesSection}>
+            <div style={s.sectionTitle}>Services Booked</div>
+            <div style={s.serviceChips}>
               {booking.booking_services.map(bs => (
-                <span key={bs.id} style={s.serviceChip}>{bs.service_name}</span>
+                <span key={bs.id} style={s.serviceChip}>✂ {bs.service_name}</span>
               ))}
             </div>
           </div>
         )}
 
+        {/* Alternative slots */}
         {booking.status === 'awaiting_client' && currentSlots.length > 0 && (
-          <div style={s.altBox}>
-            <h4 style={{ color: c.warning, marginBottom: 14, fontSize: 15 }}>⚠️ The salon couldn't confirm your original slot. Please choose one of these alternatives:</h4>
-            {currentSlots.map(sl => (
-              <div key={sl.id} style={s.slotCard}>
-                <div>
-                  <div style={s.slotDate}>{new Date(sl.proposed_datetime).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
-                  <div style={s.slotTime}>{new Date(sl.proposed_datetime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-                </div>
-                <button style={s.selectBtn} onClick={() => selectSlot(sl.id)}>Select this slot</button>
+          <div style={s.altSection}>
+            <div style={s.altHeader}>
+              <span style={s.altIcon}>⚡</span>
+              <div>
+                <div style={s.altTitle}>Alternative Slots Available</div>
+                <div style={s.altSub}>The salon couldn't confirm your original time. Please choose one below.</div>
               </div>
-            ))}
+            </div>
+            <div style={s.slotList}>
+              {currentSlots.map((sl, i) => {
+                const slDt = new Date(sl.proposed_datetime);
+                return (
+                  <div key={sl.id} style={s.slotCard} className={`fade-up d${i + 1}`}>
+                    <div style={s.slotDate}>
+                      <div style={s.slotDay}>
+                        {slDt.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                      </div>
+                      <div style={s.slotTime}>
+                        {slDt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </div>
+                    </div>
+                    <button style={s.selectBtn} onClick={() => selectSlot(sl.id)}>
+                      Select this slot →
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
 
-        {!['cancelled', 'completed', 'flagged'].includes(booking.status) && (
+        {/* Actions */}
+        {!['cancelled','completed','flagged'].includes(booking.status) && (
           <div style={s.actions}>
             <button style={s.cancelBtn} onClick={cancel}>Cancel Booking</button>
           </div>
@@ -88,29 +143,125 @@ export default function UserBookingDetail() {
 }
 
 const s = {
-  page: { maxWidth: 680, margin: '0 auto' },
-  loading: { padding: 60, textAlign: 'center', color: c.textMuted },
-  back: { display: 'inline-block', marginBottom: 20, color: c.primary, textDecoration: 'none', fontWeight: 500, fontSize: 14 },
-  card: { background: c.surface, borderRadius: 16, padding: 32, boxShadow: shadow.md, border: `1px solid ${c.border}` },
-  cardHead: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24, paddingBottom: 20, borderBottom: `1px solid ${c.border}` },
-  salonName: { fontSize: 22, fontWeight: 700, color: c.text, margin: 0, marginBottom: 4 },
-  sub: { color: c.textMuted, fontSize: 13, margin: 0 },
-  badge: { padding: '5px 14px', borderRadius: 20, fontSize: 12, fontWeight: 700, flexShrink: 0 },
-  alert: { background: c.errorBg, border: `1px solid ${c.errorBorder}`, color: c.error, borderRadius: 8, padding: '10px 14px', fontSize: 13, marginBottom: 16 },
-  success: { background: c.successBg, border: `1px solid ${c.successBorder}`, color: c.success, borderRadius: 8, padding: '10px 14px', fontSize: 13, marginBottom: 16 },
-  infoGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 },
-  infoItem: { background: c.bg, borderRadius: 8, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 4 },
-  infoLabel: { fontSize: 11, fontWeight: 600, color: c.textLight, textTransform: 'uppercase', letterSpacing: '0.05em' },
-  infoVal: { fontSize: 14, fontWeight: 600, color: c.text },
-  section: { marginBottom: 20 },
-  sectionTitle: { fontSize: 13, fontWeight: 700, color: c.textSub, marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.05em' },
-  serviceList: { display: 'flex', flexWrap: 'wrap', gap: 8 },
-  serviceChip: { padding: '5px 12px', background: c.primarySoft, color: c.primary, borderRadius: 20, fontSize: 13, fontWeight: 500 },
-  altBox: { background: c.warningBg, border: `1px solid ${c.warningBorder}`, borderRadius: 12, padding: 20, marginBottom: 20 },
-  slotCard: { background: '#fff', borderRadius: 8, padding: '12px 16px', marginBottom: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
-  slotDate: { fontSize: 14, fontWeight: 600, color: c.text },
-  slotTime: { fontSize: 13, color: c.textMuted, marginTop: 2 },
-  selectBtn: { padding: '8px 18px', background: c.success, color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 600, fontSize: 13 },
-  actions: { marginTop: 24, paddingTop: 20, borderTop: `1px solid ${c.border}` },
-  cancelBtn: { padding: '10px 20px', background: c.errorBg, color: c.error, border: `1px solid ${c.errorBorder}`, borderRadius: 8, cursor: 'pointer', fontWeight: 600, fontSize: 13 },
+  page: { maxWidth: 700, margin: '0 auto' },
+  loader: { display: 'flex', justifyContent: 'center', alignItems: 'center', height: 200 },
+  loaderSpinner: {
+    width: 32, height: 32, borderRadius: '50%',
+    border: '3px solid #EDE9FE', borderTopColor: '#7C3AED',
+    animation: 'spinSlow .7s linear infinite',
+  },
+  back: {
+    display: 'inline-flex', alignItems: 'center', gap: 6,
+    fontSize: 13, color: c.primary, fontWeight: 500, marginBottom: 20,
+    transition: 'gap .15s ease',
+  },
+
+  card: {
+    background: 'var(--surface)', borderRadius: 22,
+    boxShadow: '0 8px 32px rgba(124,58,237,.1)',
+    border: '1px solid var(--border)',
+    overflow: 'hidden',
+  },
+
+  statusBar: {
+    display: 'flex', alignItems: 'center', gap: 10, padding: '14px 28px',
+  },
+  statusGlow: {
+    width: 10, height: 10, borderRadius: '50%', flexShrink: 0,
+    animation: 'pulseRing 2.5s ease infinite',
+  },
+  statusLabel: { fontWeight: 700, fontSize: 13 },
+  bookingNum: { fontSize: 12, color: c.textMuted, marginLeft: 'auto' },
+
+  heroSection: {
+    display: 'flex', gap: 18, alignItems: 'center',
+    padding: '24px 28px', borderBottom: '1px solid #F3F4F6',
+  },
+  salonInitial: {
+    width: 56, height: 56, borderRadius: 16, flexShrink: 0,
+    background: 'linear-gradient(135deg, #7C3AED 0%, #EC4899 100%)',
+    color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+    fontSize: 24, fontWeight: 800, boxShadow: '0 4px 14px rgba(124,58,237,.3)',
+  },
+  salonName: {
+    fontFamily: "'Playfair Display', serif",
+    fontSize: 22, fontWeight: 700, color: c.text, margin: '0 0 6px',
+  },
+  dtDisplay: { fontSize: 14, color: c.textMuted, display: 'flex', alignItems: 'center', gap: 6 },
+
+  alert: {
+    margin: '0 28px 16px',
+    background: '#FEF2F2', border: '1px solid #FCA5A5',
+    color: '#DC2626', borderRadius: 10, padding: '10px 14px', fontSize: 13,
+  },
+  success: {
+    margin: '0 28px 16px',
+    background: '#ECFDF5', border: '1px solid #6EE7B7',
+    color: '#059669', borderRadius: 10, padding: '10px 14px', fontSize: 13,
+  },
+
+  infoGrid: {
+    display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12,
+    padding: '20px 28px',
+  },
+  infoCell: {
+    background: 'var(--surface2)', borderRadius: 12, padding: '14px 16px',
+    border: '1px solid var(--border)',
+  },
+  infoCellLabel: {
+    fontSize: 10, fontWeight: 700, color: c.textLight,
+    textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6,
+  },
+  infoCellVal: { fontSize: 14, fontWeight: 700, color: c.text },
+  roundBar: { display: 'flex', gap: 4, marginTop: 6 },
+  roundDot: { width: 16, height: 4, borderRadius: 2, transition: 'background .3s ease' },
+
+  servicesSection: { padding: '0 28px 20px' },
+  sectionTitle: {
+    fontSize: 11, fontWeight: 700, color: c.textMuted,
+    textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10,
+  },
+  serviceChips: { display: 'flex', flexWrap: 'wrap', gap: 8 },
+  serviceChip: {
+    padding: '6px 14px', background: c.primarySoft, color: c.primary,
+    borderRadius: 20, fontSize: 13, fontWeight: 500, border: '1px solid #DDD6FE',
+  },
+
+  altSection: {
+    margin: '0 28px 20px',
+    background: 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)',
+    borderRadius: 16, padding: 20,
+    border: '1px solid #FDE68A',
+  },
+  altHeader: { display: 'flex', gap: 12, marginBottom: 16 },
+  altIcon: { fontSize: 20, flexShrink: 0 },
+  altTitle: { fontWeight: 700, fontSize: 14, color: '#92400E', marginBottom: 3 },
+  altSub: { fontSize: 12, color: '#B45309' },
+  slotList: { display: 'flex', flexDirection: 'column', gap: 8 },
+  slotCard: {
+    background: '#fff', borderRadius: 10, padding: '12px 16px',
+    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+    border: '1px solid #FDE68A',
+  },
+  slotDay: { fontWeight: 600, fontSize: 14, color: c.text, marginBottom: 2 },
+  slotTime: { fontSize: 12, color: c.textMuted },
+  slotDate: {},
+  selectBtn: {
+    padding: '8px 18px',
+    background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+    color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer',
+    fontWeight: 600, fontSize: 13,
+    boxShadow: '0 3px 10px rgba(5,150,105,.25)',
+  },
+
+  actions: {
+    padding: '20px 28px 24px',
+    borderTop: '1px solid #F9FAFB',
+  },
+  cancelBtn: {
+    padding: '10px 22px',
+    background: '#FEF2F2', color: '#DC2626',
+    border: '1px solid #FECACA', borderRadius: 10,
+    cursor: 'pointer', fontWeight: 600, fontSize: 13,
+  },
 };

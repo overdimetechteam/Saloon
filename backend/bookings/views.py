@@ -8,7 +8,7 @@ import logging
 
 from .models import Booking, BookingService, AlternativeSlot
 from .serializers import BookingSerializer, BookingCreateSerializer
-from salons.models import Salon
+from salons.models import Salon, SalonStaff
 from services.models import SalonService
 from users.permissions import IsSystemAdmin, IsSalonOwner, IsClient
 
@@ -17,8 +17,15 @@ logger = logging.getLogger(__name__)
 TAKEN_STATUSES = ['pending', 'confirmed', 'rescheduled', 'awaiting_client']
 
 
-def _is_slot_taken(salon, requested_dt, exclude_booking=None):
-    qs = Booking.objects.filter(salon=salon, requested_datetime=requested_dt, status__in=TAKEN_STATUSES)
+def _is_slot_taken(salon, requested_dt, exclude_booking=None, staff_member=None):
+    if staff_member:
+        qs = Booking.objects.filter(
+            staff_member=staff_member,
+            requested_datetime=requested_dt,
+            status__in=TAKEN_STATUSES,
+        )
+    else:
+        qs = Booking.objects.filter(salon=salon, requested_datetime=requested_dt, status__in=TAKEN_STATUSES)
     if exclude_booking:
         qs = qs.exclude(pk=exclude_booking.pk)
     return qs.exists()
@@ -46,12 +53,18 @@ class BookingListCreateView(APIView):
         salon = get_object_or_404(Salon, pk=data['salon'], status='active')
         requested_dt = data['requested_datetime']
 
-        if _is_slot_taken(salon, requested_dt):
+        staff_member = None
+        staff_member_id = data.get('staff_member_id')
+        if staff_member_id:
+            staff_member = get_object_or_404(SalonStaff, pk=staff_member_id, salon=salon, is_active=True)
+
+        if _is_slot_taken(salon, requested_dt, staff_member=staff_member):
             return Response({'detail': 'Slot already taken'}, status=status.HTTP_409_CONFLICT)
 
         booking = Booking.objects.create(
             client=request.user,
             salon=salon,
+            staff_member=staff_member,
             requested_datetime=requested_dt,
             notes=data.get('notes', ''),
             status='pending',

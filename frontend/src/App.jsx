@@ -1,7 +1,12 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
-import PrivateRoute from './components/PrivateRoute';
+import { OwnerProvider } from './context/OwnerContext';
+import RequireRole from './components/RequireRole';
 import Navbar from './components/Navbar';
+
+import AdminLayout from './layouts/AdminLayout';
+import OwnerLayout from './layouts/OwnerLayout';
+import UserLayout from './layouts/UserLayout';
 
 import Login from './pages/Login';
 import RegisterClient from './pages/RegisterClient';
@@ -9,56 +14,97 @@ import RegisterSalon from './pages/RegisterSalon';
 import SalonList from './pages/SalonList';
 import SalonDetail from './pages/SalonDetail';
 
-import ClientDashboard from './pages/client/Dashboard';
-import ClientBookingList from './pages/client/BookingList';
-import ClientBookingDetail from './pages/client/BookingDetail';
-import BookSalon from './pages/client/BookSalon';
-
-import SalonDashboard from './pages/salon/Dashboard';
-import SalonBookingList from './pages/salon/BookingList';
-import SalonBookingDetail from './pages/salon/BookingDetail';
-import SalonServices from './pages/salon/Services';
-import Inventory from './pages/salon/Inventory';
-import GRNPage from './pages/salon/GRN';
-import SalesPage from './pages/salon/Sales';
-import AdjustmentsPage from './pages/salon/Adjustments';
-import Reports from './pages/salon/Reports';
-
 import AdminSalons from './pages/admin/Salons';
 import PendingSalons from './pages/admin/PendingSalons';
 import AdminServices from './pages/admin/Services';
+
+import OwnerDashboard from './pages/owner/Dashboard';
+import OwnerBookingList from './pages/owner/BookingList';
+import OwnerBookingDetail from './pages/owner/BookingDetail';
+import OwnerServices from './pages/owner/Services';
+import OwnerInventory from './pages/owner/Inventory';
+import OwnerGRN from './pages/owner/GRN';
+import OwnerSales from './pages/owner/Sales';
+import OwnerAdjustments from './pages/owner/Adjustments';
+import OwnerReports from './pages/owner/Reports';
+import OwnerTeam from './pages/owner/Team';
+
+import UserDashboard from './pages/user/Dashboard';
+import UserBookingList from './pages/user/BookingList';
+import UserBookingDetail from './pages/user/BookingDetail';
+import BookSalon from './pages/user/BookSalon';
+
+function PublicLayout() {
+  return (
+    <>
+      <Navbar />
+      <Outlet />
+    </>
+  );
+}
+
+function OwnerLayoutWithProvider() {
+  return (
+    <OwnerProvider>
+      <OwnerLayout />
+    </OwnerProvider>
+  );
+}
 
 export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        <Navbar />
         <Routes>
-          <Route path="/" element={<Navigate to="/salons" replace />} />
+          {/* Public pages with top navbar */}
+          <Route element={<PublicLayout />}>
+            <Route path="/" element={<Navigate to="/salons" replace />} />
+            <Route path="/salons" element={<SalonList />} />
+            <Route path="/salons/:id" element={<SalonDetail />} />
+          </Route>
+
+          {/* Standalone auth pages */}
           <Route path="/login" element={<Login />} />
-          <Route path="/register/client" element={<RegisterClient />} />
-          <Route path="/register/salon" element={<RegisterSalon />} />
-          <Route path="/salons" element={<SalonList />} />
-          <Route path="/salons/:id" element={<SalonDetail />} />
+          <Route path="/register/user" element={<RegisterClient />} />
+          <Route path="/register/owner" element={<RegisterSalon />} />
 
-          <Route path="/client/dashboard" element={<PrivateRoute roles={['client']}><ClientDashboard /></PrivateRoute>} />
-          <Route path="/client/bookings" element={<PrivateRoute roles={['client']}><ClientBookingList /></PrivateRoute>} />
-          <Route path="/client/bookings/:id" element={<PrivateRoute roles={['client']}><ClientBookingDetail /></PrivateRoute>} />
-          <Route path="/client/book/:salonId" element={<PrivateRoute roles={['client']}><BookSalon /></PrivateRoute>} />
+          {/* Admin portal — /admin/* */}
+          <Route path="/admin" element={<RequireRole roles={['system_admin']} />}>
+            <Route element={<AdminLayout />}>
+              <Route index element={<Navigate to="salons" replace />} />
+              <Route path="salons" element={<AdminSalons />} />
+              <Route path="salons/pending" element={<PendingSalons />} />
+              <Route path="services" element={<AdminServices />} />
+            </Route>
+          </Route>
 
-          <Route path="/salon/dashboard" element={<PrivateRoute roles={['salon_owner']}><SalonDashboard /></PrivateRoute>} />
-          <Route path="/salon/bookings" element={<PrivateRoute roles={['salon_owner']}><SalonBookingList /></PrivateRoute>} />
-          <Route path="/salon/bookings/:id" element={<PrivateRoute roles={['salon_owner']}><SalonBookingDetail /></PrivateRoute>} />
-          <Route path="/salon/services" element={<PrivateRoute roles={['salon_owner']}><SalonServices /></PrivateRoute>} />
-          <Route path="/salon/inventory" element={<PrivateRoute roles={['salon_owner']}><Inventory /></PrivateRoute>} />
-          <Route path="/salon/inventory/grn" element={<PrivateRoute roles={['salon_owner']}><GRNPage /></PrivateRoute>} />
-          <Route path="/salon/inventory/sales" element={<PrivateRoute roles={['salon_owner']}><SalesPage /></PrivateRoute>} />
-          <Route path="/salon/inventory/adjustments" element={<PrivateRoute roles={['salon_owner']}><AdjustmentsPage /></PrivateRoute>} />
-          <Route path="/salon/reports" element={<PrivateRoute roles={['salon_owner']}><Reports /></PrivateRoute>} />
+          {/* Owner portal — /owner/* */}
+          <Route path="/owner" element={<RequireRole roles={['salon_owner']} />}>
+            <Route element={<OwnerLayoutWithProvider />}>
+              <Route index element={<Navigate to="dashboard" replace />} />
+              <Route path="dashboard" element={<OwnerDashboard />} />
+              <Route path="bookings" element={<OwnerBookingList />} />
+              <Route path="bookings/:id" element={<OwnerBookingDetail />} />
+              <Route path="services" element={<OwnerServices />} />
+              <Route path="team" element={<OwnerTeam />} />
+              <Route path="inventory" element={<OwnerInventory />} />
+              <Route path="inventory/grn" element={<OwnerGRN />} />
+              <Route path="inventory/sales" element={<OwnerSales />} />
+              <Route path="inventory/adjustments" element={<OwnerAdjustments />} />
+              <Route path="reports" element={<OwnerReports />} />
+            </Route>
+          </Route>
 
-          <Route path="/admin/salons" element={<PrivateRoute roles={['system_admin']}><AdminSalons /></PrivateRoute>} />
-          <Route path="/admin/salons/pending" element={<PrivateRoute roles={['system_admin']}><PendingSalons /></PrivateRoute>} />
-          <Route path="/admin/services" element={<PrivateRoute roles={['system_admin']}><AdminServices /></PrivateRoute>} />
+          {/* User portal — /user/* */}
+          <Route path="/user" element={<RequireRole roles={['client']} />}>
+            <Route element={<UserLayout />}>
+              <Route index element={<Navigate to="dashboard" replace />} />
+              <Route path="dashboard" element={<UserDashboard />} />
+              <Route path="bookings" element={<UserBookingList />} />
+              <Route path="bookings/:id" element={<UserBookingDetail />} />
+              <Route path="book/:salonId" element={<BookSalon />} />
+            </Route>
+          </Route>
         </Routes>
       </BrowserRouter>
     </AuthProvider>
