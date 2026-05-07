@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+﻿import { useState, useEffect, useRef } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useOwner } from '../context/OwnerContext';
@@ -20,31 +20,32 @@ const NAV = [
 ];
 
 const GROUPS = [
-  { key: 'main',  label: 'Workspace' },
-  { key: 'stock', label: 'Inventory' },
+  { key: 'main',  label: 'WORKSPACE' },
+  { key: 'stock', label: 'INVENTORY' },
 ];
 
 export default function OwnerLayout() {
   const { profile, logout } = useAuth();
-  const { salon }           = useOwner();
-  const { isDark, toggle }  = useTheme();
-  const navigate            = useNavigate();
-  const [collapsed, setCollapsed]   = useState(false);
+  const { salon } = useOwner();
+  const { isDark, toggle } = useTheme();
+  const navigate = useNavigate();
+  const [collapsed, setCollapsed] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [notifs, setNotifs]         = useState([]);
+  const [notifs, setNotifs] = useState([]);
   const [showNotifs, setShowNotifs] = useState(false);
   const bellRef = useRef(null);
 
   useEffect(() => {
-    const fetchCount = () =>
-      api.get('/users/notifications/unread-count/').then(r => setUnreadCount(r.data.count)).catch(() => {});
+    const fetchCount = () => api.get('/users/notifications/unread-count/').then(r => setUnreadCount(r.data.count)).catch(() => {});
     fetchCount();
     const iv = setInterval(fetchCount, 30000);
     return () => clearInterval(iv);
   }, []);
 
   const openNotifs = () => {
-    if (!showNotifs) api.get('/users/notifications/').then(r => setNotifs(r.data)).catch(() => {});
+    if (!showNotifs) {
+      api.get('/users/notifications/').then(r => setNotifs(r.data)).catch(() => {});
+    }
     setShowNotifs(v => !v);
   };
 
@@ -65,71 +66,75 @@ export default function OwnerLayout() {
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg)' }}>
-      <aside style={{ ...s.sidebar, width: collapsed ? 68 : 252 }}>
-
-        {/* Brand / header */}
+      <aside style={{ ...s.sidebar, width: collapsed ? 68 : 248 }}>
+        {/* Brand */}
         <div style={s.brandArea}>
-          <div style={s.brandIcon} onClick={() => setCollapsed(v => !v)} title={collapsed ? 'Expand' : 'Collapse'}>✦</div>
+          <div style={s.brandIcon} onClick={() => setCollapsed(v => !v)}>✦</div>
           {!collapsed && (
-            <>
-              <div style={s.brandText}>
-                <div style={s.brandName}>{salon?.name || 'My Salon'}</div>
-                <div style={s.brandSub}>Owner Portal</div>
-              </div>
-              <div style={{ display: 'flex', gap: 5, flexShrink: 0 }}>
-                {/* Notification bell */}
-                <div ref={bellRef} style={{ position: 'relative' }}>
-                  <button onClick={openNotifs} style={s.sideToggle} title="Notifications">
-                    🔔
-                    {unreadCount > 0 && <span style={s.bellBadge}>{unreadCount > 9 ? '9+' : unreadCount}</span>}
-                  </button>
-                  {showNotifs && (
-                    <div style={s.notifDropdown}>
-                      <div style={s.notifHeader}>
-                        <span style={s.notifTitle}>Notifications</span>
-                        {unreadCount > 0 && (
-                          <button style={s.markReadBtn} onClick={markAllRead}>Mark all read</button>
-                        )}
-                      </div>
-                      <div style={s.notifList}>
-                        {notifs.length === 0 && <div style={s.notifEmpty}>No notifications yet</div>}
-                        {notifs.slice(0, 10).map(n => (
-                          <div key={n.id} style={{ ...s.notifItem, ...(n.is_read ? {} : s.notifUnread) }}>
-                            {!n.is_read && <span style={s.notifDot} />}
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                              <div style={s.notifMsg}>{n.message}</div>
-                              <div style={s.notifTime}>{new Date(n.created_at).toLocaleString()}</div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-                <button onClick={toggle} title={isDark ? 'Light mode' : 'Dark mode'} style={s.sideToggle}>
-                  {isDark ? '☀' : '☾'}
-                </button>
-              </div>
-            </>
+            <div style={s.brandText}>
+              <div style={s.brandName}>{salon?.name || 'My Salon'}</div>
+              <div style={s.brandSub}>Owner Portal</div>
+            </div>
           )}
-          {collapsed && (
-            <button onClick={toggle} title={isDark ? 'Light mode' : 'Dark mode'} style={{ ...s.sideToggle, margin: '0 auto' }}>
-              {isDark ? '☀' : '☾'}
-            </button>
+          {/* Notification bell + theme toggle */}
+          {!collapsed && (
+            <div style={{ display: 'flex', gap: 6 }}>
+              <div ref={bellRef} style={{ position: 'relative' }}>
+                <button onClick={openNotifs} style={s.sideToggle} title="Notifications">
+                  🔔
+                  {unreadCount > 0 && (
+                    <span style={s.bellBadge}>{unreadCount > 9 ? '9+' : unreadCount}</span>
+                  )}
+                </button>
+                {showNotifs && (
+                  <div style={s.notifDropdown}>
+                    <div style={s.notifHeader}>
+                      <span style={s.notifTitle}>Notifications</span>
+                      {unreadCount > 0 && (
+                        <button style={s.markReadBtn} onClick={markAllRead}>Mark all read</button>
+                      )}
+                    </div>
+                    <div style={s.notifList}>
+                      {notifs.length === 0 && <div style={s.notifEmpty}>No notifications</div>}
+                      {notifs.slice(0, 10).map(n => (
+                        <div key={n.id} style={{ ...s.notifItem, ...(n.is_read ? {} : s.notifUnread) }}>
+                          {!n.is_read && <span style={s.notifDot} />}
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={s.notifMsg}>{n.message}</div>
+                            <div style={s.notifTime}>{new Date(n.created_at).toLocaleString()}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+              <button
+                onClick={toggle}
+                title={isDark ? 'Light mode' : 'Dark mode'}
+                style={s.sideToggle}
+              >
+                {isDark ? '☀' : '☾'}
+              </button>
+            </div>
           )}
         </div>
 
-        {/* Status pill */}
+        {/* Salon status */}
         {!collapsed && salon && (
-          <div style={s.statusPill}>
-            <span style={{
-              ...s.statusDot,
-              background: salon.status === 'active' ? '#34D399' : '#FBBF24',
-              boxShadow: salon.status === 'active' ? '0 0 8px rgba(52,211,153,.5)' : '0 0 8px rgba(251,191,36,.5)',
-            }} />
+          <div style={s.statusBar}>
+            <span style={{ ...s.statusDot, background: salon.status === 'active' ? '#34D399' : '#FBBF24' }} />
             <span style={s.statusText}>
               {salon.status === 'active' ? 'Live & Accepting' : salon.status === 'pending' ? 'Pending Approval' : 'Inactive'}
             </span>
+          </div>
+        )}
+        {/* Collapsed toggle */}
+        {collapsed && (
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '0 0 8px' }}>
+            <button onClick={toggle} title={isDark ? 'Light mode' : 'Dark mode'} style={s.sideToggleCollapsed}>
+              {isDark ? '☀' : '☾'}
+            </button>
           </div>
         )}
 
@@ -186,7 +191,7 @@ export default function OwnerLayout() {
         </div>
       </aside>
 
-      <main style={{ ...s.main, marginLeft: collapsed ? 68 : 252 }}>
+      <main style={{ ...s.main, marginLeft: collapsed ? 68 : 248 }}>
         <div className="fade-in">
           <Outlet />
         </div>
@@ -197,138 +202,138 @@ export default function OwnerLayout() {
 
 const s = {
   sidebar: {
-    background: 'linear-gradient(180deg, #0E0720 0%, #080611 100%)',
+    background: 'linear-gradient(180deg, #1E293B 0%, #0F172A 100%)',
     display: 'flex', flexDirection: 'column',
     position: 'fixed', top: 0, left: 0, height: '100vh',
     zIndex: 100, flexShrink: 0,
-    transition: 'width .28s cubic-bezier(.4,0,.2,1)',
+    transition: 'width .25s cubic-bezier(.4,0,.2,1)',
     overflow: 'hidden',
-    borderRight: '1px solid rgba(124,58,237,.1)',
   },
+
   brandArea: {
-    display: 'flex', alignItems: 'center', gap: 10, padding: '22px 14px 14px', flexShrink: 0,
+    display: 'flex', alignItems: 'center', gap: 10, padding: '22px 14px 14px',
+    flexShrink: 0,
   },
   brandIcon: {
     width: 36, height: 36, borderRadius: 10, flexShrink: 0,
-    background: 'linear-gradient(145deg, #7C3AED 0%, #9B59E8 45%, #EC4899 100%)',
+    background: 'linear-gradient(135deg, #7C3AED 0%, #0D9488 100%)',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     color: '#fff', fontSize: 14, fontWeight: 900, cursor: 'pointer',
-    boxShadow: '0 4px 16px rgba(124,58,237,.5), inset 0 1px 0 rgba(255,255,255,.2)',
+    boxShadow: '0 4px 14px rgba(124,58,237,.45)',
     transition: 'transform .2s ease',
   },
   brandText: { overflow: 'hidden', flex: 1, minWidth: 0 },
   brandName: {
-    fontFamily: "'Cormorant Garamond', Georgia, serif",
-    color: '#FFFFFF', fontWeight: 700, fontSize: 15,
+    fontFamily: "'Playfair Display', serif",
+    color: '#FFFFFF', fontWeight: 700, fontSize: 14,
     whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-    letterSpacing: '-0.01em',
   },
-  brandSub: {
-    color: '#7C3AED', fontSize: 9, letterSpacing: '0.14em',
-    textTransform: 'uppercase', marginTop: 2, fontWeight: 600,
-  },
+  brandSub: { color: '#7C3AED', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', marginTop: 2 },
+
   sideToggle: {
     width: 30, height: 30, borderRadius: 8, flexShrink: 0,
     background: 'rgba(255,255,255,.07)', border: '1px solid rgba(255,255,255,.1)',
-    color: '#A78BFA', cursor: 'pointer', fontSize: 14,
+    color: '#94A3B8', cursor: 'pointer', fontSize: 14,
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     position: 'relative',
   },
   bellBadge: {
     position: 'absolute', top: -5, right: -5,
-    background: '#EC4899', color: '#fff',
+    background: '#0D9488', color: '#fff',
     fontSize: 9, fontWeight: 800, borderRadius: 20,
-    padding: '1px 4px', lineHeight: 1.4, minWidth: 14, textAlign: 'center',
-    boxShadow: '0 2px 6px rgba(236,72,153,.5)',
+    padding: '1px 4px', lineHeight: 1.4, minWidth: 14,
+    textAlign: 'center',
   },
   notifDropdown: {
     position: 'absolute', top: 38, right: 0,
-    width: 300, background: '#140E28',
+    width: 300, background: '#1E1033',
     border: '1px solid rgba(124,58,237,.25)',
-    borderRadius: 16, boxShadow: '0 20px 48px rgba(0,0,0,.55)',
+    borderRadius: 14, boxShadow: '0 16px 40px rgba(0,0,0,.5)',
     zIndex: 200, overflow: 'hidden',
   },
   notifHeader: {
     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-    padding: '14px 18px', borderBottom: '1px solid rgba(255,255,255,.06)',
+    padding: '12px 16px', borderBottom: '1px solid rgba(255,255,255,.06)',
   },
-  notifTitle: {
-    fontFamily: "'Cormorant Garamond', Georgia, serif",
-    fontSize: 13, fontWeight: 700, color: '#C4B5FD', letterSpacing: '0.02em',
-  },
-  markReadBtn: { fontSize: 11, color: '#A78BFA', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 },
+  notifTitle: { fontSize: 12, fontWeight: 700, color: '#C4B5FD', textTransform: 'uppercase', letterSpacing: '0.07em' },
+  markReadBtn: { fontSize: 11, color: '#94A3B8', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 },
   notifList: { maxHeight: 320, overflowY: 'auto' },
-  notifEmpty: { padding: '28px 18px', textAlign: 'center', color: '#6B7280', fontSize: 13 },
+  notifEmpty: { padding: '24px 16px', textAlign: 'center', color: '#6B7280', fontSize: 13 },
   notifItem: {
     display: 'flex', alignItems: 'flex-start', gap: 10,
-    padding: '11px 18px', borderBottom: '1px solid rgba(255,255,255,.04)',
+    padding: '10px 16px', borderBottom: '1px solid rgba(255,255,255,.04)',
   },
-  notifUnread: { background: 'rgba(124,58,237,.1)' },
-  notifDot: { width: 7, height: 7, borderRadius: '50%', background: '#A78BFA', flexShrink: 0, marginTop: 5 },
+  notifUnread: { background: 'rgba(124,58,237,.08)' },
+  notifDot: { width: 7, height: 7, borderRadius: '50%', background: '#94A3B8', flexShrink: 0, marginTop: 4 },
   notifMsg: { fontSize: 12, color: '#E5E7EB', lineHeight: 1.5 },
   notifTime: { fontSize: 10, color: '#6B7280', marginTop: 3 },
+  sideToggleCollapsed: {
+    width: 34, height: 34, borderRadius: 10,
+    background: 'rgba(255,255,255,.07)', border: '1px solid rgba(255,255,255,.1)',
+    color: '#94A3B8', cursor: 'pointer', fontSize: 15,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+  },
 
-  statusPill: {
-    display: 'flex', alignItems: 'center', gap: 8, padding: '2px 16px 14px', flexShrink: 0,
+  statusBar: {
+    display: 'flex', alignItems: 'center', gap: 7, padding: '0 16px 12px', flexShrink: 0,
   },
   statusDot: { width: 7, height: 7, borderRadius: '50%', flexShrink: 0 },
-  statusText: { fontSize: 11, color: '#A78BFA', fontWeight: 500 },
+  statusText: { fontSize: 11, color: '#94A3B8' },
 
-  divider: { height: 1, background: 'rgba(124,58,237,.14)', margin: '0 14px', flexShrink: 0 },
+  divider: { height: 1, background: 'rgba(124,58,237,.15)', margin: '0 16px', flexShrink: 0 },
 
   nav: { flex: 1, padding: '12px 10px', overflowY: 'auto', overflowX: 'hidden' },
   groupLabel: {
-    fontSize: 9, fontWeight: 700, color: 'rgba(124,58,237,.55)',
-    letterSpacing: '0.14em', padding: '10px 10px 5px', textTransform: 'uppercase',
+    fontSize: 9, fontWeight: 700, color: '#6D28D9',
+    letterSpacing: '0.12em', padding: '10px 10px 5px',
   },
-  groupDivider: { height: 1, background: 'rgba(255,255,255,.04)', margin: '8px 6px' },
+  groupDivider: { height: 1, background: 'rgba(255,255,255,.04)', margin: '8px 4px' },
 
   navItem: {
     display: 'flex', alignItems: 'center', gap: 11,
-    padding: '10px 13px', borderRadius: 10,
-    color: '#A78BFA', textDecoration: 'none',
+    padding: '9px 12px', borderRadius: 9,
+    color: '#94A3B8', textDecoration: 'none',
     fontSize: 13, fontWeight: 500,
     position: 'relative', whiteSpace: 'nowrap',
   },
-  navItemCollapsed: { padding: '11px', justifyContent: 'center' },
+  navItemCollapsed: { padding: '10px', justifyContent: 'center' },
   navActive: {
-    background: 'linear-gradient(135deg, rgba(124,58,237,.22) 0%, rgba(236,72,153,.09) 100%)',
+    background: 'linear-gradient(135deg, rgba(124,58,237,.25) 0%, rgba(13,148,136,.1) 100%)',
     color: '#FFFFFF',
-    boxShadow: 'inset 0 0 0 1px rgba(124,58,237,.3)',
+    boxShadow: 'inset 0 0 0 1px rgba(124,58,237,.35)',
   },
   navIcon:  { fontSize: 15, width: 18, textAlign: 'center', flexShrink: 0 },
   navLabel: { flex: 1 },
 
-  footer: { padding: '0 10px 16px', flexShrink: 0 },
-  footerInner: { display: 'flex', alignItems: 'center', gap: 10, padding: '13px 6px' },
+  footer: { padding: '0 10px 14px', flexShrink: 0 },
+  footerInner: { display: 'flex', alignItems: 'center', gap: 10, padding: '12px 6px' },
   footerAvatar: {
-    width: 33, height: 33, borderRadius: '50%', flexShrink: 0,
-    background: 'linear-gradient(145deg, #7C3AED, #EC4899)',
+    width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
+    background: 'linear-gradient(135deg, #7C3AED, #0D9488)',
     color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
     fontSize: 12, fontWeight: 700,
   },
   avatarCollapsed: {
-    width: 34, height: 34, borderRadius: '50%', margin: '10px auto',
-    background: 'linear-gradient(145deg, #7C3AED, #EC4899)',
+    width: 34, height: 34, borderRadius: '50%', margin: '8px auto',
+    background: 'linear-gradient(135deg, #7C3AED, #0D9488)',
     color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
     fontSize: 12, fontWeight: 700, cursor: 'default',
   },
   footerInfo: { flex: 1, minWidth: 0 },
   footerName:  { color: '#FFFFFF', fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
-  footerEmail: { color: '#7C3AED', fontSize: 10, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: 1 },
+  footerEmail: { color: '#7C3AED', fontSize: 10, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
 
   logoutBtn: {
-    width: '100%', padding: '9px 10px',
-    background: 'transparent', border: '1px solid rgba(124,58,237,.22)',
-    color: '#A78BFA', borderRadius: 9, cursor: 'pointer',
+    width: '100%', padding: '8px 10px',
+    background: 'transparent', border: '1px solid rgba(124,58,237,.25)',
+    color: '#94A3B8', borderRadius: 8, cursor: 'pointer',
     fontSize: 12, display: 'flex', alignItems: 'center', gap: 7, marginTop: 4,
-    transition: 'background .18s ease, border-color .18s ease',
   },
   logoutIcon: { fontSize: 14 },
 
   main: {
-    flex: 1, minHeight: '100vh', padding: '36px 40px',
+    flex: 1, minHeight: '100vh', padding: '36px 36px',
     background: 'var(--bg)',
-    transition: 'margin-left .28s cubic-bezier(.4,0,.2,1)',
+    transition: 'margin-left .25s cubic-bezier(.4,0,.2,1)',
   },
 };
