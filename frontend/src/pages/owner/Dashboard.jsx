@@ -3,9 +3,11 @@ import { Link } from 'react-router-dom';
 import api from '../../api/axios';
 import { useOwner } from '../../context/OwnerContext';
 import { STATUS_META } from '../../styles/theme';
+import { useBreakpoint } from '../../hooks/useMobile';
 
 export default function OwnerDashboard() {
   const { salon, loading: salonLoading } = useOwner();
+  const { isMobile, isTablet } = useBreakpoint();
   const [stats, setStats] = useState({ pending: 0, confirmed: 0, lowStock: 0, todayBookings: [] });
 
   useEffect(() => {
@@ -69,10 +71,10 @@ export default function OwnerDashboard() {
   return (
     <div>
       {/* Header */}
-      <div style={s.header} className="fade-up">
+      <div style={{ ...s.header, flexDirection: isMobile ? 'column' : 'row' }} className="fade-up">
         <div>
           <div style={s.eyebrow}>Dashboard</div>
-          <h2 style={s.title}>{salon.name}</h2>
+          <h2 style={{ ...s.title, fontSize: isMobile ? 24 : isTablet ? 26 : 30 }}>{salon.name}</h2>
           <div style={s.statusRow}>
             <span style={{ ...s.statusDot, background: salon.status === 'active' ? '#34D399' : '#FBBF24', boxShadow: salon.status === 'active' ? '0 0 0 4px rgba(52,211,153,.2)' : '0 0 0 4px rgba(251,191,36,.2)' }} />
             <span style={s.statusText}>
@@ -80,13 +82,13 @@ export default function OwnerDashboard() {
             </span>
           </div>
         </div>
-        <Link to="/owner/bookings" style={s.heroBtn} className="fade-up d2 lift-sm">
+        <Link to="/owner/bookings" style={{ ...s.heroBtn, alignSelf: isMobile ? 'stretch' : 'auto', justifyContent: 'center' }} className="fade-up d2 lift-sm">
           View All Bookings →
         </Link>
       </div>
 
       {/* Stat cards */}
-      <div style={s.statGrid}>
+      <div style={{ ...s.statGrid, gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : isTablet ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)' }}>
         {statCards.map((sc, i) => (
           <Link
             key={sc.label}
@@ -168,7 +170,7 @@ export default function OwnerDashboard() {
       </div>
 
       {/* Quick actions */}
-      <div style={s.quickGrid} className="fade-up d5">
+      <div style={{ ...s.quickGrid, gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : isTablet ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)' }} className="fade-up d5">
         {[
           { label: 'Manage Inventory', icon: '▦', to: '/owner/inventory', color: '#7C3AED', sub: 'Stock levels & products' },
           { label: 'Receive Stock', icon: '⊕', to: '/owner/inventory/grn', color: '#059669', sub: 'New goods received' },

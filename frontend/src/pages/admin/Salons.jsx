@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../../api/axios';
+import { useBreakpoint } from '../../hooks/useMobile';
 
 const STATUS_META = {
   pending:  { label: 'Pending',   color: '#D97706', bg: '#FFFBEB', border: 'rgba(217,119,6,.2)'  },
@@ -27,6 +28,7 @@ function ConfirmModal({ title, message, danger, onConfirm, onCancel, loading }) 
 }
 
 export default function AdminSalons() {
+  const { isMobile, isTablet } = useBreakpoint();
   const [salons, setSalons] = useState([]);
   const [filter, setFilter] = useState('all');
   const [msg, setMsg] = useState('');
@@ -105,7 +107,7 @@ export default function AdminSalons() {
       {msg && <div style={s.alertOk}>{msg}</div>}
       {err && <div style={s.alertErr}>{err}</div>}
 
-      <div style={s.statsRow} className="fade-up">
+      <div style={{ ...s.statsRow, gridTemplateColumns: isMobile ? 'repeat(3, 1fr)' : isTablet ? 'repeat(3, 1fr)' : 'repeat(5, 1fr)' }} className="fade-up">
         {STAT_TABS.map(stat => (
           <button
             key={stat.key}
@@ -225,7 +227,7 @@ const s = {
   statLabel: { fontSize: 11, color: 'var(--text-muted)', marginTop: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' },
   tableCard: {
     background: 'var(--surface)', borderRadius: 16, border: '1px solid var(--border)',
-    boxShadow: '0 4px 20px rgba(124,58,237,.06)', overflow: 'hidden',
+    boxShadow: '0 4px 20px rgba(124,58,237,.06)', overflow: 'hidden', overflowX: 'auto',
   },
   table: { width: '100%', borderCollapse: 'collapse' },
   th: { padding: '12px 16px', textAlign: 'left', fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', background: 'var(--surface2)', borderBottom: '2px solid var(--border)' },

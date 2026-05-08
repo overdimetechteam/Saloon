@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
 import { STATUS_META } from '../../styles/theme';
-import { useIsMobile } from '../../hooks/useMobile';
+import { useBreakpoint } from '../../hooks/useMobile';
 
 const ALL_STATUSES = ['pending','confirmed','awaiting_client','rescheduled','cancelled','completed','flagged'];
 
@@ -11,7 +11,7 @@ export default function UserBookingList() {
   const [filter, setFilter] = useState('all');
   const [loading, setLoading] = useState(true);
   const navigate  = useNavigate();
-  const isMobile  = useIsMobile();
+  const { isMobile, isTablet } = useBreakpoint();
 
   useEffect(() => {
     api.get('/bookings/').then(r => setBookings(r.data)).catch(() => {}).finally(() => setLoading(false));
@@ -30,13 +30,13 @@ export default function UserBookingList() {
   return (
     <div>
       {/* Header */}
-      <div style={s.header} className="fade-up">
+      <div style={{ ...s.header, flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'flex-start', gap: isMobile ? 16 : 14 }} className="fade-up">
         <div>
           <div style={s.eyebrow}>Your Appointments</div>
-          <h2 style={s.title}>My Bookings</h2>
+          <h2 style={{ ...s.title, fontSize: isMobile ? 24 : isTablet ? 28 : 30 }}>My Bookings</h2>
           <p style={s.sub}>{bookings.length} total appointment{bookings.length !== 1 ? 's' : ''}</p>
         </div>
-        <Link to="/salons" style={s.bookBtn} className="lift-sm">✦ New Booking</Link>
+        <Link to="/salons" style={{ ...s.bookBtn, alignSelf: isMobile ? 'stretch' : 'flex-start', justifyContent: 'center' }} className="lift-sm">✦ New Booking</Link>
       </div>
 
       {/* Filter chips */}

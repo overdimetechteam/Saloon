@@ -2,13 +2,13 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../api/axios';
 import { useTheme } from '../context/ThemeContext';
-import { useIsMobile } from '../hooks/useMobile';
+import { useBreakpoint } from '../hooks/useMobile';
 
 const PALETTE = ['#7C3AED','#9B59E8','#0D9488','#0F766E','#A78BFA','#8B5CF6'];
 
 export default function SalonList() {
   const { isDark } = useTheme();
-  const isMobile   = useIsMobile();
+  const { isMobile, isTablet } = useBreakpoint();
   const [salons, setSalons]   = useState([]);
   const [search, setSearch]   = useState('');
   const [loading, setLoading] = useState(true);
@@ -24,7 +24,7 @@ export default function SalonList() {
   return (
     <div style={s.page}>
       {/* ── Hero ── */}
-      <div style={{ ...s.hero, padding: isMobile ? '60px 22px 90px' : '88px 40px 120px', textAlign: 'center' }} className="anim-gradient noise-bg">
+      <div style={{ ...s.hero, padding: isMobile ? '52px 20px 80px' : isTablet ? '72px 28px 100px' : '88px 40px 120px', textAlign: 'center' }} className="anim-gradient noise-bg">
         {/* Decorative radial glows */}
         <div style={s.glow1} />
         <div style={s.glow2} />
@@ -38,12 +38,12 @@ export default function SalonList() {
             Find Your Perfect<br />
             <em style={s.heroTitleItalic}>Salon Experience</em>
           </h1>
-          <p style={{ ...s.heroSub, fontSize: isMobile ? 14 : 17 }}>
+          <p style={{ ...s.heroSub, fontSize: isMobile ? 13 : isTablet ? 15 : 17 }}>
             Browse curated premium salons and book your next beauty appointment in seconds.
           </p>
 
           {/* Search */}
-          <div style={{ ...s.searchWrap, background: isDark ? 'var(--surface2)' : 'rgba(255,255,255,.97)', border: isDark ? '1px solid var(--border)' : '1px solid transparent', padding: isMobile ? '12px 18px' : '14px 22px' }} className="fade-up d2">
+          <div style={{ ...s.searchWrap, background: isDark ? 'var(--surface2)' : 'rgba(255,255,255,.97)', border: isDark ? '1px solid var(--border)' : '1px solid transparent', padding: isMobile ? '11px 16px' : '14px 22px', maxWidth: isMobile ? '100%' : isTablet ? 440 : 500 }} className="fade-up d2">
             <span style={s.searchIcon}>✦</span>
             <input
               className="hero-search"
@@ -60,7 +60,7 @@ export default function SalonList() {
       </div>
 
       {/* ── Results ── */}
-      <div style={s.results}>
+      <div style={{ ...s.results, padding: isMobile ? '0 12px 60px' : isTablet ? '0 16px 72px' : '0 16px 80px', marginTop: isMobile ? '-36px' : isTablet ? '-44px' : '-52px' }}>
         {search && (
           <p style={s.resultsLabel} className="fade-in">
             {loading
@@ -71,7 +71,7 @@ export default function SalonList() {
 
         {/* Loading skeletons */}
         {loading && (
-          <div style={s.grid}>
+          <div style={{ ...s.grid, gridTemplateColumns: isMobile ? '1fr' : isTablet ? 'repeat(2, 1fr)' : 'repeat(auto-fill, minmax(min(280px, 100%), 1fr))' }}>
             {[1,2,3,4,5,6].map(i => (
               <div key={i} style={s.skeleton} className="shimmer" />
             ))}
@@ -101,7 +101,7 @@ export default function SalonList() {
 
         {/* Cards */}
         {!loading && (
-          <div style={s.grid}>
+          <div style={{ ...s.grid, gridTemplateColumns: isMobile ? '1fr' : isTablet ? 'repeat(2, 1fr)' : 'repeat(auto-fill, minmax(min(280px, 100%), 1fr))' }}>
             {salons.map((salon, i) => {
               const color = PALETTE[i % PALETTE.length];
               return (
@@ -207,7 +207,7 @@ const s = {
   },
 
   results: {
-    maxWidth: 1240, margin: '-52px auto 0',
+    maxWidth: 1240, margin: '0 auto',
     padding: '0 16px 80px',
     position: 'relative', zIndex: 10,
   },

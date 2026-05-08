@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../../api/axios';
 import { c, STATUS_META } from '../../styles/theme';
-import { useIsMobile } from '../../hooks/useMobile';
+import { useBreakpoint } from '../../hooks/useMobile';
 
 function StarPicker({ value, onChange }) {
   const [hover, setHover] = useState(0);
@@ -28,7 +28,7 @@ function StarPicker({ value, onChange }) {
 
 export default function UserBookingDetail() {
   const { id } = useParams();
-  const isMobile = useIsMobile();
+  const { isMobile } = useBreakpoint();
   const [booking, setBooking] = useState(null);
   const [error, setError] = useState('');
   const [msg, setMsg] = useState('');
@@ -161,7 +161,7 @@ export default function UserBookingDetail() {
                         {slDt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </div>
                     </div>
-                    <button style={s.selectBtn} onClick={() => selectSlot(sl.id)}>
+                    <button style={{ ...s.selectBtn, width: isMobile ? '100%' : 'auto', marginTop: isMobile ? 10 : 0 }} onClick={() => selectSlot(sl.id)}>
                       Select this slot →
                     </button>
                   </div>
@@ -333,6 +333,7 @@ const s = {
   slotCard: {
     background: 'rgba(255,255,255,.85)', borderRadius: 12, padding: '13px 16px',
     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+    flexWrap: 'wrap', gap: 8,
     border: '1px solid #FDE68A', backdropFilter: 'blur(8px)',
   },
   slotDay: { fontWeight: 600, fontSize: 14, color: 'var(--text)', marginBottom: 2 },

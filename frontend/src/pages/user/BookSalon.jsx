@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { createPortal } from 'react-dom';
 import api from '../../api/axios';
 import { c } from '../../styles/theme';
-import { useIsMobile } from '../../hooks/useMobile';
+import { useBreakpoint } from '../../hooks/useMobile';
 import MiniCalendar from '../../components/MiniCalendar';
 
 const STAFF_COLORS = ['#7C3AED','#0D9488','#2563EB','#059669','#D97706','#DC2626'];
@@ -25,7 +25,7 @@ const STEPS = ['Services', 'Professional', 'Date', 'Time', 'Confirm'];
 export default function BookSalon() {
   const { salonId } = useParams();
   const navigate = useNavigate();
-  const isMobile  = useIsMobile();
+  const { isMobile } = useBreakpoint();
   const [searchParams] = useSearchParams();
   const preIds = (searchParams.get('services') || '').split(',').map(Number).filter(Boolean);
   const [salon, setSalon] = useState(null);

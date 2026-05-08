@@ -3,7 +3,7 @@ import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useOwner } from '../context/OwnerContext';
 import { useTheme } from '../context/ThemeContext';
-import { useIsMobile } from '../hooks/useMobile';
+import { useBreakpoint } from '../hooks/useMobile';
 import api from '../api/axios';
 
 const NAV = [
@@ -32,7 +32,7 @@ export default function OwnerLayout() {
   const { isDark, toggle }  = useTheme();
   const navigate            = useNavigate();
   const location            = useLocation();
-  const isMobile            = useIsMobile();
+  const { isMobile, isTablet }  = useBreakpoint();
   const [collapsed, setCollapsed]       = useState(false);
   const [drawerOpen, setDrawerOpen]     = useState(false);
   const [unreadCount, setUnreadCount]   = useState(0);
@@ -72,7 +72,7 @@ export default function OwnerLayout() {
   const initials = (profile?.full_name || 'O').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
 
   const sidebarVisible = isMobile ? drawerOpen : true;
-  const sidebarWidth   = isMobile ? 272 : (collapsed ? 68 : 252);
+  const sidebarWidth   = isMobile ? 272 : (isTablet || collapsed) ? 68 : 252;
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg)' }}>
@@ -112,14 +112,14 @@ export default function OwnerLayout() {
           transform: drawerOpen ? 'translateX(0)' : 'translateX(-100%)',
           transition: 'transform .28s cubic-bezier(.4,0,.2,1)',
         } : {
-          width: collapsed ? 68 : 252,
+          width: (isTablet || collapsed) ? 68 : 252,
         }),
       }}>
 
         {/* Brand / header */}
         <div style={s.brandArea}>
-          <div style={s.brandIcon} onClick={() => setCollapsed(v => !v)} title={collapsed ? 'Expand' : 'Collapse'}>✦</div>
-          {!collapsed && (
+          <div style={s.brandIcon} onClick={() => !isMobile && setCollapsed(v => !v)} title={(collapsed || isTablet) ? 'Expand' : 'Collapse'}>✦</div>
+          {!(collapsed || isTablet) && (
             <>
               <div style={s.brandText}>
                 <div style={s.brandName}>{salon?.name || 'My Salon'}</div>
@@ -161,7 +161,7 @@ export default function OwnerLayout() {
               </div>
             </>
           )}
-          {collapsed && (
+          {(collapsed || isTablet) && !isMobile && (
             <button onClick={toggle} title={isDark ? 'Light mode' : 'Dark mode'} style={{ ...s.sideToggle, margin: '0 auto' }}>
               {isDark ? '☀' : '☾'}
             </button>
@@ -188,7 +188,7 @@ export default function OwnerLayout() {
         <nav style={s.nav}>
           {GROUPS.map(group => (
             <div key={group.key}>
-              {!collapsed && <div style={s.groupLabel}>{group.label}</div>}
+              {!(collapsed || isTablet) && <div style={s.groupLabel}>{group.label}</div>}
               {NAV.filter(n => n.group === group.key).map(item => (
                 <NavLink
                   key={item.to}
@@ -197,16 +197,16 @@ export default function OwnerLayout() {
                   className="nav-salon"
                   style={({ isActive }) => ({
                     ...s.navItem,
-                    ...(collapsed ? s.navItemCollapsed : {}),
+                    ...((collapsed || isTablet) ? s.navItemCollapsed : {}),
                     ...(isActive ? s.navActive : {}),
                   })}
-                  title={collapsed ? item.label : undefined}
+                  title={(collapsed || isTablet) ? item.label : undefined}
                 >
                   <span style={s.navIcon}>{item.icon}</span>
-                  {!collapsed && <span style={s.navLabel}>{item.label}</span>}
+                  {!(collapsed || isTablet) && <span style={s.navLabel}>{item.label}</span>}
                 </NavLink>
               ))}
-              {!collapsed && <div style={s.groupDivider} />}
+              {!(collapsed || isTablet) && <div style={s.groupDivider} />}
             </div>
           ))}
         </nav>
@@ -214,7 +214,7 @@ export default function OwnerLayout() {
         {/* Footer */}
         <div style={s.footer}>
           <div style={s.divider} />
-          {collapsed ? (
+          {(collapsed || isTablet) ? (
             <div style={s.avatarCollapsed} title={profile?.full_name}>{initials}</div>
           ) : (
             <div style={s.footerInner}>
@@ -226,25 +226,37 @@ export default function OwnerLayout() {
             </div>
           )}
           <button
-            style={{ ...s.logoutBtn, justifyContent: collapsed ? 'center' : 'flex-start' }}
+            style={{ ...s.logoutBtn, justifyContent: (collapsed || isTablet) ? 'center' : 'flex-start' }}
             onClick={handleLogout}
           >
             <span style={s.logoutIcon}>⎋</span>
-            {!collapsed && ' Sign Out'}
+            {!(collapsed || isTablet) && ' Sign Out'}
           </button>
         </div>
       </aside>
 
       <main style={{
         ...s.main,
-        marginLeft: isMobile ? 0 : (collapsed ? 68 : 252),
-        padding: isMobile ? '24px 16px 32px' : '36px 40px',
+        marginLeft: isMobile ? 0 : sidebarWidth,
+        padding: isMobile ? '16px 16px 80px' : isTablet ? '20px 20px 80px' : '36px 40px',
         marginTop: isMobile ? 56 : 0,
       }}>
         <div className="fade-in">
           <Outlet />
         </div>
       </main>
+
+      {/* Mobile bottom tab bar — main workspace items */}
+      {isMobile && (
+        <nav className="bottom-tab-bar owner-bottom-bar">
+          {NAV.filter(n => n.group === 'main').slice(0, 5).map(item => (
+            <NavLink key={item.to} to={item.to} end={item.to === '/owner/dashboard'}>
+              <span className="tab-icon">{item.icon}</span>
+              {item.label.split(' ')[0]}
+            </NavLink>
+          ))}
+        </nav>
+      )}
     </div>
   );
 }

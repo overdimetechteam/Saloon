@@ -555,3 +555,202 @@ button:disabled {
 @media (min-width: 641px) and (max-width: 900px) {
   .grid-3col { grid-template-columns: repeat(2, 1fr) !important; }
 }
+
+/* ════════════════════════════════════════════════════
+   COMPREHENSIVE MOBILE / TABLET RESPONSIVE SYSTEM
+   iPhone (375-430px) · iPad (640-1023px) · Desktop (1024px+)
+   ════════════════════════════════════════════════════ */
+
+/* Safe-area support for iPhone notch / Dynamic Island */
+:root {
+  --safe-top:    env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left:   env(safe-area-inset-left,  0px);
+  --safe-right:  env(safe-area-inset-right, 0px);
+}
+
+/* Prevent horizontal scroll bleed */
+html, body { overflow-x: hidden; }
+
+/* Minimum tap target for touch */
+button, a, [role="button"] { touch-action: manipulation; }
+
+/* ── Global page container ── */
+.page-container {
+  width: 100%; max-width: 1320px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
+@media (max-width: 1023px) { .page-container { padding: 0 24px; } }
+@media (max-width: 639px)  { .page-container { padding: 0 16px; } }
+
+/* ── Mobile (< 640px — iPhone) ── */
+@media (max-width: 639px) {
+  /* Layout helpers */
+  .mob-stack  { flex-direction: column !important; }
+  .mob-center { text-align: center !important; justify-content: center !important; }
+  .mob-full   { width: 100% !important; max-width: 100% !important; flex: 1 !important; }
+  .mob-hide   { display: none !important; }
+  .mob-show   { display: flex !important; }
+  .mob-p      { padding: 20px 16px !important; }
+  .mob-gap-sm { gap: 10px !important; }
+
+  /* Grid collapse */
+  .grid-2col, .grid-3col, .grid-4col {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  /* Typography scale-down */
+  .hero-display { font-size: clamp(26px, 7vw, 34px) !important; }
+  .hero-title   { font-size: clamp(22px, 6vw, 28px) !important; }
+  .section-h    { font-size: clamp(16px, 4.5vw, 20px) !important; }
+
+  /* Form helpers */
+  .mob-form-full input,
+  .mob-form-full select,
+  .mob-form-full textarea,
+  .mob-form-full button { width: 100% !important; }
+
+  /* Card helpers */
+  .mob-card-p { padding: 16px !important; }
+  .mob-card-r { border-radius: 14px !important; }
+
+  /* Stats strip — wrap on narrow */
+  .stats-strip { flex-wrap: wrap !important; }
+  .stats-strip > * { flex: 1 !important; min-width: 100px !important; border-right: none !important; border-bottom: 1px solid var(--border) !important; }
+  .stats-strip > *:last-child { border-bottom: none !important; }
+
+  /* Bottom tab safe area */
+  .bottom-tab-bar { padding-bottom: var(--safe-bottom); height: calc(60px + var(--safe-bottom)); }
+  .bottom-tab-bar a { padding-bottom: 4px; }
+}
+
+/* ── Tablet (640px – 1023px — iPad) ── */
+@media (min-width: 640px) and (max-width: 1023px) {
+  /* Layout helpers */
+  .tab-stack  { flex-direction: column !important; }
+  .tab-2col   { grid-template-columns: repeat(2, 1fr) !important; }
+  .tab-hide   { display: none !important; }
+  .tab-p      { padding: 28px 24px !important; }
+
+  /* Grid adjustments */
+  .grid-3col  { grid-template-columns: repeat(2, 1fr) !important; }
+  .grid-4col  { grid-template-columns: repeat(2, 1fr) !important; }
+
+  /* Typography */
+  .hero-display { font-size: clamp(32px, 5vw, 52px) !important; }
+}
+
+/* ── Admin sidebar ── */
+.admin-sidebar-wrap {
+  display: flex;
+  min-height: 100vh;
+  background: var(--bg);
+}
+.admin-main {
+  flex: 1;
+  min-height: 100vh;
+  padding: 36px 40px;
+  background: var(--bg);
+}
+@media (max-width: 1023px) {
+  .admin-main { margin-left: 0 !important; padding: 20px 20px 80px !important; margin-top: 56px !important; }
+}
+@media (max-width: 639px) {
+  .admin-main { padding: 16px 16px 80px !important; }
+}
+
+/* ── Owner sidebar responsive ── */
+@media (max-width: 1023px) {
+  .owner-main { padding: 20px 20px 80px !important; }
+}
+@media (max-width: 639px) {
+  .owner-main { padding: 16px 16px 80px !important; }
+}
+
+/* ── Notification dropdown — full screen on mobile ── */
+@media (max-width: 639px) {
+  .notif-dropdown {
+    position: fixed !important;
+    top: 56px !important; left: 8px !important; right: 8px !important;
+    width: auto !important;
+    border-radius: 18px !important;
+    max-height: 70vh !important;
+    overflow: hidden !important;
+  }
+}
+
+/* ── Modal overlays — full screen on mobile ── */
+@media (max-width: 639px) {
+  .modal-inner {
+    border-radius: 20px 20px 0 0 !important;
+    position: fixed !important;
+    bottom: 0 !important; left: 0 !important; right: 0 !important;
+    max-height: 90vh !important;
+    overflow-y: auto !important;
+  }
+}
+
+/* ── Tables → card stacks on mobile ── */
+@media (max-width: 639px) {
+  .resp-table thead { display: none; }
+  .resp-table tr    { display: block; margin-bottom: 12px; border-radius: 14px; border: 1px solid var(--border); }
+  .resp-table td    { display: flex; justify-content: space-between; padding: 8px 14px; font-size: 13px; }
+  .resp-table td::before { content: attr(data-label); font-weight: 600; color: var(--text-muted); }
+}
+
+/* ── Registration step form ── */
+@media (max-width: 639px) {
+  .reg-step-bar { gap: 4px !important; }
+  .reg-step-bar .step-connector { flex: 1 !important; min-width: 12px !important; }
+}
+
+/* ── Booking calendar on mobile ── */
+@media (max-width: 639px) {
+  .mini-cal-wrap { max-width: 100% !important; }
+}
+
+/* ── Salon detail sections ── */
+@media (max-width: 639px) {
+  .salon-body { padding: 24px 16px 48px !important; }
+  .salon-hero { padding: 28px 16px 22px !important; }
+}
+
+/* ── Hero headings ── */
+@media (max-width: 639px) {
+  h1.resp { font-size: clamp(22px, 6.5vw, 30px) !important; }
+  h2.resp { font-size: clamp(18px, 5vw,  24px) !important; }
+}
+
+/* ── Page header (title + action button) stacking ── */
+.page-header {
+  display: flex; align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap; gap: 12px; margin-bottom: 26px;
+}
+@media (max-width: 639px) {
+  .page-header { flex-direction: column !important; }
+  .page-header button, .page-header a { width: 100% !important; text-align: center !important; justify-content: center !important; }
+}
+
+/* ── Two-panel auth layout ── */
+.auth-left-panel {
+  flex: 1;
+  display: flex;
+  min-height: 100vh;
+}
+@media (max-width: 767px) {
+  .auth-left-panel { display: none !important; }
+}
+
+/* ── Search bar full width on mobile ── */
+@media (max-width: 639px) {
+  .hero-search-wrap { width: 100% !important; max-width: 100% !important; }
+}
+
+/* ── Owner bottom tab bar (mobile only) ── */
+@media (min-width: 640px) {
+  .owner-bottom-bar { display: none !important; }
+}
+

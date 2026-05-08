@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../../api/axios';
 import { useOwner } from '../../context/OwnerContext';
+import { useBreakpoint } from '../../hooks/useMobile';
 
 const PERIODS = [
   { key: 'week',  label: 'Last 7 Days' },
@@ -10,6 +11,7 @@ const PERIODS = [
 
 export default function OwnerAnalytics() {
   const { salon } = useOwner();
+  const { isMobile, isTablet } = useBreakpoint();
   const [period, setPeriod] = useState('month');
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -45,7 +47,7 @@ export default function OwnerAnalytics() {
       </div>
 
       {loading && (
-        <div style={s.loadGrid}>
+        <div style={{ ...s.loadGrid, gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)' }}>
           {[1,2,3,4].map(i => <div key={i} style={s.skeleton} className="shimmer" />)}
         </div>
       )}
@@ -66,7 +68,7 @@ export default function OwnerAnalytics() {
             </div>
           )}
 
-          <div style={s.twoCol}>
+          <div style={{ ...s.twoCol, gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr' }}>
             {data.top_services?.length > 0 && (
               <div style={s.card} className="fade-up d2">
                 <div style={s.cardEyebrow}>Top Services</div>

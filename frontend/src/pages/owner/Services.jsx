@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../../api/axios';
 import { useOwner } from '../../context/OwnerContext';
+import { useBreakpoint } from '../../hooks/useMobile';
 
 const CAT_COLORS = { Hair: '#8B5CF6', Nails: '#0D9488', Skin: '#10B981', Makeup: '#F59E0B', Other: '#2563EB' };
 const CATEGORIES = ['Hair', 'Nails', 'Skin', 'Makeup'];
@@ -43,6 +44,7 @@ function EditModal({ ss, onSave, onClose }) {
 
 export default function OwnerServices() {
   const { salon } = useOwner();
+  const { isMobile } = useBreakpoint();
   const [attached, setAttached] = useState([]);
   const [all, setAll]           = useState([]);
   const [toAdd, setToAdd]       = useState('');
@@ -127,14 +129,14 @@ export default function OwnerServices() {
         />
       )}
 
-      <div style={s.pageHeader} className="fade-up">
+      <div style={{ ...s.pageHeader, flexDirection: isMobile ? 'column' : 'row' }} className="fade-up">
         <div>
           <div style={s.eyebrow}>Catalogue</div>
           <h2 style={s.title}>Services</h2>
         </div>
-        <div style={s.headerRight}>
-          <div style={s.addRow}>
-            <select style={s.select} value={toAdd} onChange={e => setToAdd(e.target.value)}>
+        <div style={{ ...s.headerRight, flexDirection: isMobile ? 'column' : 'row', width: isMobile ? '100%' : 'auto' }}>
+          <div style={{ ...s.addRow, width: isMobile ? '100%' : 'auto' }}>
+            <select style={{ ...s.select, flex: isMobile ? 1 : 'none' }} value={toAdd} onChange={e => setToAdd(e.target.value)}>
               <option value="">— Attach from catalogue —</option>
               {available.map(sv => <option key={sv.id} value={sv.id}>{sv.name} ({sv.category})</option>)}
             </select>
@@ -142,7 +144,7 @@ export default function OwnerServices() {
               Attach
             </button>
           </div>
-          <button style={s.createBtn} onClick={() => setShowCreate(o => !o)}>
+          <button style={{ ...s.createBtn, width: isMobile ? '100%' : 'auto' }} onClick={() => setShowCreate(o => !o)}>
             {showCreate ? '✕ Cancel' : '+ Create Custom'}
           </button>
         </div>

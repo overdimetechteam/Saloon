@@ -3,11 +3,13 @@ import { Link } from 'react-router-dom';
 import api from '../../api/axios';
 import { useOwner } from '../../context/OwnerContext';
 import { c, STATUS_META } from '../../styles/theme';
+import { useBreakpoint } from '../../hooks/useMobile';
 
 const STATUSES = ['pending','confirmed','awaiting_client','rescheduled','cancelled','completed','flagged'];
 
 export default function OwnerBookingList() {
   const { salon } = useOwner();
+  const { isMobile } = useBreakpoint();
   const [bookings, setBookings] = useState([]);
   const [filter, setFilter] = useState('all');
   const [loading, setLoading] = useState(true);
@@ -25,7 +27,7 @@ export default function OwnerBookingList() {
 
   return (
     <div>
-      <div style={s.header} className="fade-up">
+      <div style={{ ...s.header, flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? 14 : 12 }} className="fade-up">
         <div>
           <div style={s.eyebrow}>Management</div>
           <h2 style={s.title}>Bookings</h2>
@@ -36,7 +38,7 @@ export default function OwnerBookingList() {
             </div>
           )}
         </div>
-        <button style={s.walkInBtn} onClick={() => setShowWalkIn(true)}>
+        <button style={{ ...s.walkInBtn, alignSelf: isMobile ? 'stretch' : 'auto' }} onClick={() => setShowWalkIn(true)}>
           + Walk-In Booking
         </button>
       </div>
@@ -98,16 +100,19 @@ export default function OwnerBookingList() {
           return (
             <div
               key={b.id}
-              style={{ ...s.card, ...(isPending ? s.cardPending : {}) }}
+              style={{ ...s.card, ...(isPending ? s.cardPending : {}), flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'stretch' : 'center' }}
               className={`lift-sm fade-up d${Math.min(i + 1, 5)}`}
             >
-              <div style={{ ...s.colorTab, background: `linear-gradient(180deg, ${meta.color}, ${meta.color}66)` }} />
+              <div style={isMobile
+                ? { height: 3, background: `linear-gradient(90deg, ${meta.color}, ${meta.color}66)`, flexShrink: 0 }
+                : { ...s.colorTab, background: `linear-gradient(180deg, ${meta.color}, ${meta.color}66)` }
+              } />
 
-              <div style={s.clientSection}>
+              <div style={{ ...s.clientSection, flex: 1 }}>
                 <div style={{ ...s.avatar, background: meta.bg, color: meta.color, boxShadow: `0 4px 12px ${meta.color}28` }}>
                   {b.client_name?.[0]?.toUpperCase() || b.client_email?.[0]?.toUpperCase()}
                 </div>
-                <div>
+                <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={s.clientName}>
                     {b.client_name || b.client_email}
                     {b.is_walk_in && <span style={s.walkInBadge}>Walk-In</span>}
@@ -125,7 +130,7 @@ export default function OwnerBookingList() {
                 </div>
               </div>
 
-              <div style={s.rightSection}>
+              <div style={{ ...s.rightSection, flexDirection: isMobile ? 'row' : 'column', justifyContent: isMobile ? 'space-between' : 'center', padding: isMobile ? '10px 16px 14px' : '14px 20px', borderTop: isMobile ? '1px solid var(--border)' : 'none' }}>
                 <span style={{ ...s.badge, color: meta.color, background: meta.bg, border: `1px solid ${meta.color}30` }}>
                   {meta.label}
                 </span>
@@ -427,7 +432,7 @@ const m = {
     background: '#FEF2F2', border: '1px solid #FCA5A5',
     color: '#DC2626', borderRadius: 12, padding: '10px 14px', fontSize: 13, marginBottom: 18,
   },
-  grid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 },
+  grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 14, marginBottom: 14 },
   field: { display: 'flex', flexDirection: 'column', gap: 6 },
   fieldFull: { display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 14 },
   label: {

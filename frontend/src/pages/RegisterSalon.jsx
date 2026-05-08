@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../api/axios';
+import { useBreakpoint } from '../hooks/useMobile';
 
 const DAYS       = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday'];
 const CATEGORIES = ['Hair', 'Nails', 'Skin', 'Makeup'];
 const EMPTY_SVC  = { name: '', category: 'Hair', price: '', duration: '', show_price: true };
 
 export default function RegisterSalon() {
+  const { isMobile } = useBreakpoint();
   const [step, setStep]   = useState(1);
   const [form, setForm]   = useState({
     name: '', business_reg_number: '',
@@ -76,11 +78,11 @@ export default function RegisterSalon() {
   const advance = e => { e.preventDefault(); setStep(p => p + 1); };
 
   return (
-    <div style={s.page}>
-      <div style={s.card} className="fade-up">
+    <div style={{ ...s.page, padding: isMobile ? '24px 12px 48px' : '48px 20px' }}>
+      <div style={{ ...s.card, padding: isMobile ? '28px 20px' : '44px 40px' }} className="fade-up">
         <div style={s.header}>
           <div style={s.headerMark}>✦</div>
-          <h1 style={s.title}>Register Your Salon</h1>
+          <h1 style={{ ...s.title, fontSize: isMobile ? 26 : 34 }}>Register Your Salon</h1>
           <p style={s.sub}>Step {step} of {TOTAL_STEPS} — {STEP_LABELS[step - 1]}</p>
           <div style={s.stepBar}>
             {[1,2,3,4].map(n => (
@@ -311,8 +313,8 @@ const s = {
   field:  { display: 'flex', flexDirection: 'column', gap: 7 },
   label:  { fontSize: 13, fontWeight: 600, color: 'var(--text-sub)', letterSpacing: '0.01em' },
   input:  { padding: '12px 15px', border: '1.5px solid var(--border)', borderRadius: 11, fontSize: 14, background: 'var(--input-bg)', outline: 'none', width: '100%', boxSizing: 'border-box', color: 'var(--text)', fontFamily: "'DM Sans', sans-serif" },
-  row2:   { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 },
-  dayRow: { display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: '1px solid var(--border)' },
+  row2:   { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(240px, 100%), 1fr))', gap: 14 },
+  dayRow: { display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderBottom: '1px solid var(--border)', flexWrap: 'wrap' },
   dayName:    { width: 38, fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.06em' },
   checkLabel: { fontSize: 13, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', width: 72 },
   timeInput:  { padding: '7px 11px', border: '1.5px solid var(--border)', borderRadius: 9, fontSize: 13, color: 'var(--text)', background: 'var(--input-bg)', fontFamily: "'DM Sans', sans-serif" },

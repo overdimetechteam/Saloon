@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useBreakpoint } from '../hooks/useMobile';
 
 export default function RegisterClient() {
   const { register } = useAuth();
   const navigate = useNavigate();
+  const { isMobile, isTablet } = useBreakpoint();
   const [form, setForm]     = useState({ email: '', full_name: '', phone: '', password: '' });
   const [error, setError]   = useState('');
   const [loading, setLoading] = useState(false);
@@ -22,35 +24,48 @@ export default function RegisterClient() {
   };
 
   return (
-    <div style={s.page}>
-      {/* Left panel */}
-      <div style={s.left}>
-        <div style={s.leftInner}>
-          <div style={s.leftMark}>✦</div>
-          <div style={s.leftTitle}>Join Saloon</div>
-          <div style={s.leftTagline}>Beauty & Wellness</div>
-          <div style={s.leftDivider} />
-          <p style={s.leftQuote}>
-            "Book your perfect beauty experience in seconds. Discover, book, and glow."
-          </p>
-          <div style={s.leftFeatures}>
-            {['Discover premium salons', 'Instant appointment booking', 'Your beauty, on your schedule'].map(f => (
-              <div key={f} style={s.leftFeature}>
-                <span style={s.leftFeatureDot}>✦</span>
-                <span>{f}</span>
-              </div>
-            ))}
+    <div style={{ ...s.page, flexDirection: (isMobile || isTablet) ? 'column' : 'row' }}>
+      {/* Left panel — hidden on mobile/tablet */}
+      {!(isMobile || isTablet) && (
+        <div style={s.left}>
+          <div style={s.leftInner}>
+            <div style={s.leftMark}>✦</div>
+            <div style={s.leftTitle}>Join Saloon</div>
+            <div style={s.leftTagline}>Beauty & Wellness</div>
+            <div style={s.leftDivider} />
+            <p style={s.leftQuote}>
+              "Book your perfect beauty experience in seconds. Discover, book, and glow."
+            </p>
+            <div style={s.leftFeatures}>
+              {['Discover premium salons', 'Instant appointment booking', 'Your beauty, on your schedule'].map(feat => (
+                <div key={feat} style={s.leftFeature}>
+                  <span style={s.leftFeatureDot}>✦</span>
+                  <span>{feat}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div style={s.leftBlob1} />
+          <div style={s.leftBlob2} />
+        </div>
+      )}
+
+      {/* Mobile/tablet compact header */}
+      {(isMobile || isTablet) && (
+        <div style={{ background: 'linear-gradient(145deg, #1A0532 0%, #2D0A5E 50%, #7C3AED 100%)', padding: isMobile ? '28px 20px 22px' : '32px 24px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'relative', zIndex: 2 }}>
+            <div style={{ fontSize: 22, color: '#C4B5FD', marginBottom: 6 }}>✦</div>
+            <div style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: isMobile ? 28 : 34, fontWeight: 700, color: '#fff', lineHeight: 1, letterSpacing: '-0.02em' }}>Join Saloon</div>
+            <div style={{ fontSize: 10, color: 'rgba(196,181,253,.75)', letterSpacing: '0.2em', textTransform: 'uppercase', marginTop: 6 }}>Beauty & Wellness</div>
           </div>
         </div>
-        <div style={s.leftBlob1} />
-        <div style={s.leftBlob2} />
-      </div>
+      )}
 
       {/* Right panel */}
-      <div style={s.right}>
-        <div style={s.formWrap} className="fade-up">
+      <div style={{ ...s.right, padding: isMobile ? '28px 20px 40px' : isTablet ? '36px 32px' : '60px 40px' }}>
+        <div style={{ ...s.formWrap, maxWidth: (isMobile || isTablet) ? '100%' : 400, width: '100%' }} className="fade-up">
           <div style={s.formHeader}>
-            <h1 style={s.formTitle}>Create account</h1>
+            <h1 style={{ ...s.formTitle, fontSize: isMobile ? 26 : isTablet ? 30 : 38 }}>Create account</h1>
             <p style={s.formSub}>Your luxury beauty journey starts here</p>
           </div>
 

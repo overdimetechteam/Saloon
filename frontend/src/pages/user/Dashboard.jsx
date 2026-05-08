@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
 import { STATUS_META } from '../../styles/theme';
-import { useIsMobile } from '../../hooks/useMobile';
+import { useBreakpoint } from '../../hooks/useMobile';
 
 const HOUR     = new Date().getHours();
 const GREETING = HOUR < 12 ? 'Good morning' : HOUR < 17 ? 'Good afternoon' : 'Good evening';
@@ -17,7 +17,7 @@ const FAV_PALETTE = [
 
 export default function UserDashboard() {
   const { profile } = useAuth();
-  const isMobile    = useIsMobile();
+  const { isMobile, isTablet } = useBreakpoint();
   const [bookings,   setBookings]   = useState([]);
   const [favourites, setFavourites] = useState([]);
   const [offers,     setOffers]     = useState([]);
@@ -70,13 +70,13 @@ export default function UserDashboard() {
       </div>
 
       {/* ── Stats strip ── */}
-      <div style={s.statsStrip} className="fade-up d2">
+      <div style={{ ...s.statsStrip, flexWrap: isMobile ? 'wrap' : 'nowrap' }} className="fade-up d2">
         {[
           { label: 'Upcoming',     value: bookings.filter(b => ['pending','confirmed'].includes(b.status)).length, color: '#7C3AED', icon: '◉' },
           { label: 'Need Action',  value: bookings.filter(b => b.status === 'awaiting_client').length,             color: '#D97706', icon: '⚡' },
           { label: 'Total Active', value: bookings.length,                                                          color: '#059669', icon: '◈' },
         ].map((stat, i) => (
-          <div key={stat.label} style={{ ...s.statItem, borderRight: i < 2 ? '1px solid var(--border)' : 'none' }}>
+          <div key={stat.label} style={{ ...s.statItem, flex: isMobile ? '1 0 calc(50% - 1px)' : 1, borderRight: (isMobile && i === 1) ? 'none' : i < 2 ? '1px solid var(--border)' : 'none', borderBottom: isMobile && i < 2 ? '1px solid var(--border)' : 'none' }}>
             <div style={{ ...s.statIconWrap, color: stat.color, background: stat.color + '14' }}>
               {stat.icon}
             </div>
@@ -119,10 +119,10 @@ export default function UserDashboard() {
       )}
 
       {/* ── Main content: Favourites + Appointments ── */}
-      <div style={{ ...s.mainRow, flexDirection: isMobile ? 'column' : 'row' }}>
+      <div style={{ ...s.mainRow, flexDirection: (isMobile || isTablet) ? 'column' : 'row' }}>
 
         {/* ── Favourite Salons column ── */}
-        <div style={{ ...s.favCol, width: isMobile ? '100%' : 280 }}>
+        <div style={{ ...s.favCol, width: (isMobile || isTablet) ? '100%' : 280 }}>
           <div style={s.sectionHead}>
             <div>
               <div style={s.sectionEyebrow}>Saved</div>
@@ -211,7 +211,7 @@ export default function UserDashboard() {
             </div>
           )}
 
-          <div style={s.grid}>
+          <div style={{ ...s.grid, gridTemplateColumns: isMobile ? '1fr' : isTablet ? 'repeat(2, 1fr)' : 'repeat(auto-fill, minmax(260px, 1fr))' }}>
             {bookings.map((b, i) => {
               const meta = STATUS_META[b.status] || { label: b.status, color: '#888', bg: '#f0f0f0' };
               const dt   = new Date(b.requested_datetime);

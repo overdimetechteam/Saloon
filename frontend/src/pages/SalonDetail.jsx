@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
-import { useIsMobile } from '../hooks/useMobile';
+import { useBreakpoint } from '../hooks/useMobile';
 
 const MOCK_PHOTOS = [
   { grad: 'linear-gradient(135deg, #7C3AED 0%, #0D9488 100%)', label: 'Styling Area'  },
@@ -50,7 +50,7 @@ function Stars({ rating, size = 14 }) {
 export default function SalonDetail() {
   const { id } = useParams();
   const { profile } = useAuth();
-  const isMobile = useIsMobile();
+  const { isMobile, isTablet } = useBreakpoint();
   const [salon, setSalon]           = useState(null);
   const [services, setServices]     = useState([]);
   const [otherSalons, setOther]     = useState([]);
@@ -182,7 +182,7 @@ export default function SalonDetail() {
       </div>
 
       {/* BODY */}
-      <div style={{ ...s.body, padding: isMobile ? '28px 16px 40px' : '44px 48px' }}>
+      <div style={{ ...s.body, padding: isMobile ? '20px 16px 48px' : isTablet ? '28px 20px' : '44px 48px' }}>
 
         {/* Services */}
         <section style={s.sec} className="fade-up">
@@ -204,7 +204,7 @@ export default function SalonDetail() {
               return (
                 <div key={cat} style={{ marginBottom: 28 }}>
                   <div style={{ ...s.catBadge, background: cc + '14', color: cc, border: `1px solid ${cc}28` }}>{cat}</div>
-                  <div style={s.svcGrid}>
+                  <div style={{ ...s.svcGrid, gridTemplateColumns: isMobile ? '1fr' : isTablet ? 'repeat(2,1fr)' : 'repeat(auto-fill,minmax(230px,1fr))' }}>
                     {items.map(ss => (
                       <div key={ss.id} style={s.svcCard} className="lift-sm">
                         <div style={s.svcName}>{ss.service_name}</div>
@@ -288,7 +288,7 @@ export default function SalonDetail() {
         <section style={s.sec} className="fade-up d2">
           <div style={s.eyebrowSm}>Meet the Experts</div>
           <h2 style={s.secTitle}>Our Team</h2>
-          <div style={s.teamGrid}>
+          <div style={{ ...s.teamGrid, gridTemplateColumns: isMobile ? 'repeat(2,1fr)' : isTablet ? 'repeat(2,1fr)' : 'repeat(auto-fill,minmax(200px,1fr))' }}>
             {MOCK_TEAM.map((m, i) => (
               <div key={i} style={{ ...s.teamCard, borderTop: `3px solid ${m.color}` }} className="lift-sm">
                 <div style={{ ...s.teamAvatar, background: m.bg, color: m.color, boxShadow: `0 4px 14px ${m.color}28` }}>
@@ -324,7 +324,7 @@ export default function SalonDetail() {
               No reviews yet. Be the first to review after your visit!
             </div>
           ) : (
-            <div style={s.reviewGrid}>
+            <div style={{ ...s.reviewGrid, gridTemplateColumns: isMobile ? '1fr' : isTablet ? 'repeat(2,1fr)' : 'repeat(auto-fill,minmax(290px,1fr))' }}>
               {reviews.slice(0, 5).map((r, i) => (
                 <div key={r.id} style={s.reviewCard} className={`lift-sm fade-up d${i + 1}`}>
                   <div style={s.reviewTop}>
@@ -505,7 +505,7 @@ const s = {
   eyebrowSm: { fontSize: 10, fontWeight: 700, color: 'var(--brand-label)', letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: 6 },
   secTitle: {
     fontFamily: "'Cormorant Garamond', Georgia, serif",
-    fontSize: 28, fontWeight: 700, color: 'var(--text)', marginBottom: 24, letterSpacing: '-0.01em',
+    fontSize: 'clamp(20px, 3.5vw, 28px)', fontWeight: 700, color: 'var(--text)', marginBottom: 24, letterSpacing: '-0.01em',
   },
   bookAllBtn: {
     padding: '9px 22px',

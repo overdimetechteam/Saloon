@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useIsMobile } from '../hooks/useMobile';
+import { useBreakpoint } from '../hooks/useMobile';
 
 export default function Login() {
   const { login } = useAuth();
   const navigate  = useNavigate();
-  const isMobile  = useIsMobile();
+  const { isMobile, isTablet } = useBreakpoint();
   const [form, setForm]     = useState({ email: '', password: '' });
   const [error, setError]   = useState('');
   const [loading, setLoading] = useState(false);
@@ -24,9 +24,9 @@ export default function Login() {
   };
 
   return (
-    <div style={{ ...s.page, flexDirection: isMobile ? 'column' : 'row' }}>
-      {/* Left panel — brand / visual (hidden on mobile, replaced by header strip) */}
-      {isMobile ? (
+    <div style={{ ...s.page, flexDirection: (isMobile || isTablet) ? 'column' : 'row' }}>
+      {/* Left panel — brand / visual (hidden on mobile/tablet, replaced by header strip) */}
+      {(isMobile || isTablet) ? (
         <div style={s.mobileBrand}>
           <div style={s.mobileBrandInner}>
             <div style={{ fontSize: 22, color: '#7C3AED', marginBottom: 4 }}>✦</div>
@@ -60,10 +60,10 @@ export default function Login() {
       )}
 
       {/* Right panel — form */}
-      <div style={{ ...s.right, padding: isMobile ? '32px 22px 48px' : '60px 40px' }}>
-        <div style={{ ...s.formWrap, maxWidth: isMobile ? '100%' : 400 }} className="fade-up">
+      <div style={{ ...s.right, padding: isMobile ? '28px 20px 40px' : isTablet ? '40px 32px' : '60px 40px' }}>
+        <div style={{ ...s.formWrap, maxWidth: (isMobile || isTablet) ? '100%' : 400, width: '100%' }} className="fade-up">
           <div style={s.formHeader}>
-            <h1 style={{ ...s.formTitle, fontSize: isMobile ? 30 : 38 }}>Welcome back</h1>
+            <h1 style={{ ...s.formTitle, fontSize: isMobile ? 28 : isTablet ? 32 : 38 }}>Welcome back</h1>
             <p style={s.formSub}>Sign in to continue your journey</p>
           </div>
 

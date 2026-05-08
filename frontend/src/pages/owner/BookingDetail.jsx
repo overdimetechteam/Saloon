@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import api from '../../api/axios';
 import { c, STATUS_META } from '../../styles/theme';
 import MiniCalendar from '../../components/MiniCalendar';
+import { useBreakpoint } from '../../hooks/useMobile';
 
 /* ─── Compact date+time picker for a single slot ──────────────────────── */
 function SlotPicker({ label, value, onChange, operatingHours }) {
@@ -72,6 +73,7 @@ const sp = {
 /* ─── Main component ───────────────────────────────────────────────────── */
 export default function OwnerBookingDetail() {
   const { id } = useParams();
+  const { isMobile } = useBreakpoint();
   const [booking, setBooking] = useState(null);
   const [error, setError]     = useState('');
   const [msg, setMsg]         = useState('');
@@ -157,7 +159,7 @@ export default function OwnerBookingDetail() {
             {error && <div style={s.alertErr}>{error}</div>}
             {msg   && <div style={s.alertOk}>{msg}</div>}
 
-            <div style={s.infoGrid}>
+            <div style={{ ...s.infoGrid, gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr' }}>
               <div style={s.infoBox}>
                 <div style={s.infoLbl}>Date & Time</div>
                 <div style={s.infoVal}>{new Date(booking.requested_datetime).toLocaleString()}</div>

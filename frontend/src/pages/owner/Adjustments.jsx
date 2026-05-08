@@ -156,7 +156,7 @@ const s = {
     marginTop: 6, fontSize: 13, color: 'var(--text-muted)',
     padding: '7px 12px', background: 'var(--surface2)', borderRadius: 8, border: '1px solid var(--border)',
   },
-  reasonGrid: { display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 8, marginTop: 6 },
+  reasonGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: 8, marginTop: 6 },
   reasonCard: {
     display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
     padding: '10px 6px', border: '2px solid var(--border)', borderRadius: 11, cursor: 'pointer',

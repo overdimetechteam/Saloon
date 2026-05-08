@@ -1,6 +1,7 @@
 ﻿import { useState, useEffect } from 'react';
 import api from '../../api/axios';
 import { useOwner } from '../../context/OwnerContext';
+import { useBreakpoint } from '../../hooks/useMobile';
 
 const COLORS = ['#7C3AED','#0D9488','#2563EB','#059669','#D97706','#DC2626'];
 const ALL_DAYS = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday'];
@@ -10,6 +11,7 @@ const emptyForm = () => ({ full_name: '', role: '', phone: '', specialties: [], 
 
 export default function OwnerTeam() {
   const { salon } = useOwner();
+  const { isMobile } = useBreakpoint();
   const [staff, setStaff] = useState([]);
   const [salonServices, setSalonServices] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -103,13 +105,13 @@ export default function OwnerTeam() {
 
   return (
     <div style={s.page}>
-      <div style={s.header} className="fade-up">
+      <div style={{ ...s.header, flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? 14 : undefined }} className="fade-up">
         <div>
           <div style={s.eyebrow}>Staff</div>
           <h1 style={s.title}>Team</h1>
           <p style={s.sub}>Manage professionals at {salon.name}</p>
         </div>
-        <button style={s.addBtn} onClick={openAdd}>+ Add Member</button>
+        <button style={{ ...s.addBtn, alignSelf: isMobile ? 'stretch' : 'auto' }} onClick={openAdd}>+ Add Member</button>
       </div>
 
       {msg && (
@@ -124,7 +126,7 @@ export default function OwnerTeam() {
           <div style={s.formTitle}>{editing ? 'Edit Team Member' : 'Add Team Member'}</div>
           {error && <div style={s.alert}>{error}</div>}
           <form onSubmit={save}>
-            <div style={s.formGrid}>
+            <div style={{ ...s.formGrid, gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr' }}>
               <div style={s.field}>
                 <label style={s.label}>Full Name *</label>
                 <input style={s.input} value={form.full_name}
