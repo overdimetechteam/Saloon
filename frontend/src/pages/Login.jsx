@@ -29,7 +29,7 @@ export default function Login() {
       {isMobile ? (
         <div style={s.mobileBrand}>
           <div style={s.mobileBrandInner}>
-            <div style={{ fontSize: 22, color: '#EC4899', marginBottom: 4 }}>✦</div>
+            <div style={{ fontSize: 22, color: '#7C3AED', marginBottom: 4 }}>✦</div>
             <div style={s.leftTitle}>Saloon</div>
             <div style={{ ...s.leftTagline, fontSize: 10 }}>Beauty & Wellness</div>
           </div>
@@ -138,9 +138,9 @@ const s = {
   },
   leftInner: { position: 'relative', zIndex: 2, color: '#fff' },
   leftMark: {
-    fontSize: 32, fontWeight: 900, color: '#EC4899',
+    fontSize: 32, fontWeight: 900, color: '#7C3AED',
     marginBottom: 12,
-    filter: 'drop-shadow(0 0 12px rgba(236,72,153,.5))',
+    filter: 'drop-shadow(0 0 12px rgba(124,58,237,.5))',
   },
   leftTitle: {
     fontFamily: "'Cormorant Garamond', Georgia, serif",
@@ -153,7 +153,7 @@ const s = {
   },
   leftDivider: {
     width: 48, height: 2, marginTop: 32, marginBottom: 28,
-    background: 'linear-gradient(90deg, #EC4899, transparent)',
+    background: 'linear-gradient(90deg, #7C3AED, transparent)',
     borderRadius: 2,
   },
   leftQuote: {
@@ -217,7 +217,7 @@ const s = {
   },
   btn: {
     marginTop: 4, padding: '14px',
-    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #EC4899 100%)',
+    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #0D9488 100%)',
     color: '#fff', border: 'none', borderRadius: 12,
     fontSize: 15, fontWeight: 600, cursor: 'pointer', width: '100%',
     boxShadow: '0 6px 20px rgba(124,58,237,.35), inset 0 1px 0 rgba(255,255,255,.15)',

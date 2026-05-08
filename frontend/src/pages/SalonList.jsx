@@ -4,7 +4,7 @@ import api from '../api/axios';
 import { useTheme } from '../context/ThemeContext';
 import { useIsMobile } from '../hooks/useMobile';
 
-const PALETTE = ['#7C3AED','#9B59E8','#EC4899','#BE185D','#A78BFA','#8B5CF6'];
+const PALETTE = ['#7C3AED','#9B59E8','#0D9488','#0F766E','#A78BFA','#8B5CF6'];
 
 export default function SalonList() {
   const { isDark } = useTheme();
@@ -86,7 +86,7 @@ export default function SalonList() {
                 <defs>
                   <linearGradient id="emptyG1" x1="0" y1="0" x2="1" y2="1">
                     <stop offset="0%" stopColor="#7C3AED"/>
-                    <stop offset="100%" stopColor="#EC4899"/>
+                    <stop offset="100%" stopColor="#0D9488"/>
                   </linearGradient>
                 </defs>
                 <circle cx="13" cy="13" r="7.5" stroke="url(#emptyG1)" strokeWidth="1.5"/>
@@ -182,7 +182,7 @@ const s = {
     fontSize: 'clamp(32px, 4.8vw, 58px)', fontWeight: 700, color: '#fff', margin: '0 0 18px',
     lineHeight: 1.12, letterSpacing: '-0.02em',
   },
-  heroTitleItalic: { fontStyle: 'italic', color: '#F9A8D4' },
+  heroTitleItalic: { fontStyle: 'italic', color: '#C4B5FD' },
   heroSub: {
     color: 'rgba(255,255,255,.65)', fontSize: 17, marginBottom: 40,
     lineHeight: 1.65, maxWidth: 500, margin: '0 auto 40px',

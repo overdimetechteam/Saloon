@@ -114,11 +114,11 @@ const nb = {
   },
   badge: {
     position: 'absolute', top: -2, right: -2,
-    background: 'linear-gradient(135deg, #EC4899, #BE185D)', color: '#fff',
+    background: 'linear-gradient(135deg, #7C3AED, #0D9488)', color: '#fff',
     fontSize: 9, fontWeight: 800, borderRadius: 20,
     padding: '1px 4px', minWidth: 14, textAlign: 'center',
     border: '1.5px solid var(--surface)',
-    boxShadow: '0 2px 6px rgba(236,72,153,.45)',
+    boxShadow: '0 2px 6px rgba(124,58,237,.45)',
   },
   dropdown: {
     position: 'absolute', top: 'calc(100% + 12px)', right: 0,
@@ -206,7 +206,7 @@ export default function UserLayout() {
           <Link to="/salons" style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0, textDecoration: 'none' }}>
             <div style={{
               width: 36, height: 36, borderRadius: 10, flexShrink: 0,
-              background: 'linear-gradient(145deg, #7C3AED 0%, #9B59E8 45%, #EC4899 100%)',
+              background: 'linear-gradient(145deg, #7C3AED 0%, #9B59E8 45%, #0D9488 100%)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               color: '#fff', fontSize: 15, fontWeight: 900,
               boxShadow: '0 4px 16px rgba(124,58,237,.4), inset 0 1px 0 rgba(255,255,255,.2)',
@@ -250,7 +250,7 @@ export default function UserLayout() {
             <div style={{ position: 'relative' }}>
               <div style={{
                 width: 34, height: 34, borderRadius: '50%',
-                background: 'linear-gradient(145deg, #7C3AED 0%, #EC4899 100%)',
+                background: 'linear-gradient(145deg, #7C3AED 0%, #0D9488 100%)',
                 color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: 12, fontWeight: 700, boxShadow: '0 2px 10px rgba(124,58,237,.35)',
               }}>{initials}</div>

@@ -179,7 +179,7 @@ const s = {
   sub: { color: 'var(--text-muted)', fontSize: 13, margin: 0 },
   bookBtn: {
     padding: '11px 24px',
-    background: 'linear-gradient(135deg, #EC4899 0%, #BE185D 100%)',
+    background: 'linear-gradient(135deg, #7C3AED 0%, #0D9488 100%)',
     color: '#fff', borderRadius: 12, fontWeight: 700, fontSize: 14,
     textDecoration: 'none', boxShadow: '0 6px 20px rgba(236,72,153,.35)',
     display: 'inline-flex', alignItems: 'center', gap: 7,

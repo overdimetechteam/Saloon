@@ -228,7 +228,7 @@ const s = {
 
   heroBtn: {
     padding: '11px 24px',
-    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #EC4899 100%)',
+    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #0D9488 100%)',
     color: '#fff', borderRadius: 12, fontWeight: 700, fontSize: 14,
     textDecoration: 'none', boxShadow: '0 6px 20px rgba(124,58,237,.35)',
     display: 'inline-flex', alignItems: 'center', gap: 6,

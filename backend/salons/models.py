@@ -57,6 +57,24 @@ class FavouriteSalon(models.Model):
         return f"{self.client.email} ♥ {self.salon.name}"
 
 
+class Offer(models.Model):
+    DISCOUNT_CHOICES = [('percentage', 'Percentage'), ('fixed', 'Fixed')]
+
+    salon          = models.ForeignKey(Salon, on_delete=models.CASCADE, related_name='offers')
+    title          = models.CharField(max_length=200)
+    description    = models.TextField(blank=True)
+    discount_type  = models.CharField(max_length=20, choices=DISCOUNT_CHOICES, default='percentage')
+    discount_value = models.DecimalField(max_digits=10, decimal_places=2)
+    start_date     = models.DateField()
+    end_date       = models.DateField()
+    is_active      = models.BooleanField(default=True)
+    note           = models.TextField(blank=True)
+    created_at     = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.salon.name} — {self.title}"
+
+
 class SalonStaff(models.Model):
     salon = models.ForeignKey(Salon, on_delete=models.CASCADE, related_name='staff')
     full_name = models.CharField(max_length=255)

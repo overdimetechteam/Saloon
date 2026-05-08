@@ -264,7 +264,7 @@ const s = {
   },
   salonInitial: {
     width: 58, height: 58, borderRadius: 17, flexShrink: 0,
-    background: 'linear-gradient(135deg, #7C3AED 0%, #EC4899 100%)',
+    background: 'linear-gradient(135deg, #7C3AED 0%, #0D9488 100%)',
     color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
     fontFamily: "'Cormorant Garamond', Georgia, serif",
     fontSize: 26, fontWeight: 700,

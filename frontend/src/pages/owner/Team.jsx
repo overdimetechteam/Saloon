@@ -2,7 +2,7 @@
 import api from '../../api/axios';
 import { useOwner } from '../../context/OwnerContext';
 
-const COLORS = ['#7C3AED','#EC4899','#2563EB','#059669','#D97706','#DC2626'];
+const COLORS = ['#7C3AED','#0D9488','#2563EB','#059669','#D97706','#DC2626'];
 const ALL_DAYS = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday'];
 const DAY_LABELS = { monday:'Mon', tuesday:'Tue', wednesday:'Wed', thursday:'Thu', friday:'Fri', saturday:'Sat', sunday:'Sun' };
 
@@ -262,7 +262,7 @@ const s = {
   sub: { fontSize: 14, color: 'var(--text-muted)', margin: 0 },
   addBtn: {
     padding: '11px 24px',
-    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #EC4899 100%)',
+    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #0D9488 100%)',
     color: '#fff', border: 'none', borderRadius: 12, cursor: 'pointer',
     fontWeight: 700, fontSize: 14, boxShadow: '0 6px 18px rgba(124,58,237,.35)',
     flexShrink: 0,
@@ -307,7 +307,7 @@ const s = {
     fontFamily: "'DM Sans', sans-serif",
   },
   dayChipOn: {
-    background: 'linear-gradient(135deg, #7C3AED, #EC4899)',
+    background: 'linear-gradient(135deg, #7C3AED, #0D9488)',
     color: '#fff', borderColor: 'transparent',
     boxShadow: '0 3px 10px rgba(124,58,237,.3)',
   },
@@ -324,7 +324,7 @@ const s = {
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     fontSize: 10, fontWeight: 700, flexShrink: 0, color: '#fff',
   },
-  specCheckOn: { background: 'linear-gradient(135deg, #7C3AED, #EC4899)', borderColor: 'transparent' },
+  specCheckOn: { background: 'linear-gradient(135deg, #7C3AED, #0D9488)', borderColor: 'transparent' },
   formActions: { display: 'flex', gap: 10, paddingTop: 22 },
   cancelBtn: {
     padding: '10px 22px', background: 'var(--surface2)',
@@ -334,7 +334,7 @@ const s = {
   },
   saveBtn: {
     padding: '10px 28px',
-    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #EC4899 100%)',
+    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #0D9488 100%)',
     color: '#fff', border: 'none', borderRadius: 12, cursor: 'pointer',
     fontSize: 14, fontWeight: 700, boxShadow: '0 4px 14px rgba(124,58,237,.3)',
     fontFamily: "'DM Sans', sans-serif",
@@ -402,7 +402,7 @@ const s = {
     fontSize: 30, marginBottom: 18,
     display: 'inline-flex', width: 72, height: 72, borderRadius: 20,
     alignItems: 'center', justifyContent: 'center',
-    background: 'linear-gradient(135deg, #7C3AED 0%, #EC4899 100%)',
+    background: 'linear-gradient(135deg, #7C3AED 0%, #0D9488 100%)',
     color: '#fff', boxShadow: '0 8px 24px rgba(124,58,237,.35)',
   },
   emptyTitle: {
@@ -411,7 +411,7 @@ const s = {
   },
   emptyBtn: {
     padding: '11px 28px',
-    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #EC4899 100%)',
+    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #0D9488 100%)',
     color: '#fff', border: 'none', borderRadius: 12, cursor: 'pointer',
     fontWeight: 700, fontSize: 14, boxShadow: '0 6px 18px rgba(124,58,237,.35)',
   },

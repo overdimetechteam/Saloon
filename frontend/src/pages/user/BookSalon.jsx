@@ -4,132 +4,21 @@ import { createPortal } from 'react-dom';
 import api from '../../api/axios';
 import { c } from '../../styles/theme';
 import { useIsMobile } from '../../hooks/useMobile';
-
-const DAY_NAMES = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
-const CAL_HEADS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+import MiniCalendar from '../../components/MiniCalendar';
 
 const STAFF_COLORS = ['#7C3AED','#0D9488','#2563EB','#059669','#D97706','#DC2626'];
 
 const CONFETTI_PARTICLES = [
   { size: 8,  top: '22%', left: '10%',  color: '#7C3AED', round: true,  anim: 'confettiA', dur: '2.8s', delay: '0.1s'  },
-  { size: 6,  top: '28%', left: '84%',  color: '#EC4899', round: true,  anim: 'confettiB', dur: '2.5s', delay: '0.2s'  },
+  { size: 6,  top: '28%', left: '84%',  color: '#0D9488', round: true,  anim: 'confettiB', dur: '2.5s', delay: '0.2s'  },
   { size: 10, top: '62%', left: '7%',   color: '#BF9B65', round: false, anim: 'confettiC', dur: '2.6s', delay: '0.3s'  },
   { size: 7,  top: '58%', left: '89%',  color: '#A78BFA', round: false, anim: 'confettiA', dur: '2.7s', delay: '0.05s' },
-  { size: 5,  top: '44%', left: '4%',   color: '#F9A8D4', round: true,  anim: 'confettiB', dur: '2.4s', delay: '0.15s' },
+  { size: 5,  top: '44%', left: '4%',   color: '#C4B5FD', round: true,  anim: 'confettiB', dur: '2.4s', delay: '0.15s' },
   { size: 9,  top: '34%', left: '93%',  color: '#C4B5FD', round: true,  anim: 'confettiC', dur: '2.9s', delay: '0.25s' },
   { size: 6,  top: '76%', left: '47%',  color: '#7C3AED', round: false, anim: 'confettiA', dur: '2.3s', delay: '0.35s' },
-  { size: 7,  top: '14%', left: '57%',  color: '#EC4899', round: true,  anim: 'confettiB', dur: '2.6s', delay: '0.4s'  },
+  { size: 7,  top: '14%', left: '57%',  color: '#0D9488', round: true,  anim: 'confettiB', dur: '2.6s', delay: '0.4s'  },
 ];
 
-function DatePicker({ value, onChange, operatingHours }) {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const [viewYear, setViewYear]   = useState(today.getFullYear());
-  const [viewMonth, setViewMonth] = useState(today.getMonth());
-
-  const isOpen = d => {
-    if (!operatingHours || Object.keys(operatingHours).length === 0) return true;
-    return !!operatingHours[DAY_NAMES[d.getDay()]];
-  };
-
-  const prevMonth = () => {
-    if (viewMonth === 0) { setViewMonth(11); setViewYear(y => y - 1); }
-    else setViewMonth(m => m - 1);
-  };
-  const nextMonth = () => {
-    if (viewMonth === 11) { setViewMonth(0); setViewYear(y => y + 1); }
-    else setViewMonth(m => m + 1);
-  };
-
-  const isPrevDisabled = viewYear < today.getFullYear() || (viewYear === today.getFullYear() && viewMonth <= today.getMonth());
-
-  const firstDay = new Date(viewYear, viewMonth, 1).getDay();
-  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
-  const daysInPrev  = new Date(viewYear, viewMonth, 0).getDate();
-
-  const cells = [];
-  for (let i = firstDay - 1; i >= 0; i--) cells.push({ day: daysInPrev - i, outside: true });
-  for (let d = 1; d <= daysInMonth; d++) cells.push({ day: d, outside: false });
-  while (cells.length % 7 !== 0) cells.push({ day: cells.length - (firstDay + daysInMonth) + 1, outside: true });
-
-  const monthLabel = new Date(viewYear, viewMonth, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-
-  return (
-    <div>
-      <div style={dp.header}>
-        <span style={dp.monthLabel}>{monthLabel}</span>
-        <div style={{ display: 'flex', gap: 6 }}>
-          <button onClick={prevMonth} disabled={isPrevDisabled} style={{ ...dp.navBtn, opacity: isPrevDisabled ? 0.35 : 1 }}>‹</button>
-          <button onClick={nextMonth} style={dp.navBtn}>›</button>
-        </div>
-      </div>
-
-      <div style={dp.weekRow}>
-        {CAL_HEADS.map(h => <div key={h} style={dp.weekHead}>{h}</div>)}
-      </div>
-
-      <div style={dp.grid}>
-        {cells.map((cell, i) => {
-          if (cell.outside) return <div key={i} style={dp.outsideCell}>{cell.day}</div>;
-          const d = new Date(viewYear, viewMonth, cell.day);
-          const dateStr    = `${viewYear}-${String(viewMonth + 1).padStart(2,'0')}-${String(cell.day).padStart(2,'0')}`;
-          const isPast     = d < today;
-          const isClosed   = !isOpen(d);
-          const isSelected = value === dateStr;
-          const isToday    = d.getTime() === today.getTime();
-          const disabled   = isPast || isClosed;
-
-          let cellStyle = { ...dp.cell };
-          if      (isSelected) cellStyle = { ...cellStyle, ...dp.cellSelected };
-          else if (disabled)   cellStyle = { ...cellStyle, ...dp.cellDisabled };
-          else if (isToday)    cellStyle = { ...cellStyle, ...dp.cellToday };
-          else                 cellStyle = { ...cellStyle, ...dp.cellAvail };
-
-          return (
-            <button
-              key={i}
-              disabled={disabled}
-              onClick={() => onChange(dateStr)}
-              style={cellStyle}
-              title={isClosed ? 'Salon closed' : isPast ? 'Past date' : dateStr}
-            >
-              <span style={{ ...dp.dayNum, color: isSelected ? '#fff' : disabled ? 'var(--text-light)' : 'var(--text)' }}>
-                {cell.day}
-              </span>
-              {isClosed && !isPast && <span style={dp.closedDot} title="Closed" />}
-              {isSelected && <span style={dp.checkMark}>✓</span>}
-              {isToday && !isSelected && <span style={dp.todayDot} />}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-const dp = {
-  header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
-  monthLabel: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 19, fontWeight: 700, color: 'var(--text)', letterSpacing: '-0.01em' },
-  navBtn: { width: 34, height: 34, borderRadius: 10, border: '1px solid var(--border)', background: 'var(--surface2)', color: 'var(--text)', cursor: 'pointer', fontSize: 18, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  weekRow:  { display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4, marginBottom: 4 },
-  weekHead: { textAlign: 'center', fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.08em', padding: '4px 0' },
-  grid: { display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4 },
-  cell: {
-    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-    height: 48, borderRadius: 10, border: '1.5px solid transparent',
-    cursor: 'pointer', transition: 'all .15s ease', position: 'relative', gap: 2,
-  },
-  cellAvail:    { background: 'var(--surface2)', borderColor: 'var(--border)' },
-  cellSelected: { background: 'linear-gradient(135deg, #7C3AED 0%, #0D9488 100%)', borderColor: 'transparent', boxShadow: '0 4px 14px rgba(124,58,237,.4)', transform: 'scale(1.05)' },
-  cellDisabled: { background: 'var(--surface)', borderColor: 'transparent', cursor: 'not-allowed', opacity: 0.4 },
-  cellToday:    { background: 'var(--surface2)', borderColor: '#7C3AED', boxShadow: '0 0 0 2px rgba(124,58,237,.15)' },
-  outsideCell:  { display: 'flex', alignItems: 'center', justifyContent: 'center', height: 48, fontSize: 13, color: 'var(--text-light)', opacity: 0.3 },
-  dayNum:   { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 17, fontWeight: 700, lineHeight: 1 },
-  closedDot:{ width: 4, height: 4, borderRadius: '50%', background: '#DC2626' },
-  checkMark:{ fontSize: 9, color: 'rgba(255,255,255,.9)', fontWeight: 700 },
-  todayDot: { width: 4, height: 4, borderRadius: '50%', background: '#7C3AED' },
-};
 
 const STEPS = ['Services', 'Professional', 'Date', 'Time', 'Confirm'];
 
@@ -276,7 +165,7 @@ export default function BookSalon() {
                 <defs>
                   <linearGradient id="cGrad" x1="0" y1="0" x2="1" y2="1">
                     <stop offset="0%" stopColor="#7C3AED" />
-                    <stop offset="100%" stopColor="#EC4899" />
+                    <stop offset="100%" stopColor="#0D9488" />
                   </linearGradient>
                 </defs>
                 <circle
@@ -403,7 +292,7 @@ export default function BookSalon() {
             <div style={{
               ...s.progressDot,
               width: isMobile ? 26 : 30, height: isMobile ? 26 : 30,
-              background: i <= step ? 'linear-gradient(135deg, #7C3AED, #EC4899)' : 'var(--border)',
+              background: i <= step ? 'linear-gradient(135deg, #7C3AED, #0D9488)' : 'var(--border)',
               boxShadow: i === step ? '0 0 0 4px rgba(124,58,237,.18)' : 'none',
               cursor: i < step ? 'pointer' : 'default',
             }}>
@@ -415,7 +304,7 @@ export default function BookSalon() {
               </div>
             )}
             {i < STEPS.length - 1 && (
-              <div style={{ ...s.progressLine, background: i < step ? 'linear-gradient(90deg, #7C3AED, #EC4899)' : 'var(--border)' }} />
+              <div style={{ ...s.progressLine, background: i < step ? 'linear-gradient(90deg, #7C3AED, #0D9488)' : 'var(--border)' }} />
             )}
           </div>
         ))}
@@ -525,7 +414,7 @@ export default function BookSalon() {
                     style={{ ...s.staffCard, ...(staffId === null ? s.staffCardOn : {}) }}
                     onClick={() => setStaffId(null)}
                   >
-                    <div style={{ ...s.staffAvatar, background: 'linear-gradient(135deg, #7C3AED 0%, #EC4899 100%)', boxShadow: '0 4px 14px rgba(124,58,237,.3)' }}>✦</div>
+                    <div style={{ ...s.staffAvatar, background: 'linear-gradient(135deg, #7C3AED 0%, #0D9488 100%)', boxShadow: '0 4px 14px rgba(124,58,237,.3)' }}>✦</div>
                     <div style={s.staffInfo}>
                       <div style={s.staffName}>Any Available Professional</div>
                       <div style={s.staffRole}>Show all open time slots</div>
@@ -576,7 +465,7 @@ export default function BookSalon() {
                 </div>
               </div>
 
-              <DatePicker
+              <MiniCalendar
                 value={date}
                 onChange={d => { setDate(d); setSlot(''); }}
                 operatingHours={salon?.operating_hours || {}}
@@ -793,7 +682,7 @@ const s = {
   stepHeader: { display: 'flex', gap: 16, alignItems: 'center', marginBottom: 24 },
   stepIcon: {
     width: 46, height: 46, borderRadius: 14, flexShrink: 0,
-    background: 'linear-gradient(135deg, #7C3AED 0%, #EC4899 100%)',
+    background: 'linear-gradient(135deg, #7C3AED 0%, #0D9488 100%)',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     fontSize: 18, color: '#fff', boxShadow: '0 6px 16px rgba(124,58,237,.35)',
   },
@@ -824,7 +713,7 @@ const s = {
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     fontSize: 12, fontWeight: 700, color: '#fff', transition: 'all .2s ease',
   },
-  checkBoxOn: { background: 'linear-gradient(135deg, #7C3AED, #EC4899)', borderColor: 'transparent' },
+  checkBoxOn: { background: 'linear-gradient(135deg, #7C3AED, #0D9488)', borderColor: 'transparent' },
   svcInfo: { flex: 1 },
   svcName: { fontWeight: 600, fontSize: 14, color: 'var(--text)', marginBottom: 2 },
   svcMeta: { fontSize: 12, color: 'var(--text-muted)' },
@@ -852,7 +741,7 @@ const s = {
   staffRole: { fontSize: 12, color: 'var(--text-muted)' },
   staffCheck: {
     width: 26, height: 26, borderRadius: '50%', flexShrink: 0,
-    background: 'linear-gradient(135deg, #7C3AED, #EC4899)',
+    background: 'linear-gradient(135deg, #7C3AED, #0D9488)',
     color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
     fontSize: 13, fontWeight: 700,
   },
@@ -886,7 +775,7 @@ const s = {
     minWidth: 72, textAlign: 'center', transition: 'all .15s ease',
   },
   slotOn: {
-    background: 'linear-gradient(135deg, #7C3AED 0%, #EC4899 100%)',
+    background: 'linear-gradient(135deg, #7C3AED 0%, #0D9488 100%)',
     color: '#fff', borderColor: 'transparent', boxShadow: '0 5px 14px rgba(124,58,237,.38)',
   },
   slotOff: { background: 'var(--surface2)', color: 'var(--text-muted)', cursor: 'not-allowed', borderColor: 'transparent', opacity: 0.5 },
@@ -900,7 +789,7 @@ const s = {
   },
   confirmBtn: {
     width: '100%', padding: '15px',
-    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #EC4899 100%)',
+    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #0D9488 100%)',
     color: '#fff', border: 'none', borderRadius: 14,
     fontSize: 16, fontWeight: 700, cursor: 'pointer',
     boxShadow: '0 8px 24px rgba(124,58,237,.4), inset 0 1px 0 rgba(255,255,255,.15)',
@@ -916,7 +805,7 @@ const s = {
   },
   nextBtn: {
     flex: 1, padding: '12px 24px',
-    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #EC4899 100%)',
+    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #0D9488 100%)',
     color: '#fff', border: 'none', borderRadius: 12,
     cursor: 'pointer', fontSize: 14, fontWeight: 700,
     boxShadow: '0 6px 18px rgba(124,58,237,.35)', transition: 'opacity .2s ease',
@@ -1102,7 +991,7 @@ const conf = {
   },
   primaryCTA: {
     width: '100%', padding: '15px',
-    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #EC4899 100%)',
+    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #0D9488 100%)',
     color: '#fff', border: 'none', borderRadius: 14,
     fontSize: 15, fontWeight: 700, cursor: 'pointer',
     fontFamily: "'DM Sans', sans-serif",

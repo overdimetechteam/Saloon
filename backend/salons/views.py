@@ -8,8 +8,8 @@ from django.db.models import Avg, Sum, F
 from datetime import datetime, timedelta
 from collections import defaultdict
 
-from .models import Salon, SalonCalendar, SalonStaff, FavouriteSalon
-from .serializers import SalonSerializer, SalonRegisterSerializer, SalonStaffSerializer
+from .models import Salon, SalonCalendar, SalonStaff, FavouriteSalon, Offer
+from .serializers import SalonSerializer, SalonRegisterSerializer, SalonStaffSerializer, OfferSerializer
 from users.permissions import IsSystemAdmin, IsSalonOwner
 from bookings.models import Booking
 
@@ -19,10 +19,41 @@ class SalonRegisterView(APIView):
 
     def post(self, request):
         serializer = SalonRegisterSerializer(data=request.data, context={'request': request})
-        if serializer.is_valid():
-            salon = serializer.save()
-            return Response(SalonSerializer(salon).data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        salon = serializer.save()
+
+        # Optional: initial custom services from step 4
+        from services.models import Service, SalonService
+        for svc in request.data.get('initial_services', []):
+            name     = str(svc.get('name', '')).strip()
+            category = svc.get('category', 'Hair')
+            price    = svc.get('price')
+            duration = svc.get('duration')
+            if name and price is not None and duration is not None:
+                service = Service.objects.create(
+                    name=name, category=category,
+                    default_price=price, default_duration_minutes=duration,
+                    is_private=True, owner_salon=salon,
+                )
+                SalonService.objects.create(salon=salon, service=service)
+
+        # Optional: initial offer from step 4
+        offer_data = request.data.get('initial_offer')
+        if offer_data and offer_data.get('title') and offer_data.get('start_date') and offer_data.get('end_date'):
+            Offer.objects.create(
+                salon=salon,
+                title=offer_data.get('title', ''),
+                description=offer_data.get('description', ''),
+                discount_type=offer_data.get('discount_type', 'percentage'),
+                discount_value=offer_data.get('discount_value', 0),
+                start_date=offer_data.get('start_date'),
+                end_date=offer_data.get('end_date'),
+                note=offer_data.get('note', ''),
+                is_active=offer_data.get('is_active', True),
+            )
+
+        return Response(SalonSerializer(salon).data, status=status.HTTP_201_CREATED)
 
 
 class SalonListView(APIView):
@@ -371,6 +402,84 @@ class SalonAnalyticsView(APIView):
             'revenue_by_day': revenue_by_day,
             'product_sales_revenue': round(product_sales_revenue, 2),
         })
+
+
+class SalonOffersView(APIView):
+    """Public: list active current offers for a specific salon."""
+    permission_classes = [AllowAny]
+
+    def get(self, request, pk):
+        salon  = get_object_or_404(Salon, pk=pk)
+        today  = timezone.now().date()
+        offers = Offer.objects.filter(salon=salon, is_active=True, start_date__lte=today, end_date__gte=today)
+        return Response(OfferSerializer(offers, many=True).data)
+
+
+class AllActiveOffersView(APIView):
+    """Public: list all currently active offers across all active, non-suspended salons."""
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        today  = timezone.now().date()
+        offers = Offer.objects.filter(
+            is_active=True, start_date__lte=today, end_date__gte=today,
+            salon__status='active', salon__is_suspended=False,
+        ).select_related('salon').order_by('-created_at')[:20]
+        return Response(OfferSerializer(offers, many=True).data)
+
+
+class OwnerOffersView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def _get_salon(self, request):
+        salon = Salon.objects.filter(owner=request.user).first()
+        if not salon:
+            return None
+        return salon
+
+    def get(self, request):
+        salon = self._get_salon(request)
+        if not salon:
+            return Response({'detail': 'No salon found.'}, status=status.HTTP_404_NOT_FOUND)
+        offers = Offer.objects.filter(salon=salon).order_by('-created_at')
+        return Response(OfferSerializer(offers, many=True).data)
+
+    def post(self, request):
+        salon = self._get_salon(request)
+        if not salon:
+            return Response({'detail': 'No salon found.'}, status=status.HTTP_404_NOT_FOUND)
+        serializer = OfferSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(salon=salon)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class OwnerOfferDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def _get_offer(self, request, pk):
+        salon = Salon.objects.filter(owner=request.user).first()
+        if not salon:
+            return None, None
+        return get_object_or_404(Offer, pk=pk, salon=salon), salon
+
+    def patch(self, request, pk):
+        offer, salon = self._get_offer(request, pk)
+        if not offer:
+            return Response({'detail': 'Not found.'}, status=status.HTTP_404_NOT_FOUND)
+        serializer = OfferSerializer(offer, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        offer, salon = self._get_offer(request, pk)
+        if not offer:
+            return Response({'detail': 'Not found.'}, status=status.HTTP_404_NOT_FOUND)
+        offer.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class AvailableSlotsView(APIView):

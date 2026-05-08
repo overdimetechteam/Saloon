@@ -12,6 +12,7 @@ const NAV = [
   { to: '/owner/services',              icon: '◇', label: 'Services',      group: 'main'  },
   { to: '/owner/team',                  icon: '✦', label: 'Team',          group: 'main'  },
   { to: '/owner/promotions',            icon: '⬡', label: 'Promotions',    group: 'main'  },
+  { to: '/owner/offers',               icon: '◑', label: 'Offers',         group: 'main'  },
   { to: '/owner/analytics',             icon: '◱', label: 'Analytics',     group: 'main'  },
   { to: '/owner/inventory',             icon: '▦', label: 'Products',      group: 'stock' },
   { to: '/owner/inventory/grn',         icon: '⊕', label: 'Receive Stock', group: 'stock' },
@@ -263,7 +264,7 @@ const s = {
   },
   brandIcon: {
     width: 36, height: 36, borderRadius: 10, flexShrink: 0,
-    background: 'linear-gradient(145deg, #7C3AED 0%, #9B59E8 45%, #EC4899 100%)',
+    background: 'linear-gradient(145deg, #7C3AED 0%, #9B59E8 45%, #0D9488 100%)',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     color: '#fff', fontSize: 14, fontWeight: 900, cursor: 'pointer',
     boxShadow: '0 4px 16px rgba(124,58,237,.5), inset 0 1px 0 rgba(255,255,255,.2)',
@@ -289,10 +290,10 @@ const s = {
   },
   bellBadge: {
     position: 'absolute', top: -5, right: -5,
-    background: '#EC4899', color: '#fff',
+    background: '#7C3AED', color: '#fff',
     fontSize: 9, fontWeight: 800, borderRadius: 20,
     padding: '1px 4px', lineHeight: 1.4, minWidth: 14, textAlign: 'center',
-    boxShadow: '0 2px 6px rgba(236,72,153,.5)',
+    boxShadow: '0 2px 6px rgba(124,58,237,.5)',
   },
   notifDropdown: {
     position: 'absolute', top: 38, right: 0,
@@ -345,7 +346,7 @@ const s = {
   },
   navItemCollapsed: { padding: '11px', justifyContent: 'center' },
   navActive: {
-    background: 'linear-gradient(135deg, rgba(124,58,237,.22) 0%, rgba(236,72,153,.09) 100%)',
+    background: 'linear-gradient(135deg, rgba(124,58,237,.22) 0%, rgba(13,148,136,.09) 100%)',
     color: '#FFFFFF',
     boxShadow: 'inset 0 0 0 1px rgba(124,58,237,.3)',
   },
@@ -356,13 +357,13 @@ const s = {
   footerInner: { display: 'flex', alignItems: 'center', gap: 10, padding: '13px 6px' },
   footerAvatar: {
     width: 33, height: 33, borderRadius: '50%', flexShrink: 0,
-    background: 'linear-gradient(145deg, #7C3AED, #EC4899)',
+    background: 'linear-gradient(145deg, #7C3AED, #0D9488)',
     color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
     fontSize: 12, fontWeight: 700,
   },
   avatarCollapsed: {
     width: 34, height: 34, borderRadius: '50%', margin: '10px auto',
-    background: 'linear-gradient(145deg, #7C3AED, #EC4899)',
+    background: 'linear-gradient(145deg, #7C3AED, #0D9488)',
     color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
     fontSize: 12, fontWeight: 700, cursor: 'default',
   },

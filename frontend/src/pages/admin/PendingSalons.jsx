@@ -133,7 +133,7 @@ const s = {
   cardLeft: { display: 'flex', alignItems: 'center', gap: 16 },
   salonIcon: {
     width: 54, height: 54, borderRadius: 14, flexShrink: 0,
-    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #EC4899 100%)',
+    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #0D9488 100%)',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     boxShadow: '0 6px 18px rgba(124,58,237,.35)',
   },

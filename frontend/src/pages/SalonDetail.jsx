@@ -5,16 +5,16 @@ import { useAuth } from '../context/AuthContext';
 import { useIsMobile } from '../hooks/useMobile';
 
 const MOCK_PHOTOS = [
-  { grad: 'linear-gradient(135deg, #7C3AED 0%, #EC4899 100%)', label: 'Styling Area'  },
+  { grad: 'linear-gradient(135deg, #7C3AED 0%, #0D9488 100%)', label: 'Styling Area'  },
   { grad: 'linear-gradient(135deg, #1E0A3C 0%, #7C3AED 100%)', label: 'Interior'      },
-  { grad: 'linear-gradient(135deg, #EC4899 0%, #F59E0B 100%)', label: 'Nail Station'  },
+  { grad: 'linear-gradient(135deg, #0D9488 0%, #F59E0B 100%)', label: 'Nail Station'  },
   { grad: 'linear-gradient(135deg, #059669 0%, #2563EB 100%)', label: 'Skin Room'     },
   { grad: 'linear-gradient(135deg, #D97706 0%, #7C3AED 100%)', label: 'Lounge'        },
 ];
 
 const MOCK_TEAM = [
   { name: 'Sophie Laurent', role: 'Senior Stylist',   specialty: 'Color & Cuts',     color: '#7C3AED', bg: 'rgba(124,58,237,.12)'  },
-  { name: 'James Kai',      role: 'Nail Technician',  specialty: 'Gel & Acrylics',   color: '#EC4899', bg: 'rgba(236,72,153,.12)'  },
+  { name: 'James Kai',      role: 'Nail Technician',  specialty: 'Gel & Acrylics',   color: '#0D9488', bg: 'rgba(13,148,136,.12)'  },
   { name: 'Aria Chen',      role: 'Skin Therapist',   specialty: 'Facials & Peels',  color: '#059669', bg: 'rgba(5,150,105,.12)'   },
   { name: 'Luca Moretti',   role: 'Hair Artist',      specialty: 'Balayage & Perms', color: '#2563EB', bg: 'rgba(37,99,235,.12)'   },
 ];
@@ -26,12 +26,12 @@ const MOCK_REVIEWS = [
 ];
 
 const CAT_COLORS = {
-  Hair: '#7C3AED', Nails: '#EC4899',
+  Hair: '#7C3AED', Nails: '#0D9488',
   Skin: '#059669', Makeup: '#D97706', Other: '#2563EB',
 };
 
 const PALETTE = [
-  'linear-gradient(135deg, #7C3AED 0%, #EC4899 100%)',
+  'linear-gradient(135deg, #7C3AED 0%, #0D9488 100%)',
   'linear-gradient(135deg, #059669 0%, #2563EB 100%)',
   'linear-gradient(135deg, #D97706 0%, #DC2626 100%)',
   'linear-gradient(135deg, #1E0A3C 0%, #7C3AED 100%)',
@@ -58,6 +58,7 @@ export default function SalonDetail() {
   const [summary, setSummary]       = useState(null);
   const [isFav, setIsFav]           = useState(false);
   const [favLoading, setFavLoading] = useState(false);
+  const [offers, setOffers]         = useState([]);
 
   useEffect(() => {
     api.get(`/salons/${id}/`).then(r => setSalon(r.data)).catch(() => {});
@@ -67,6 +68,7 @@ export default function SalonDetail() {
     ).catch(() => {});
     api.get(`/salons/${id}/reviews/`).then(r => setReviews(r.data)).catch(() => {});
     api.get(`/salons/${id}/reviews/summary/`).then(r => setSummary(r.data)).catch(() => {});
+    api.get(`/salons/${id}/offers/`).then(r => setOffers(r.data)).catch(() => {});
     if (profile?.role === 'client') {
       api.get(`/salons/${id}/favourite/`).then(r => setIsFav(r.data.is_favourited)).catch(() => {});
     }
@@ -148,12 +150,12 @@ export default function SalonDetail() {
                 title={isFav ? 'Remove from favourites' : 'Save to favourites'}
                 style={{
                   width: 48, height: 48, borderRadius: 14, border: 'none',
-                  background: isFav ? 'rgba(236,72,153,.25)' : 'rgba(255,255,255,.12)',
-                  color: isFav ? '#EC4899' : 'rgba(255,255,255,.7)',
+                  background: isFav ? 'rgba(124,58,237,.25)' : 'rgba(255,255,255,.12)',
+                  color: isFav ? '#A78BFA' : 'rgba(255,255,255,.7)',
                   fontSize: 22, cursor: 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   transition: 'all .2s ease',
-                  boxShadow: isFav ? '0 4px 14px rgba(236,72,153,.35)' : 'none',
+                  boxShadow: isFav ? '0 4px 14px rgba(124,58,237,.35)' : 'none',
                 }}
               >
                 {isFav ? '♥' : '♡'}
@@ -226,6 +228,33 @@ export default function SalonDetail() {
             })
           )}
         </section>
+
+        {/* Ongoing Offers */}
+        {offers.length > 0 && (
+          <section style={s.sec} className="fade-up d1">
+            <div style={s.eyebrowSm}>Limited Time</div>
+            <h2 style={s.secTitle}>Ongoing Offers</h2>
+            <div style={s.offersGrid}>
+              {offers.map((o, i) => {
+                const oc = ['#7C3AED','#0D9488','#D97706','#2563EB'][i % 4];
+                const daysLeft = Math.ceil((new Date(o.end_date) - new Date()) / 86400000);
+                return (
+                  <div key={o.id} style={{ ...s.offerCard, borderLeft: `4px solid ${oc}` }}>
+                    <div style={{ ...s.offerDiscount, color: oc }}>
+                      {o.discount_value}{o.discount_type === 'percentage' ? '%' : ' LKR'} off
+                    </div>
+                    <div style={s.offerCardTitle}>{o.title}</div>
+                    {o.description && <p style={s.offerDesc}>{o.description}</p>}
+                    {o.note && <div style={s.offerNote}>💬 {o.note}</div>}
+                    <div style={{ fontSize: 11, fontWeight: 700, marginTop: 8, color: daysLeft <= 3 ? '#DC2626' : 'var(--text-muted)' }}>
+                      Valid until {o.end_date}{daysLeft > 0 ? ` (${daysLeft}d left)` : ' — expires today'}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
 
         {/* About Us — moved above Team */}
         <section style={s.sec} className="fade-up d1">
@@ -444,9 +473,9 @@ const s = {
   contactTag: { fontSize: 12, color: 'rgba(255,255,255,.65)', background: 'rgba(255,255,255,.08)', borderRadius: 8, padding: '4px 10px' },
   heroBookBtn: {
     padding: '14px 32px', flexShrink: 0,
-    background: 'linear-gradient(135deg, #EC4899 0%, #BE185D 100%)',
+    background: 'linear-gradient(135deg, #7C3AED 0%, #0D9488 100%)',
     color: '#fff', borderRadius: 14, fontWeight: 700, fontSize: 16,
-    textDecoration: 'none', boxShadow: '0 6px 20px rgba(236,72,153,.45)',
+    textDecoration: 'none', boxShadow: '0 6px 20px rgba(124,58,237,.45)',
     display: 'inline-flex', alignItems: 'center', gap: 8,
     fontFamily: "'DM Sans', sans-serif",
   },
@@ -480,7 +509,7 @@ const s = {
   },
   bookAllBtn: {
     padding: '9px 22px',
-    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #EC4899 100%)',
+    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #0D9488 100%)',
     color: '#fff', borderRadius: 11, fontWeight: 700, fontSize: 13,
     textDecoration: 'none', boxShadow: '0 4px 14px rgba(124,58,237,.3)', flexShrink: 0,
     fontFamily: "'DM Sans', sans-serif",
@@ -528,7 +557,7 @@ const s = {
   reviewTop:  { display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 },
   reviewAvatar: {
     width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
-    background: 'linear-gradient(135deg, #7C3AED 0%, #EC4899 100%)',
+    background: 'linear-gradient(135deg, #7C3AED 0%, #0D9488 100%)',
     color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
     fontFamily: "'Cormorant Garamond', Georgia, serif",
     fontSize: 17, fontWeight: 700,
@@ -578,6 +607,13 @@ const s = {
     fontFamily: "'DM Sans', sans-serif",
   },
 
+  offersGrid:      { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 14 },
+  offerCard:       { background: 'var(--surface)', borderRadius: 14, padding: '18px 20px', border: '1px solid var(--border)', boxShadow: '0 2px 10px rgba(0,0,0,.05)' },
+  offerDiscount:   { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 26, fontWeight: 700, lineHeight: 1, marginBottom: 6 },
+  offerCardTitle:  { fontWeight: 700, fontSize: 15, color: 'var(--text)', marginBottom: 6 },
+  offerDesc:       { fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.6, margin: '0 0 6px' },
+  offerNote:       { fontSize: 12, color: 'var(--text-muted)', fontStyle: 'italic' },
+
   aboutCard: {
     background: 'var(--surface)', borderRadius: 20, padding: '32px 36px',
     border: '1px solid var(--border)', boxShadow: '0 4px 16px rgba(0,0,0,.06)',
@@ -606,9 +642,9 @@ const s = {
   ctaBtn: {
     display: 'inline-flex', alignItems: 'center', gap: 8,
     padding: '14px 38px',
-    background: 'linear-gradient(135deg, #EC4899 0%, #BE185D 100%)',
+    background: 'linear-gradient(135deg, #7C3AED 0%, #0D9488 100%)',
     color: '#fff', borderRadius: 14, fontWeight: 700, fontSize: 16,
-    textDecoration: 'none', boxShadow: '0 6px 20px rgba(236,72,153,.45)',
+    textDecoration: 'none', boxShadow: '0 6px 20px rgba(124,58,237,.45)',
     position: 'relative', zIndex: 1,
     fontFamily: "'DM Sans', sans-serif",
   },

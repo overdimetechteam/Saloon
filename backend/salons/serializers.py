@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Salon, SalonCalendar, SalonStaff
+from .models import Salon, SalonCalendar, SalonStaff, Offer
 from users.models import CustomUser
 
 
@@ -44,6 +44,19 @@ class SalonSerializer(serializers.ModelSerializer):
             'status', 'is_suspended', 'owner', 'owner_email', 'created_at', 'calendar',
         ]
         read_only_fields = ['status', 'owner', 'created_at']
+
+
+class OfferSerializer(serializers.ModelSerializer):
+    salon_name = serializers.CharField(source='salon.name', read_only=True)
+
+    class Meta:
+        model  = Offer
+        fields = [
+            'id', 'salon', 'salon_name', 'title', 'description',
+            'discount_type', 'discount_value',
+            'start_date', 'end_date', 'is_active', 'note', 'created_at',
+        ]
+        read_only_fields = ['salon', 'created_at']
 
 
 class SalonRegisterSerializer(serializers.ModelSerializer):

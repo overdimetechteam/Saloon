@@ -96,7 +96,7 @@ const s = {
   },
   brandIcon: {
     fontSize: 15, width: 38, height: 38,
-    background: 'linear-gradient(145deg, #7C3AED 0%, #9B59E8 45%, #EC4899 100%)',
+    background: 'linear-gradient(145deg, #7C3AED 0%, #9B59E8 45%, #0D9488 100%)',
     borderRadius: 11, display: 'flex', alignItems: 'center', justifyContent: 'center',
     color: '#fff', fontWeight: 900, flexShrink: 0,
     boxShadow: '0 4px 16px rgba(124,58,237,.45), inset 0 1px 0 rgba(255,255,255,.2)',
@@ -137,7 +137,7 @@ const s = {
     fontSize: 13, fontWeight: 500, position: 'relative',
   },
   navActive: {
-    background: 'linear-gradient(135deg, rgba(124,58,237,.22) 0%, rgba(236,72,153,.09) 100%)',
+    background: 'linear-gradient(135deg, rgba(124,58,237,.22) 0%, rgba(13,148,136,.09) 100%)',
     color: '#FFFFFF',
     boxShadow: 'inset 0 0 0 1px rgba(124,58,237,.3)',
   },
@@ -145,14 +145,14 @@ const s = {
   navLabel: { flex: 1 },
   pendingPing: {
     width: 7, height: 7, borderRadius: '50%',
-    background: '#EC4899', animation: 'pulseRing 2s ease infinite',
-    boxShadow: '0 0 6px rgba(236,72,153,.6)',
+    background: '#C9A96E', animation: 'pulseRing 2s ease infinite',
+    boxShadow: '0 0 6px rgba(201,169,110,.6)',
   },
   sidebarFooter: { padding: '0 12px 16px', flexShrink: 0 },
   userRow: { display: 'flex', alignItems: 'center', gap: 11, padding: '14px 8px 10px' },
   avatar: {
     width: 36, height: 36, borderRadius: '50%', flexShrink: 0,
-    background: 'linear-gradient(145deg, #7C3AED, #EC4899)',
+    background: 'linear-gradient(145deg, #7C3AED, #0D9488)',
     color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
     fontSize: 13, fontWeight: 700,
   },

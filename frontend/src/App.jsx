@@ -29,7 +29,8 @@ import OwnerAdjustments from './pages/owner/Adjustments';
 import OwnerReports from './pages/owner/Reports';
 import OwnerTeam from './pages/owner/Team';
 import OwnerPromotions from './pages/owner/Promotions';
-import OwnerAnalytics from './pages/owner/Analytics';
+import OwnerAnalytics  from './pages/owner/Analytics';
+import OwnerOffers     from './pages/owner/Offers';
 
 import UserDashboard from './pages/user/Dashboard';
 import UserBookingList from './pages/user/BookingList';
@@ -91,7 +92,8 @@ export default function App() {
               <Route path="services" element={<OwnerServices />} />
               <Route path="team" element={<OwnerTeam />} />
               <Route path="promotions" element={<OwnerPromotions />} />
-              <Route path="analytics" element={<OwnerAnalytics />} />
+              <Route path="analytics"  element={<OwnerAnalytics />} />
+              <Route path="offers"     element={<OwnerOffers />} />
               <Route path="inventory" element={<OwnerInventory />} />
               <Route path="inventory/grn" element={<OwnerGRN />} />
               <Route path="inventory/sales" element={<OwnerSales />} />

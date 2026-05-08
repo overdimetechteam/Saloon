@@ -105,7 +105,7 @@ const s = {
   },
   brandMark: {
     width: 40, height: 40, borderRadius: 12, flexShrink: 0,
-    background: 'linear-gradient(145deg, #7C3AED 0%, #9B59E8 45%, #EC4899 100%)',
+    background: 'linear-gradient(145deg, #7C3AED 0%, #9B59E8 45%, #0D9488 100%)',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     color: '#fff', fontSize: 16, fontWeight: 900,
     boxShadow: '0 4px 16px rgba(124,58,237,.4), inset 0 1px 0 rgba(255,255,255,.2)',
@@ -131,7 +131,7 @@ const s = {
   avatarWrap: { position: 'relative', flexShrink: 0 },
   avatar: {
     width: 36, height: 36, borderRadius: '50%',
-    background: 'linear-gradient(145deg, #7C3AED 0%, #EC4899 100%)',
+    background: 'linear-gradient(145deg, #7C3AED 0%, #0D9488 100%)',
     color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
     fontSize: 12, fontWeight: 700, boxShadow: '0 2px 10px rgba(124,58,237,.35)',
   },
@@ -154,7 +154,7 @@ const s = {
   primaryBtn: {
     padding: '9px 22px', textDecoration: 'none', color: '#fff',
     fontSize: 14, fontWeight: 600,
-    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #EC4899 100%)',
+    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #0D9488 100%)',
     borderRadius: 10,
     boxShadow: '0 4px 14px rgba(124,58,237,.35), inset 0 1px 0 rgba(255,255,255,.15)',
     transition: 'box-shadow .2s ease, transform .2s ease',

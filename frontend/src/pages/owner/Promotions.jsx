@@ -222,7 +222,7 @@ const s = {
   sub: { color: 'var(--text-muted)', fontSize: 13, margin: 0 },
   addBtn: {
     padding: '11px 22px',
-    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #EC4899 100%)',
+    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #0D9488 100%)',
     color: '#fff', border: 'none', borderRadius: 12, cursor: 'pointer',
     fontWeight: 700, fontSize: 13,
     boxShadow: '0 6px 18px rgba(124,58,237,.35)',
@@ -261,7 +261,7 @@ const s = {
   formFooter: { display: 'flex', justifyContent: 'flex-end' },
   submitBtn: {
     padding: '10px 26px',
-    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #EC4899 100%)',
+    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #0D9488 100%)',
     color: '#fff', border: 'none', borderRadius: 11, cursor: 'pointer',
     fontWeight: 700, fontSize: 13,
     boxShadow: '0 4px 14px rgba(124,58,237,.35)',
@@ -300,7 +300,7 @@ const s = {
   discountBig: {
     fontFamily: "'Cormorant Garamond', Georgia, serif",
     fontSize: 28, fontWeight: 700, letterSpacing: '-0.01em',
-    background: 'linear-gradient(135deg, #7C3AED, #EC4899)',
+    background: 'linear-gradient(135deg, #7C3AED, #0D9488)',
     WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
   },
   promoMeta: { display: 'flex', flexDirection: 'column', gap: 4 },

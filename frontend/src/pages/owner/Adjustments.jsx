@@ -167,7 +167,7 @@ const s = {
   reasonLabel: { fontSize: 10, fontWeight: 700, textTransform: 'capitalize', textAlign: 'center', letterSpacing: '0.04em' },
   submitBtn: {
     marginTop: 22, width: '100%', padding: '12px',
-    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #EC4899 100%)',
+    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #0D9488 100%)',
     color: '#fff', border: 'none', borderRadius: 12, cursor: 'pointer',
     fontWeight: 700, fontSize: 14, boxShadow: '0 4px 14px rgba(124,58,237,.35)',
     fontFamily: "'DM Sans', sans-serif",

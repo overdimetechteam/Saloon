@@ -2,15 +2,83 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../../api/axios';
 import { c, STATUS_META } from '../../styles/theme';
+import MiniCalendar from '../../components/MiniCalendar';
 
+/* ─── Compact date+time picker for a single slot ──────────────────────── */
+function SlotPicker({ label, value, onChange, operatingHours }) {
+  const datePart = value ? value.split('T')[0] : '';
+  const timePart = value ? value.split('T')[1] || '' : '';
+
+  const dayNames = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
+  const getHours = dateStr => {
+    if (!dateStr || !operatingHours) return { open: '08:00', close: '20:00' };
+    const day = new Date(dateStr).getDay();
+    const h   = operatingHours[dayNames[day]];
+    return h || { open: '08:00', close: '20:00' };
+  };
+
+  const handleDate = d => onChange(d + (timePart ? 'T' + timePart : 'T09:00'));
+  const handleTime = t => onChange((datePart || '') + 'T' + t);
+
+  const { open, close } = getHours(datePart);
+
+  return (
+    <div style={sp.wrap}>
+      <span style={sp.label}>{label}</span>
+      <div style={sp.body}>
+        <div style={sp.calWrap}>
+          <MiniCalendar
+            value={datePart}
+            onChange={handleDate}
+            operatingHours={operatingHours}
+          />
+        </div>
+        <div style={sp.timeRow}>
+          <span style={sp.timeLabel}>Time</span>
+          <input
+            type="time"
+            style={sp.timeInput}
+            value={timePart}
+            min={open}
+            max={close}
+            onChange={e => handleTime(e.target.value)}
+          />
+          {datePart && !timePart && (
+            <span style={sp.timeHint}>Pick a time</span>
+          )}
+          {datePart && timePart && (
+            <span style={sp.timeSet}>
+              {new Date(value).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+            </span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const sp = {
+  wrap:      { marginBottom: 18 },
+  label:     { fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: 8 },
+  body:      { background: 'var(--surface2)', borderRadius: 14, padding: '14px 16px', border: '1px solid var(--border)' },
+  calWrap:   { marginBottom: 10 },
+  timeRow:   { display: 'flex', alignItems: 'center', gap: 10, paddingTop: 10, borderTop: '1px solid var(--border)' },
+  timeLabel: { fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', width: 36, flexShrink: 0 },
+  timeInput: { padding: '7px 10px', border: '1.5px solid var(--border)', borderRadius: 9, fontSize: 13, background: 'var(--input-bg)', color: 'var(--text)', fontFamily: "'DM Sans', sans-serif", outline: 'none' },
+  timeHint:  { fontSize: 11, color: 'var(--text-muted)', fontStyle: 'italic' },
+  timeSet:   { fontSize: 11, fontWeight: 600, color: '#0D9488' },
+};
+
+/* ─── Main component ───────────────────────────────────────────────────── */
 export default function OwnerBookingDetail() {
   const { id } = useParams();
   const [booking, setBooking] = useState(null);
-  const [error, setError] = useState('');
-  const [msg, setMsg] = useState('');
-  const [slots, setSlots] = useState(['', '', '']);
-  const [staff, setStaff] = useState([]);
-  const [assignId, setAssignId] = useState('');
+  const [error, setError]     = useState('');
+  const [msg, setMsg]         = useState('');
+  const [slots, setSlots]     = useState(['', '', '']);
+  const [staff, setStaff]     = useState([]);
+  const [salon, setSalon]     = useState(null);
+  const [assignId, setAssignId]   = useState('');
   const [assigning, setAssigning] = useState(false);
 
   const load = () => api.get(`/bookings/${id}/`).then(r => {
@@ -18,6 +86,7 @@ export default function OwnerBookingDetail() {
     setAssignId(r.data.staff_member ?? '');
     if (r.data.salon) {
       api.get(`/salons/${r.data.salon}/staff/`).then(sr => setStaff(sr.data)).catch(() => {});
+      api.get(`/salons/${r.data.salon}/`).then(sr => setSalon(sr.data)).catch(() => {});
     }
   }).catch(() => {});
 
@@ -29,7 +98,8 @@ export default function OwnerBookingDetail() {
   };
 
   const reject = async () => {
-    if (slots.some(s => !s)) return setError('All 3 alternative slots are required');
+    if (slots.some(s => !s || !s.includes('T') || s.split('T')[1] === ''))
+      return setError('All 3 alternative slots need both a date and time.');
     try {
       await api.post(`/bookings/${id}/reject/`, { proposed_slots: slots });
       setMsg('Booking rejected with 3 alternative slots proposed.'); load();
@@ -51,15 +121,16 @@ export default function OwnerBookingDetail() {
     finally { setAssigning(false); }
   };
 
-  const setSlot = (i, v) => setSlots(prev => prev.map((s, idx) => idx === i ? v : s));
+  const updateSlot = (i, v) => setSlots(prev => prev.map((s, idx) => idx === i ? v : s));
 
   if (!booking) return (
     <div style={s.loader}><div style={s.loaderSpinner} /></div>
   );
 
-  const meta = STATUS_META[booking.status] || { label: booking.status, color: '#888', bg: '#f0f0f0' };
-  const canAct = ['pending', 'rescheduled'].includes(booking.status);
+  const meta    = STATUS_META[booking.status] || { label: booking.status, color: '#888', bg: '#f0f0f0' };
+  const canAct  = ['pending', 'rescheduled'].includes(booking.status);
   const canAssign = ['pending', 'confirmed', 'rescheduled'].includes(booking.status);
+  const opHours = salon?.operating_hours || {};
 
   return (
     <div style={s.page}>
@@ -72,9 +143,7 @@ export default function OwnerBookingDetail() {
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 5 }}>
                   <h2 style={s.clientName}>{booking.client_name || booking.client_email}</h2>
-                  {booking.is_walk_in && (
-                    <span style={s.walkInBadge}>Walk-In</span>
-                  )}
+                  {booking.is_walk_in && <span style={s.walkInBadge}>Walk-In</span>}
                 </div>
                 <p style={s.bookingId}>
                   {booking.client_email}
@@ -86,7 +155,7 @@ export default function OwnerBookingDetail() {
             </div>
 
             {error && <div style={s.alertErr}>{error}</div>}
-            {msg && <div style={s.alertOk}>{msg}</div>}
+            {msg   && <div style={s.alertOk}>{msg}</div>}
 
             <div style={s.infoGrid}>
               <div style={s.infoBox}>
@@ -140,15 +209,19 @@ export default function OwnerBookingDetail() {
 
               <div style={s.rejectSection}>
                 <h4 style={s.actTitle}>Reject & Propose Alternatives</h4>
-                <p style={{ color: 'var(--text-muted)', fontSize: 13, marginBottom: 16, lineHeight: 1.6 }}>Propose 3 alternative slots for the client to choose from.</p>
-                <div style={s.slotInputs}>
-                  {slots.map((sl, i) => (
-                    <div key={i} style={s.slotRow}>
-                      <span style={s.slotLabel}>Option {i + 1}</span>
-                      <input type="datetime-local" style={s.dateInput} value={sl} onChange={e => setSlot(i, e.target.value)} />
-                    </div>
-                  ))}
-                </div>
+                <p style={{ color: 'var(--text-muted)', fontSize: 13, marginBottom: 18, lineHeight: 1.6 }}>
+                  Select 3 alternative dates and times for the client to choose from.
+                  {Object.keys(opHours).length > 0 && ' Closed days are greyed out.'}
+                </p>
+                {[0, 1, 2].map(i => (
+                  <SlotPicker
+                    key={i}
+                    label={`Option ${i + 1}`}
+                    value={slots[i]}
+                    onChange={v => updateSlot(i, v)}
+                    operatingHours={opHours}
+                  />
+                ))}
                 <button style={s.rejectBtn} onClick={reject}>✗ Reject & Send Alternatives</button>
               </div>
             </div>
@@ -169,11 +242,7 @@ export default function OwnerBookingDetail() {
                   <option key={m.id} value={m.id}>{m.full_name}{m.role ? ` — ${m.role}` : ''}</option>
                 ))}
               </select>
-              <button
-                style={{ ...s.assignBtn, opacity: assigning ? 0.7 : 1 }}
-                onClick={assignStaff}
-                disabled={assigning}
-              >
+              <button style={{ ...s.assignBtn, opacity: assigning ? 0.7 : 1 }} onClick={assignStaff} disabled={assigning}>
                 {assigning ? 'Saving…' : '★ Assign'}
               </button>
             </div>
@@ -201,147 +270,39 @@ export default function OwnerBookingDetail() {
 const s = {
   page: {},
   loader: { display: 'flex', justifyContent: 'center', alignItems: 'center', height: 200 },
-  loaderSpinner: {
-    width: 32, height: 32, borderRadius: '50%',
-    border: '3px solid rgba(124,58,237,.15)', borderTopColor: '#7C3AED',
-    animation: 'spinSlow .7s linear infinite',
-  },
-  back: {
-    display: 'inline-block', marginBottom: 22, color: '#7C3AED',
-    textDecoration: 'none', fontWeight: 600, fontSize: 13,
-  },
+  loaderSpinner: { width: 32, height: 32, borderRadius: '50%', border: '3px solid rgba(124,58,237,.15)', borderTopColor: '#7C3AED', animation: 'spinSlow .7s linear infinite' },
+  back: { display: 'inline-block', marginBottom: 22, color: '#7C3AED', textDecoration: 'none', fontWeight: 600, fontSize: 13 },
   layout: { display: 'flex', gap: 24, alignItems: 'flex-start' },
   mainCol: { flex: 1, display: 'flex', flexDirection: 'column', gap: 16 },
   sideCol: { width: 248, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 14 },
-
-  card: {
-    background: 'var(--surface)', borderRadius: 22, padding: 28,
-    boxShadow: '0 8px 32px rgba(124,58,237,.08)',
-    border: '1px solid var(--border)',
-  },
-  cardHead: {
-    display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
-    marginBottom: 24, paddingBottom: 20, borderBottom: '1px solid var(--border)',
-  },
-  clientName: {
-    fontFamily: "'Cormorant Garamond', Georgia, serif",
-    fontSize: 22, fontWeight: 700, color: 'var(--text)', margin: 0, letterSpacing: '-0.01em',
-  },
-  walkInBadge: {
-    fontSize: 10, fontWeight: 700, padding: '3px 9px', borderRadius: 20,
-    background: '#DBEAFE', color: '#1D4ED8', border: '1px solid #BFDBFE',
-    flexShrink: 0,
-  },
+  card: { background: 'var(--surface)', borderRadius: 22, padding: 28, boxShadow: '0 8px 32px rgba(124,58,237,.08)', border: '1px solid var(--border)' },
+  cardHead: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24, paddingBottom: 20, borderBottom: '1px solid var(--border)' },
+  clientName: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 22, fontWeight: 700, color: 'var(--text)', margin: 0, letterSpacing: '-0.01em' },
+  walkInBadge: { fontSize: 10, fontWeight: 700, padding: '3px 9px', borderRadius: 20, background: '#DBEAFE', color: '#1D4ED8', border: '1px solid #BFDBFE', flexShrink: 0 },
   bookingId: { color: 'var(--text-muted)', fontSize: 12, margin: '4px 0 0', lineHeight: 1.6 },
-  badge: {
-    display: 'inline-flex', borderRadius: 20, fontWeight: 700, flexShrink: 0,
-    fontSize: 13, padding: '6px 16px',
-  },
-  alertErr: {
-    background: '#FEF2F2', border: '1px solid #FCA5A5',
-    color: '#DC2626', borderRadius: 12, padding: '11px 14px', fontSize: 13, marginBottom: 18,
-  },
-  alertOk: {
-    background: '#ECFDF5', border: '1px solid #6EE7B7',
-    color: '#059669', borderRadius: 12, padding: '11px 14px', fontSize: 13, marginBottom: 18,
-  },
+  badge: { display: 'inline-flex', borderRadius: 20, fontWeight: 700, flexShrink: 0, fontSize: 13, padding: '6px 16px' },
+  alertErr: { background: '#FEF2F2', border: '1px solid #FCA5A5', color: '#DC2626', borderRadius: 12, padding: '11px 14px', fontSize: 13, marginBottom: 18 },
+  alertOk:  { background: '#ECFDF5', border: '1px solid #6EE7B7', color: '#059669', borderRadius: 12, padding: '11px 14px', fontSize: 13, marginBottom: 18 },
   infoGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 22 },
-  infoBox: {
-    background: 'var(--surface2)', borderRadius: 12, padding: '13px 16px',
-    border: '1px solid var(--border)',
-  },
-  infoLbl: {
-    fontSize: 9, fontWeight: 700, color: 'var(--text-muted)',
-    textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6,
-  },
-  infoVal: { fontSize: 14, fontWeight: 600, color: 'var(--text)' },
-  section: { marginBottom: 18 },
-  secTitle: {
-    fontSize: 9, fontWeight: 700, color: 'var(--text-muted)',
-    textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 10,
-  },
-  chips: { display: 'flex', flexWrap: 'wrap', gap: 8 },
-  chip: {
-    padding: '6px 14px', background: 'rgba(124,58,237,.08)', color: '#7C3AED',
-    borderRadius: 20, fontSize: 13, fontWeight: 500, border: '1px solid rgba(124,58,237,.18)',
-  },
-  notes: {
-    fontSize: 14, color: 'var(--text-sub)', fontStyle: 'italic',
-    background: 'var(--surface2)', borderRadius: 12, padding: '12px 16px',
-    margin: 0, lineHeight: 1.6, border: '1px solid var(--border)',
-  },
-
-  actionsCard: {
-    background: 'var(--surface)', borderRadius: 22, padding: 26,
-    boxShadow: '0 4px 20px rgba(124,58,237,.07)',
-    border: '1px solid var(--border)',
-  },
+  infoBox:  { background: 'var(--surface2)', borderRadius: 12, padding: '13px 16px', border: '1px solid var(--border)' },
+  infoLbl:  { fontSize: 9, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 },
+  infoVal:  { fontSize: 14, fontWeight: 600, color: 'var(--text)' },
+  section:  { marginBottom: 18 },
+  secTitle: { fontSize: 9, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 10 },
+  chips:    { display: 'flex', flexWrap: 'wrap', gap: 8 },
+  chip:     { padding: '6px 14px', background: 'rgba(124,58,237,.08)', color: '#7C3AED', borderRadius: 20, fontSize: 13, fontWeight: 500, border: '1px solid rgba(124,58,237,.18)' },
+  notes:    { fontSize: 14, color: 'var(--text-sub)', fontStyle: 'italic', background: 'var(--surface2)', borderRadius: 12, padding: '12px 16px', margin: 0, lineHeight: 1.6, border: '1px solid var(--border)' },
+  actionsCard: { background: 'var(--surface)', borderRadius: 22, padding: 26, boxShadow: '0 4px 20px rgba(124,58,237,.07)', border: '1px solid var(--border)' },
   confirmSection: { marginBottom: 20 },
-  actTitle: {
-    fontFamily: "'Cormorant Garamond', Georgia, serif",
-    fontSize: 17, fontWeight: 700, color: 'var(--text)', marginBottom: 6, letterSpacing: '-0.01em',
-  },
-  confirmBtn: {
-    padding: '11px 26px',
-    background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
-    color: '#fff', border: 'none', borderRadius: 12, cursor: 'pointer',
-    fontWeight: 700, fontSize: 14, boxShadow: '0 4px 14px rgba(5,150,105,.3)',
-    fontFamily: "'DM Sans', sans-serif",
-  },
-  divider: { height: 1, background: 'var(--border)', margin: '20px 0' },
+  actTitle: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 17, fontWeight: 700, color: 'var(--text)', marginBottom: 6, letterSpacing: '-0.01em' },
+  confirmBtn: { padding: '11px 26px', background: 'linear-gradient(135deg, #059669 0%, #047857 100%)', color: '#fff', border: 'none', borderRadius: 12, cursor: 'pointer', fontWeight: 700, fontSize: 14, boxShadow: '0 4px 14px rgba(5,150,105,.3)', fontFamily: "'DM Sans', sans-serif" },
+  divider:  { height: 1, background: 'var(--border)', margin: '20px 0' },
   rejectSection: {},
-  slotInputs: { display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 16 },
-  slotRow: { display: 'flex', alignItems: 'center', gap: 10 },
-  slotLabel: {
-    fontSize: 12, fontWeight: 600, color: 'var(--text-muted)',
-    width: 60, flexShrink: 0,
-  },
-  dateInput: {
-    flex: 1, padding: '9px 12px', border: '1.5px solid var(--border)', borderRadius: 10,
-    fontSize: 13, background: 'var(--input-bg)', color: 'var(--text)', outline: 'none',
-    fontFamily: "'DM Sans', sans-serif",
-  },
-  rejectBtn: {
-    padding: '11px 24px',
-    background: '#FEF2F2', color: '#DC2626',
-    border: '1px solid #FECACA', borderRadius: 12, cursor: 'pointer',
-    fontWeight: 700, fontSize: 14,
-    fontFamily: "'DM Sans', sans-serif",
-  },
-
-  cancelBtn: {
-    width: '100%', padding: '11px',
-    background: 'transparent', color: 'var(--text-muted)',
-    border: '1.5px solid var(--border)', borderRadius: 12,
-    cursor: 'pointer', fontWeight: 600, fontSize: 13,
-    fontFamily: "'DM Sans', sans-serif",
-  },
-  assignCard: {
-    background: 'var(--surface)', borderRadius: 16, padding: 18,
-    border: '1px solid var(--border)',
-    boxShadow: '0 2px 10px rgba(124,58,237,.06)',
-    display: 'flex', flexDirection: 'column', gap: 10,
-  },
-  select: {
-    width: '100%', padding: '10px 12px', border: '1.5px solid var(--border)', borderRadius: 10,
-    fontSize: 13, background: 'var(--input-bg)', color: 'var(--text)',
-    fontFamily: "'DM Sans', sans-serif", outline: 'none',
-  },
-  assignBtn: {
-    padding: '10px 16px',
-    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #EC4899 100%)',
-    color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer',
-    fontWeight: 700, fontSize: 13,
-    boxShadow: '0 4px 12px rgba(124,58,237,.3)',
-    fontFamily: "'DM Sans', sans-serif",
-  },
-  histCard: {
-    background: 'var(--surface)', borderRadius: 16, padding: 18,
-    border: '1px solid var(--border)',
-    boxShadow: '0 2px 10px rgba(124,58,237,.05)',
-  },
-  histSlot: {
-    border: '1px solid var(--border)', borderRadius: 10, padding: '10px 14px', marginBottom: 8,
-    transition: 'border-color .2s ease, background .2s ease',
-  },
+  rejectBtn: { padding: '11px 24px', background: '#FEF2F2', color: '#DC2626', border: '1px solid #FECACA', borderRadius: 12, cursor: 'pointer', fontWeight: 700, fontSize: 14, fontFamily: "'DM Sans', sans-serif", marginTop: 4 },
+  cancelBtn: { width: '100%', padding: '11px', background: 'transparent', color: 'var(--text-muted)', border: '1.5px solid var(--border)', borderRadius: 12, cursor: 'pointer', fontWeight: 600, fontSize: 13, fontFamily: "'DM Sans', sans-serif" },
+  assignCard: { background: 'var(--surface)', borderRadius: 16, padding: 18, border: '1px solid var(--border)', boxShadow: '0 2px 10px rgba(124,58,237,.06)', display: 'flex', flexDirection: 'column', gap: 10 },
+  select: { width: '100%', padding: '10px 12px', border: '1.5px solid var(--border)', borderRadius: 10, fontSize: 13, background: 'var(--input-bg)', color: 'var(--text)', fontFamily: "'DM Sans', sans-serif", outline: 'none' },
+  assignBtn: { padding: '10px 16px', background: 'linear-gradient(135deg, #7C3AED 0%, #0D9488 100%)', color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 700, fontSize: 13, boxShadow: '0 4px 12px rgba(124,58,237,.3)', fontFamily: "'DM Sans', sans-serif" },
+  histCard:  { background: 'var(--surface)', borderRadius: 16, padding: 18, border: '1px solid var(--border)', boxShadow: '0 2px 10px rgba(124,58,237,.05)' },
+  histSlot:  { border: '1px solid var(--border)', borderRadius: 10, padding: '10px 14px', marginBottom: 8, transition: 'border-color .2s ease, background .2s ease' },
 };

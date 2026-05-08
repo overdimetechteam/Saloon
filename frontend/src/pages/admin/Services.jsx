@@ -2,7 +2,7 @@
 import api from '../../api/axios';
 
 const CATEGORIES = ['Hair', 'Nails', 'Skin', 'Makeup'];
-const CAT_COLORS = { Hair: '#8B5CF6', Nails: '#EC4899', Skin: '#10B981', Makeup: '#F59E0B' };
+const CAT_COLORS = { Hair: '#8B5CF6', Nails: '#0D9488', Skin: '#10B981', Makeup: '#F59E0B' };
 const EMPTY_FORM = { name: '', category: 'Hair', description: '', default_duration_minutes: 60, default_price: '' };
 
 export default function AdminServices() {
@@ -158,7 +158,7 @@ const s = {
   sub: { color: 'var(--text-muted)', fontSize: 13, margin: 0 },
   primaryBtn: {
     padding: '11px 22px',
-    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #EC4899 100%)',
+    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #0D9488 100%)',
     color: '#fff', border: 'none', borderRadius: 12, cursor: 'pointer',
     fontWeight: 700, fontSize: 13, boxShadow: '0 6px 18px rgba(124,58,237,.35)',
     fontFamily: "'DM Sans', sans-serif",
@@ -187,7 +187,7 @@ const s = {
   },
   saveBtn: {
     padding: '11px 28px',
-    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #EC4899 100%)',
+    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #0D9488 100%)',
     color: '#fff', border: 'none', borderRadius: 11, cursor: 'pointer',
     fontWeight: 700, fontSize: 13, boxShadow: '0 4px 14px rgba(124,58,237,.35)',
     fontFamily: "'DM Sans', sans-serif",

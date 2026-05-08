@@ -219,7 +219,7 @@ function BusiestHoursChart({ data }) {
       <defs>
         <linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="#7C3AED" />
-          <stop offset="100%" stopColor="#EC4899" />
+          <stop offset="100%" stopColor="#0D9488" />
         </linearGradient>
       </defs>
       {sorted.map((d, i) => {
@@ -248,7 +248,7 @@ const s = {
     border: '1px solid var(--border)', overflow: 'hidden', flexShrink: 0,
   },
   periodBtn: { padding: '9px 18px', border: 'none', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 12, fontWeight: 600, fontFamily: "'DM Sans', sans-serif" },
-  periodBtnActive: { background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #EC4899 100%)', color: '#fff' },
+  periodBtnActive: { background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #0D9488 100%)', color: '#fff' },
 
   loadGrid: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 },
   skeleton: { height: 120, borderRadius: 16 },

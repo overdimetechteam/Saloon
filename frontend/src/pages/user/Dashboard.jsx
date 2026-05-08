@@ -20,6 +20,7 @@ export default function UserDashboard() {
   const isMobile    = useIsMobile();
   const [bookings,   setBookings]   = useState([]);
   const [favourites, setFavourites] = useState([]);
+  const [offers,     setOffers]     = useState([]);
   const [loading, setLoading]       = useState(true);
   const [favLoading, setFavLoading] = useState(true);
 
@@ -32,6 +33,9 @@ export default function UserDashboard() {
       .then(r => setFavourites(r.data.slice(0, 6)))
       .catch(() => {})
       .finally(() => setFavLoading(false));
+    api.get('/offers/active/')
+      .then(r => setOffers(r.data))
+      .catch(() => {});
   }, []);
 
   const firstName = profile?.full_name?.split(' ')[0] || 'there';
@@ -81,6 +85,38 @@ export default function UserDashboard() {
           </div>
         ))}
       </div>
+
+      {/* ── Active Offers Banner ── */}
+      {offers.length > 0 && (
+        <div style={s.offersSection} className="fade-up d2">
+          <div style={s.offersHead}>
+            <div>
+              <div style={s.sectionEyebrow}>Limited Time</div>
+              <h2 style={{ ...s.sectionTitle, marginBottom: 0 }}>Ongoing Offers</h2>
+            </div>
+          </div>
+          <div style={s.offersScroll}>
+            {offers.map((o, i) => {
+              const colors = ['#7C3AED','#0D9488','#D97706','#2563EB'];
+              const color  = colors[i % colors.length];
+              const daysLeft = Math.ceil((new Date(o.end_date) - new Date()) / 86400000);
+              return (
+                <Link key={o.id} to={`/salons/${o.salon}`} style={{ ...s.offerCard, borderTop: `3px solid ${color}` }} className="lift-sm">
+                  <div style={{ ...s.offerDiscount, color }}>
+                    {o.discount_value}{o.discount_type === 'percentage' ? '%' : ' LKR'} <span style={s.offLabel}>off</span>
+                  </div>
+                  <div style={s.offerTitle}>{o.title}</div>
+                  <div style={s.offerSalon}>{o.salon_name}</div>
+                  {o.note && <div style={s.offerNote}>{o.note}</div>}
+                  <div style={{ ...s.offerExpiry, color: daysLeft <= 3 ? '#DC2626' : 'var(--text-muted)' }}>
+                    {daysLeft <= 0 ? 'Expires today' : `${daysLeft}d left`}
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* ── Main content: Favourites + Appointments ── */}
       <div style={{ ...s.mainRow, flexDirection: isMobile ? 'column' : 'row' }}>
@@ -261,6 +297,22 @@ const s = {
   statIconWrap: { width: 36, height: 36, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, marginBottom: 4 },
   statVal:   { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 32, fontWeight: 700, lineHeight: 1 },
   statLabel: { fontSize: 11, color: 'var(--text-muted)', fontWeight: 500, textAlign: 'center' },
+
+  offersSection: { marginBottom: 28 },
+  offersHead:    { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 14 },
+  offersScroll:  { display: 'flex', gap: 14, overflowX: 'auto', paddingBottom: 6, scrollbarWidth: 'none' },
+  offerCard: {
+    background: 'var(--surface)', borderRadius: 16, padding: '16px 18px', flexShrink: 0,
+    minWidth: 200, maxWidth: 240, border: '1px solid var(--border)',
+    boxShadow: '0 2px 10px rgba(0,0,0,.05)', textDecoration: 'none',
+    display: 'flex', flexDirection: 'column', gap: 4,
+  },
+  offerDiscount: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 28, fontWeight: 700, lineHeight: 1 },
+  offLabel:      { fontSize: 12, fontWeight: 600 },
+  offerTitle:    { fontWeight: 700, fontSize: 14, color: 'var(--text)', marginTop: 4, lineHeight: 1.3 },
+  offerSalon:    { fontSize: 12, color: 'var(--text-muted)' },
+  offerNote:     { fontSize: 11, color: 'var(--text-muted)', fontStyle: 'italic', lineHeight: 1.5 },
+  offerExpiry:   { fontSize: 11, fontWeight: 700, marginTop: 6 },
 
   mainRow: { display: 'flex', gap: 28, alignItems: 'flex-start' },
 
