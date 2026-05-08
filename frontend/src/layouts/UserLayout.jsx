@@ -213,7 +213,7 @@ export default function UserLayout() {
             }}>✦</div>
             <div>
               <div style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontWeight: 700, fontSize: isMobile ? 18 : 20, color: 'var(--text)', lineHeight: 1, letterSpacing: '-0.01em' }}>Saloon</div>
-              {!isMobile && <div style={{ fontSize: 9, color: '#A78BFA', letterSpacing: '0.18em', textTransform: 'uppercase', marginTop: 3, fontWeight: 500 }}>Beauty & Wellness</div>}
+              {!isMobile && <div style={{ fontSize: 9, color: 'var(--brand-label)', letterSpacing: '0.18em', textTransform: 'uppercase', marginTop: 3, fontWeight: 500 }}>Beauty & Wellness</div>}
             </div>
           </Link>
 

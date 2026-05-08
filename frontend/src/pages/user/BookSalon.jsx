@@ -939,7 +939,7 @@ const s = {
     marginBottom: 18, paddingBottom: 14, borderBottom: '1px solid var(--border)',
   },
   summaryEyebrow: {
-    fontSize: 9, fontWeight: 700, color: '#A78BFA',
+    fontSize: 9, fontWeight: 700, color: 'var(--brand-label)',
     letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: 6,
   },
   salonTag: {

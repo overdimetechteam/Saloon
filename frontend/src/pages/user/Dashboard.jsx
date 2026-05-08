@@ -235,7 +235,7 @@ const s = {
   section: { marginTop: 0 },
   sectionHead: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 22 },
   sectionEyebrow: {
-    fontSize: 10, fontWeight: 700, color: '#A78BFA',
+    fontSize: 10, fontWeight: 700, color: 'var(--brand-label)',
     letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: 5,
   },
   sectionTitle: {
@@ -279,9 +279,9 @@ const s = {
   },
   actionHint: {
     padding: '9px 22px',
-    background: 'linear-gradient(to right, #FFFBEB, #FEF3C7)',
-    fontSize: 12, color: '#92400E', fontWeight: 500,
-    borderTop: '1px solid #FDE68A',
+    background: 'rgba(217,119,6,.09)',
+    fontSize: 12, color: '#D97706', fontWeight: 600,
+    borderTop: '1px solid rgba(217,119,6,.2)',
   },
   cardLink: {
     display: 'flex', justifyContent: 'space-between', alignItems: 'center',

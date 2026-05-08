@@ -15,6 +15,7 @@
   --border-strong: #D4CCE8;
   --input-bg:      #FAFAF8;
   --gold:          #BF9B65;
+  --brand-label:   #7C3AED;
 }
 
 [data-theme="dark"] {
@@ -31,6 +32,7 @@
   --border-strong: #312660;
   --input-bg:      #100D1F;
   --gold:          #D4A96A;
+  --brand-label:   #A78BFA;
 }
 
 *, *::before, *::after { box-sizing: border-box; }

@@ -79,6 +79,45 @@ class SalonRejectView(APIView):
         return Response(SalonSerializer(salon).data)
 
 
+class SalonSuspendView(APIView):
+    permission_classes = [IsSystemAdmin]
+
+    def post(self, request, pk):
+        salon = get_object_or_404(Salon, pk=pk)
+        if salon.status != 'active':
+            return Response({'detail': 'Only active salons can be suspended.'}, status=status.HTTP_400_BAD_REQUEST)
+        salon.status = 'inactive'
+        salon.save()
+        return Response(SalonSerializer(salon).data)
+
+
+class SalonReactivateView(APIView):
+    permission_classes = [IsSystemAdmin]
+
+    def post(self, request, pk):
+        salon = get_object_or_404(Salon, pk=pk)
+        if salon.status == 'active':
+            return Response({'detail': 'Salon is already active.'}, status=status.HTTP_400_BAD_REQUEST)
+        salon.status = 'active'
+        salon.save()
+        return Response(SalonSerializer(salon).data)
+
+
+class SalonRemoveView(APIView):
+    permission_classes = [IsSystemAdmin]
+
+    def delete(self, request, pk):
+        salon = get_object_or_404(Salon, pk=pk)
+        active_statuses = ['pending', 'confirmed', 'rescheduled', 'awaiting_client']
+        if Booking.objects.filter(salon=salon, status__in=active_statuses).exists():
+            return Response(
+                {'detail': 'Cannot remove salon with active bookings. Suspend it first and wait for bookings to resolve.'},
+                status=status.HTTP_409_CONFLICT,
+            )
+        salon.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
 class PendingSalonsView(APIView):
     permission_classes = [IsSystemAdmin]
 

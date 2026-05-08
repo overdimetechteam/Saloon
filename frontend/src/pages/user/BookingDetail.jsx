@@ -316,9 +316,9 @@ const s = {
 
   altSection: {
     margin: '0 18px 20px',
-    background: 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)',
+    background: 'rgba(217,119,6,.07)',
     borderRadius: 18, padding: 20,
-    border: '1px solid #FDE68A',
+    border: '1px solid rgba(217,119,6,.25)',
   },
   altHeader: { display: 'flex', gap: 14, marginBottom: 18, alignItems: 'flex-start' },
   altIconWrap: {
@@ -327,8 +327,8 @@ const s = {
     color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
     fontSize: 16, boxShadow: '0 4px 12px rgba(217,119,6,.3)',
   },
-  altTitle: { fontWeight: 700, fontSize: 14, color: '#92400E', marginBottom: 4 },
-  altSub: { fontSize: 12, color: '#B45309', lineHeight: 1.5 },
+  altTitle: { fontWeight: 700, fontSize: 14, color: '#D97706', marginBottom: 4 },
+  altSub: { fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.5 },
   slotList: { display: 'flex', flexDirection: 'column', gap: 8 },
   slotCard: {
     background: 'rgba(255,255,255,.85)', borderRadius: 12, padding: '13px 16px',
