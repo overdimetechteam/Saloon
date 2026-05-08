@@ -125,7 +125,7 @@ export default function UserDashboard() {
                     <div style={{ ...s.dateBadgeMonth, color: meta.color }}>
                       {dt.toLocaleDateString('en-US', { month: 'short' })}
                     </div>
-                    <div style={{ ...s.dateBadgeDay, color: 'var(--text)' }}>
+                    <div style={{ ...s.dateBadgeDay, color: '#1A0A2E' }}>
                       {dt.toLocaleDateString('en-US', { day: '2-digit' })}
                     </div>
                     <div style={s.dateBadgeTime}>
