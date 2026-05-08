@@ -5,10 +5,10 @@ import api from '../../api/axios';
 import { c } from '../../styles/theme';
 import { useIsMobile } from '../../hooks/useMobile';
 
-const DAY_ABBR  = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
 const DAY_NAMES = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
+const CAL_HEADS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
-const STAFF_COLORS = ['#7C3AED','#EC4899','#2563EB','#059669','#D97706','#DC2626'];
+const STAFF_COLORS = ['#7C3AED','#0D9488','#2563EB','#059669','#D97706','#DC2626'];
 
 const CONFETTI_PARTICLES = [
   { size: 8,  top: '22%', left: '10%',  color: '#7C3AED', round: true,  anim: 'confettiA', dur: '2.8s', delay: '0.1s'  },
@@ -22,80 +22,84 @@ const CONFETTI_PARTICLES = [
 ];
 
 function DatePicker({ value, onChange, operatingHours }) {
-  const [weekOffset, setWeekOffset] = useState(0);
-
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  const windowStart = new Date(today);
-  windowStart.setDate(today.getDate() + weekOffset * 7);
-
-  const days = Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(windowStart);
-    d.setDate(windowStart.getDate() + i);
-    return d;
-  });
-
-  const months = [...new Set(days.map(d =>
-    d.toLocaleDateString('en-US', { year: 'numeric', month: 'short' })
-  ))];
+  const [viewYear, setViewYear]   = useState(today.getFullYear());
+  const [viewMonth, setViewMonth] = useState(today.getMonth());
 
   const isOpen = d => {
     if (!operatingHours || Object.keys(operatingHours).length === 0) return true;
     return !!operatingHours[DAY_NAMES[d.getDay()]];
   };
 
+  const prevMonth = () => {
+    if (viewMonth === 0) { setViewMonth(11); setViewYear(y => y - 1); }
+    else setViewMonth(m => m - 1);
+  };
+  const nextMonth = () => {
+    if (viewMonth === 11) { setViewMonth(0); setViewYear(y => y + 1); }
+    else setViewMonth(m => m + 1);
+  };
+
+  const isPrevDisabled = viewYear < today.getFullYear() || (viewYear === today.getFullYear() && viewMonth <= today.getMonth());
+
+  const firstDay = new Date(viewYear, viewMonth, 1).getDay();
+  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+  const daysInPrev  = new Date(viewYear, viewMonth, 0).getDate();
+
+  const cells = [];
+  for (let i = firstDay - 1; i >= 0; i--) cells.push({ day: daysInPrev - i, outside: true });
+  for (let d = 1; d <= daysInMonth; d++) cells.push({ day: d, outside: false });
+  while (cells.length % 7 !== 0) cells.push({ day: cells.length - (firstDay + daysInMonth) + 1, outside: true });
+
+  const monthLabel = new Date(viewYear, viewMonth, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
   return (
     <div>
       <div style={dp.header}>
-        <span style={dp.monthLabel}>{months.join(' / ')}</span>
+        <span style={dp.monthLabel}>{monthLabel}</span>
         <div style={{ display: 'flex', gap: 6 }}>
-          <button
-            onClick={() => setWeekOffset(w => w - 1)}
-            disabled={weekOffset === 0}
-            style={{ ...dp.navBtn, opacity: weekOffset === 0 ? 0.35 : 1 }}
-          >‹</button>
-          <button onClick={() => setWeekOffset(w => w + 1)} style={dp.navBtn}>›</button>
+          <button onClick={prevMonth} disabled={isPrevDisabled} style={{ ...dp.navBtn, opacity: isPrevDisabled ? 0.35 : 1 }}>‹</button>
+          <button onClick={nextMonth} style={dp.navBtn}>›</button>
         </div>
       </div>
 
-      <div style={dp.row}>
-        {days.map(d => {
-          const isPast    = d < today;
-          const isClosed  = !isOpen(d);
-          const dateStr   = d.toISOString().split('T')[0];
-          const isSelected = value === dateStr;
-          const isToday   = d.getTime() === today.getTime();
-          const disabled  = isPast || isClosed;
+      <div style={dp.weekRow}>
+        {CAL_HEADS.map(h => <div key={h} style={dp.weekHead}>{h}</div>)}
+      </div>
 
-          let chip = { ...dp.chip };
-          if      (isSelected) chip = { ...chip, ...dp.chipSelected };
-          else if (isPast)     chip = { ...chip, ...dp.chipPast };
-          else if (isClosed)   chip = { ...chip, ...dp.chipClosed };
-          else if (isToday)    chip = { ...chip, ...dp.chipToday };
+      <div style={dp.grid}>
+        {cells.map((cell, i) => {
+          if (cell.outside) return <div key={i} style={dp.outsideCell}>{cell.day}</div>;
+          const d = new Date(viewYear, viewMonth, cell.day);
+          const dateStr    = `${viewYear}-${String(viewMonth + 1).padStart(2,'0')}-${String(cell.day).padStart(2,'0')}`;
+          const isPast     = d < today;
+          const isClosed   = !isOpen(d);
+          const isSelected = value === dateStr;
+          const isToday    = d.getTime() === today.getTime();
+          const disabled   = isPast || isClosed;
+
+          let cellStyle = { ...dp.cell };
+          if      (isSelected) cellStyle = { ...cellStyle, ...dp.cellSelected };
+          else if (disabled)   cellStyle = { ...cellStyle, ...dp.cellDisabled };
+          else if (isToday)    cellStyle = { ...cellStyle, ...dp.cellToday };
+          else                 cellStyle = { ...cellStyle, ...dp.cellAvail };
 
           return (
             <button
-              key={dateStr}
+              key={i}
               disabled={disabled}
               onClick={() => onChange(dateStr)}
-              style={chip}
+              style={cellStyle}
               title={isClosed ? 'Salon closed' : isPast ? 'Past date' : dateStr}
             >
-              <span style={{ ...dp.abbr, color: isSelected ? 'rgba(255,255,255,.72)' : disabled ? 'var(--text-light)' : 'var(--text-muted)' }}>
-                {DAY_ABBR[d.getDay()]}
+              <span style={{ ...dp.dayNum, color: isSelected ? '#fff' : disabled ? 'var(--text-light)' : 'var(--text)' }}>
+                {cell.day}
               </span>
-              <span style={{ ...dp.num, ...(isPast ? dp.numPast : {}), color: isSelected ? '#fff' : disabled ? 'var(--text-light)' : 'var(--text)' }}>
-                {d.getDate()}
-              </span>
-              <span style={dp.tag}>
-                {isPast   && <span style={{ color: '#DC2626', fontSize: 8, fontWeight: 700 }}>PAST</span>}
-                {!isPast && isClosed && <span style={{ color: 'var(--text-light)', fontSize: 8, fontWeight: 700 }}>N/A</span>}
-                {isSelected && <span style={{ color: 'rgba(255,255,255,.85)', fontSize: 10 }}>✓</span>}
-                {!isPast && !isClosed && !isSelected && (
-                  <span style={{ width: 5, height: 5, borderRadius: '50%', background: isToday ? '#7C3AED' : 'transparent', display: 'inline-block' }} />
-                )}
-              </span>
+              {isClosed && !isPast && <span style={dp.closedDot} title="Closed" />}
+              {isSelected && <span style={dp.checkMark}>✓</span>}
+              {isToday && !isSelected && <span style={dp.todayDot} />}
             </button>
           );
         })}
@@ -105,37 +109,26 @@ function DatePicker({ value, onChange, operatingHours }) {
 }
 
 const dp = {
-  header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 },
-  monthLabel: {
-    fontFamily: "'Cormorant Garamond', Georgia, serif",
-    fontSize: 17, fontWeight: 700, color: 'var(--text)', letterSpacing: '-0.01em',
+  header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
+  monthLabel: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 19, fontWeight: 700, color: 'var(--text)', letterSpacing: '-0.01em' },
+  navBtn: { width: 34, height: 34, borderRadius: 10, border: '1px solid var(--border)', background: 'var(--surface2)', color: 'var(--text)', cursor: 'pointer', fontSize: 18, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  weekRow:  { display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4, marginBottom: 4 },
+  weekHead: { textAlign: 'center', fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.08em', padding: '4px 0' },
+  grid: { display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4 },
+  cell: {
+    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+    height: 48, borderRadius: 10, border: '1.5px solid transparent',
+    cursor: 'pointer', transition: 'all .15s ease', position: 'relative', gap: 2,
   },
-  navBtn: {
-    width: 34, height: 34, borderRadius: 10,
-    border: '1px solid var(--border)', background: 'var(--surface2)',
-    color: 'var(--text)', cursor: 'pointer', fontSize: 18, fontWeight: 700,
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    transition: 'background .15s ease',
-  },
-  row: { display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 6 },
-  chip: {
-    display: 'flex', flexDirection: 'column', alignItems: 'center',
-    width: 60, minWidth: 60, padding: '10px 4px 8px',
-    borderRadius: 16, border: '2px solid var(--border)',
-    background: 'var(--surface)', cursor: 'pointer',
-    transition: 'all .18s ease', gap: 2,
-  },
-  chipSelected: {
-    background: 'linear-gradient(135deg, #7C3AED 0%, #EC4899 100%)',
-    borderColor: 'transparent', boxShadow: '0 6px 18px rgba(124,58,237,.4)', transform: 'translateY(-3px)',
-  },
-  chipPast:   { background: 'var(--surface2)', borderColor: 'transparent', cursor: 'not-allowed', opacity: 0.4 },
-  chipClosed: { background: 'var(--surface2)', borderColor: 'transparent', cursor: 'not-allowed', opacity: 0.5 },
-  chipToday:  { borderColor: '#7C3AED', boxShadow: '0 0 0 3px rgba(124,58,237,.12)' },
-  abbr: { fontSize: 9, fontWeight: 700, letterSpacing: '0.08em' },
-  num:  { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 24, fontWeight: 700, lineHeight: 1.1 },
-  numPast: { textDecoration: 'line-through' },
-  tag: { height: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  cellAvail:    { background: 'var(--surface2)', borderColor: 'var(--border)' },
+  cellSelected: { background: 'linear-gradient(135deg, #7C3AED 0%, #0D9488 100%)', borderColor: 'transparent', boxShadow: '0 4px 14px rgba(124,58,237,.4)', transform: 'scale(1.05)' },
+  cellDisabled: { background: 'var(--surface)', borderColor: 'transparent', cursor: 'not-allowed', opacity: 0.4 },
+  cellToday:    { background: 'var(--surface2)', borderColor: '#7C3AED', boxShadow: '0 0 0 2px rgba(124,58,237,.15)' },
+  outsideCell:  { display: 'flex', alignItems: 'center', justifyContent: 'center', height: 48, fontSize: 13, color: 'var(--text-light)', opacity: 0.3 },
+  dayNum:   { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 17, fontWeight: 700, lineHeight: 1 },
+  closedDot:{ width: 4, height: 4, borderRadius: '50%', background: '#DC2626' },
+  checkMark:{ fontSize: 9, color: 'rgba(255,255,255,.9)', fontWeight: 700 },
+  todayDot: { width: 4, height: 4, borderRadius: '50%', background: '#7C3AED' },
 };
 
 const STEPS = ['Services', 'Professional', 'Date', 'Time', 'Confirm'];

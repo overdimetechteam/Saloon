@@ -25,15 +25,6 @@ const MOCK_REVIEWS = [
   { name: 'Priya K.',  rating: 5, date: 'April 2025',  text: 'Pure luxury from start to finish. The attention to detail is incredible — worth every rupee. Will keep returning!' },
 ];
 
-const AMENITIES = [
-  { icon: '🅿', label: 'Free Parking'           },
-  { icon: '♿', label: 'Wheelchair Access'       },
-  { icon: '📶', label: 'Free WiFi'               },
-  { icon: '💳', label: 'Card Payments'           },
-  { icon: '☕', label: 'Complimentary Drinks'    },
-  { icon: '🔒', label: 'Safe & Secure'           },
-];
-
 const CAT_COLORS = {
   Hair: '#7C3AED', Nails: '#EC4899',
   Skin: '#059669', Makeup: '#D97706', Other: '#2563EB',
@@ -236,8 +227,36 @@ export default function SalonDetail() {
           )}
         </section>
 
-        {/* Team */}
+        {/* About Us — moved above Team */}
         <section style={s.sec} className="fade-up d1">
+          <div style={s.eyebrowSm}>Our Story</div>
+          <h2 style={s.secTitle}>About {salon.name}</h2>
+          <div style={s.aboutCard}>
+            <p style={s.aboutText}>
+              {salon.description ||
+                `Welcome to ${salon.name}, where beauty meets excellence. Nestled in the heart of ${salon.address_city}, we are dedicated to providing an unparalleled salon experience that combines artistry, expertise, and personalised care.`}
+            </p>
+            <p style={s.aboutText}>
+              Our team of highly trained professionals is passionate about helping you look and feel your absolute best. Whether you're in for a fresh cut, a luxurious treatment, or a complete transformation, we promise results that exceed your expectations.
+            </p>
+            <div style={{ ...s.aboutStats, gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)' }}>
+              {[
+                { val: '500+', label: 'Happy Clients'   },
+                { val: '4+',  label: 'Years Experience' },
+                { val: '15+', label: 'Expert Staff'     },
+                { val: '4.8', label: 'Average Rating'   },
+              ].map(stat => (
+                <div key={stat.label} style={{ textAlign: 'center' }}>
+                  <div style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 34, fontWeight: 700, color: '#7C3AED', marginBottom: 4 }}>{stat.val}</div>
+                  <div style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 500 }}>{stat.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Team */}
+        <section style={s.sec} className="fade-up d2">
           <div style={s.eyebrowSm}>Meet the Experts</div>
           <h2 style={s.secTitle}>Our Team</h2>
           <div style={s.teamGrid}>
@@ -314,38 +333,23 @@ export default function SalonDetail() {
           </div>
         </section>
 
-        {/* Hours + Amenities */}
+        {/* Working Hours */}
         <section style={s.sec} className="fade-up d3">
-          <div style={{ ...s.hoursAmenRow, gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr' }}>
-            <div style={s.hoursCard}>
-              <div style={s.eyebrowSm}>When We're Open</div>
-              <h3 style={s.subTitle}>Working Hours</h3>
-              {Object.keys(salon.operating_hours || {}).length === 0 ? (
-                <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>Hours not specified</p>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-                  {Object.entries(salon.operating_hours).map(([day, hours]) => (
-                    <div key={day} style={s.hourRow}>
-                      <span style={s.dayLabel}>{day.slice(0, 3).toUpperCase()}</span>
-                      <span style={s.hoursVal}>{hours.open} – {hours.close}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div style={s.amenCard}>
-              <div style={s.eyebrowSm}>Facilities</div>
-              <h3 style={s.subTitle}>Parking & Amenities</h3>
-              <div style={s.amenGrid}>
-                {AMENITIES.map(a => (
-                  <div key={a.label} style={s.amenItem}>
-                    <span style={s.amenIcon}>{a.icon}</span>
-                    <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>{a.label}</span>
+          <div style={s.eyebrowSm}>When We're Open</div>
+          <h2 style={s.secTitle}>Working Hours</h2>
+          <div style={s.hoursCard}>
+            {Object.keys(salon.operating_hours || {}).length === 0 ? (
+              <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>Hours not specified</p>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '0 40px' }}>
+                {Object.entries(salon.operating_hours).map(([day, hours]) => (
+                  <div key={day} style={s.hourRow}>
+                    <span style={s.dayLabel}>{day.slice(0, 3).toUpperCase()}</span>
+                    <span style={s.hoursVal}>{hours.open} – {hours.close}</span>
                   </div>
                 ))}
               </div>
-            </div>
+            )}
           </div>
         </section>
 
@@ -376,34 +380,6 @@ export default function SalonDetail() {
             </div>
           </section>
         )}
-
-        {/* About Us */}
-        <section style={s.sec} className="fade-up d4">
-          <div style={s.eyebrowSm}>Our Story</div>
-          <h2 style={s.secTitle}>About {salon.name}</h2>
-          <div style={s.aboutCard}>
-            <p style={s.aboutText}>
-              {salon.description ||
-                `Welcome to ${salon.name}, where beauty meets excellence. Nestled in the heart of ${salon.address_city}, we are dedicated to providing an unparalleled salon experience that combines artistry, expertise, and personalised care.`}
-            </p>
-            <p style={s.aboutText}>
-              Our team of highly trained professionals is passionate about helping you look and feel your absolute best. Whether you're in for a fresh cut, a luxurious treatment, or a complete transformation, we promise results that exceed your expectations.
-            </p>
-            <div style={{ ...s.aboutStats, gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)' }}>
-              {[
-                { val: '500+', label: 'Happy Clients'   },
-                { val: '4+',  label: 'Years Experience' },
-                { val: '15+', label: 'Expert Staff'     },
-                { val: '4.8', label: 'Average Rating'   },
-              ].map(stat => (
-                <div key={stat.label} style={{ textAlign: 'center' }}>
-                  <div style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 34, fontWeight: 700, color: '#7C3AED', marginBottom: 4 }}>{stat.val}</div>
-                  <div style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 500 }}>{stat.label}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
 
         {/* Bottom CTA */}
         {isClient && (
@@ -569,25 +545,13 @@ const s = {
     borderRadius: 12, border: '1px solid var(--border)',
   },
 
-  hoursAmenRow: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 },
   hoursCard: {
     background: 'var(--surface)', borderRadius: 18, padding: '26px 28px',
     border: '1px solid var(--border)', boxShadow: '0 2px 8px rgba(0,0,0,.05)',
   },
-  amenCard: {
-    background: 'var(--surface)', borderRadius: 18, padding: '26px 28px',
-    border: '1px solid var(--border)', boxShadow: '0 2px 8px rgba(0,0,0,.05)',
-  },
-  subTitle: {
-    fontFamily: "'Cormorant Garamond', Georgia, serif",
-    fontSize: 20, fontWeight: 700, color: 'var(--text)', marginBottom: 18, letterSpacing: '-0.01em',
-  },
   hourRow:  { display: 'flex', justifyContent: 'space-between', padding: '9px 0', borderBottom: '1px solid var(--border)' },
   dayLabel: { fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' },
   hoursVal: { fontSize: 13, fontWeight: 600, color: 'var(--text)' },
-  amenGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 },
-  amenItem: { display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0' },
-  amenIcon: { fontSize: 20, width: 28, textAlign: 'center' },
 
   otherScroll: { display: 'flex', gap: 16, overflowX: 'auto', paddingBottom: 8 },
   otherCard: {

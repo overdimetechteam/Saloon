@@ -16,6 +16,13 @@ class Service(models.Model):
     default_duration_minutes = models.PositiveIntegerField()
     default_price = models.DecimalField(max_digits=10, decimal_places=2)
     is_active = models.BooleanField(default=True)
+    is_private = models.BooleanField(default=False)
+    owner_salon = models.ForeignKey(
+        Salon,
+        null=True, blank=True,
+        on_delete=models.CASCADE,
+        related_name='custom_services',
+    )
 
     def __str__(self):
         return f"{self.name} ({self.category})"

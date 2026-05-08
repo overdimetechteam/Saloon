@@ -30,7 +30,7 @@ class SalonListView(APIView):
 
     def get(self, request):
         name = request.query_params.get('name', '')
-        salons = Salon.objects.filter(status='active')
+        salons = Salon.objects.filter(status='active', is_suspended=False)
         if name:
             salons = salons.filter(name__icontains=name)
         return Response(SalonSerializer(salons, many=True).data)
@@ -116,6 +116,18 @@ class SalonRemoveView(APIView):
             )
         salon.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class SalonToggleSuspendView(APIView):
+    permission_classes = [IsSystemAdmin]
+
+    def post(self, request, pk):
+        salon = get_object_or_404(Salon, pk=pk)
+        if salon.status != 'active':
+            return Response({'detail': 'Only active salons can be suspended/unsuspended.'}, status=status.HTTP_400_BAD_REQUEST)
+        salon.is_suspended = not salon.is_suspended
+        salon.save()
+        return Response(SalonSerializer(salon).data)
 
 
 class PendingSalonsView(APIView):
@@ -246,7 +258,7 @@ class ClientFavouritesView(APIView):
     def get(self, request):
         if request.user.role != 'client':
             return Response({'detail': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
-        salons = Salon.objects.filter(favourited_by__client=request.user, status='active')
+        salons = Salon.objects.filter(favourited_by__client=request.user, status='active', is_suspended=False)
         return Response(SalonSerializer(salons, many=True).data)
 
 
@@ -365,7 +377,7 @@ class AvailableSlotsView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request, pk):
-        salon = get_object_or_404(Salon, pk=pk, status='active')
+        salon = get_object_or_404(Salon, pk=pk, status='active', is_suspended=False)
         date_str = request.query_params.get('date')
         staff_id = request.query_params.get('staff_id')
 

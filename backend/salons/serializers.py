@@ -41,7 +41,7 @@ class SalonSerializer(serializers.ModelSerializer):
             'id', 'name', 'business_reg_number',
             'address_street', 'address_city', 'address_district', 'address_postal',
             'contact_number', 'email', 'operating_hours',
-            'status', 'owner', 'owner_email', 'created_at', 'calendar',
+            'status', 'is_suspended', 'owner', 'owner_email', 'created_at', 'calendar',
         ]
         read_only_fields = ['status', 'owner', 'created_at']
 

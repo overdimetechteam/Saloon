@@ -19,6 +19,7 @@ class Salon(models.Model):
     email = models.EmailField()
     operating_hours = models.JSONField(default=dict)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    is_suspended = models.BooleanField(default=False)
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
