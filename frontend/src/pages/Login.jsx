@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useIsMobile } from '../hooks/useMobile';
 
 export default function Login() {
   const { login } = useAuth();
   const navigate  = useNavigate();
+  const isMobile  = useIsMobile();
   const [form, setForm]     = useState({ email: '', password: '' });
   const [error, setError]   = useState('');
   const [loading, setLoading] = useState(false);
@@ -22,35 +24,46 @@ export default function Login() {
   };
 
   return (
-    <div style={s.page}>
-      {/* Left panel — brand / visual */}
-      <div style={s.left}>
-        <div style={s.leftInner}>
-          <div style={s.leftMark}>✦</div>
-          <div style={s.leftTitle}>Saloon</div>
-          <div style={s.leftTagline}>Beauty & Wellness</div>
-          <div style={s.leftDivider} />
-          <p style={s.leftQuote}>
-            "Where every visit is a luxury, every detail a statement of care."
-          </p>
-          <div style={s.leftFeatures}>
-            {['Premium salon experiences', 'Effortless booking in seconds', 'Trusted by thousands'].map(f => (
-              <div key={f} style={s.leftFeature}>
-                <span style={s.leftFeatureDot}>✦</span>
-                <span>{f}</span>
-              </div>
-            ))}
+    <div style={{ ...s.page, flexDirection: isMobile ? 'column' : 'row' }}>
+      {/* Left panel — brand / visual (hidden on mobile, replaced by header strip) */}
+      {isMobile ? (
+        <div style={s.mobileBrand}>
+          <div style={s.mobileBrandInner}>
+            <div style={{ fontSize: 22, color: '#EC4899', marginBottom: 4 }}>✦</div>
+            <div style={s.leftTitle}>Saloon</div>
+            <div style={{ ...s.leftTagline, fontSize: 10 }}>Beauty & Wellness</div>
           </div>
+          <div style={s.leftBlob1} />
         </div>
-        <div style={s.leftBlob1} />
-        <div style={s.leftBlob2} />
-      </div>
+      ) : (
+        <div style={s.left}>
+          <div style={s.leftInner}>
+            <div style={s.leftMark}>✦</div>
+            <div style={s.leftTitle}>Saloon</div>
+            <div style={s.leftTagline}>Beauty & Wellness</div>
+            <div style={s.leftDivider} />
+            <p style={s.leftQuote}>
+              "Where every visit is a luxury, every detail a statement of care."
+            </p>
+            <div style={s.leftFeatures}>
+              {['Premium salon experiences', 'Effortless booking in seconds', 'Trusted by thousands'].map(f => (
+                <div key={f} style={s.leftFeature}>
+                  <span style={s.leftFeatureDot}>✦</span>
+                  <span>{f}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div style={s.leftBlob1} />
+          <div style={s.leftBlob2} />
+        </div>
+      )}
 
       {/* Right panel — form */}
-      <div style={s.right}>
-        <div style={s.formWrap} className="fade-up">
+      <div style={{ ...s.right, padding: isMobile ? '32px 22px 48px' : '60px 40px' }}>
+        <div style={{ ...s.formWrap, maxWidth: isMobile ? '100%' : 400 }} className="fade-up">
           <div style={s.formHeader}>
-            <h1 style={s.formTitle}>Welcome back</h1>
+            <h1 style={{ ...s.formTitle, fontSize: isMobile ? 30 : 38 }}>Welcome back</h1>
             <p style={s.formSub}>Sign in to continue your journey</p>
           </div>
 
@@ -108,6 +121,13 @@ const s = {
     display: 'flex',
     background: 'var(--bg)',
   },
+
+  mobileBrand: {
+    background: 'linear-gradient(145deg, #1A0532 0%, #2D0A5E 50%, #7C3AED 100%)',
+    padding: '32px 22px 28px', textAlign: 'center',
+    position: 'relative', overflow: 'hidden', flexShrink: 0,
+  },
+  mobileBrandInner: { position: 'relative', zIndex: 2 },
 
   /* ── Left panel ── */
   left: {

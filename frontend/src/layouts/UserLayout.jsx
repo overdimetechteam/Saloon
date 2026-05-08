@@ -1,14 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
-import { NavLink, Outlet, useNavigate, Link } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { useIsMobile } from '../hooks/useMobile';
 import api from '../api/axios';
 
 const NAV = [
-  { to: '/user/dashboard',  label: 'Dashboard'    },
-  { to: '/user/bookings',   label: 'My Bookings'  },
-  { to: '/user/favourites', label: 'Favourites'   },
-  { to: '/salons',          label: 'Browse Salons' },
+  { to: '/user/dashboard',  label: 'Dashboard',   icon: '◈' },
+  { to: '/user/bookings',   label: 'Bookings',     icon: '◉' },
+  { to: '/user/favourites', label: 'Favourites',   icon: '♡' },
+  { to: '/salons',          label: 'Explore',      icon: '✦' },
 ];
 
 const TYPE_ICON = {
@@ -168,7 +169,9 @@ const nb = {
 export default function UserLayout() {
   const { profile, logout } = useAuth();
   const { isDark, toggle }  = useTheme();
-  const navigate = useNavigate();
+  const navigate  = useNavigate();
+  const location  = useLocation();
+  const isMobile  = useIsMobile();
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -193,45 +196,52 @@ export default function UserLayout() {
         boxShadow: scrolled ? '0 4px 28px rgba(124,58,237,.07)' : 'none',
         transition: 'background .3s ease, box-shadow .3s ease',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', padding: '0 40px', height: 70, maxWidth: 1320, margin: '0 auto', width: '100%', gap: 28 }}>
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 28,
+          padding: isMobile ? '0 18px' : '0 40px',
+          height: 64,
+          maxWidth: 1320, margin: '0 auto', width: '100%',
+        }}>
           {/* Brand */}
-          <Link to="/salons" style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0, textDecoration: 'none' }}>
+          <Link to="/salons" style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0, textDecoration: 'none' }}>
             <div style={{
-              width: 40, height: 40, borderRadius: 12, flexShrink: 0,
+              width: 36, height: 36, borderRadius: 10, flexShrink: 0,
               background: 'linear-gradient(145deg, #7C3AED 0%, #9B59E8 45%, #EC4899 100%)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#fff', fontSize: 16, fontWeight: 900,
+              color: '#fff', fontSize: 15, fontWeight: 900,
               boxShadow: '0 4px 16px rgba(124,58,237,.4), inset 0 1px 0 rgba(255,255,255,.2)',
             }}>✦</div>
             <div>
-              <div style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontWeight: 700, fontSize: 20, color: 'var(--text)', lineHeight: 1, letterSpacing: '-0.01em' }}>Saloon</div>
-              <div style={{ fontSize: 9, color: '#A78BFA', letterSpacing: '0.18em', textTransform: 'uppercase', marginTop: 3, fontWeight: 500 }}>Beauty & Wellness</div>
+              <div style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontWeight: 700, fontSize: isMobile ? 18 : 20, color: 'var(--text)', lineHeight: 1, letterSpacing: '-0.01em' }}>Saloon</div>
+              {!isMobile && <div style={{ fontSize: 9, color: '#A78BFA', letterSpacing: '0.18em', textTransform: 'uppercase', marginTop: 3, fontWeight: 500 }}>Beauty & Wellness</div>}
             </div>
           </Link>
 
-          {/* Nav links */}
-          <nav style={{ display: 'flex', gap: 2, flex: 1 }}>
-            {NAV.map(item => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                style={({ isActive }) => ({
-                  padding: '6px 16px', borderRadius: 9, fontSize: 14,
-                  fontWeight: isActive ? 600 : 500,
-                  color: isActive ? '#7C3AED' : 'var(--text-muted)',
-                  background: isActive
-                    ? (isDark ? 'rgba(124,58,237,.18)' : '#F5F2FF')
-                    : 'transparent',
-                  transition: 'all .18s ease',
-                })}
-              >
-                {item.label}
-              </NavLink>
-            ))}
-          </nav>
+          {/* Desktop nav links */}
+          {!isMobile && (
+            <nav style={{ display: 'flex', gap: 2, flex: 1 }}>
+              {NAV.map(item => (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  style={({ isActive }) => ({
+                    padding: '6px 16px', borderRadius: 9, fontSize: 14,
+                    fontWeight: isActive ? 600 : 500,
+                    color: isActive ? '#7C3AED' : 'var(--text-muted)',
+                    background: isActive
+                      ? (isDark ? 'rgba(124,58,237,.18)' : '#F5F2FF')
+                      : 'transparent',
+                    transition: 'all .18s ease',
+                  })}
+                >
+                  {item.label}
+                </NavLink>
+              ))}
+            </nav>
+          )}
 
           {/* Right controls */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginLeft: 'auto' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 8 : 10, marginLeft: 'auto' }}>
             <NotificationBell />
             <button onClick={toggle} className="theme-toggle" title={isDark ? 'Light mode' : 'Dark mode'}
               style={{ color: isDark ? '#A78BFA' : '#7C3AED' }}>
@@ -239,35 +249,56 @@ export default function UserLayout() {
             </button>
             <div style={{ position: 'relative' }}>
               <div style={{
-                width: 38, height: 38, borderRadius: '50%',
+                width: 34, height: 34, borderRadius: '50%',
                 background: 'linear-gradient(145deg, #7C3AED 0%, #EC4899 100%)',
                 color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 13, fontWeight: 700, boxShadow: '0 2px 10px rgba(124,58,237,.35)',
+                fontSize: 12, fontWeight: 700, boxShadow: '0 2px 10px rgba(124,58,237,.35)',
               }}>{initials}</div>
               <div style={{
-                width: 9, height: 9, borderRadius: '50%', background: '#34D399',
+                width: 8, height: 8, borderRadius: '50%', background: '#34D399',
                 border: '2px solid var(--surface)',
                 position: 'absolute', bottom: 0, right: 0,
               }} />
             </div>
-            <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }} className="hide-mobile">
-              {profile?.full_name?.split(' ')[0]}
-            </div>
-            <button style={{
-              padding: '7px 16px', background: 'transparent',
-              border: '1px solid var(--border)', borderRadius: 9,
-              cursor: 'pointer', fontSize: 13, color: 'var(--text-muted)',
-              transition: 'border-color .18s ease',
-            }} onClick={handleLogout} className="hide-mobile">Sign Out</button>
+            {!isMobile && (
+              <>
+                <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>
+                  {profile?.full_name?.split(' ')[0]}
+                </div>
+                <button style={{
+                  padding: '7px 16px', background: 'transparent',
+                  border: '1px solid var(--border)', borderRadius: 9,
+                  cursor: 'pointer', fontSize: 13, color: 'var(--text-muted)',
+                  transition: 'border-color .18s ease',
+                }} onClick={handleLogout}>Sign Out</button>
+              </>
+            )}
           </div>
         </div>
       </header>
 
-      <main style={{ flex: 1, padding: '40px 40px', maxWidth: 1320, margin: '0 auto', width: '100%' }}>
-        <div className="fade-in">
+      <main style={{
+        flex: 1,
+        padding: isMobile ? '24px 16px 80px' : '40px 40px',
+        maxWidth: 1320, margin: '0 auto', width: '100%',
+        boxSizing: 'border-box',
+      }}>
+        <div key={location.pathname} className="page-enter">
           <Outlet />
         </div>
       </main>
+
+      {/* Mobile bottom tab bar */}
+      {isMobile && (
+        <nav className="bottom-tab-bar">
+          {NAV.map(item => (
+            <NavLink key={item.to} to={item.to}>
+              <span className="tab-icon">{item.icon}</span>
+              {item.label}
+            </NavLink>
+          ))}
+        </nav>
+      )}
     </div>
   );
 }

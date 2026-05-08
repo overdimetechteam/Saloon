@@ -1,12 +1,25 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom';
+import { createPortal } from 'react-dom';
 import api from '../../api/axios';
 import { c } from '../../styles/theme';
+import { useIsMobile } from '../../hooks/useMobile';
 
 const DAY_ABBR  = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
 const DAY_NAMES = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
 
 const STAFF_COLORS = ['#7C3AED','#EC4899','#2563EB','#059669','#D97706','#DC2626'];
+
+const CONFETTI_PARTICLES = [
+  { size: 8,  top: '22%', left: '10%',  color: '#7C3AED', round: true,  anim: 'confettiA', dur: '2.8s', delay: '0.1s'  },
+  { size: 6,  top: '28%', left: '84%',  color: '#EC4899', round: true,  anim: 'confettiB', dur: '2.5s', delay: '0.2s'  },
+  { size: 10, top: '62%', left: '7%',   color: '#BF9B65', round: false, anim: 'confettiC', dur: '2.6s', delay: '0.3s'  },
+  { size: 7,  top: '58%', left: '89%',  color: '#A78BFA', round: false, anim: 'confettiA', dur: '2.7s', delay: '0.05s' },
+  { size: 5,  top: '44%', left: '4%',   color: '#F9A8D4', round: true,  anim: 'confettiB', dur: '2.4s', delay: '0.15s' },
+  { size: 9,  top: '34%', left: '93%',  color: '#C4B5FD', round: true,  anim: 'confettiC', dur: '2.9s', delay: '0.25s' },
+  { size: 6,  top: '76%', left: '47%',  color: '#7C3AED', round: false, anim: 'confettiA', dur: '2.3s', delay: '0.35s' },
+  { size: 7,  top: '14%', left: '57%',  color: '#EC4899', round: true,  anim: 'confettiB', dur: '2.6s', delay: '0.4s'  },
+];
 
 function DatePicker({ value, onChange, operatingHours }) {
   const [weekOffset, setWeekOffset] = useState(0);
@@ -130,6 +143,7 @@ const STEPS = ['Services', 'Professional', 'Date', 'Time', 'Confirm'];
 export default function BookSalon() {
   const { salonId } = useParams();
   const navigate = useNavigate();
+  const isMobile  = useIsMobile();
   const [searchParams] = useSearchParams();
   const preIds = (searchParams.get('services') || '').split(',').map(Number).filter(Boolean);
   const [salon, setSalon] = useState(null);
@@ -150,6 +164,8 @@ export default function BookSalon() {
   const [promoOpen, setPromoOpen] = useState(false);
   const [promoLoading, setPromoLoading] = useState(false);
   const [promoResult, setPromoResult] = useState(null);
+  const [confirmed, setConfirmed] = useState(false);
+  const [bookingId, setBookingId] = useState(null);
 
   useEffect(() => {
     api.get(`/salons/${salonId}/`).then(r => setSalon(r.data)).catch(() => {});
@@ -200,8 +216,9 @@ export default function BookSalon() {
         ...(staffId !== null ? { staff_member_id: staffId } : {}),
         ...(promoResult?.valid ? { promo_id: promoResult.promo_id } : {}),
       };
-      await api.post('/bookings/', payload);
-      navigate('/user/bookings');
+      const res = await api.post('/bookings/', payload);
+      setBookingId(res.data?.id ?? null);
+      setConfirmed(true);
     } catch (err) {
       setError(err.response?.data?.detail || JSON.stringify(err.response?.data) || 'Booking failed');
     } finally { setSubmitting(false); }
@@ -223,25 +240,187 @@ export default function BookSalon() {
   const goNext = () => { if (canAdvance && step < 4) setStep(st => st + 1); };
   const goPrev = () => { if (step > 0) setStep(st => st - 1); };
 
+  /* ── Luxury booking confirmation overlay ── */
+  if (confirmed) {
+    const dt = slot ? new Date(slot) : null;
+    const fmtDate = dt ? dt.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) : '';
+    const fmtTime = dt ? dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+
+    return createPortal(
+      <div style={conf.overlay} className="noise-bg">
+        {/* Ambient background glows */}
+        <div style={conf.bgGlow1} className="ambient-glow" />
+        <div style={conf.bgGlow2} />
+        <div style={conf.bgGlow3} />
+
+        {/* Confetti particles */}
+        {CONFETTI_PARTICLES.map((p, i) => (
+          <div key={i} style={{
+            position: 'absolute',
+            width: p.size, height: p.size,
+            borderRadius: p.round ? '50%' : 3,
+            background: p.color,
+            top: p.top, left: p.left,
+            animation: `${p.anim} ${p.dur} ${p.delay} cubic-bezier(.25,.46,.45,.94) forwards`,
+            opacity: 0,
+            pointerEvents: 'none',
+          }} />
+        ))}
+
+        {/* Main confirmation content */}
+        <div style={conf.content}>
+          {/* Eyebrow */}
+          <div style={conf.eyebrow} className="fade-in d1">
+            <span style={{ color: '#BF9B65', marginRight: 8 }}>✦</span>
+            Your Appointment is Confirmed
+          </div>
+
+          {/* Animated checkmark */}
+          <div style={conf.checkWrap} className="fade-in d1">
+            <div style={conf.checkGlow} />
+            <div style={{ ...conf.checkCircle, animation: 'checkmarkBounce .65s .2s cubic-bezier(.16,1,.3,1) backwards' }}>
+              <svg width="96" height="96" viewBox="0 0 96 96" fill="none" style={{ display: 'block' }}>
+                <defs>
+                  <linearGradient id="cGrad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stopColor="#7C3AED" />
+                    <stop offset="100%" stopColor="#EC4899" />
+                  </linearGradient>
+                </defs>
+                <circle
+                  cx="48" cy="48" r="44"
+                  stroke="url(#cGrad)" strokeWidth="2"
+                  strokeDasharray="276"
+                  style={{ animation: 'svgCircleDraw .9s .25s cubic-bezier(.16,1,.3,1) backwards' }}
+                />
+                <path
+                  d="M30 48L42 60L66 34"
+                  stroke="white" strokeWidth="4"
+                  strokeLinecap="round" strokeLinejoin="round"
+                  strokeDasharray="65"
+                  style={{ animation: 'svgCheckDraw .55s .9s cubic-bezier(.16,1,.3,1) backwards' }}
+                />
+              </svg>
+            </div>
+          </div>
+
+          {/* Salon name — the cinematic moment */}
+          <h1 style={conf.salonName} className="fade-up d3">{salon.name}</h1>
+          <p style={conf.salonSub} className="fade-up d3">Your luxury experience awaits</p>
+
+          {/* Decorative rule */}
+          <div style={conf.rule} className="fade-in d4" />
+
+          {/* Appointment detail card */}
+          <div style={conf.detailCard} className="fade-up d4">
+            {dt && (
+              <div style={conf.detailRow}>
+                <div style={conf.detailIconWrap}>
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                    <rect x="1" y="2.5" width="12" height="10.5" rx="2" stroke="#A78BFA" strokeWidth="1.2"/>
+                    <line x1="1" y1="6" x2="13" y2="6" stroke="#A78BFA" strokeWidth="1.2"/>
+                    <line x1="4.5" y1="1" x2="4.5" y2="4" stroke="#A78BFA" strokeWidth="1.2" strokeLinecap="round"/>
+                    <line x1="9.5" y1="1" x2="9.5" y2="4" stroke="#A78BFA" strokeWidth="1.2" strokeLinecap="round"/>
+                  </svg>
+                </div>
+                <div>
+                  <div style={conf.detailLabel}>Date &amp; Time</div>
+                  <div style={conf.detailVal}>{fmtDate} &nbsp;·&nbsp; {fmtTime}</div>
+                </div>
+              </div>
+            )}
+            {selectedServices.length > 0 && (
+              <div style={conf.detailRow}>
+                <div style={conf.detailIconWrap}>
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                    <circle cx="4.5" cy="4.5" r="3" stroke="#A78BFA" strokeWidth="1.2"/>
+                    <circle cx="9.5" cy="9.5" r="3" stroke="#A78BFA" strokeWidth="1.2"/>
+                    <line x1="7" y1="7" x2="13" y2="1" stroke="#A78BFA" strokeWidth="1.2" strokeLinecap="round"/>
+                  </svg>
+                </div>
+                <div>
+                  <div style={conf.detailLabel}>Services</div>
+                  <div style={conf.detailVal}>{selectedServices.map(ss => ss.service_name).join(' · ')}</div>
+                </div>
+              </div>
+            )}
+            {staffId !== null && staffList.find(m => m.id === staffId) && (
+              <div style={conf.detailRow}>
+                <div style={conf.detailIconWrap}>
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                    <circle cx="7" cy="4.5" r="3" stroke="#A78BFA" strokeWidth="1.2"/>
+                    <path d="M1 13c0-3.314 2.686-5 6-5s6 1.686 6 5" stroke="#A78BFA" strokeWidth="1.2" strokeLinecap="round"/>
+                  </svg>
+                </div>
+                <div>
+                  <div style={conf.detailLabel}>Professional</div>
+                  <div style={conf.detailVal}>{staffList.find(m => m.id === staffId)?.full_name}</div>
+                </div>
+              </div>
+            )}
+            {finalTotal > 0 && (
+              <div style={{ ...conf.detailRow, borderBottom: 'none', paddingBottom: 0, marginBottom: 0 }}>
+                <div style={conf.detailIconWrap}>
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                    <circle cx="7" cy="7" r="6" stroke="#A78BFA" strokeWidth="1.2"/>
+                    <text x="4.5" y="10.5" fontSize="7" fill="#A78BFA" fontWeight="700">LKR</text>
+                  </svg>
+                </div>
+                <div>
+                  <div style={conf.detailLabel}>Total</div>
+                  <div style={{ ...conf.detailVal, color: '#C4B5FD', fontWeight: 700 }}>
+                    LKR {finalTotal.toFixed(2)}
+                    {promoResult?.valid && (
+                      <span style={{ fontSize: 11, color: '#6EE7B7', marginLeft: 8, fontWeight: 500 }}>
+                        (promo applied)
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* CTAs */}
+          <div style={conf.ctaRow} className="fade-up d5">
+            <button
+              style={conf.primaryCTA}
+              className="btn-cta"
+              onClick={() => navigate(bookingId ? `/user/bookings/${bookingId}` : '/user/bookings')}
+            >
+              View My Booking
+            </button>
+            <button style={conf.ghostCTA} onClick={() => navigate('/salons')}>
+              Explore More Salons
+            </button>
+          </div>
+        </div>
+      </div>,
+      document.body
+    );
+  }
+
   return (
     <div>
       <Link to={`/salons/${salonId}`} style={s.back}>← Back to {salon.name}</Link>
 
       {/* Progress bar */}
-      <div style={s.progress} className="fade-up">
+      <div style={{ ...s.progress, padding: isMobile ? '14px 16px' : '18px 28px' }} className="fade-up">
         {STEPS.map((label, i) => (
           <div key={label} style={s.progressStep} onClick={() => i < step && setStep(i)}>
             <div style={{
               ...s.progressDot,
+              width: isMobile ? 26 : 30, height: isMobile ? 26 : 30,
               background: i <= step ? 'linear-gradient(135deg, #7C3AED, #EC4899)' : 'var(--border)',
               boxShadow: i === step ? '0 0 0 4px rgba(124,58,237,.18)' : 'none',
               cursor: i < step ? 'pointer' : 'default',
             }}>
               {i < step ? '✓' : i + 1}
             </div>
-            <div style={{ ...s.progressLabel, color: i <= step ? '#7C3AED' : 'var(--text-light)', fontWeight: i === step ? 700 : 500 }}>
-              {label}
-            </div>
+            {!isMobile && (
+              <div style={{ ...s.progressLabel, color: i <= step ? '#7C3AED' : 'var(--text-light)', fontWeight: i === step ? 700 : 500 }}>
+                {label}
+              </div>
+            )}
             {i < STEPS.length - 1 && (
               <div style={{ ...s.progressLine, background: i < step ? 'linear-gradient(90deg, #7C3AED, #EC4899)' : 'var(--border)' }} />
             )}
@@ -249,7 +428,7 @@ export default function BookSalon() {
         ))}
       </div>
 
-      <div style={s.layout}>
+      <div style={{ ...s.layout, flexDirection: isMobile ? 'column' : 'row' }}>
         {/* Main form */}
         <div style={s.formCol}>
 
@@ -514,7 +693,7 @@ export default function BookSalon() {
         </div>
 
         {/* Summary sidebar */}
-        <div style={s.sidebar}>
+        <div style={{ ...s.sidebar, width: isMobile ? '100%' : undefined }}>
           <div style={s.summaryCard} className="fade-up d2">
             <div style={s.summaryHeader}>
               <div style={s.summaryEyebrow}>Booking Summary</div>
@@ -614,7 +793,7 @@ const s = {
   formCol: { flex: 1, minWidth: 0 },
 
   stepCard: {
-    background: 'var(--surface)', borderRadius: 22, padding: 28,
+    background: 'var(--surface)', borderRadius: 20, padding: 22,
     boxShadow: '0 4px 24px rgba(124,58,237,.08)',
     border: '1px solid var(--border)', marginBottom: 16,
   },
@@ -812,4 +991,139 @@ const s = {
     boxShadow: '0 4px 12px rgba(124,58,237,.3)',
   },
   promoMsg: { marginTop: 8, padding: '9px 12px', borderRadius: 10, fontSize: 12, fontWeight: 500 },
+};
+
+/* ────────────────────────────────────────────
+   Luxury Booking Confirmation Overlay Styles
+   ──────────────────────────────────────────── */
+const conf = {
+  overlay: {
+    position: 'fixed', inset: 0, zIndex: 9999,
+    background: 'linear-gradient(160deg, #060411 0%, #0D0721 45%, #17093A 100%)',
+    display: 'flex', flexDirection: 'column',
+    alignItems: 'center', justifyContent: 'center',
+    overflowY: 'auto', padding: '48px 24px',
+    animation: 'confirmReveal .45s cubic-bezier(.16,1,.3,1) both',
+  },
+
+  bgGlow1: {
+    position: 'absolute', width: 600, height: 600, borderRadius: '50%',
+    background: 'radial-gradient(circle, rgba(124,58,237,.22) 0%, transparent 70%)',
+    top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
+    pointerEvents: 'none', filter: 'blur(60px)',
+    animation: 'ambientDrift 24s ease-in-out infinite',
+  },
+  bgGlow2: {
+    position: 'absolute', width: 360, height: 360, borderRadius: '50%',
+    background: 'radial-gradient(circle, rgba(236,72,153,.14) 0%, transparent 70%)',
+    top: '20%', right: '10%', pointerEvents: 'none', filter: 'blur(50px)',
+  },
+  bgGlow3: {
+    position: 'absolute', width: 280, height: 280, borderRadius: '50%',
+    background: 'radial-gradient(circle, rgba(191,155,101,.1) 0%, transparent 70%)',
+    bottom: '15%', left: '8%', pointerEvents: 'none', filter: 'blur(60px)',
+  },
+
+  content: {
+    position: 'relative', zIndex: 1,
+    display: 'flex', flexDirection: 'column', alignItems: 'center',
+    textAlign: 'center', maxWidth: 560, width: '100%',
+  },
+
+  eyebrow: {
+    fontSize: 11, fontWeight: 600, letterSpacing: '0.22em', textTransform: 'uppercase',
+    color: 'rgba(196,181,253,.7)', marginBottom: 36,
+    display: 'inline-flex', alignItems: 'center',
+    background: 'rgba(255,255,255,.05)', padding: '8px 20px', borderRadius: 30,
+    border: '1px solid rgba(255,255,255,.09)',
+  },
+
+  checkWrap: {
+    position: 'relative', marginBottom: 36,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    width: 96, height: 96,
+  },
+  checkGlow: {
+    position: 'absolute', width: 160, height: 160, borderRadius: '50%',
+    background: 'radial-gradient(circle, rgba(124,58,237,.35) 0%, transparent 70%)',
+    top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
+    animation: 'glowBreath 3s ease-in-out infinite',
+  },
+  checkCircle: {
+    width: 96, height: 96, borderRadius: '50%',
+    background: 'linear-gradient(135deg, rgba(124,58,237,.2) 0%, rgba(236,72,153,.15) 100%)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    boxShadow: '0 0 0 1px rgba(124,58,237,.35), 0 12px 40px rgba(124,58,237,.3)',
+  },
+
+  salonName: {
+    fontFamily: "'Cormorant Garamond', Georgia, serif",
+    fontSize: 'clamp(32px, 5vw, 58px)', fontWeight: 700,
+    color: '#F0EAFF', margin: '0 0 10px',
+    lineHeight: 1.1, letterSpacing: '-0.02em',
+  },
+  salonSub: {
+    fontSize: 15, color: 'rgba(196,181,253,.55)', margin: '0 0 28px',
+    fontStyle: 'italic', fontFamily: "'Cormorant Garamond', Georgia, serif",
+    letterSpacing: '0.02em',
+  },
+
+  rule: {
+    width: 48, height: 1,
+    background: 'linear-gradient(90deg, transparent, rgba(167,139,250,.5), transparent)',
+    marginBottom: 28,
+  },
+
+  detailCard: {
+    width: '100%', borderRadius: 20,
+    background: 'rgba(255,255,255,.04)',
+    backdropFilter: 'blur(20px)',
+    WebkitBackdropFilter: 'blur(20px)',
+    border: '1px solid rgba(255,255,255,.08)',
+    padding: '8px 0',
+    marginBottom: 32,
+    boxShadow: '0 8px 32px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.06)',
+  },
+  detailRow: {
+    display: 'flex', alignItems: 'flex-start', gap: 14,
+    padding: '14px 24px',
+    borderBottom: '1px solid rgba(255,255,255,.05)',
+    marginBottom: 0, textAlign: 'left',
+  },
+  detailIconWrap: {
+    width: 30, height: 30, borderRadius: 9, flexShrink: 0,
+    background: 'rgba(124,58,237,.15)', border: '1px solid rgba(167,139,250,.2)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    marginTop: 2,
+  },
+  detailLabel: {
+    fontSize: 9, fontWeight: 700, color: 'rgba(167,139,250,.65)',
+    letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 4,
+  },
+  detailVal: {
+    fontSize: 14, fontWeight: 500, color: '#E9D5FF', lineHeight: 1.5,
+  },
+
+  ctaRow: {
+    display: 'flex', flexDirection: 'column', gap: 12, width: '100%', maxWidth: 380,
+  },
+  primaryCTA: {
+    width: '100%', padding: '15px',
+    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #EC4899 100%)',
+    color: '#fff', border: 'none', borderRadius: 14,
+    fontSize: 15, fontWeight: 700, cursor: 'pointer',
+    fontFamily: "'DM Sans', sans-serif",
+    boxShadow: '0 8px 28px rgba(124,58,237,.45), inset 0 1px 0 rgba(255,255,255,.18)',
+    transition: 'transform .18s ease, box-shadow .18s ease',
+    letterSpacing: '0.01em',
+  },
+  ghostCTA: {
+    width: '100%', padding: '14px',
+    background: 'rgba(255,255,255,.06)',
+    color: 'rgba(196,181,253,.8)', border: '1px solid rgba(255,255,255,.1)', borderRadius: 14,
+    fontSize: 14, fontWeight: 500, cursor: 'pointer',
+    fontFamily: "'DM Sans', sans-serif",
+    transition: 'background .18s ease, border-color .18s ease',
+    letterSpacing: '0.01em',
+  },
 };

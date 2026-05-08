@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
 import { STATUS_META } from '../../styles/theme';
+import { useIsMobile } from '../../hooks/useMobile';
 
 const ALL_STATUSES = ['pending','confirmed','awaiting_client','rescheduled','cancelled','completed','flagged'];
 
@@ -9,7 +10,8 @@ export default function UserBookingList() {
   const [bookings, setBookings] = useState([]);
   const [filter, setFilter] = useState('all');
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
+  const navigate  = useNavigate();
+  const isMobile  = useIsMobile();
 
   useEffect(() => {
     api.get('/bookings/').then(r => setBookings(r.data)).catch(() => {}).finally(() => setLoading(false));
@@ -89,48 +91,69 @@ export default function UserBookingList() {
           return (
             <div
               key={b.id}
-              style={s.card}
+              style={{ ...s.card, flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'stretch' : 'center' }}
               className={`lift-sm fade-up d${Math.min(i + 1, 5)}`}
             >
-              {/* Left color accent bar */}
-              <div style={{ ...s.cardBar, background: `linear-gradient(180deg, ${meta.color}, ${meta.color}66)` }} />
+              {/* Top color accent bar (mobile) / Left bar (desktop) */}
+              <div style={isMobile
+                ? { height: 3, background: `linear-gradient(90deg, ${meta.color}, ${meta.color}66)`, flexShrink: 0 }
+                : { ...s.cardBar, background: `linear-gradient(180deg, ${meta.color}, ${meta.color}66)` }
+              } />
 
-              <div style={s.cardLeft}>
-                <div style={{ ...s.salonInitial, background: meta.bg, color: meta.color, boxShadow: `0 4px 14px ${meta.color}28` }}>
-                  {b.salon_name?.[0]?.toUpperCase()}
+              <div style={{ display: 'flex', alignItems: 'center', flex: 1, padding: isMobile ? '14px 16px 10px' : 0 }}>
+                <div style={{ ...s.cardLeft, padding: isMobile ? '0 14px 0 0' : '18px 14px 18px 18px' }}>
+                  <div style={{ ...s.salonInitial, background: meta.bg, color: meta.color, boxShadow: `0 4px 14px ${meta.color}28` }}>
+                    {b.salon_name?.[0]?.toUpperCase()}
+                  </div>
                 </div>
-              </div>
 
-              <div style={s.cardMid}>
-                <div style={s.salonName}>{b.salon_name}</div>
-                <div style={s.dtRow}>
-                  <span style={s.dtIcon}>◷</span>
-                  {dt.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-                  {' · '}
-                  {dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                <div style={{ ...s.cardMid, flex: 1, padding: isMobile ? '0' : '16px 12px 16px 0' }}>
+                  <div style={s.salonName}>{b.salon_name}</div>
+                  <div style={s.dtRow}>
+                    <span style={s.dtIcon}>◷</span>
+                    {dt.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                    {' · '}
+                    {dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </div>
+                  {b.booking_services?.length > 0 && (
+                    <div style={s.svcsRow}>
+                      ✂ {b.booking_services.map(bs => bs.service_name).join(' · ')}
+                    </div>
+                  )}
+                  {b.status === 'awaiting_client' && (
+                    <div style={s.actionPill}>⚡ Action required — alternative slots waiting</div>
+                  )}
                 </div>
-                {b.booking_services?.length > 0 && (
-                  <div style={s.svcsRow}>
-                    ✂ {b.booking_services.map(bs => bs.service_name).join(' · ')}
+
+                {!isMobile && (
+                  <div style={s.cardRight}>
+                    <span style={{ ...s.badge, color: meta.color, background: meta.bg, border: `1px solid ${meta.color}30` }}>
+                      {meta.label}
+                    </span>
+                    {b.negotiation_round > 0 && (
+                      <span style={s.roundTag}>Round {b.negotiation_round}/5</span>
+                    )}
+                    {b.status === 'completed' && (
+                      <button style={s.rebookBtn} onClick={() => rebook(b.id)}>↩ Book Again</button>
+                    )}
+                    <Link to={`/user/bookings/${b.id}`} style={s.detailBtn}>Details →</Link>
                   </div>
                 )}
-                {b.status === 'awaiting_client' && (
-                  <div style={s.actionPill}>⚡ Action required — alternative slots waiting</div>
-                )}
               </div>
 
-              <div style={s.cardRight}>
-                <span style={{ ...s.badge, color: meta.color, background: meta.bg, border: `1px solid ${meta.color}30` }}>
-                  {meta.label}
-                </span>
-                {b.negotiation_round > 0 && (
-                  <span style={s.roundTag}>Round {b.negotiation_round}/5</span>
-                )}
-                {b.status === 'completed' && (
-                  <button style={s.rebookBtn} onClick={() => rebook(b.id)}>↩ Book Again</button>
-                )}
-                <Link to={`/user/bookings/${b.id}`} style={s.detailBtn}>Details →</Link>
-              </div>
+              {isMobile && (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px 14px', borderTop: '1px solid var(--border)' }}>
+                  <span style={{ ...s.badge, color: meta.color, background: meta.bg, border: `1px solid ${meta.color}30` }}>
+                    {meta.label}
+                  </span>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    {b.status === 'completed' && (
+                      <button style={s.rebookBtn} onClick={() => rebook(b.id)}>↩ Book Again</button>
+                    )}
+                    <Link to={`/user/bookings/${b.id}`} style={s.detailBtn}>Details →</Link>
+                  </div>
+                </div>
+              )}
             </div>
           );
         })}

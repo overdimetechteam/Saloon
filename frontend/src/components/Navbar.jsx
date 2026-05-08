@@ -69,7 +69,7 @@ export default function Navbar() {
               style={{ color: isDark ? '#A78BFA' : '#7C3AED' }}>
               {isDark ? '☀' : '☾'}
             </button>
-            <Link to="/register/user" style={s.primaryBtn}>Get Started</Link>
+            <Link to="/register/user" style={s.primaryBtn} className="btn-cta">Get Started</Link>
           </>
         )}
       </div>

@@ -3,12 +3,14 @@ import { Link } from 'react-router-dom';
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
 import { STATUS_META } from '../../styles/theme';
+import { useIsMobile } from '../../hooks/useMobile';
 
 const HOUR     = new Date().getHours();
 const GREETING = HOUR < 12 ? 'Good morning' : HOUR < 17 ? 'Good afternoon' : 'Good evening';
 
 export default function UserDashboard() {
   const { profile } = useAuth();
+  const isMobile    = useIsMobile();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading]   = useState(true);
 
@@ -24,7 +26,7 @@ export default function UserDashboard() {
   return (
     <div>
       {/* ── Hero banner ── */}
-      <div style={s.hero} className="anim-gradient">
+      <div style={{ ...s.hero, padding: isMobile ? '32px 22px' : '48px 44px', flexDirection: isMobile ? 'column' : 'row' }} className="anim-gradient noise-bg">
         <div style={s.heroGlow1} />
         <div style={s.heroGlow2} />
         <div style={s.heroContent} className="fade-up">
@@ -34,18 +36,20 @@ export default function UserDashboard() {
             <span style={s.wave}>✦</span>
           </h1>
           <p style={s.heroSub}>Ready for your next salon experience?</p>
-          <div style={s.heroBtns}>
-            <Link to="/salons" style={s.primaryBtn} className="lift-sm">
+          <div style={{ ...s.heroBtns, flexDirection: isMobile ? 'column' : 'row' }}>
+            <Link to="/salons" style={{ ...s.primaryBtn, justifyContent: 'center' }} className="lift-sm">
               ✦ Book Appointment
             </Link>
-            <Link to="/user/bookings" style={s.ghostBtn}>
+            <Link to="/user/bookings" style={{ ...s.ghostBtn, textAlign: 'center' }}>
               View all bookings →
             </Link>
           </div>
         </div>
-        <div style={s.heroDecor}>
-          <span style={s.scissorIcon}>✂</span>
-        </div>
+        {!isMobile && (
+          <div style={s.heroDecor}>
+            <span style={s.scissorIcon}>✂</span>
+          </div>
+        )}
       </div>
 
       {/* ── Stats strip ── */}
@@ -85,7 +89,20 @@ export default function UserDashboard() {
 
         {!loading && bookings.length === 0 && (
           <div style={s.emptyCard} className="scale-in">
-            <div style={s.emptyOrb}>◎</div>
+            <div className="empty-icon-wrap">
+              <svg width="38" height="38" viewBox="0 0 38 38" fill="none">
+                <defs>
+                  <linearGradient id="dashEmptyG" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stopColor="#7C3AED"/>
+                    <stop offset="100%" stopColor="#EC4899"/>
+                  </linearGradient>
+                </defs>
+                <rect x="5" y="10" width="28" height="23" rx="4" stroke="url(#dashEmptyG)" strokeWidth="1.5"/>
+                <line x1="5" y1="17" x2="33" y2="17" stroke="url(#dashEmptyG)" strokeWidth="1.5"/>
+                <line x1="13" y1="5" x2="13" y2="13" stroke="url(#dashEmptyG)" strokeWidth="1.5" strokeLinecap="round"/>
+                <line x1="25" y1="5" x2="25" y2="13" stroke="url(#dashEmptyG)" strokeWidth="1.5" strokeLinecap="round"/>
+              </svg>
+            </div>
             <h3 style={s.emptyTitle}>No upcoming appointments</h3>
             <p style={{ color: 'var(--text-muted)', fontSize: 15, marginBottom: 28, lineHeight: 1.7 }}>
               Discover our curated salons and book your first appointment today.
@@ -99,7 +116,7 @@ export default function UserDashboard() {
             const meta = STATUS_META[b.status] || { label: b.status, color: '#888', bg: '#f0f0f0' };
             const dt   = new Date(b.requested_datetime);
             return (
-              <div key={b.id} style={s.card} className={`lift lift-purple fade-up d${Math.min(i + 1, 5)}`}>
+              <div key={b.id} style={s.card} className={`lift lift-purple card-glow fade-up d${Math.min(i + 1, 5)}`}>
                 <div style={{ ...s.cardAccent, background: `linear-gradient(90deg, ${meta.color}, ${meta.color}66)` }} />
 
                 <div style={s.cardInner}>
@@ -171,7 +188,7 @@ const s = {
   },
   heroName: {
     fontFamily: "'Cormorant Garamond', Georgia, serif",
-    fontSize: 48, fontWeight: 700, color: '#fff', margin: '0 0 10px',
+    fontSize: 'clamp(34px, 4vw, 52px)', fontWeight: 700, color: '#fff', margin: '0 0 10px',
     lineHeight: 1.05, display: 'flex', alignItems: 'center', gap: 14,
     letterSpacing: '-0.02em',
   },
@@ -227,8 +244,8 @@ const s = {
   },
   seeAll: { fontSize: 13, color: '#7C3AED', fontWeight: 600, marginBottom: 4 },
 
-  grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))', gap: 20 },
-  loadGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))', gap: 20 },
+  grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(270px, 1fr))', gap: 18 },
+  loadGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(270px, 1fr))', gap: 18 },
   skeleton: { height: 210, borderRadius: 20 },
 
   card: {
@@ -278,9 +295,6 @@ const s = {
     background: 'var(--surface)', borderRadius: 24, padding: '68px 40px',
     textAlign: 'center', border: '1px solid var(--border)',
     boxShadow: '0 4px 20px rgba(124,58,237,.06)',
-  },
-  emptyOrb: {
-    fontSize: 44, marginBottom: 18, color: 'var(--text-light)', display: 'block',
   },
   emptyTitle: {
     fontFamily: "'Cormorant Garamond', Georgia, serif",

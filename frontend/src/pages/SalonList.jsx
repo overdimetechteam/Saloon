@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../api/axios';
 import { useTheme } from '../context/ThemeContext';
+import { useIsMobile } from '../hooks/useMobile';
 
 const PALETTE = ['#7C3AED','#9B59E8','#EC4899','#BE185D','#A78BFA','#8B5CF6'];
 
 export default function SalonList() {
   const { isDark } = useTheme();
+  const isMobile   = useIsMobile();
   const [salons, setSalons]   = useState([]);
   const [search, setSearch]   = useState('');
   const [loading, setLoading] = useState(true);
@@ -22,7 +24,7 @@ export default function SalonList() {
   return (
     <div style={s.page}>
       {/* ── Hero ── */}
-      <div style={s.hero} className="anim-gradient">
+      <div style={{ ...s.hero, padding: isMobile ? '60px 22px 90px' : '88px 40px 120px', textAlign: 'center' }} className="anim-gradient noise-bg">
         {/* Decorative radial glows */}
         <div style={s.glow1} />
         <div style={s.glow2} />
@@ -79,9 +81,21 @@ export default function SalonList() {
         {/* Empty state */}
         {!loading && salons.length === 0 && (
           <div style={s.empty} className="scale-in">
-            <div style={s.emptyIcon}>◎</div>
+            <div className="empty-icon-wrap">
+              <svg width="38" height="38" viewBox="0 0 38 38" fill="none">
+                <defs>
+                  <linearGradient id="emptyG1" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stopColor="#7C3AED"/>
+                    <stop offset="100%" stopColor="#EC4899"/>
+                  </linearGradient>
+                </defs>
+                <circle cx="13" cy="13" r="7.5" stroke="url(#emptyG1)" strokeWidth="1.5"/>
+                <circle cx="25" cy="25" r="7.5" stroke="url(#emptyG1)" strokeWidth="1.5"/>
+                <line x1="19" y1="19" x2="33" y2="5" stroke="url(#emptyG1)" strokeWidth="1.5" strokeLinecap="round"/>
+              </svg>
+            </div>
             <h3 style={s.emptyTitle}>No salons found</h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: 15 }}>Try a different search term.</p>
+            <p style={{ color: 'var(--text-muted)', fontSize: 15, marginBottom: 0 }}>Try a different search term.</p>
           </div>
         )}
 
@@ -94,7 +108,7 @@ export default function SalonList() {
                 <div
                   key={salon.id}
                   style={s.card}
-                  className={`lift-sm lift-purple fade-up d${Math.min(i + 1, 5)}`}
+                  className={`lift-sm lift-purple card-glow fade-up d${Math.min(i + 1, 5)}`}
                 >
                   {/* Card banner */}
                   <div style={{ ...s.cardBanner, background: `linear-gradient(145deg, ${color}18 0%, ${color}08 100%)` }}>
@@ -165,7 +179,7 @@ const s = {
   eyebrowDot: { color: '#BF9B65', fontSize: 10 },
   heroTitle: {
     fontFamily: "'Cormorant Garamond', Georgia, serif",
-    fontSize: 58, fontWeight: 700, color: '#fff', margin: '0 0 18px',
+    fontSize: 'clamp(32px, 4.8vw, 58px)', fontWeight: 700, color: '#fff', margin: '0 0 18px',
     lineHeight: 1.12, letterSpacing: '-0.02em',
   },
   heroTitleItalic: { fontStyle: 'italic', color: '#F9A8D4' },
@@ -194,7 +208,7 @@ const s = {
 
   results: {
     maxWidth: 1240, margin: '-52px auto 0',
-    padding: '0 32px 80px',
+    padding: '0 16px 80px',
     position: 'relative', zIndex: 10,
   },
   resultsLabel: {
@@ -202,7 +216,7 @@ const s = {
     fontStyle: 'italic',
   },
 
-  grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 24 },
+  grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 },
   skeleton: { height: 270, borderRadius: 22 },
 
   card: {
@@ -253,10 +267,6 @@ const s = {
     background: 'var(--surface)', borderRadius: 24,
     boxShadow: '0 4px 20px rgba(124,58,237,.06)',
     border: '1px solid var(--border)',
-  },
-  emptyIcon: {
-    fontSize: 48, marginBottom: 18, color: 'var(--text-light)',
-    display: 'block',
   },
   emptyTitle: {
     fontFamily: "'Cormorant Garamond', Georgia, serif",

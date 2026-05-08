@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../../api/axios';
 import { c, STATUS_META } from '../../styles/theme';
+import { useIsMobile } from '../../hooks/useMobile';
 
 function StarPicker({ value, onChange }) {
   const [hover, setHover] = useState(0);
@@ -27,6 +28,7 @@ function StarPicker({ value, onChange }) {
 
 export default function UserBookingDetail() {
   const { id } = useParams();
+  const isMobile = useIsMobile();
   const [booking, setBooking] = useState(null);
   const [error, setError] = useState('');
   const [msg, setMsg] = useState('');
@@ -104,7 +106,7 @@ export default function UserBookingDetail() {
         {msg   && <div style={s.alertOk}>{msg}</div>}
 
         {/* Info grid */}
-        <div style={s.infoGrid}>
+        <div style={{ ...s.infoGrid, gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', padding: isMobile ? '16px 18px' : '20px 28px' }}>
           <div style={s.infoCell}>
             <div style={s.infoCellLabel}>Negotiation Round</div>
             <div style={s.infoCellVal}>
@@ -246,7 +248,7 @@ const s = {
   },
 
   statusBar: {
-    display: 'flex', alignItems: 'center', gap: 10, padding: '14px 28px',
+    display: 'flex', alignItems: 'center', gap: 10, padding: '12px 18px',
   },
   statusGlow: {
     width: 10, height: 10, borderRadius: '50%', flexShrink: 0,
@@ -256,8 +258,9 @@ const s = {
   bookingNum: { fontSize: 12, color: 'var(--text-muted)', marginLeft: 'auto', fontWeight: 500 },
 
   heroSection: {
-    display: 'flex', gap: 20, alignItems: 'center',
-    padding: '24px 28px', borderBottom: '1px solid var(--border)',
+    display: 'flex', gap: 18, alignItems: 'center',
+    padding: '20px 18px', borderBottom: '1px solid var(--border)',
+    flexWrap: 'wrap',
   },
   salonInitial: {
     width: 58, height: 58, borderRadius: 17, flexShrink: 0,
@@ -274,12 +277,12 @@ const s = {
   dtDisplay: { fontSize: 14, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 7 },
 
   alertErr: {
-    margin: '0 28px 16px',
+    margin: '0 18px 14px',
     background: '#FEF2F2', border: '1px solid #FCA5A5',
     color: '#DC2626', borderRadius: 12, padding: '11px 16px', fontSize: 13,
   },
   alertOk: {
-    margin: '0 28px 16px',
+    margin: '0 18px 14px',
     background: '#ECFDF5', border: '1px solid #6EE7B7',
     color: '#059669', borderRadius: 12, padding: '11px 16px', fontSize: 13,
   },
@@ -300,7 +303,7 @@ const s = {
   roundBar: { display: 'flex', gap: 4, marginTop: 8 },
   roundDot: { width: 18, height: 4, borderRadius: 2, transition: 'background .3s ease' },
 
-  servicesSection: { padding: '0 28px 22px' },
+  servicesSection: { padding: '0 18px 20px' },
   sectionTitle: {
     fontSize: 9, fontWeight: 700, color: 'var(--text-muted)',
     textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 10,
@@ -312,7 +315,7 @@ const s = {
   },
 
   altSection: {
-    margin: '0 28px 22px',
+    margin: '0 18px 20px',
     background: 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)',
     borderRadius: 18, padding: 20,
     border: '1px solid #FDE68A',
@@ -343,7 +346,7 @@ const s = {
   },
 
   reviewSection: {
-    margin: '0 28px 22px',
+    margin: '0 18px 20px',
     background: 'linear-gradient(135deg, rgba(191,155,101,.06) 0%, rgba(245,234,216,.12) 100%)',
     borderRadius: 18, padding: 20,
     border: '1px solid rgba(191,155,101,.3)',
@@ -373,7 +376,7 @@ const s = {
   },
 
   actions: {
-    padding: '20px 28px 24px',
+    padding: '16px 18px 20px',
     borderTop: '1px solid var(--border)',
   },
   cancelBtn: {

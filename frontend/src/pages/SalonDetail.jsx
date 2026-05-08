@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
+import { useIsMobile } from '../hooks/useMobile';
 
 const MOCK_PHOTOS = [
   { grad: 'linear-gradient(135deg, #7C3AED 0%, #EC4899 100%)', label: 'Styling Area'  },
@@ -58,6 +59,7 @@ function Stars({ rating, size = 14 }) {
 export default function SalonDetail() {
   const { id } = useParams();
   const { profile } = useAuth();
+  const isMobile = useIsMobile();
   const [salon, setSalon]           = useState(null);
   const [services, setServices]     = useState([]);
   const [otherSalons, setOther]     = useState([]);
@@ -109,14 +111,14 @@ export default function SalonDetail() {
     <div style={{ background: 'var(--bg)', minHeight: '100vh' }}>
 
       {/* HERO */}
-      <div style={s.hero}>
+      <div style={{ ...s.hero, padding: isMobile ? '36px 20px 30px' : '52px 48px 44px' }}>
         <div style={s.heroBg} />
-        <div style={s.heroInner}>
-          <div style={s.heroLeft}>
-            <div style={s.salonInitial}>{salon.name[0]}</div>
+        <div style={{ ...s.heroInner, flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? 20 : 24 }}>
+          <div style={{ ...s.heroLeft, gap: isMobile ? 16 : 22 }}>
+            <div style={{ ...s.salonInitial, width: isMobile ? 56 : 72, height: isMobile ? 56 : 72, fontSize: isMobile ? 24 : 34 }}>{salon.name[0]}</div>
             <div style={{ flex: 1 }}>
               <div style={s.eyebrow}>Featured Salon</div>
-              <h1 style={s.salonName}>{salon.name}</h1>
+              <h1 style={{ ...s.salonName, fontSize: isMobile ? 28 : 42 }}>{salon.name}</h1>
 
               <div style={s.ratingRow}>
                 <Stars rating={summary ? Math.round(summary.average_rating) : 5} size={16} />
@@ -147,7 +149,7 @@ export default function SalonDetail() {
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexShrink: 0 }}>
+          <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexShrink: 0, justifyContent: isMobile ? 'center' : 'flex-start' }}>
             {isClient && (
               <button
                 onClick={toggleFav}
@@ -187,7 +189,7 @@ export default function SalonDetail() {
       </div>
 
       {/* BODY */}
-      <div style={s.body}>
+      <div style={{ ...s.body, padding: isMobile ? '28px 16px 40px' : '44px 48px' }}>
 
         {/* Services */}
         <section style={s.sec} className="fade-up">
@@ -314,7 +316,7 @@ export default function SalonDetail() {
 
         {/* Hours + Amenities */}
         <section style={s.sec} className="fade-up d3">
-          <div style={s.hoursAmenRow}>
+          <div style={{ ...s.hoursAmenRow, gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr' }}>
             <div style={s.hoursCard}>
               <div style={s.eyebrowSm}>When We're Open</div>
               <h3 style={s.subTitle}>Working Hours</h3>
@@ -387,7 +389,7 @@ export default function SalonDetail() {
             <p style={s.aboutText}>
               Our team of highly trained professionals is passionate about helping you look and feel your absolute best. Whether you're in for a fresh cut, a luxurious treatment, or a complete transformation, we promise results that exceed your expectations.
             </p>
-            <div style={s.aboutStats}>
+            <div style={{ ...s.aboutStats, gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)' }}>
               {[
                 { val: '500+', label: 'Happy Clients'   },
                 { val: '4+',  label: 'Years Experience' },
@@ -476,7 +478,8 @@ const s = {
   photoStrip: { background: 'var(--surface)', borderBottom: '1px solid var(--border)', padding: '20px 0' },
   photoScroll: {
     display: 'flex', gap: 14, overflowX: 'auto', paddingBottom: 4,
-    maxWidth: 1100, margin: '0 auto', padding: '0 48px 4px',
+    maxWidth: 1100, margin: '0 auto', padding: '0 16px 4px',
+    scrollbarWidth: 'none',
   },
   photoCard: {
     width: 210, height: 145, borderRadius: 16, flexShrink: 0,
@@ -559,7 +562,7 @@ const s = {
   reviewText: { fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.75, fontStyle: 'italic', margin: 0 },
 
   mapWrap:  { borderRadius: 20, overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,.1)', border: '1px solid var(--border)' },
-  mapFrame: { width: '100%', height: 420, border: 'none', display: 'block' },
+  mapFrame: { width: '100%', height: 300, border: 'none', display: 'block' },
   addrBox:  {
     display: 'flex', alignItems: 'center', gap: 10, marginTop: 14,
     padding: '12px 18px', background: 'var(--surface)',

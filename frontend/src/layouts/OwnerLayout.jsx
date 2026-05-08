@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useOwner } from '../context/OwnerContext';
 import { useTheme } from '../context/ThemeContext';
+import { useIsMobile } from '../hooks/useMobile';
 import api from '../api/axios';
 
 const NAV = [
@@ -29,11 +30,17 @@ export default function OwnerLayout() {
   const { salon }           = useOwner();
   const { isDark, toggle }  = useTheme();
   const navigate            = useNavigate();
-  const [collapsed, setCollapsed]   = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [notifs, setNotifs]         = useState([]);
-  const [showNotifs, setShowNotifs] = useState(false);
+  const location            = useLocation();
+  const isMobile            = useIsMobile();
+  const [collapsed, setCollapsed]       = useState(false);
+  const [drawerOpen, setDrawerOpen]     = useState(false);
+  const [unreadCount, setUnreadCount]   = useState(0);
+  const [notifs, setNotifs]             = useState([]);
+  const [showNotifs, setShowNotifs]     = useState(false);
   const bellRef = useRef(null);
+
+  // Close drawer on route change (mobile)
+  useEffect(() => { setDrawerOpen(false); }, [location.pathname]);
 
   useEffect(() => {
     const fetchCount = () =>
@@ -63,9 +70,50 @@ export default function OwnerLayout() {
   const handleLogout = () => { logout(); navigate('/login'); };
   const initials = (profile?.full_name || 'O').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
 
+  const sidebarVisible = isMobile ? drawerOpen : true;
+  const sidebarWidth   = isMobile ? 272 : (collapsed ? 68 : 252);
+
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg)' }}>
-      <aside style={{ ...s.sidebar, width: collapsed ? 68 : 252 }}>
+
+      {/* Mobile top bar */}
+      {isMobile && (
+        <header style={s.mobileHeader}>
+          <button style={s.burgerBtn} onClick={() => setDrawerOpen(v => !v)}>
+            <span style={s.burgerLine} />
+            <span style={s.burgerLine} />
+            <span style={s.burgerLine} />
+          </button>
+          <div style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontWeight: 700, fontSize: 18, color: 'var(--text)' }}>
+            {salon?.name || 'Saloon'}
+          </div>
+          <div style={{ display: 'flex', gap: 6 }}>
+            <button onClick={toggle} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: isDark ? '#A78BFA' : '#7C3AED' }}>
+              {isDark ? '☀' : '☾'}
+            </button>
+          </div>
+        </header>
+      )}
+
+      {/* Backdrop overlay on mobile */}
+      {isMobile && drawerOpen && (
+        <div
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.55)', zIndex: 99, backdropFilter: 'blur(2px)' }}
+          onClick={() => setDrawerOpen(false)}
+        />
+      )}
+
+      <aside style={{
+        ...s.sidebar,
+        width: sidebarWidth,
+        ...(isMobile ? {
+          position: 'fixed', left: 0, top: 0, zIndex: 110,
+          transform: drawerOpen ? 'translateX(0)' : 'translateX(-100%)',
+          transition: 'transform .28s cubic-bezier(.4,0,.2,1)',
+        } : {
+          width: collapsed ? 68 : 252,
+        }),
+      }}>
 
         {/* Brand / header */}
         <div style={s.brandArea}>
@@ -186,7 +234,12 @@ export default function OwnerLayout() {
         </div>
       </aside>
 
-      <main style={{ ...s.main, marginLeft: collapsed ? 68 : 252 }}>
+      <main style={{
+        ...s.main,
+        marginLeft: isMobile ? 0 : (collapsed ? 68 : 252),
+        padding: isMobile ? '24px 16px 32px' : '36px 40px',
+        marginTop: isMobile ? 56 : 0,
+      }}>
         <div className="fade-in">
           <Outlet />
         </div>
@@ -330,5 +383,22 @@ const s = {
     flex: 1, minHeight: '100vh', padding: '36px 40px',
     background: 'var(--bg)',
     transition: 'margin-left .28s cubic-bezier(.4,0,.2,1)',
+  },
+
+  mobileHeader: {
+    position: 'fixed', top: 0, left: 0, right: 0, height: 56,
+    background: 'var(--surface)',
+    borderBottom: '1px solid var(--border)',
+    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    padding: '0 16px', zIndex: 100,
+    boxShadow: '0 1px 0 var(--border)',
+  },
+  burgerBtn: {
+    background: 'none', border: 'none', cursor: 'pointer',
+    display: 'flex', flexDirection: 'column', gap: 5, padding: '8px 4px',
+  },
+  burgerLine: {
+    display: 'block', width: 22, height: 2, borderRadius: 2,
+    background: 'var(--text)', transition: 'background .18s ease',
   },
 };
