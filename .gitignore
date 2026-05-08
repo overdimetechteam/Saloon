@@ -1,0 +1,28 @@
+# Python bytecode
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Local dev database
+db.sqlite3
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Environment variables
+.env
+.env.local
+
+# Node
+node_modules/
+
+# Build output
+dist/
+build/
+
+# OS
+.DS_Store
+Thumbs.db

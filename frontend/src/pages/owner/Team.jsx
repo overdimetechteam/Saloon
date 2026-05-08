@@ -252,7 +252,7 @@ const s = {
   page: { maxWidth: 960, margin: '0 auto' },
   header: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28 },
   eyebrow: {
-    fontSize: 10, fontWeight: 700, color: '#A78BFA',
+    fontSize: 10, fontWeight: 700, color: 'var(--brand-label)',
     letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: 6,
   },
   title: {

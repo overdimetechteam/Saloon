@@ -168,7 +168,7 @@ const s = {
     marginBottom: 28, flexWrap: 'wrap', gap: 14,
   },
   eyebrow: {
-    fontSize: 10, fontWeight: 700, color: '#A78BFA',
+    fontSize: 10, fontWeight: 700, color: 'var(--brand-label)',
     letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: 6,
   },
   title: {
@@ -246,10 +246,10 @@ const s = {
   svcsRow: { fontSize: 12, color: 'var(--text-muted)' },
   actionPill: {
     display: 'inline-block', marginTop: 6,
-    fontSize: 11, fontWeight: 600, color: '#92400E',
-    background: 'linear-gradient(to right, #FFFBEB, #FEF3C7)',
+    fontSize: 11, fontWeight: 600, color: '#D97706',
+    background: 'rgba(217,119,6,.1)',
     borderRadius: 20, padding: '3px 10px',
-    border: '1px solid #FDE68A',
+    border: '1px solid rgba(217,119,6,.25)',
   },
   cardRight: {
     display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8,

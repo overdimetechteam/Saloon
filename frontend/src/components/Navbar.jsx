@@ -1,6 +1,7 @@
-﻿import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { useIsMobile } from '../hooks/useMobile';
 
 const DASH = {
   client:       '/user/dashboard',
@@ -21,7 +22,8 @@ const NAV_LINKS = {
 export default function Navbar() {
   const { profile, logout } = useAuth();
   const { isDark, toggle }  = useTheme();
-  const navigate = useNavigate();
+  const navigate  = useNavigate();
+  const isMobile  = useIsMobile();
 
   const handleLogout = () => { logout(); navigate('/login'); };
   const initials = profile
@@ -31,13 +33,13 @@ export default function Navbar() {
   const navLinks = profile ? (NAV_LINKS[profile.role] || []) : [];
 
   return (
-    <header style={s.header}>
+    <header style={{ ...s.header, padding: isMobile ? '0 16px' : '0 40px' }}>
       {/* Brand */}
       <Link to={dashTo || '/salons'} style={s.brand}>
         <div style={s.brandMark}>✦</div>
         <div style={s.brandText}>
-          <div style={s.brandName}>Saloon</div>
-          <div style={s.brandTagline}>Beauty & Wellness</div>
+          <div style={{ ...s.brandName, fontSize: isMobile ? 18 : 20 }}>Saloon</div>
+          {!isMobile && <div style={s.brandTagline}>Beauty & Wellness</div>}
         </div>
       </Link>
 
@@ -45,12 +47,16 @@ export default function Navbar() {
       <div style={s.right}>
         {profile ? (
           <>
-            <nav style={s.nav}>
-              {navLinks.map(item => (
-                <Link key={item.to} to={item.to} style={s.navLink}>{item.label}</Link>
-              ))}
-            </nav>
-            <div style={s.divider} />
+            {!isMobile && (
+              <>
+                <nav style={s.nav}>
+                  {navLinks.map(item => (
+                    <Link key={item.to} to={item.to} style={s.navLink}>{item.label}</Link>
+                  ))}
+                </nav>
+                <div style={s.divider} />
+              </>
+            )}
             <button onClick={toggle} className="theme-toggle" title={isDark ? 'Light mode' : 'Dark mode'}
               style={{ color: isDark ? '#A78BFA' : '#7C3AED' }}>
               {isDark ? '☀' : '☾'}
@@ -59,17 +65,23 @@ export default function Navbar() {
               <div style={s.avatar}>{initials}</div>
               <div style={s.onlineDot} />
             </Link>
-            <button style={s.logoutBtn} onClick={handleLogout} className="hide-mobile">Sign Out</button>
+            {!isMobile && (
+              <button style={s.logoutBtn} onClick={handleLogout}>Sign Out</button>
+            )}
           </>
         ) : (
           <>
-            <Link to="/salons" style={s.ghostLink} className="hide-mobile">Browse Salons</Link>
+            {!isMobile && (
+              <Link to="/salons" style={s.ghostLink}>Browse Salons</Link>
+            )}
             <Link to="/login" style={s.ghostLink}>Sign In</Link>
             <button onClick={toggle} className="theme-toggle" title={isDark ? 'Light mode' : 'Dark mode'}
               style={{ color: isDark ? '#A78BFA' : '#7C3AED' }}>
               {isDark ? '☀' : '☾'}
             </button>
-            <Link to="/register/user" style={s.primaryBtn} className="btn-cta">Get Started</Link>
+            {!isMobile && (
+              <Link to="/register/user" style={s.primaryBtn} className="btn-cta">Get Started</Link>
+            )}
           </>
         )}
       </div>
@@ -79,11 +91,11 @@ export default function Navbar() {
 
 const s = {
   header: {
-    height: 70,
+    height: 64,
     background: 'var(--surface)',
     borderBottom: '1px solid var(--border)',
     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-    padding: '0 40px', position: 'sticky', top: 0, zIndex: 200,
+    position: 'sticky', top: 0, zIndex: 200,
     boxShadow: '0 1px 0 var(--border), 0 4px 20px rgba(124,58,237,.04)',
     transition: 'background .3s ease',
   },
@@ -105,7 +117,7 @@ const s = {
     lineHeight: 1, letterSpacing: '-0.01em',
   },
   brandTagline: {
-    fontSize: 9, color: '#A78BFA', letterSpacing: '0.18em',
+    fontSize: 9, color: 'var(--brand-label)', letterSpacing: '0.18em',
     textTransform: 'uppercase', marginTop: 3, fontWeight: 500,
   },
   right: { display: 'flex', alignItems: 'center', gap: 8 },

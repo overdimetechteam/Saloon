@@ -119,7 +119,7 @@ const s = {
     marginBottom: 28, flexWrap: 'wrap', gap: 14,
   },
   eyebrow: {
-    fontSize: 10, fontWeight: 700, color: '#A78BFA',
+    fontSize: 10, fontWeight: 700, color: 'var(--brand-label)',
     letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: 6,
   },
   title: {

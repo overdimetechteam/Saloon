@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../api/axios';
 import { useTheme } from '../context/ThemeContext';
@@ -38,12 +38,12 @@ export default function SalonList() {
             Find Your Perfect<br />
             <em style={s.heroTitleItalic}>Salon Experience</em>
           </h1>
-          <p style={s.heroSub}>
+          <p style={{ ...s.heroSub, fontSize: isMobile ? 14 : 17 }}>
             Browse curated premium salons and book your next beauty appointment in seconds.
           </p>
 
           {/* Search */}
-          <div style={{ ...s.searchWrap, background: isDark ? 'var(--surface2)' : 'rgba(255,255,255,.97)', border: isDark ? '1px solid var(--border)' : '1px solid transparent' }} className="fade-up d2">
+          <div style={{ ...s.searchWrap, background: isDark ? 'var(--surface2)' : 'rgba(255,255,255,.97)', border: isDark ? '1px solid var(--border)' : '1px solid transparent', padding: isMobile ? '12px 18px' : '14px 22px' }} className="fade-up d2">
             <span style={s.searchIcon}>✦</span>
             <input
               className="hero-search"
@@ -146,7 +146,7 @@ export default function SalonList() {
 }
 
 const s = {
-  page: { minHeight: '100vh', background: 'var(--bg)' },
+  page: { minHeight: '100vh', background: 'var(--bg)', overflowX: 'hidden' },
 
   hero: {
     background: 'linear-gradient(145deg, #1A0532 0%, #2D0A5E 30%, #5B21B6 65%, #7C3AED 100%)',
@@ -203,7 +203,7 @@ const s = {
   },
   clearBtn: {
     background: 'none', border: 'none', cursor: 'pointer',
-    color: '#9CA3AF', fontSize: 13, padding: '2px 4px', borderRadius: 4,
+    color: 'var(--text-muted)', fontSize: 13, padding: '2px 4px', borderRadius: 4,
   },
 
   results: {
@@ -216,7 +216,7 @@ const s = {
     fontStyle: 'italic',
   },
 
-  grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 },
+  grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(280px, 100%), 1fr))', gap: 20 },
   skeleton: { height: 270, borderRadius: 22 },
 
   card: {

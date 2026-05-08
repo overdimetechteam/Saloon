@@ -293,7 +293,7 @@ function WalkInModal({ salonId, onClose, onCreated }) {
 const s = {
   header: { marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' },
   eyebrow: {
-    fontSize: 10, fontWeight: 700, color: '#A78BFA',
+    fontSize: 10, fontWeight: 700, color: 'var(--brand-label)',
     letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: 6,
   },
   title: {
@@ -303,9 +303,9 @@ const s = {
   },
   pendingAlert: {
     display: 'inline-flex', alignItems: 'center', gap: 7,
-    fontSize: 12, color: '#92400E', fontWeight: 500,
-    background: 'linear-gradient(to right, #FFFBEB, #FEF3C7)',
-    border: '1px solid #FDE68A',
+    fontSize: 12, color: '#D97706', fontWeight: 500,
+    background: 'rgba(217,119,6,.09)',
+    border: '1px solid rgba(217,119,6,.25)',
     borderRadius: 20, padding: '4px 12px',
   },
   pendingDot: {
@@ -411,7 +411,7 @@ const m = {
   },
   modalHead: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 },
   modalEyebrow: {
-    fontSize: 9, fontWeight: 700, color: '#A78BFA',
+    fontSize: 9, fontWeight: 700, color: 'var(--brand-label)',
     letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: 5,
   },
   modalTitle: {

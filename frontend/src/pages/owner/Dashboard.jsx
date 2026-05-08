@@ -214,7 +214,7 @@ const s = {
     marginBottom: 28, flexWrap: 'wrap', gap: 12,
   },
   eyebrow: {
-    fontSize: 10, fontWeight: 700, color: '#A78BFA',
+    fontSize: 10, fontWeight: 700, color: 'var(--brand-label)',
     letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: 6,
   },
   title: {
@@ -263,7 +263,7 @@ const s = {
     padding: '20px 26px 16px', borderBottom: '1px solid var(--border)',
   },
   sectionEyebrow: {
-    fontSize: 9, fontWeight: 700, color: '#A78BFA',
+    fontSize: 9, fontWeight: 700, color: 'var(--brand-label)',
     letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: 4,
   },
   sectionTitle: {
