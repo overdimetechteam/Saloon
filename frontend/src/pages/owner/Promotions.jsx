@@ -1,7 +1,6 @@
 ﻿import { useState, useEffect } from 'react';
 import api from '../../api/axios';
 import { useOwner } from '../../context/OwnerContext';
-import { c, shadow } from '../../styles/theme';
 
 const EMPTY_FORM = {
   code: '', discount_type: 'percentage', discount_value: '',
@@ -89,12 +88,12 @@ export default function OwnerPromotions() {
         </button>
       </div>
 
-      {error && <div style={s.alert}>{error}</div>}
-      {msg && <div style={s.success}>{msg}</div>}
+      {error && <div style={s.alertErr}>{error}</div>}
+      {msg && <div style={s.alertOk}>{msg}</div>}
 
       {showForm && (
         <div style={s.formCard} className="fade-up">
-          <h4 style={s.formTitle}>New Promotion</h4>
+          <div style={s.formTitle}>New Promotion</div>
           <div style={s.formGrid}>
             <div style={s.field}>
               <label style={s.label}>Promo Code *</label>
@@ -144,9 +143,9 @@ export default function OwnerPromotions() {
 
       {!loading && promos.length === 0 && (
         <div style={s.empty} className="scale-in">
-          <div style={{ fontSize: 40, marginBottom: 12, opacity: .5 }}>⬡</div>
+          <div style={s.emptyOrb}>🏷</div>
           <h3 style={s.emptyTitle}>No promotions yet</h3>
-          <p style={{ color: c.textMuted, fontSize: 14 }}>Create your first discount code to attract clients.</p>
+          <p style={{ color: 'var(--text-muted)', fontSize: 14, margin: 0 }}>Create your first discount code to attract clients.</p>
         </div>
       )}
 
@@ -156,14 +155,14 @@ export default function OwnerPromotions() {
           const exhausted = isExhausted(p);
           const statusColor = !p.is_active ? '#6B7280' : expired ? '#DC2626' : exhausted ? '#D97706' : '#059669';
           const statusLabel = !p.is_active ? 'Disabled' : expired ? 'Expired' : exhausted ? 'Used Up' : 'Active';
-          const statusBg = !p.is_active ? '#F3F4F6' : expired ? '#FEF2F2' : exhausted ? '#FFFBEB' : '#ECFDF5';
+          const statusBg = !p.is_active ? 'var(--surface2)' : expired ? '#FEF2F2' : exhausted ? '#FFFBEB' : '#ECFDF5';
           const usePct = Math.min(100, Math.round((p.times_used / p.max_uses) * 100));
           return (
             <div key={p.id} style={{ ...s.promoCard, opacity: (!p.is_active || expired) ? .75 : 1 }} className="lift-sm">
               <div style={s.promoTop}>
                 <div style={s.codeWrap}>
                   <span style={s.codeText}>{p.code}</span>
-                  <span style={{ ...s.statusBadge, color: statusColor, background: statusBg }}>
+                  <span style={{ ...s.statusBadge, color: statusColor, background: statusBg, border: `1px solid ${statusColor}28` }}>
                     {statusLabel}
                   </span>
                 </div>
@@ -179,10 +178,10 @@ export default function OwnerPromotions() {
                 <div style={s.metaRow}>Valid: {p.valid_from} → {p.valid_until}</div>
               </div>
 
-              <div style={s.usageSection}>
+              <div>
                 <div style={s.usageLabel}>
                   <span>Usage</span>
-                  <span style={{ fontWeight: 700, color: c.text }}>{p.times_used} / {p.max_uses}</span>
+                  <span style={{ fontWeight: 700, color: 'var(--text)' }}>{p.times_used} / {p.max_uses}</span>
                 </div>
                 <div style={s.progressBg}>
                   <div style={{ ...s.progressFill, width: `${usePct}%`, background: usePct >= 90 ? '#EF4444' : usePct >= 60 ? '#F59E0B' : '#7C3AED' }} />
@@ -191,13 +190,13 @@ export default function OwnerPromotions() {
 
               <div style={s.promoActions}>
                 <button
-                  style={{ ...s.actionBtn, color: p.is_active ? c.error : c.success }}
+                  style={{ ...s.actionBtn, color: p.is_active ? '#DC2626' : '#059669' }}
                   onClick={() => toggleActive(p)}
                 >
                   {p.is_active ? '⏸ Disable' : '▶ Enable'}
                 </button>
                 {p.times_used === 0 && (
-                  <button style={{ ...s.actionBtn, color: c.error }} onClick={() => deletePromo(p)}>
+                  <button style={{ ...s.actionBtn, color: '#DC2626' }} onClick={() => deletePromo(p)}>
                     🗑 Delete
                   </button>
                 )}
@@ -211,70 +210,114 @@ export default function OwnerPromotions() {
 }
 
 const s = {
-  header: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 },
-  eyebrow: { fontSize: 10, fontWeight: 700, color: '#A78BFA', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 5 },
-  title: { fontFamily: "'Playfair Display', serif", fontSize: 28, fontWeight: 700, color: c.text, margin: '0 0 4px' },
-  sub: { color: c.textMuted, fontSize: 13, margin: 0 },
+  header: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 26 },
+  eyebrow: {
+    fontSize: 10, fontWeight: 700, color: '#A78BFA',
+    letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: 6,
+  },
+  title: {
+    fontFamily: "'Cormorant Garamond', Georgia, serif",
+    fontSize: 30, fontWeight: 700, color: 'var(--text)', margin: '0 0 4px', letterSpacing: '-0.01em',
+  },
+  sub: { color: 'var(--text-muted)', fontSize: 13, margin: 0 },
   addBtn: {
-    padding: '10px 20px', background: 'linear-gradient(135deg, #7C3AED, #6D28D9)',
-    color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer',
-    fontWeight: 700, fontSize: 13, boxShadow: '0 4px 14px rgba(124,58,237,.3)',
+    padding: '11px 22px',
+    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #EC4899 100%)',
+    color: '#fff', border: 'none', borderRadius: 12, cursor: 'pointer',
+    fontWeight: 700, fontSize: 13,
+    boxShadow: '0 6px 18px rgba(124,58,237,.35)',
     flexShrink: 0,
   },
-  alert: { background: c.errorBg, border: `1px solid ${c.errorBorder}`, color: c.error, borderRadius: 8, padding: '10px 14px', fontSize: 13, marginBottom: 16 },
-  success: { background: c.successBg, border: `1px solid ${c.successBorder}`, color: c.success, borderRadius: 8, padding: '10px 14px', fontSize: 13, marginBottom: 16 },
+  alertErr: {
+    background: '#FEF2F2', border: '1px solid #FCA5A5',
+    color: '#DC2626', borderRadius: 12, padding: '11px 16px', fontSize: 13, marginBottom: 18,
+  },
+  alertOk: {
+    background: '#ECFDF5', border: '1px solid #6EE7B7',
+    color: '#059669', borderRadius: 12, padding: '11px 16px', fontSize: 13, marginBottom: 18,
+  },
 
-  formCard: { background: c.surface, borderRadius: 16, padding: 24, boxShadow: shadow.md, border: `1px solid ${c.border}`, marginBottom: 24 },
-  formTitle: { fontSize: 15, fontWeight: 700, color: c.text, marginBottom: 18, marginTop: 0 },
-  formGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 14, marginBottom: 18 },
+  formCard: {
+    background: 'var(--surface)', borderRadius: 20, padding: 26,
+    boxShadow: '0 4px 24px rgba(124,58,237,.08)',
+    border: '1px solid var(--border)', marginBottom: 26,
+  },
+  formTitle: {
+    fontFamily: "'Cormorant Garamond', Georgia, serif",
+    fontSize: 18, fontWeight: 700, color: 'var(--text)', marginBottom: 20, letterSpacing: '-0.01em',
+  },
+  formGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 14, marginBottom: 20 },
   field: { display: 'flex', flexDirection: 'column', gap: 5 },
-  label: { fontSize: 11, fontWeight: 700, color: c.textMuted, textTransform: 'uppercase', letterSpacing: '0.05em' },
+  label: {
+    fontSize: 10, fontWeight: 700, color: 'var(--text-muted)',
+    textTransform: 'uppercase', letterSpacing: '0.08em',
+  },
   input: {
-    padding: '9px 12px', border: `1px solid ${c.border}`, borderRadius: 8,
-    fontSize: 13, color: c.text, background: c.bg, fontFamily: 'inherit', outline: 'none',
+    padding: '10px 12px', border: '1.5px solid var(--border)', borderRadius: 10,
+    fontSize: 13, color: 'var(--text)', background: 'var(--input-bg)',
+    fontFamily: "'DM Sans', sans-serif", outline: 'none',
     width: '100%', boxSizing: 'border-box',
   },
   formFooter: { display: 'flex', justifyContent: 'flex-end' },
   submitBtn: {
-    padding: '10px 24px', background: 'linear-gradient(135deg, #7C3AED, #6D28D9)',
-    color: '#fff', border: 'none', borderRadius: 9, cursor: 'pointer',
-    fontWeight: 700, fontSize: 13, boxShadow: '0 4px 14px rgba(124,58,237,.3)',
+    padding: '10px 26px',
+    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #EC4899 100%)',
+    color: '#fff', border: 'none', borderRadius: 11, cursor: 'pointer',
+    fontWeight: 700, fontSize: 13,
+    boxShadow: '0 4px 14px rgba(124,58,237,.35)',
+    fontFamily: "'DM Sans', sans-serif",
   },
 
   loadStack: { display: 'flex', flexDirection: 'column', gap: 12 },
-  skeleton: { height: 160, borderRadius: 14 },
+  skeleton: { height: 180, borderRadius: 16 },
 
   empty: {
-    background: c.surface, borderRadius: 20, padding: '60px 40px',
-    textAlign: 'center', border: `1px solid ${c.border}`,
+    background: 'var(--surface)', borderRadius: 22, padding: '64px 40px',
+    textAlign: 'center', border: '1px solid var(--border)',
+    boxShadow: '0 4px 20px rgba(124,58,237,.06)',
   },
-  emptyTitle: { fontFamily: "'Playfair Display', serif", fontSize: 20, color: c.text, marginBottom: 8 },
+  emptyOrb: { fontSize: 36, marginBottom: 16, display: 'block' },
+  emptyTitle: {
+    fontFamily: "'Cormorant Garamond', Georgia, serif",
+    fontSize: 22, color: 'var(--text)', marginBottom: 8,
+  },
 
-  promoGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 },
+  promoGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))', gap: 16 },
   promoCard: {
-    background: c.surface, borderRadius: 16, padding: 20,
-    border: `1px solid ${c.border}`, boxShadow: shadow.sm,
-    display: 'flex', flexDirection: 'column', gap: 14,
+    background: 'var(--surface)', borderRadius: 20, padding: 22,
+    border: '1px solid var(--border)',
+    boxShadow: '0 4px 16px rgba(124,58,237,.06)',
+    display: 'flex', flexDirection: 'column', gap: 16,
     transition: 'transform .2s ease, box-shadow .2s ease',
   },
   promoTop: {},
-  codeWrap: { display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 },
+  codeWrap: { display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 },
   codeText: {
-    fontFamily: 'monospace', fontSize: 18, fontWeight: 800, color: c.text,
+    fontFamily: 'monospace', fontSize: 18, fontWeight: 800, color: 'var(--text)',
     letterSpacing: '0.08em',
   },
   statusBadge: { fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20 },
   discountBig: {
-    fontSize: 26, fontWeight: 900, letterSpacing: '-0.01em',
-    background: 'linear-gradient(135deg, #7C3AED, #0D9488)',
+    fontFamily: "'Cormorant Garamond', Georgia, serif",
+    fontSize: 28, fontWeight: 700, letterSpacing: '-0.01em',
+    background: 'linear-gradient(135deg, #7C3AED, #EC4899)',
     WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
   },
   promoMeta: { display: 'flex', flexDirection: 'column', gap: 4 },
-  metaRow: { fontSize: 12, color: c.textMuted },
-  usageSection: {},
-  usageLabel: { display: 'flex', justifyContent: 'space-between', fontSize: 12, color: c.textMuted, marginBottom: 5 },
-  progressBg: { height: 6, background: c.bg, borderRadius: 3, overflow: 'hidden', border: `1px solid ${c.border}` },
+  metaRow: { fontSize: 12, color: 'var(--text-muted)' },
+  usageLabel: { display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--text-muted)', marginBottom: 6 },
+  progressBg: {
+    height: 6, background: 'var(--surface2)', borderRadius: 3, overflow: 'hidden',
+    border: '1px solid var(--border)',
+  },
   progressFill: { height: '100%', borderRadius: 3, transition: 'width .3s ease' },
-  promoActions: { display: 'flex', gap: 8, paddingTop: 4, borderTop: `1px solid ${c.border}`, marginTop: 2 },
-  actionBtn: { background: 'transparent', border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 600, padding: '4px 0' },
+  promoActions: {
+    display: 'flex', gap: 8, paddingTop: 6,
+    borderTop: '1px solid var(--border)',
+  },
+  actionBtn: {
+    background: 'transparent', border: 'none', cursor: 'pointer',
+    fontSize: 12, fontWeight: 600, padding: '4px 0',
+    fontFamily: "'DM Sans', sans-serif",
+  },
 };

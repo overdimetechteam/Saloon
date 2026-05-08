@@ -2,6 +2,7 @@ from django.urls import path
 from .views import (
     SalonRegisterView, SalonListView, SalonDetailView,
     SalonApproveView, SalonRejectView, PendingSalonsView,
+    SalonSuspendView, SalonReactivateView, SalonRemoveView,
     AllSalonsAdminView, AvailableSlotsView, MySalonView,
     SalonStaffListCreateView, SalonStaffDetailView,
     AvailableStaffView,
@@ -16,6 +17,9 @@ urlpatterns = [
     path('salons/<int:pk>/', SalonDetailView.as_view(), name='salon-detail'),
     path('salons/<int:pk>/approve/', SalonApproveView.as_view(), name='salon-approve'),
     path('salons/<int:pk>/reject/', SalonRejectView.as_view(), name='salon-reject'),
+    path('salons/<int:pk>/suspend/', SalonSuspendView.as_view(), name='salon-suspend'),
+    path('salons/<int:pk>/reactivate/', SalonReactivateView.as_view(), name='salon-reactivate'),
+    path('salons/<int:pk>/remove/', SalonRemoveView.as_view(), name='salon-remove'),
     path('salons/<int:pk>/staff/', SalonStaffListCreateView.as_view(), name='salon-staff'),
     path('salons/<int:pk>/staff/available/', AvailableStaffView.as_view(), name='salon-staff-available'),
     path('salons/<int:pk>/staff/<int:staff_pk>/', SalonStaffDetailView.as_view(), name='salon-staff-detail'),

@@ -2,7 +2,7 @@
 import api from '../../api/axios';
 import { useOwner } from '../../context/OwnerContext';
 
-const CAT_COLORS = { Hair: '#8B5CF6', Nails: '#0D9488', Skin: '#10B981', Makeup: '#F59E0B' };
+const CAT_COLORS = { Hair: '#8B5CF6', Nails: '#EC4899', Skin: '#10B981', Makeup: '#F59E0B' };
 
 export default function OwnerServices() {
   const { salon } = useOwner();

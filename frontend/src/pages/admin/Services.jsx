@@ -2,7 +2,7 @@
 import api from '../../api/axios';
 
 const CATEGORIES = ['Hair', 'Nails', 'Skin', 'Makeup'];
-const CAT_COLORS = { Hair: '#8B5CF6', Nails: '#0D9488', Skin: '#10B981', Makeup: '#F59E0B' };
+const CAT_COLORS = { Hair: '#8B5CF6', Nails: '#EC4899', Skin: '#10B981', Makeup: '#F59E0B' };
 const EMPTY_FORM = { name: '', category: 'Hair', description: '', default_duration_minutes: 60, default_price: '' };
 
 export default function AdminServices() {

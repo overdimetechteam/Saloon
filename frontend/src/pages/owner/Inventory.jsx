@@ -4,7 +4,7 @@ import api from '../../api/axios';
 import { useOwner } from '../../context/OwnerContext';
 
 const CATS = ['Hair Care', 'Skin Care', 'Nail Care', 'Other'];
-const CAT_COLORS = { 'Hair Care': '#8B5CF6', 'Skin Care': '#10B981', 'Nail Care': '#0D9488', 'Other': '#6B7280' };
+const CAT_COLORS = { 'Hair Care': '#8B5CF6', 'Skin Care': '#10B981', 'Nail Care': '#EC4899', 'Other': '#6B7280' };
 
 export default function OwnerInventory() {
   const { salon } = useOwner();

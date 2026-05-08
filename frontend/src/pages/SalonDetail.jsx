@@ -4,16 +4,16 @@ import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 
 const MOCK_PHOTOS = [
-  { grad: 'linear-gradient(135deg, #7C3AED 0%, #0D9488 100%)', label: 'Styling Area'  },
+  { grad: 'linear-gradient(135deg, #7C3AED 0%, #EC4899 100%)', label: 'Styling Area'  },
   { grad: 'linear-gradient(135deg, #1E0A3C 0%, #7C3AED 100%)', label: 'Interior'      },
-  { grad: 'linear-gradient(135deg, #0D9488 0%, #0891B2 100%)', label: 'Nail Station'  },
+  { grad: 'linear-gradient(135deg, #EC4899 0%, #F59E0B 100%)', label: 'Nail Station'  },
   { grad: 'linear-gradient(135deg, #059669 0%, #2563EB 100%)', label: 'Skin Room'     },
   { grad: 'linear-gradient(135deg, #D97706 0%, #7C3AED 100%)', label: 'Lounge'        },
 ];
 
 const MOCK_TEAM = [
   { name: 'Sophie Laurent', role: 'Senior Stylist',   specialty: 'Color & Cuts',     color: '#7C3AED', bg: 'rgba(124,58,237,.12)'  },
-  { name: 'James Kai',      role: 'Nail Technician',  specialty: 'Gel & Acrylics',   color: '#0D9488', bg: 'rgba(13,148,136,.12)'  },
+  { name: 'James Kai',      role: 'Nail Technician',  specialty: 'Gel & Acrylics',   color: '#EC4899', bg: 'rgba(236,72,153,.12)'  },
   { name: 'Aria Chen',      role: 'Skin Therapist',   specialty: 'Facials & Peels',  color: '#059669', bg: 'rgba(5,150,105,.12)'   },
   { name: 'Luca Moretti',   role: 'Hair Artist',      specialty: 'Balayage & Perms', color: '#2563EB', bg: 'rgba(37,99,235,.12)'   },
 ];
@@ -34,12 +34,12 @@ const AMENITIES = [
 ];
 
 const CAT_COLORS = {
-  Hair: '#7C3AED', Nails: '#0D9488',
+  Hair: '#7C3AED', Nails: '#EC4899',
   Skin: '#059669', Makeup: '#D97706', Other: '#2563EB',
 };
 
 const PALETTE = [
-  'linear-gradient(135deg, #7C3AED 0%, #0D9488 100%)',
+  'linear-gradient(135deg, #7C3AED 0%, #EC4899 100%)',
   'linear-gradient(135deg, #059669 0%, #2563EB 100%)',
   'linear-gradient(135deg, #D97706 0%, #DC2626 100%)',
   'linear-gradient(135deg, #1E0A3C 0%, #7C3AED 100%)',
@@ -155,12 +155,12 @@ export default function SalonDetail() {
                 title={isFav ? 'Remove from favourites' : 'Save to favourites'}
                 style={{
                   width: 48, height: 48, borderRadius: 14, border: 'none',
-                  background: isFav ? 'rgba(201,169,110,.25)' : 'rgba(255,255,255,.12)',
-                  color: isFav ? '#C9A96E' : 'rgba(255,255,255,.7)',
+                  background: isFav ? 'rgba(236,72,153,.25)' : 'rgba(255,255,255,.12)',
+                  color: isFav ? '#EC4899' : 'rgba(255,255,255,.7)',
                   fontSize: 22, cursor: 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   transition: 'all .2s ease',
-                  boxShadow: isFav ? '0 4px 14px rgba(201,169,110,.35)' : 'none',
+                  boxShadow: isFav ? '0 4px 14px rgba(236,72,153,.35)' : 'none',
                 }}
               >
                 {isFav ? '♥' : '♡'}
@@ -428,7 +428,7 @@ const s = {
   },
   heroBg: {
     position: 'absolute', inset: 0,
-    background: 'radial-gradient(ellipse at top right, rgba(13,148,136,.28) 0%, transparent 60%)',
+    background: 'radial-gradient(ellipse at top right, rgba(236,72,153,.28) 0%, transparent 60%)',
     pointerEvents: 'none',
   },
   heroInner: {
@@ -466,9 +466,9 @@ const s = {
   contactTag: { fontSize: 12, color: 'rgba(255,255,255,.65)', background: 'rgba(255,255,255,.08)', borderRadius: 8, padding: '4px 10px' },
   heroBookBtn: {
     padding: '14px 32px', flexShrink: 0,
-    background: 'linear-gradient(135deg, #C9A96E 0%, #A07844 100%)',
+    background: 'linear-gradient(135deg, #EC4899 0%, #BE185D 100%)',
     color: '#fff', borderRadius: 14, fontWeight: 700, fontSize: 16,
-    textDecoration: 'none', boxShadow: '0 6px 20px rgba(13,148,136,.45)',
+    textDecoration: 'none', boxShadow: '0 6px 20px rgba(236,72,153,.45)',
     display: 'inline-flex', alignItems: 'center', gap: 8,
     fontFamily: "'DM Sans', sans-serif",
   },
@@ -549,7 +549,7 @@ const s = {
   reviewTop:  { display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 },
   reviewAvatar: {
     width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
-    background: 'linear-gradient(135deg, #7C3AED 0%, #0D9488 100%)',
+    background: 'linear-gradient(135deg, #7C3AED 0%, #EC4899 100%)',
     color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
     fontFamily: "'Cormorant Garamond', Georgia, serif",
     fontSize: 17, fontWeight: 700,
@@ -628,7 +628,7 @@ const s = {
   },
   ctaGlow: {
     position: 'absolute', inset: 0,
-    background: 'radial-gradient(ellipse at bottom right, rgba(13,148,136,.3) 0%, transparent 60%)',
+    background: 'radial-gradient(ellipse at bottom right, rgba(236,72,153,.3) 0%, transparent 60%)',
     pointerEvents: 'none',
   },
   ctaTitle: {
@@ -639,9 +639,9 @@ const s = {
   ctaBtn: {
     display: 'inline-flex', alignItems: 'center', gap: 8,
     padding: '14px 38px',
-    background: 'linear-gradient(135deg, #C9A96E 0%, #A07844 100%)',
+    background: 'linear-gradient(135deg, #EC4899 0%, #BE185D 100%)',
     color: '#fff', borderRadius: 14, fontWeight: 700, fontSize: 16,
-    textDecoration: 'none', boxShadow: '0 6px 20px rgba(13,148,136,.45)',
+    textDecoration: 'none', boxShadow: '0 6px 20px rgba(236,72,153,.45)',
     position: 'relative', zIndex: 1,
     fontFamily: "'DM Sans', sans-serif",
   },
