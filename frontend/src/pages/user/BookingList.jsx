@@ -9,6 +9,7 @@ const ALL_STATUSES = ['pending','confirmed','awaiting_client','rescheduled','can
 export default function UserBookingList() {
   const [bookings, setBookings] = useState([]);
   const [filter, setFilter] = useState('all');
+  const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const navigate  = useNavigate();
   const { isMobile, isTablet } = useBreakpoint();
@@ -25,7 +26,10 @@ export default function UserBookingList() {
     } catch {}
   };
 
-  const shown = filter === 'all' ? bookings : bookings.filter(b => b.status === filter);
+  const filtered = filter === 'all' ? bookings : bookings.filter(b => b.status === filter);
+  const shown = search.trim()
+    ? filtered.filter(b => b.salon_name?.toLowerCase().includes(search.trim().toLowerCase()))
+    : filtered;
 
   return (
     <div>
@@ -37,6 +41,20 @@ export default function UserBookingList() {
           <p style={s.sub}>{bookings.length} total appointment{bookings.length !== 1 ? 's' : ''}</p>
         </div>
         <Link to="/salons" style={{ ...s.bookBtn, alignSelf: isMobile ? 'stretch' : 'flex-start', justifyContent: 'center' }} className="lift-sm">✦ New Booking</Link>
+      </div>
+
+      {/* Search */}
+      <div style={s.searchWrap} className="fade-up d1">
+        <span style={s.searchIcon}>✦</span>
+        <input
+          style={s.searchInput}
+          placeholder="Search by salon name…"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+        />
+        {search && (
+          <button style={s.searchClear} onClick={() => setSearch('')}>✕</button>
+        )}
       </div>
 
       {/* Filter chips */}
@@ -184,6 +202,24 @@ const s = {
     textDecoration: 'none', boxShadow: '0 6px 20px rgba(236,72,153,.35)',
     display: 'inline-flex', alignItems: 'center', gap: 7,
     alignSelf: 'flex-start',
+  },
+
+  searchWrap: {
+    display: 'flex', alignItems: 'center', gap: 10,
+    padding: '11px 18px', marginBottom: 16,
+    background: 'var(--surface)', borderRadius: 12,
+    border: '1px solid var(--border)',
+    boxShadow: '0 2px 8px rgba(124,58,237,.05)',
+  },
+  searchIcon:  { color: '#7C3AED', fontSize: 13, flexShrink: 0 },
+  searchInput: {
+    flex: 1, border: 'none', outline: 'none', fontSize: 14,
+    background: 'transparent', color: 'var(--text)',
+    fontFamily: "'DM Sans', sans-serif",
+  },
+  searchClear: {
+    background: 'none', border: 'none', cursor: 'pointer',
+    color: 'var(--text-muted)', fontSize: 12, padding: '2px 4px', borderRadius: 4,
   },
 
   filters: { display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 26 },

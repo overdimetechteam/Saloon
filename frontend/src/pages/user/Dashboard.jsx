@@ -118,58 +118,27 @@ export default function UserDashboard() {
         </div>
       )}
 
-      {/* ── Main content: Favourites + Appointments ── */}
+      {/* ── Action required banner — shown when bookings need attention ── */}
+      {bookings.filter(b => b.status === 'awaiting_client').length > 0 && (
+        <div style={s.actionBanner} className="fade-up d2">
+          <span style={s.actionBannerIcon}>⚡</span>
+          <div style={{ flex: 1 }}>
+            <span style={s.actionBannerText}>
+              {bookings.filter(b => b.status === 'awaiting_client').length === 1
+                ? 'A salon has proposed a new time for your booking.'
+                : `${bookings.filter(b => b.status === 'awaiting_client').length} salons have proposed new times for your bookings.`}
+            </span>
+          </div>
+          <Link to="/user/bookings?filter=awaiting_client" style={s.actionBannerBtn}>
+            Review & Confirm →
+          </Link>
+        </div>
+      )}
+
+      {/* ── Main content: Appointments (left) + Favourites (right) ── */}
       <div style={{ ...s.mainRow, flexDirection: (isMobile || isTablet) ? 'column' : 'row' }}>
 
-        {/* ── Favourite Salons column ── */}
-        <div style={{ ...s.favCol, width: (isMobile || isTablet) ? '100%' : 280 }}>
-          <div style={s.sectionHead}>
-            <div>
-              <div style={s.sectionEyebrow}>Saved</div>
-              <h2 style={s.sectionTitle}>Favourites</h2>
-            </div>
-            {favourites.length > 0 && (
-              <Link to="/salons" style={s.seeAll}>Browse →</Link>
-            )}
-          </div>
-
-          {favLoading && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {[1,2,3].map(i => <div key={i} style={{ height: 72, borderRadius: 14 }} className="shimmer" />)}
-            </div>
-          )}
-
-          {!favLoading && favourites.length === 0 && (
-            <div style={s.favEmpty} className="scale-in">
-              <div style={{ fontSize: 28, marginBottom: 10 }}>♡</div>
-              <p style={{ color: 'var(--text-muted)', fontSize: 13, margin: 0, lineHeight: 1.6 }}>
-                Save salons you love while browsing.
-              </p>
-              <Link to="/salons" style={{ ...s.primaryBtn, fontSize: 12, padding: '9px 18px', marginTop: 14, display: 'inline-flex' }}>
-                Browse Salons
-              </Link>
-            </div>
-          )}
-
-          {favourites.length > 0 && (
-            <div style={s.favList}>
-              {favourites.map((fav, i) => (
-                <Link key={fav.id} to={`/salons/${fav.id}`} style={s.favCard} className="lift-sm">
-                  <div style={{ ...s.favAvatar, background: FAV_PALETTE[i % FAV_PALETTE.length] }}>
-                    {fav.name[0]}
-                  </div>
-                  <div style={s.favInfo}>
-                    <div style={s.favName}>{fav.name}</div>
-                    <div style={s.favCity}>{fav.address_city}</div>
-                  </div>
-                  <span style={s.favArrow}>→</span>
-                </Link>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* ── Upcoming Appointments column ── */}
+        {/* ── Upcoming Appointments — primary column, left ── */}
         <div style={s.apptCol}>
           <div style={s.sectionHead}>
             <div>
@@ -259,6 +228,54 @@ export default function UserDashboard() {
             })}
           </div>
         </div>
+
+        {/* ── Favourite Salons — secondary column, right ── */}
+        <div style={{ ...s.favCol, width: (isMobile || isTablet) ? '100%' : 280 }}>
+          <div style={s.sectionHead}>
+            <div>
+              <div style={s.sectionEyebrow}>Saved</div>
+              <h2 style={s.sectionTitle}>Favourites</h2>
+            </div>
+            {favourites.length > 0 && (
+              <Link to="/salons" style={s.seeAll}>Browse →</Link>
+            )}
+          </div>
+
+          {favLoading && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {[1,2,3].map(i => <div key={i} style={{ height: 72, borderRadius: 14 }} className="shimmer" />)}
+            </div>
+          )}
+
+          {!favLoading && favourites.length === 0 && (
+            <div style={s.favEmpty} className="scale-in">
+              <div style={{ fontSize: 28, marginBottom: 10 }}>♡</div>
+              <p style={{ color: 'var(--text-muted)', fontSize: 13, margin: 0, lineHeight: 1.6 }}>
+                Save salons you love while browsing.
+              </p>
+              <Link to="/salons" style={{ ...s.primaryBtn, fontSize: 12, padding: '9px 18px', marginTop: 14, display: 'inline-flex' }}>
+                Browse Salons
+              </Link>
+            </div>
+          )}
+
+          {favourites.length > 0 && (
+            <div style={s.favList}>
+              {favourites.map((fav, i) => (
+                <Link key={fav.id} to={`/salons/${fav.id}`} style={s.favCard} className="lift-sm">
+                  <div style={{ ...s.favAvatar, background: FAV_PALETTE[i % FAV_PALETTE.length] }}>
+                    {fav.name[0]}
+                  </div>
+                  <div style={s.favInfo}>
+                    <div style={s.favName}>{fav.name}</div>
+                    <div style={s.favCity}>{fav.address_city}</div>
+                  </div>
+                  <span style={s.favArrow}>→</span>
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -313,6 +330,22 @@ const s = {
   offerSalon:    { fontSize: 12, color: 'var(--text-muted)' },
   offerNote:     { fontSize: 11, color: 'var(--text-muted)', fontStyle: 'italic', lineHeight: 1.5 },
   offerExpiry:   { fontSize: 11, fontWeight: 700, marginTop: 6 },
+
+  actionBanner: {
+    display: 'flex', alignItems: 'center', gap: 14,
+    padding: '14px 20px', marginBottom: 24, borderRadius: 14,
+    background: 'rgba(217,119,6,.08)', border: '1px solid rgba(217,119,6,.25)',
+    flexWrap: 'wrap',
+  },
+  actionBannerIcon: { fontSize: 18, color: '#D97706', flexShrink: 0 },
+  actionBannerText: { fontSize: 14, color: 'var(--text)', fontWeight: 500 },
+  actionBannerBtn: {
+    marginLeft: 'auto', flexShrink: 0,
+    padding: '8px 18px', fontSize: 13, fontWeight: 700, color: '#D97706',
+    background: 'rgba(217,119,6,.12)', borderRadius: 9,
+    border: '1px solid rgba(217,119,6,.3)', textDecoration: 'none',
+    fontFamily: "'DM Sans', sans-serif",
+  },
 
   mainRow: { display: 'flex', gap: 28, alignItems: 'flex-start' },
 

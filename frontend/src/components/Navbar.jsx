@@ -1,7 +1,8 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { useIsMobile } from '../hooks/useMobile';
+import { useBreakpoint } from '../hooks/useMobile';
 
 const DASH = {
   client:       '/user/dashboard',
@@ -11,9 +12,9 @@ const DASH = {
 
 const NAV_LINKS = {
   client: [
-    { to: '/user/dashboard',  label: 'Dashboard'   },
-    { to: '/user/bookings',   label: 'My Bookings'  },
-    { to: '/user/favourites', label: 'Favourites'   },
+    { to: '/user/dashboard',  label: 'Dashboard'  },
+    { to: '/user/bookings',   label: 'My Bookings' },
+    { to: '/user/favourites', label: 'Favourites'  },
   ],
   salon_owner:  [{ to: '/owner/dashboard', label: 'Dashboard'  }],
   system_admin: [{ to: '/admin/salons',    label: 'Admin Panel' }],
@@ -22,19 +23,28 @@ const NAV_LINKS = {
 export default function Navbar() {
   const { profile, logout } = useAuth();
   const { isDark, toggle }  = useTheme();
-  const navigate  = useNavigate();
-  const isMobile  = useIsMobile();
+  const navigate            = useNavigate();
+  const location            = useLocation();
+  const { isMobile, isTablet } = useBreakpoint();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const handleLogout = () => { logout(); navigate('/login'); };
+  const [menuOpen, setMenuOpen] = useState(false);
+  const handleLogout = () => { logout(); navigate('/login'); setMenuOpen(false); };
+
   const initials = profile
     ? (profile.full_name || 'U').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
     : null;
   const dashTo   = profile ? (DASH[profile.role] || '/') : null;
   const navLinks = profile ? (NAV_LINKS[profile.role] || []) : [];
 
+  const isExplore = location.pathname === '/salons';
+  const navSearch = searchParams.get('q') || '';
+  const showNavSearch = isExplore && !isMobile && !isTablet;
+
   return (
+    <>
     <header style={{ ...s.header, padding: isMobile ? '0 16px' : '0 40px' }}>
-      {/* Brand */}
+
       <Link to={dashTo || '/salons'} style={s.brand}>
         <div style={s.brandMark}>✦</div>
         <div style={s.brandText}>
@@ -43,7 +53,22 @@ export default function Navbar() {
         </div>
       </Link>
 
-      {/* Right side */}
+      {/* Centered search — desktop explore page only */}
+      {showNavSearch && (
+        <div style={s.navSearch}>
+          <span style={{ color: '#7C3AED', fontSize: 13, flexShrink: 0 }}>✦</span>
+          <input
+            style={s.navSearchInput}
+            placeholder="Search salons…"
+            value={navSearch}
+            onChange={e => setSearchParams(e.target.value ? { q: e.target.value } : {})}
+          />
+          {navSearch && (
+            <button style={s.navSearchClear} onClick={() => setSearchParams({})}>✕</button>
+          )}
+        </div>
+      )}
+
       <div style={s.right}>
         {profile ? (
           <>
@@ -68,12 +93,15 @@ export default function Navbar() {
             {!isMobile && (
               <button style={s.logoutBtn} onClick={handleLogout}>Sign Out</button>
             )}
+            {isMobile && (
+              <button onClick={() => setMenuOpen(o => !o)} style={s.hamburger} aria-label="Toggle menu">
+                {menuOpen ? '✕' : '☰'}
+              </button>
+            )}
           </>
         ) : (
           <>
-            {!isMobile && (
-              <Link to="/salons" style={s.ghostLink}>Browse Salons</Link>
-            )}
+            {!isMobile && <Link to="/salons" style={s.ghostLink}>Browse Salons</Link>}
             <Link to="/login" style={s.ghostLink}>Sign In</Link>
             <button onClick={toggle} className="theme-toggle" title={isDark ? 'Light mode' : 'Dark mode'}
               style={{ color: isDark ? '#A78BFA' : '#7C3AED' }}>
@@ -82,10 +110,39 @@ export default function Navbar() {
             {!isMobile && (
               <Link to="/register/user" style={s.primaryBtn} className="btn-cta">Get Started</Link>
             )}
+            {isMobile && (
+              <button onClick={() => setMenuOpen(o => !o)} style={s.hamburger} aria-label="Toggle menu">
+                {menuOpen ? '✕' : '☰'}
+              </button>
+            )}
           </>
         )}
       </div>
     </header>
+
+    {isMobile && menuOpen && (
+      <>
+        <div style={{ position: 'fixed', inset: 0, zIndex: 189 }} onClick={() => setMenuOpen(false)} />
+        <div style={s.mobileMenu}>
+          {profile ? (
+            <>
+              {navLinks.map(item => (
+                <Link key={item.to} to={item.to} style={s.mobileLink} onClick={() => setMenuOpen(false)}>
+                  {item.label}
+                </Link>
+              ))}
+              <button style={s.mobileSignOut} onClick={handleLogout}>Sign Out</button>
+            </>
+          ) : (
+            <>
+              <Link to="/salons" style={s.mobileLink} onClick={() => setMenuOpen(false)}>Browse Salons</Link>
+              <Link to="/register/user" style={s.mobileLink} onClick={() => setMenuOpen(false)}>Get Started</Link>
+            </>
+          )}
+        </div>
+      </>
+    )}
+    </>
   );
 }
 
@@ -101,7 +158,7 @@ const s = {
   },
   brand: {
     display: 'flex', alignItems: 'center', gap: 12,
-    textDecoration: 'none', flexShrink: 0,
+    textDecoration: 'none', flexShrink: 0, position: 'relative', zIndex: 1,
   },
   brandMark: {
     width: 40, height: 40, borderRadius: 12, flexShrink: 0,
@@ -120,14 +177,33 @@ const s = {
     fontSize: 9, color: 'var(--brand-label)', letterSpacing: '0.18em',
     textTransform: 'uppercase', marginTop: 3, fontWeight: 500,
   },
-  right: { display: 'flex', alignItems: 'center', gap: 8 },
-  nav: { display: 'flex', gap: 2 },
+
+  navSearch: {
+    position: 'absolute', left: '50%', transform: 'translateX(-50%)',
+    display: 'flex', alignItems: 'center', gap: 10,
+    width: 360, zIndex: 0,
+    background: 'var(--surface2)', border: '1px solid var(--border)',
+    borderRadius: 24, padding: '8px 16px',
+    transition: 'border-color .2s ease, box-shadow .2s ease',
+  },
+  navSearchInput: {
+    border: 'none', outline: 'none', background: 'transparent',
+    flex: 1, fontSize: 14, color: 'var(--text)',
+    fontFamily: "'DM Sans', sans-serif",
+  },
+  navSearchClear: {
+    background: 'none', border: 'none', cursor: 'pointer',
+    color: 'var(--text-muted)', fontSize: 12, padding: '1px 4px', borderRadius: 4,
+  },
+
+  right: { display: 'flex', alignItems: 'center', gap: 8, position: 'relative', zIndex: 1 },
+  nav:   { display: 'flex', gap: 2 },
   navLink: {
     padding: '6px 14px', borderRadius: 8, fontSize: 14, fontWeight: 500,
     color: 'var(--text-muted)', transition: 'color .18s ease, background .18s ease',
     textDecoration: 'none',
   },
-  divider: { width: 1, height: 22, background: 'var(--border)', margin: '0 4px' },
+  divider:    { width: 1, height: 22, background: 'var(--border)', margin: '0 4px' },
   avatarWrap: { position: 'relative', flexShrink: 0 },
   avatar: {
     width: 36, height: 36, borderRadius: '50%',
@@ -148,8 +224,7 @@ const s = {
   },
   ghostLink: {
     padding: '7px 14px', fontSize: 14, fontWeight: 500,
-    color: 'var(--text-muted)', borderRadius: 8,
-    transition: 'color .18s ease',
+    color: 'var(--text-muted)', borderRadius: 8, transition: 'color .18s ease',
   },
   primaryBtn: {
     padding: '9px 22px', textDecoration: 'none', color: '#fff',
@@ -158,5 +233,28 @@ const s = {
     borderRadius: 10,
     boxShadow: '0 4px 14px rgba(124,58,237,.35), inset 0 1px 0 rgba(255,255,255,.15)',
     transition: 'box-shadow .2s ease, transform .2s ease',
+  },
+  hamburger: {
+    width: 38, height: 38, borderRadius: 10, border: '1px solid var(--border)',
+    background: 'transparent', cursor: 'pointer',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    fontSize: 17, color: 'var(--text)',
+  },
+  mobileMenu: {
+    position: 'fixed', top: 64, left: 0, right: 0, zIndex: 190,
+    background: 'var(--surface)', borderBottom: '1px solid var(--border)',
+    boxShadow: '0 8px 24px rgba(0,0,0,.12)',
+  },
+  mobileLink: {
+    padding: '16px 24px', fontSize: 15, fontWeight: 500,
+    color: 'var(--text)', textDecoration: 'none',
+    borderBottom: '1px solid var(--border)', display: 'block',
+  },
+  mobileSignOut: {
+    padding: '16px 24px', fontSize: 15, fontWeight: 500,
+    color: '#DC2626', background: 'none', border: 'none',
+    cursor: 'pointer', textAlign: 'left', width: '100%',
+    fontFamily: "'DM Sans', sans-serif", display: 'block',
+    borderTop: '1px solid var(--border)',
   },
 };

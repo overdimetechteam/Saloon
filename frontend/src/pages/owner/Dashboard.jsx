@@ -169,23 +169,6 @@ export default function OwnerDashboard() {
         )}
       </div>
 
-      {/* Quick actions */}
-      <div style={{ ...s.quickGrid, gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : isTablet ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)' }} className="fade-up d5">
-        {[
-          { label: 'Manage Inventory', icon: '▦', to: '/owner/inventory', color: '#7C3AED', sub: 'Stock levels & products' },
-          { label: 'Receive Stock', icon: '⊕', to: '/owner/inventory/grn', color: '#059669', sub: 'New goods received' },
-          { label: 'Record a Sale', icon: '⊘', to: '/owner/inventory/sales', color: '#2563EB', sub: 'Log retail sales' },
-          { label: 'View Reports', icon: '◰', to: '/owner/reports', color: '#D97706', sub: 'Analytics & insights' },
-        ].map(a => (
-          <Link key={a.label} to={a.to} style={{ ...s.quickCard, borderTop: `3px solid ${a.color}` }} className="lift-sm">
-            <div style={{ ...s.quickIconWrap, color: a.color, background: a.color + '14' }}>{a.icon}</div>
-            <div>
-              <div style={s.quickLabel}>{a.label}</div>
-              <div style={s.quickSub}>{a.sub}</div>
-            </div>
-          </Link>
-        ))}
-      </div>
     </div>
   );
 }
@@ -312,19 +295,4 @@ const s = {
     textDecoration: 'none',
   },
 
-  quickGrid: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14 },
-  quickCard: {
-    background: 'var(--surface)', borderRadius: 16, padding: '18px 20px',
-    textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 14,
-    border: '1px solid var(--border)',
-    boxShadow: '0 2px 10px rgba(124,58,237,.05)',
-    transition: 'transform .2s ease, box-shadow .2s ease',
-  },
-  quickIconWrap: {
-    width: 40, height: 40, borderRadius: 12, flexShrink: 0,
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    fontSize: 18,
-  },
-  quickLabel: { fontWeight: 600, fontSize: 13, color: 'var(--text)', marginBottom: 2 },
-  quickSub: { fontSize: 11, color: 'var(--text-muted)' },
 };

@@ -569,8 +569,8 @@ button:disabled {
   --safe-right:  env(safe-area-inset-right, 0px);
 }
 
-/* Prevent horizontal scroll bleed */
-html, body { overflow-x: hidden; }
+/* Prevent horizontal scroll bleed — clip avoids breaking position:sticky */
+html, body { overflow-x: clip; }
 
 /* Minimum tap target for touch */
 button, a, [role="button"] { touch-action: manipulation; }

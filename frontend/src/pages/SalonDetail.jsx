@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
@@ -59,6 +59,12 @@ export default function SalonDetail() {
   const [isFav, setIsFav]           = useState(false);
   const [favLoading, setFavLoading] = useState(false);
   const [offers, setOffers]         = useState([]);
+  const [activeServiceCat, setActiveServiceCat] = useState(null);
+
+  const servicesRef = useRef(null);
+  const teamRef     = useRef(null);
+  const reviewsRef  = useRef(null);
+  const infoRef     = useRef(null);
 
   useEffect(() => {
     api.get(`/salons/${id}/`).then(r => setSalon(r.data)).catch(() => {});
@@ -97,8 +103,11 @@ export default function SalonDetail() {
   }, {});
 
   const fullAddress = `${salon.address_street}, ${salon.address_city} ${salon.address_postal}`;
-  const mapSrc = `https://maps.google.com/maps?q=${encodeURIComponent(fullAddress)}&output=embed`;
   const isClient = profile?.role === 'client';
+
+  const cats = Object.keys(grouped);
+  const activeCat = activeServiceCat && cats.includes(activeServiceCat) ? activeServiceCat : cats[0];
+  const activeCatColor = CAT_COLORS[activeCat] || '#7C3AED';
 
   return (
     <div style={{ background: 'var(--bg)', minHeight: '100vh' }}>
@@ -170,6 +179,31 @@ export default function SalonDetail() {
         </div>
       </div>
 
+      {/* TAB BAR — sticky below navbar */}
+      <div style={s.tabBar}>
+        <div style={s.tabBarInner}>
+          <div style={s.tabBtns}>
+            {[
+              { label: 'Services', ref: servicesRef },
+              { label: 'Team',     ref: teamRef     },
+              { label: 'Reviews',  ref: reviewsRef  },
+              { label: 'Info',     ref: infoRef     },
+            ].map(tab => (
+              <button
+                key={tab.label}
+                style={s.tabBtn}
+                onClick={() => tab.ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+          {isClient && (
+            <Link to={`/user/book/${id}`} style={s.tabBookBtn}>✦ Book Now</Link>
+          )}
+        </div>
+      </div>
+
       {/* PHOTOS */}
       <div style={s.photoStrip}>
         <div style={s.photoScroll}>
@@ -185,47 +219,49 @@ export default function SalonDetail() {
       <div style={{ ...s.body, padding: isMobile ? '20px 16px 48px' : isTablet ? '28px 20px' : '44px 48px' }}>
 
         {/* Services */}
-        <section style={s.sec} className="fade-up">
-          <div style={s.secHead}>
-            <div>
-              <div style={s.eyebrowSm}>What We Offer</div>
-              <h2 style={s.secTitle}>Available Services</h2>
-            </div>
-            {isClient && (
-              <Link to={`/user/book/${id}`} style={s.bookAllBtn}>Book Appointment →</Link>
-            )}
+        <section ref={servicesRef} style={s.sec} className="fade-up">
+          <div style={{ marginBottom: 24 }}>
+            <div style={s.eyebrowSm}>What We Offer</div>
+            <h2 style={s.secTitle}>Available Services</h2>
           </div>
 
-          {Object.keys(grouped).length === 0 ? (
+          {cats.length === 0 ? (
             <p style={{ color: 'var(--text-muted)', padding: '24px 0' }}>No services listed yet.</p>
           ) : (
-            Object.entries(grouped).map(([cat, items]) => {
-              const cc = CAT_COLORS[cat] || '#7C3AED';
-              return (
-                <div key={cat} style={{ marginBottom: 28 }}>
-                  <div style={{ ...s.catBadge, background: cc + '14', color: cc, border: `1px solid ${cc}28` }}>{cat}</div>
-                  <div style={{ ...s.svcGrid, gridTemplateColumns: isMobile ? '1fr' : isTablet ? 'repeat(2,1fr)' : 'repeat(auto-fill,minmax(230px,1fr))' }}>
-                    {items.map(ss => (
-                      <div key={ss.id} style={s.svcCard} className="lift-sm">
-                        <div style={s.svcName}>{ss.service_name}</div>
-                        <div style={s.svcMeta}>
-                          <span style={s.svcDur}>⏱ {ss.effective_duration} min</span>
-                          <span style={{ ...s.svcPrice, color: cc }}>LKR {ss.effective_price}</span>
-                        </div>
-                        {isClient && (
-                          <Link
-                            to={`/user/book/${id}`}
-                            style={{ ...s.svcBookBtn, background: cc + '12', color: cc, borderColor: cc + '30' }}
-                          >
-                            Book →
-                          </Link>
-                        )}
-                      </div>
-                    ))}
+            <>
+              <div style={s.catTabs}>
+                {cats.map(cat => {
+                  const tc = CAT_COLORS[cat] || '#7C3AED';
+                  const isActive = cat === activeCat;
+                  return (
+                    <button
+                      key={cat}
+                      onClick={() => setActiveServiceCat(cat)}
+                      style={{
+                        ...s.catTab,
+                        background: isActive ? tc : 'transparent',
+                        color: isActive ? '#fff' : tc,
+                        border: `1px solid ${tc}40`,
+                        boxShadow: isActive ? `0 3px 10px ${tc}40` : 'none',
+                      }}
+                    >
+                      {cat}
+                    </button>
+                  );
+                })}
+              </div>
+              <div style={{ ...s.svcGrid, gridTemplateColumns: isMobile ? '1fr' : isTablet ? 'repeat(2,1fr)' : 'repeat(auto-fill,minmax(230px,1fr))' }}>
+                {(grouped[activeCat] || []).map(ss => (
+                  <div key={ss.id} style={s.svcCard} className="lift-sm">
+                    <div style={s.svcName}>{ss.service_name}</div>
+                    <div style={s.svcMeta}>
+                      <span style={s.svcDur}>⏱ {ss.effective_duration} min</span>
+                      <span style={{ ...s.svcPrice, color: activeCatColor }}>LKR {ss.effective_price}</span>
+                    </div>
                   </div>
-                </div>
-              );
-            })
+                ))}
+              </div>
+            </>
           )}
         </section>
 
@@ -285,7 +321,7 @@ export default function SalonDetail() {
         </section>
 
         {/* Team */}
-        <section style={s.sec} className="fade-up d2">
+        <section ref={teamRef} style={s.sec} className="fade-up d2">
           <div style={s.eyebrowSm}>Meet the Experts</div>
           <h2 style={s.secTitle}>Our Team</h2>
           <div style={{ ...s.teamGrid, gridTemplateColumns: isMobile ? 'repeat(2,1fr)' : isTablet ? 'repeat(2,1fr)' : 'repeat(auto-fill,minmax(200px,1fr))' }}>
@@ -303,7 +339,7 @@ export default function SalonDetail() {
         </section>
 
         {/* Reviews */}
-        <section style={s.sec} className="fade-up d2">
+        <section ref={reviewsRef} style={s.sec} className="fade-up d2">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: 14 }}>
             <div>
               <div style={s.eyebrowSm}>What Clients Say</div>
@@ -342,28 +378,8 @@ export default function SalonDetail() {
           )}
         </section>
 
-        {/* Google Map */}
-        <section style={s.sec} className="fade-up d2">
-          <div style={s.eyebrowSm}>Location</div>
-          <h2 style={s.secTitle}>Find Us</h2>
-          <div style={s.mapWrap}>
-            <iframe
-              title="salon-map"
-              src={mapSrc}
-              style={s.mapFrame}
-              allowFullScreen
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-            />
-          </div>
-          <div style={s.addrBox}>
-            <span style={{ fontSize: 20 }}>📍</span>
-            <span style={{ color: 'var(--text)', fontWeight: 500, fontSize: 14 }}>{fullAddress}</span>
-          </div>
-        </section>
-
         {/* Working Hours */}
-        <section style={s.sec} className="fade-up d3">
+        <section ref={infoRef} style={s.sec} className="fade-up d3">
           <div style={s.eyebrowSm}>When We're Open</div>
           <h2 style={s.secTitle}>Working Hours</h2>
           <div style={s.hoursCard}>
@@ -480,6 +496,32 @@ const s = {
     fontFamily: "'DM Sans', sans-serif",
   },
 
+  tabBar: {
+    position: 'sticky', top: 64, zIndex: 100,
+    background: 'var(--surface)', borderBottom: '1px solid var(--border)',
+    boxShadow: '0 2px 12px rgba(0,0,0,.08)',
+  },
+  tabBarInner: {
+    maxWidth: 1100, margin: '0 auto', padding: '0 16px',
+    display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
+  },
+  tabBtns: { display: 'flex', overflowX: 'auto', scrollbarWidth: 'none', flexShrink: 1, minWidth: 0 },
+  tabBtn: {
+    padding: '14px 16px', background: 'none', border: 'none', cursor: 'pointer',
+    fontSize: 13, fontWeight: 600, color: 'var(--text-muted)',
+    transition: 'color .15s ease', fontFamily: "'DM Sans', sans-serif",
+    whiteSpace: 'nowrap',
+  },
+  tabBookBtn: {
+    flexShrink: 0, marginLeft: 16,
+    padding: '8px 20px',
+    background: 'linear-gradient(135deg, #7C3AED 0%, #0D9488 100%)',
+    color: '#fff', borderRadius: 10, fontWeight: 700, fontSize: 13,
+    textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6,
+    boxShadow: '0 4px 14px rgba(124,58,237,.3)',
+    fontFamily: "'DM Sans', sans-serif",
+  },
+
   photoStrip: { background: 'var(--surface)', borderBottom: '1px solid var(--border)', padding: '20px 0' },
   photoScroll: {
     display: 'flex', gap: 14, overflowX: 'auto', paddingBottom: 4,
@@ -507,15 +549,17 @@ const s = {
     fontFamily: "'Cormorant Garamond', Georgia, serif",
     fontSize: 'clamp(20px, 3.5vw, 28px)', fontWeight: 700, color: 'var(--text)', marginBottom: 24, letterSpacing: '-0.01em',
   },
-  bookAllBtn: {
-    padding: '9px 22px',
-    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #0D9488 100%)',
-    color: '#fff', borderRadius: 11, fontWeight: 700, fontSize: 13,
-    textDecoration: 'none', boxShadow: '0 4px 14px rgba(124,58,237,.3)', flexShrink: 0,
-    fontFamily: "'DM Sans', sans-serif",
-  },
-
   catBadge: { display: 'inline-flex', padding: '4px 14px', borderRadius: 20, fontSize: 13, fontWeight: 700, marginBottom: 14 },
+  catTabs: {
+    display: 'flex', gap: 8, overflowX: 'auto', scrollbarWidth: 'none',
+    marginBottom: 20, paddingBottom: 2,
+  },
+  catTab: {
+    padding: '7px 18px', borderRadius: 20, cursor: 'pointer',
+    fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap',
+    transition: 'all .2s ease', fontFamily: "'DM Sans', sans-serif",
+    flexShrink: 0,
+  },
   svcGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))', gap: 14 },
   svcCard: {
     background: 'var(--surface)', borderRadius: 14, padding: '18px 18px 14px',
@@ -526,12 +570,6 @@ const s = {
   svcMeta:    { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
   svcDur:     { fontSize: 12, color: 'var(--text-muted)' },
   svcPrice:   { fontWeight: 700, fontSize: 15 },
-  svcBookBtn: {
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    padding: '7px 0', borderRadius: 9, border: '1px solid',
-    fontSize: 13, fontWeight: 700, textDecoration: 'none', marginTop: 4,
-    fontFamily: "'DM Sans', sans-serif",
-  },
 
   teamGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 16 },
   teamCard: {

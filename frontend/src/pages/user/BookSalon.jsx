@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import api from '../../api/axios';
-import { c } from '../../styles/theme';
 import { useBreakpoint } from '../../hooks/useMobile';
 import MiniCalendar from '../../components/MiniCalendar';
 
@@ -19,8 +18,7 @@ const CONFETTI_PARTICLES = [
   { size: 7,  top: '14%', left: '57%',  color: '#0D9488', round: true,  anim: 'confettiB', dur: '2.6s', delay: '0.4s'  },
 ];
 
-
-const STEPS = ['Services', 'Professional', 'Date', 'Time', 'Confirm'];
+const STEPS = ['Services', 'Date & Time', 'Confirm'];
 
 export default function BookSalon() {
   const { salonId } = useParams();
@@ -116,10 +114,10 @@ export default function BookSalon() {
   const finalTotal = Math.max(0, total - discount);
   const selectedStaffName = staffId === null ? 'Any Available' : staffList.find(m => m.id === staffId)?.full_name || '';
 
-  const stepDone = [selected.length > 0, true, !!date, !!slot, true];
+  const stepDone = [selected.length > 0, !!date && !!slot, true];
   const canAdvance = stepDone[step];
 
-  const goNext = () => { if (canAdvance && step < 4) setStep(st => st + 1); };
+  const goNext = () => { if (canAdvance && step < 2) setStep(st => st + 1); };
   const goPrev = () => { if (step > 0) setStep(st => st - 1); };
 
   /* ── Luxury booking confirmation overlay ── */
@@ -130,12 +128,10 @@ export default function BookSalon() {
 
     return createPortal(
       <div style={conf.overlay} className="noise-bg">
-        {/* Ambient background glows */}
         <div style={conf.bgGlow1} className="ambient-glow" />
         <div style={conf.bgGlow2} />
         <div style={conf.bgGlow3} />
 
-        {/* Confetti particles */}
         {CONFETTI_PARTICLES.map((p, i) => (
           <div key={i} style={{
             position: 'absolute',
@@ -149,15 +145,12 @@ export default function BookSalon() {
           }} />
         ))}
 
-        {/* Main confirmation content */}
         <div style={conf.content}>
-          {/* Eyebrow */}
           <div style={conf.eyebrow} className="fade-in d1">
             <span style={{ color: '#BF9B65', marginRight: 8 }}>✦</span>
             Your Appointment is Confirmed
           </div>
 
-          {/* Animated checkmark */}
           <div style={conf.checkWrap} className="fade-in d1">
             <div style={conf.checkGlow} />
             <div style={{ ...conf.checkCircle, animation: 'checkmarkBounce .65s .2s cubic-bezier(.16,1,.3,1) backwards' }}>
@@ -168,31 +161,18 @@ export default function BookSalon() {
                     <stop offset="100%" stopColor="#0D9488" />
                   </linearGradient>
                 </defs>
-                <circle
-                  cx="48" cy="48" r="44"
-                  stroke="url(#cGrad)" strokeWidth="2"
-                  strokeDasharray="276"
-                  style={{ animation: 'svgCircleDraw .9s .25s cubic-bezier(.16,1,.3,1) backwards' }}
-                />
-                <path
-                  d="M30 48L42 60L66 34"
-                  stroke="white" strokeWidth="4"
-                  strokeLinecap="round" strokeLinejoin="round"
-                  strokeDasharray="65"
-                  style={{ animation: 'svgCheckDraw .55s .9s cubic-bezier(.16,1,.3,1) backwards' }}
-                />
+                <circle cx="48" cy="48" r="44" stroke="url(#cGrad)" strokeWidth="2" strokeDasharray="276"
+                  style={{ animation: 'svgCircleDraw .9s .25s cubic-bezier(.16,1,.3,1) backwards' }} />
+                <path d="M30 48L42 60L66 34" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="65"
+                  style={{ animation: 'svgCheckDraw .55s .9s cubic-bezier(.16,1,.3,1) backwards' }} />
               </svg>
             </div>
           </div>
 
-          {/* Salon name — the cinematic moment */}
           <h1 style={conf.salonName} className="fade-up d3">{salon.name}</h1>
           <p style={conf.salonSub} className="fade-up d3">Your luxury experience awaits</p>
-
-          {/* Decorative rule */}
           <div style={conf.rule} className="fade-in d4" />
 
-          {/* Appointment detail card */}
           <div style={conf.detailCard} className="fade-up d4">
             {dt && (
               <div style={conf.detailRow}>
@@ -252,9 +232,7 @@ export default function BookSalon() {
                   <div style={{ ...conf.detailVal, color: '#C4B5FD', fontWeight: 700 }}>
                     LKR {finalTotal.toFixed(2)}
                     {promoResult?.valid && (
-                      <span style={{ fontSize: 11, color: '#6EE7B7', marginLeft: 8, fontWeight: 500 }}>
-                        (promo applied)
-                      </span>
+                      <span style={{ fontSize: 11, color: '#6EE7B7', marginLeft: 8, fontWeight: 500 }}>(promo applied)</span>
                     )}
                   </div>
                 </div>
@@ -262,13 +240,9 @@ export default function BookSalon() {
             )}
           </div>
 
-          {/* CTAs */}
           <div style={conf.ctaRow} className="fade-up d5">
-            <button
-              style={conf.primaryCTA}
-              className="btn-cta"
-              onClick={() => navigate(bookingId ? `/user/bookings/${bookingId}` : '/user/bookings')}
-            >
+            <button style={conf.primaryCTA} className="btn-cta"
+              onClick={() => navigate(bookingId ? `/user/bookings/${bookingId}` : '/user/bookings')}>
               View My Booking
             </button>
             <button style={conf.ghostCTA} onClick={() => navigate('/salons')}>
@@ -285,7 +259,7 @@ export default function BookSalon() {
     <div>
       <Link to={`/salons/${salonId}`} style={s.back}>← Back to {salon.name}</Link>
 
-      {/* Progress bar */}
+      {/* Progress bar — 3 steps */}
       <div style={{ ...s.progress, padding: isMobile ? '14px 16px' : '18px 28px' }} className="fade-up">
         {STEPS.map((label, i) => (
           <div key={label} style={s.progressStep} onClick={() => i < step && setStep(i)}>
@@ -311,10 +285,9 @@ export default function BookSalon() {
       </div>
 
       <div style={{ ...s.layout, flexDirection: isMobile ? 'column' : 'row' }}>
-        {/* Main form */}
         <div style={s.formCol}>
 
-          {/* Step 0: Services */}
+          {/* ── Step 0: Services ── */}
           {step === 0 && (
             <div style={s.stepCard} className="scale-in">
               <div style={s.stepHeader}>
@@ -329,10 +302,7 @@ export default function BookSalon() {
                 {services.map(ss => {
                   const on = selected.includes(ss.id);
                   return (
-                    <label
-                      key={ss.id}
-                      style={{ ...s.serviceCard, ...(on ? s.serviceCardOn : {}) }}
-                    >
+                    <label key={ss.id} style={{ ...s.serviceCard, ...(on ? s.serviceCardOn : {}) }}>
                       <input type="checkbox" checked={on} onChange={() => toggleService(ss.id)} style={{ display: 'none' }} />
                       <div style={s.svcCheck}>
                         <div style={{ ...s.checkBox, ...(on ? s.checkBoxOn : {}) }}>{on && '✓'}</div>
@@ -349,7 +319,135 @@ export default function BookSalon() {
                 })}
                 {services.length === 0 && <p style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>No services available at this salon.</p>}
               </div>
+            </div>
+          )}
 
+          {/* ── Step 1: Date & Time (combined) + compact professional selector ── */}
+          {step === 1 && (
+            <div style={s.stepCard} className="scale-in">
+              <div style={s.stepHeader}>
+                <div style={s.stepIcon}>◷</div>
+                <div>
+                  <div style={s.stepTitle}>Choose Date & Time</div>
+                  <div style={s.stepSub}>Pick your preferred slot — selecting a time auto-advances</div>
+                </div>
+              </div>
+
+              {/* Compact professional selector */}
+              {!staffLoading && (
+                <div style={s.proRow}>
+                  <span style={s.proLabel}>★ Professional</span>
+                  <div style={s.proChips}>
+                    <button
+                      type="button"
+                      style={{ ...s.proChip, ...(staffId === null ? s.proChipOn : {}) }}
+                      onClick={() => setStaffId(null)}
+                    >
+                      ✦ Any Available
+                    </button>
+                    {staffList.map((m, i) => {
+                      const color = STAFF_COLORS[i % STAFF_COLORS.length];
+                      return (
+                        <button
+                          key={m.id}
+                          type="button"
+                          style={{ ...s.proChip, ...(staffId === m.id ? { ...s.proChipOn, borderColor: color + '80', color } : {}) }}
+                          onClick={() => setStaffId(m.id)}
+                          title={m.role || 'Stylist'}
+                        >
+                          {m.full_name.split(' ')[0]}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Calendar + Time slots side-by-side */}
+              <div style={{ display: 'flex', gap: 22, flexDirection: isMobile ? 'column' : 'row', alignItems: 'flex-start', marginTop: 18 }}>
+                {/* Calendar */}
+                <div style={{ flexShrink: 0 }}>
+                  <div style={s.subLabel}>Select Date</div>
+                  <MiniCalendar
+                    value={date}
+                    onChange={d => { setDate(d); setSlot(''); }}
+                    operatingHours={salon?.operating_hours || {}}
+                  />
+                  {date && (
+                    <div style={s.selectedDateBanner}>
+                      <span style={{ fontSize: 14, color: '#7C3AED' }}>◷</span>
+                      <span style={{ fontWeight: 600, color: 'var(--text)', fontSize: 13 }}>
+                        {new Date(date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                      </span>
+                      <span style={{ marginLeft: 'auto', fontSize: 11, color: '#059669', fontWeight: 700 }}>Selected ✓</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Time slots */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={s.subLabel}>Select Time</div>
+                  {!date && (
+                    <div style={s.noSlotsHint}>
+                      <span style={{ fontSize: 22, opacity: .35 }}>◷</span>
+                      <span>Pick a date to see available times</span>
+                    </div>
+                  )}
+                  {date && slotsLoading && (
+                    <div style={s.slotLoading}>
+                      <div style={s.loaderSpinner} />
+                      <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>Loading slots…</span>
+                    </div>
+                  )}
+                  {date && !slotsLoading && slots.length === 0 && (
+                    <div style={s.noSlots}>
+                      No available slots for this date. Try another day.
+                    </div>
+                  )}
+                  {date && !slotsLoading && slots.length > 0 && (
+                    <div style={s.slotGrid}>
+                      {slots.map(sl => {
+                        const time = sl.datetime.split('T')[1]?.substring(0, 5);
+                        const isOn = slot === sl.datetime;
+                        return (
+                          <button
+                            key={sl.datetime}
+                            type="button"
+                            disabled={!sl.available}
+                            onClick={() => { setSlot(sl.datetime); setStep(2); }}
+                            style={{ ...s.slotBtn, ...(isOn ? s.slotOn : {}), ...(!sl.available ? s.slotOff : {}) }}
+                          >
+                            {time}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── Step 2: Notes + Promo + Confirm ── */}
+          {step === 2 && (
+            <div style={s.stepCard} className="scale-in">
+              <div style={s.stepHeader}>
+                <div style={s.stepIcon}>◈</div>
+                <div>
+                  <div style={s.stepTitle}>Add Notes & Confirm</div>
+                  <div style={s.stepSub}>Any special requests for the salon?</div>
+                </div>
+              </div>
+              {error && <div style={s.alert}>{error}</div>}
+              <textarea
+                style={s.textarea}
+                rows={4}
+                placeholder="e.g. I have allergies, or want a specific style…"
+                value={notes}
+                onChange={e => setNotes(e.target.value)}
+              />
+
+              {/* Promo code — moved here so users apply it at checkout */}
               {selected.length > 0 && (
                 <div style={s.promoSection}>
                   <button style={s.promoToggle} type="button" onClick={() => setPromoOpen(o => !o)}>
@@ -389,162 +487,9 @@ export default function BookSalon() {
                   )}
                 </div>
               )}
-            </div>
-          )}
 
-          {/* Step 1: Professional */}
-          {step === 1 && (
-            <div style={s.stepCard} className="scale-in">
-              <div style={s.stepHeader}>
-                <div style={s.stepIcon}>★</div>
-                <div>
-                  <div style={s.stepTitle}>Choose a Professional</div>
-                  <div style={s.stepSub}>Pick your preferred stylist or let us assign the next available</div>
-                </div>
-              </div>
-
-              {staffLoading ? (
-                <div style={s.slotLoading}>
-                  <div style={s.loaderSpinner} />
-                  <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>Loading team…</span>
-                </div>
-              ) : (
-                <div style={s.staffGrid}>
-                  <div
-                    style={{ ...s.staffCard, ...(staffId === null ? s.staffCardOn : {}) }}
-                    onClick={() => setStaffId(null)}
-                  >
-                    <div style={{ ...s.staffAvatar, background: 'linear-gradient(135deg, #7C3AED 0%, #0D9488 100%)', boxShadow: '0 4px 14px rgba(124,58,237,.3)' }}>✦</div>
-                    <div style={s.staffInfo}>
-                      <div style={s.staffName}>Any Available Professional</div>
-                      <div style={s.staffRole}>Show all open time slots</div>
-                    </div>
-                    {staffId === null && <div style={s.staffCheck}>✓</div>}
-                  </div>
-
-                  {staffList.map((member, i) => {
-                    const color = STAFF_COLORS[i % STAFF_COLORS.length];
-                    const isOn = staffId === member.id;
-                    return (
-                      <div
-                        key={member.id}
-                        style={{ ...s.staffCard, ...(isOn ? s.staffCardOn : {}) }}
-                        onClick={() => setStaffId(member.id)}
-                      >
-                        <div style={{ ...s.staffAvatar, background: `linear-gradient(135deg, ${color} 0%, ${color}CC 100%)`, boxShadow: `0 4px 14px ${color}40` }}>
-                          {member.full_name[0].toUpperCase()}
-                        </div>
-                        <div style={s.staffInfo}>
-                          <div style={s.staffName}>{member.full_name}</div>
-                          <div style={s.staffRole}>{member.role || 'Stylist'}</div>
-                          {member.phone && <div style={{ ...s.staffRole, marginTop: 2 }}>📞 {member.phone}</div>}
-                        </div>
-                        {isOn && <div style={s.staffCheck}>✓</div>}
-                      </div>
-                    );
-                  })}
-
-                  {staffList.length === 0 && (
-                    <div style={s.noStaffNote}>
-                      No team members have been registered yet. We'll assign the next available professional.
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Step 2: Date */}
-          {step === 2 && (
-            <div style={s.stepCard} className="scale-in">
-              <div style={s.stepHeader}>
-                <div style={s.stepIcon}>◷</div>
-                <div>
-                  <div style={s.stepTitle}>Choose a Date</div>
-                  <div style={s.stepSub}>Tap a day to select your appointment date</div>
-                </div>
-              </div>
-
-              <MiniCalendar
-                value={date}
-                onChange={d => { setDate(d); setSlot(''); }}
-                operatingHours={salon?.operating_hours || {}}
-              />
-
-              {date && (
-                <div style={s.selectedDateBanner}>
-                  <span style={{ fontSize: 16, color: '#7C3AED' }}>◷</span>
-                  <span style={{ fontWeight: 600, color: 'var(--text)', fontSize: 14 }}>
-                    {new Date(date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
-                  </span>
-                  <span style={{ marginLeft: 'auto', fontSize: 12, color: '#059669', fontWeight: 700 }}>Selected ✓</span>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Step 3: Time */}
-          {step === 3 && (
-            <div style={s.stepCard} className="scale-in">
-              <div style={s.stepHeader}>
-                <div style={s.stepIcon}>✦</div>
-                <div>
-                  <div style={s.stepTitle}>Pick a Time</div>
-                  <div style={s.stepSub}>{date ? new Date(date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }) : ''}</div>
-                </div>
-              </div>
-              {slotsLoading ? (
-                <div style={s.slotLoading}>
-                  <div style={s.loaderSpinner} />
-                  <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>Loading available slots…</span>
-                </div>
-              ) : slots.length === 0 ? (
-                <div style={s.noSlots}>
-                  No available slots for this date. Try another day.
-                  <button style={s.backDateBtn} onClick={() => setStep(2)}>← Change Date</button>
-                </div>
-              ) : (
-                <div style={s.slotGrid}>
-                  {slots.map(sl => {
-                    const time = sl.datetime.split('T')[1]?.substring(0, 5);
-                    const isOn = slot === sl.datetime;
-                    return (
-                      <button
-                        key={sl.datetime}
-                        type="button"
-                        disabled={!sl.available}
-                        onClick={() => { setSlot(sl.datetime); setStep(4); }}
-                        style={{ ...s.slotBtn, ...(isOn ? s.slotOn : {}), ...(!sl.available ? s.slotOff : {}) }}
-                      >
-                        {time}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Step 4: Confirm */}
-          {step === 4 && (
-            <div style={s.stepCard} className="scale-in">
-              <div style={s.stepHeader}>
-                <div style={s.stepIcon}>◈</div>
-                <div>
-                  <div style={s.stepTitle}>Add Notes & Confirm</div>
-                  <div style={s.stepSub}>Any special requests for the salon?</div>
-                </div>
-              </div>
-              {error && <div style={s.alert}>{error}</div>}
-              <textarea
-                style={s.textarea}
-                rows={4}
-                placeholder="e.g. I have allergies, or want a specific style…"
-                value={notes}
-                onChange={e => setNotes(e.target.value)}
-              />
               <button
-                style={{ ...s.confirmBtn, opacity: submitting ? 0.7 : 1 }}
+                style={{ ...s.confirmBtn, opacity: submitting ? 0.7 : 1, marginTop: 20 }}
                 onClick={submit}
                 disabled={submitting}
               >
@@ -558,7 +503,7 @@ export default function BookSalon() {
             {step > 0 && (
               <button style={s.prevBtn} onClick={goPrev}>← Back</button>
             )}
-            {step < 4 && (
+            {step < 2 && (
               <button
                 style={{ ...s.nextBtn, opacity: canAdvance ? 1 : 0.45 }}
                 onClick={goNext}
@@ -566,9 +511,7 @@ export default function BookSalon() {
               >
                 {step === 0
                   ? `Continue with ${selected.length} service${selected.length !== 1 ? 's' : ''}`
-                  : step === 1
-                  ? `Continue with ${staffId === null ? 'Any Available' : staffList.find(m => m.id === staffId)?.full_name || 'selected'}`
-                  : 'Continue'} →
+                  : 'Continue to Confirm'} →
               </button>
             )}
           </div>
@@ -661,17 +604,12 @@ const s = {
     boxShadow: '0 4px 16px rgba(124,58,237,.07)',
     border: '1px solid var(--border)',
   },
-  progressStep: { display: 'flex', alignItems: 'center', flex: 1 },
-  progressDot: {
-    width: 30, height: 30, borderRadius: '50%',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    fontSize: 12, fontWeight: 700, color: '#fff', flexShrink: 0,
-    transition: 'background .3s ease, box-shadow .3s ease',
-  },
+  progressStep:  { display: 'flex', alignItems: 'center', flex: 1 },
+  progressDot:   { width: 30, height: 30, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff', flexShrink: 0, transition: 'background .3s ease, box-shadow .3s ease' },
   progressLabel: { fontSize: 11, marginLeft: 7, whiteSpace: 'nowrap', transition: 'color .3s ease' },
-  progressLine: { flex: 1, height: 2, margin: '0 8px', borderRadius: 2, transition: 'background .3s ease' },
+  progressLine:  { flex: 1, height: 2, margin: '0 8px', borderRadius: 2, transition: 'background .3s ease' },
 
-  layout: { display: 'flex', gap: 24, alignItems: 'flex-start' },
+  layout:  { display: 'flex', gap: 24, alignItems: 'flex-start' },
   formCol: { flex: 1, minWidth: 0 },
 
   stepCard: {
@@ -686,105 +624,66 @@ const s = {
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     fontSize: 18, color: '#fff', boxShadow: '0 6px 16px rgba(124,58,237,.35)',
   },
-  stepTitle: {
-    fontFamily: "'Cormorant Garamond', Georgia, serif",
-    fontSize: 20, fontWeight: 700, color: 'var(--text)', letterSpacing: '-0.01em',
-  },
-  stepSub: { fontSize: 13, color: 'var(--text-muted)', marginTop: 3 },
-  alert: {
-    background: '#FEF2F2', border: '1px solid #FCA5A5',
-    color: '#DC2626', borderRadius: 12, padding: '11px 16px', fontSize: 13, marginBottom: 18,
-  },
+  stepTitle: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 20, fontWeight: 700, color: 'var(--text)', letterSpacing: '-0.01em' },
+  stepSub:   { fontSize: 13, color: 'var(--text-muted)', marginTop: 3 },
+  alert:     { background: '#FEF2F2', border: '1px solid #FCA5A5', color: '#DC2626', borderRadius: 12, padding: '11px 16px', fontSize: 13, marginBottom: 18 },
 
   serviceGrid: { display: 'flex', flexDirection: 'column', gap: 10 },
-  serviceCard: {
-    display: 'flex', alignItems: 'center', gap: 14, padding: '14px 18px',
-    border: '2px solid var(--border)', borderRadius: 14, cursor: 'pointer',
-    background: 'var(--surface)', transition: 'all .18s ease',
-  },
-  serviceCardOn: {
-    border: '2px solid #7C3AED',
-    background: 'linear-gradient(135deg, rgba(124,58,237,.05) 0%, rgba(236,72,153,.03) 100%)',
-    boxShadow: '0 3px 12px rgba(124,58,237,.12)',
-  },
+  serviceCard: { display: 'flex', alignItems: 'center', gap: 14, padding: '14px 18px', border: '2px solid var(--border)', borderRadius: 14, cursor: 'pointer', background: 'var(--surface)', transition: 'all .18s ease' },
+  serviceCardOn: { border: '2px solid #7C3AED', background: 'linear-gradient(135deg, rgba(124,58,237,.05) 0%, rgba(236,72,153,.03) 100%)', boxShadow: '0 3px 12px rgba(124,58,237,.12)' },
   svcCheck: { flexShrink: 0 },
-  checkBox: {
-    width: 22, height: 22, borderRadius: 6, border: '2px solid var(--border)',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    fontSize: 12, fontWeight: 700, color: '#fff', transition: 'all .2s ease',
-  },
+  checkBox:   { width: 22, height: 22, borderRadius: 6, border: '2px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff', transition: 'all .2s ease' },
   checkBoxOn: { background: 'linear-gradient(135deg, #7C3AED, #0D9488)', borderColor: 'transparent' },
-  svcInfo: { flex: 1 },
-  svcName: { fontWeight: 600, fontSize: 14, color: 'var(--text)', marginBottom: 2 },
-  svcMeta: { fontSize: 12, color: 'var(--text-muted)' },
+  svcInfo:  { flex: 1 },
+  svcName:  { fontWeight: 600, fontSize: 14, color: 'var(--text)', marginBottom: 2 },
+  svcMeta:  { fontSize: 12, color: 'var(--text-muted)' },
   svcPrice: { fontWeight: 700, fontSize: 15, flexShrink: 0, transition: 'color .2s ease' },
 
-  staffGrid: { display: 'flex', flexDirection: 'column', gap: 10 },
-  staffCard: {
-    display: 'flex', alignItems: 'center', gap: 14, padding: '14px 18px',
-    border: '2px solid var(--border)', borderRadius: 14, cursor: 'pointer',
-    background: 'var(--surface)', transition: 'all .18s ease',
+  proRow: {
+    display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 4,
+    paddingBottom: 18, borderBottom: '1px solid var(--border)', flexWrap: 'wrap',
   },
-  staffCardOn: {
-    border: '2px solid #7C3AED',
-    background: 'linear-gradient(135deg, rgba(124,58,237,.06) 0%, rgba(236,72,153,.04) 100%)',
-    boxShadow: '0 3px 14px rgba(124,58,237,.14)',
+  proLabel: { fontSize: 12, fontWeight: 700, color: 'var(--text-sub)', whiteSpace: 'nowrap', paddingTop: 6, flexShrink: 0 },
+  proChips: { display: 'flex', flexWrap: 'wrap', gap: 8, flex: 1 },
+  proChip: {
+    padding: '5px 14px', borderRadius: 20, fontSize: 12, fontWeight: 600,
+    border: '1.5px solid var(--border)', background: 'var(--surface)',
+    color: 'var(--text-sub)', cursor: 'pointer', transition: 'all .15s ease',
+    fontFamily: "'DM Sans', sans-serif",
   },
-  staffAvatar: {
-    width: 48, height: 48, borderRadius: 15, flexShrink: 0,
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    fontFamily: "'Cormorant Garamond', Georgia, serif",
-    fontSize: 20, fontWeight: 700, color: '#fff',
-  },
-  staffInfo: { flex: 1 },
-  staffName: { fontWeight: 600, fontSize: 14, color: 'var(--text)', marginBottom: 2 },
-  staffRole: { fontSize: 12, color: 'var(--text-muted)' },
-  staffCheck: {
-    width: 26, height: 26, borderRadius: '50%', flexShrink: 0,
-    background: 'linear-gradient(135deg, #7C3AED, #0D9488)',
-    color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
-    fontSize: 13, fontWeight: 700,
-  },
-  noStaffNote: {
-    padding: '16px 18px', borderRadius: 12, fontSize: 13,
-    color: 'var(--text-muted)', background: 'var(--surface2)',
-    border: '1px solid var(--border)', fontStyle: 'italic', lineHeight: 1.6,
-  },
+  proChipOn: { background: 'rgba(124,58,237,.08)', color: '#7C3AED', borderColor: '#7C3AED50' },
+
+  subLabel: { fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 },
 
   selectedDateBanner: {
     display: 'flex', alignItems: 'center', gap: 10,
-    marginTop: 18, padding: '13px 18px',
-    background: 'rgba(124,58,237,.06)', borderRadius: 12,
+    marginTop: 12, padding: '10px 14px',
+    background: 'rgba(124,58,237,.06)', borderRadius: 10,
     border: '1px solid rgba(124,58,237,.15)',
   },
 
-  slotLoading: { display: 'flex', alignItems: 'center', gap: 12, padding: '20px 0' },
-  noSlots: {
-    color: 'var(--text-muted)', fontSize: 14, padding: '20px 0',
-    display: 'flex', flexDirection: 'column', gap: 12, lineHeight: 1.7,
+  slotLoading:  { display: 'flex', alignItems: 'center', gap: 12, padding: '20px 0' },
+  noSlotsHint: {
+    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+    gap: 8, textAlign: 'center', color: 'var(--text-muted)', fontSize: 13,
+    padding: '32px 16px', background: 'var(--surface2)', borderRadius: 12,
+    border: '1px solid var(--border)', minHeight: 120,
   },
-  backDateBtn: {
-    display: 'inline-block', background: 'rgba(124,58,237,.08)', color: '#7C3AED',
-    border: 'none', borderRadius: 8, padding: '8px 16px', cursor: 'pointer',
-    fontSize: 13, fontWeight: 600, width: 'fit-content',
+  noSlots: {
+    color: 'var(--text-muted)', fontSize: 13, padding: '16px',
+    background: 'var(--surface2)', borderRadius: 12, border: '1px solid var(--border)',
+    lineHeight: 1.6,
   },
   slotGrid: { display: 'flex', flexWrap: 'wrap', gap: 10 },
-  slotBtn: {
-    padding: '11px 16px', border: '2px solid var(--border)', borderRadius: 12,
-    background: 'var(--surface)', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: 'var(--text)',
-    minWidth: 72, textAlign: 'center', transition: 'all .15s ease',
-  },
-  slotOn: {
-    background: 'linear-gradient(135deg, #7C3AED 0%, #0D9488 100%)',
-    color: '#fff', borderColor: 'transparent', boxShadow: '0 5px 14px rgba(124,58,237,.38)',
-  },
+  slotBtn: { padding: '11px 16px', border: '2px solid var(--border)', borderRadius: 12, background: 'var(--surface)', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: 'var(--text)', minWidth: 72, textAlign: 'center', transition: 'all .15s ease' },
+  slotOn:  { background: 'linear-gradient(135deg, #7C3AED 0%, #0D9488 100%)', color: '#fff', borderColor: 'transparent', boxShadow: '0 5px 14px rgba(124,58,237,.38)' },
   slotOff: { background: 'var(--surface2)', color: 'var(--text-muted)', cursor: 'not-allowed', borderColor: 'transparent', opacity: 0.5 },
 
   textarea: {
     width: '100%', padding: '14px 16px',
     border: '2px solid var(--border)', borderRadius: 14,
     fontSize: 14, resize: 'vertical', fontFamily: "'DM Sans', sans-serif",
-    boxSizing: 'border-box', marginBottom: 20, minHeight: 100,
+    boxSizing: 'border-box', marginBottom: 0, minHeight: 100,
     background: 'var(--input-bg)', color: 'var(--text)', outline: 'none',
   },
   confirmBtn: {
@@ -812,72 +711,31 @@ const s = {
     fontFamily: "'DM Sans', sans-serif",
   },
 
-  sidebar: { width: 268, flexShrink: 0, position: 'sticky', top: 100 },
-  summaryCard: {
-    background: 'var(--surface)', borderRadius: 22, padding: 22,
-    border: '1px solid var(--border)', boxShadow: '0 4px 24px rgba(124,58,237,.08)',
-  },
-  summaryHeader: {
-    marginBottom: 18, paddingBottom: 14, borderBottom: '1px solid var(--border)',
-  },
-  summaryEyebrow: {
-    fontSize: 9, fontWeight: 700, color: 'var(--brand-label)',
-    letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: 6,
-  },
-  salonTag: {
-    fontFamily: "'Cormorant Garamond', Georgia, serif",
-    fontSize: 15, fontWeight: 700, color: 'var(--text)', letterSpacing: '-0.01em',
-  },
-  emptySummary: { fontSize: 13, color: 'var(--text-muted)', padding: '10px 0', textAlign: 'center', fontStyle: 'italic' },
-  sumRow: { display: 'flex', justifyContent: 'space-between', marginBottom: 9, fontSize: 13 },
-  sumName: { color: 'var(--text-sub)', flex: 1, lineHeight: 1.4 },
-  sumPrice: { fontWeight: 600, color: 'var(--text)', flexShrink: 0, marginLeft: 8 },
-  sumTotal: {
-    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-    paddingTop: 12, marginTop: 6, borderTop: '1.5px solid rgba(124,58,237,.15)',
-  },
-  sumTotalVal: {
-    fontFamily: "'Cormorant Garamond', Georgia, serif",
-    fontSize: 22, fontWeight: 700, color: '#7C3AED',
-  },
-  sumDetail: {
-    display: 'flex', alignItems: 'center', gap: 8,
-    fontSize: 13, color: 'var(--text-sub)', padding: '8px 12px',
-    background: 'var(--surface2)', borderRadius: 10, marginTop: 8,
-    border: '1px solid var(--border)',
-  },
+  sidebar:     { width: 268, flexShrink: 0, position: 'sticky', top: 100 },
+  summaryCard: { background: 'var(--surface)', borderRadius: 22, padding: 22, border: '1px solid var(--border)', boxShadow: '0 4px 24px rgba(124,58,237,.08)' },
+  summaryHeader:  { marginBottom: 18, paddingBottom: 14, borderBottom: '1px solid var(--border)' },
+  summaryEyebrow: { fontSize: 9, fontWeight: 700, color: 'var(--brand-label)', letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: 6 },
+  salonTag:    { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 15, fontWeight: 700, color: 'var(--text)', letterSpacing: '-0.01em' },
+  emptySummary:{ fontSize: 13, color: 'var(--text-muted)', padding: '10px 0', textAlign: 'center', fontStyle: 'italic' },
+  sumRow:      { display: 'flex', justifyContent: 'space-between', marginBottom: 9, fontSize: 13 },
+  sumName:     { color: 'var(--text-sub)', flex: 1, lineHeight: 1.4 },
+  sumPrice:    { fontWeight: 600, color: 'var(--text)', flexShrink: 0, marginLeft: 8 },
+  sumTotal:    { display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 12, marginTop: 6, borderTop: '1.5px solid rgba(124,58,237,.15)' },
+  sumTotalVal: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 22, fontWeight: 700, color: '#7C3AED' },
+  sumDetail:   { display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--text-sub)', padding: '8px 12px', background: 'var(--surface2)', borderRadius: 10, marginTop: 8, border: '1px solid var(--border)' },
   sumDetailIcon: { color: '#7C3AED', fontSize: 13 },
-  checklist: { marginTop: 18, display: 'flex', flexDirection: 'column', gap: 6, paddingTop: 14, borderTop: '1px solid var(--border)' },
-  checkItem: { display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 500, transition: 'color .3s ease' },
+  checklist:   { marginTop: 18, display: 'flex', flexDirection: 'column', gap: 6, paddingTop: 14, borderTop: '1px solid var(--border)' },
+  checkItem:   { display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 500, transition: 'color .3s ease' },
 
-  promoSection: { marginTop: 18, borderTop: '1px solid var(--border)', paddingTop: 14 },
-  promoToggle: {
-    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-    width: '100%', background: 'none', border: 'none', cursor: 'pointer',
-    fontSize: 13, fontWeight: 600, color: '#7C3AED', padding: 0,
-  },
-  promoBody: { marginTop: 12 },
-  promoRow: { display: 'flex', gap: 8 },
-  promoInput: {
-    flex: 1, padding: '9px 14px',
-    border: '1.5px solid var(--border)', borderRadius: 10,
-    fontSize: 13, fontFamily: "'DM Sans', sans-serif",
-    background: 'var(--input-bg)', color: 'var(--text)',
-    textTransform: 'uppercase', letterSpacing: '0.06em', outline: 'none',
-  },
-  promoApplyBtn: {
-    padding: '9px 18px',
-    background: 'linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%)',
-    color: '#fff', border: 'none', borderRadius: 10,
-    cursor: 'pointer', fontWeight: 700, fontSize: 13,
-    boxShadow: '0 4px 12px rgba(124,58,237,.3)',
-  },
-  promoMsg: { marginTop: 8, padding: '9px 12px', borderRadius: 10, fontSize: 12, fontWeight: 500 },
+  promoSection: { marginTop: 14, borderTop: '1px solid var(--border)', paddingTop: 14 },
+  promoToggle:  { display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: '#7C3AED', padding: 0 },
+  promoBody:    { marginTop: 12 },
+  promoRow:     { display: 'flex', gap: 8 },
+  promoInput:   { flex: 1, padding: '9px 14px', border: '1.5px solid var(--border)', borderRadius: 10, fontSize: 13, fontFamily: "'DM Sans', sans-serif", background: 'var(--input-bg)', color: 'var(--text)', textTransform: 'uppercase', letterSpacing: '0.06em', outline: 'none' },
+  promoApplyBtn:{ padding: '9px 18px', background: 'linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%)', color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 700, fontSize: 13, boxShadow: '0 4px 12px rgba(124,58,237,.3)' },
+  promoMsg:     { marginTop: 8, padding: '9px 12px', borderRadius: 10, fontSize: 12, fontWeight: 500 },
 };
 
-/* ────────────────────────────────────────────
-   Luxury Booking Confirmation Overlay Styles
-   ──────────────────────────────────────────── */
 const conf = {
   overlay: {
     position: 'fixed', inset: 0, zIndex: 9999,
@@ -887,125 +745,23 @@ const conf = {
     overflowY: 'auto', padding: '48px 24px',
     animation: 'confirmReveal .45s cubic-bezier(.16,1,.3,1) both',
   },
-
-  bgGlow1: {
-    position: 'absolute', width: 600, height: 600, borderRadius: '50%',
-    background: 'radial-gradient(circle, rgba(124,58,237,.22) 0%, transparent 70%)',
-    top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
-    pointerEvents: 'none', filter: 'blur(60px)',
-    animation: 'ambientDrift 24s ease-in-out infinite',
-  },
-  bgGlow2: {
-    position: 'absolute', width: 360, height: 360, borderRadius: '50%',
-    background: 'radial-gradient(circle, rgba(236,72,153,.14) 0%, transparent 70%)',
-    top: '20%', right: '10%', pointerEvents: 'none', filter: 'blur(50px)',
-  },
-  bgGlow3: {
-    position: 'absolute', width: 280, height: 280, borderRadius: '50%',
-    background: 'radial-gradient(circle, rgba(191,155,101,.1) 0%, transparent 70%)',
-    bottom: '15%', left: '8%', pointerEvents: 'none', filter: 'blur(60px)',
-  },
-
-  content: {
-    position: 'relative', zIndex: 1,
-    display: 'flex', flexDirection: 'column', alignItems: 'center',
-    textAlign: 'center', maxWidth: 560, width: '100%',
-  },
-
-  eyebrow: {
-    fontSize: 11, fontWeight: 600, letterSpacing: '0.22em', textTransform: 'uppercase',
-    color: 'rgba(196,181,253,.7)', marginBottom: 36,
-    display: 'inline-flex', alignItems: 'center',
-    background: 'rgba(255,255,255,.05)', padding: '8px 20px', borderRadius: 30,
-    border: '1px solid rgba(255,255,255,.09)',
-  },
-
-  checkWrap: {
-    position: 'relative', marginBottom: 36,
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    width: 96, height: 96,
-  },
-  checkGlow: {
-    position: 'absolute', width: 160, height: 160, borderRadius: '50%',
-    background: 'radial-gradient(circle, rgba(124,58,237,.35) 0%, transparent 70%)',
-    top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
-    animation: 'glowBreath 3s ease-in-out infinite',
-  },
-  checkCircle: {
-    width: 96, height: 96, borderRadius: '50%',
-    background: 'linear-gradient(135deg, rgba(124,58,237,.2) 0%, rgba(236,72,153,.15) 100%)',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    boxShadow: '0 0 0 1px rgba(124,58,237,.35), 0 12px 40px rgba(124,58,237,.3)',
-  },
-
-  salonName: {
-    fontFamily: "'Cormorant Garamond', Georgia, serif",
-    fontSize: 'clamp(32px, 5vw, 58px)', fontWeight: 700,
-    color: '#F0EAFF', margin: '0 0 10px',
-    lineHeight: 1.1, letterSpacing: '-0.02em',
-  },
-  salonSub: {
-    fontSize: 15, color: 'rgba(196,181,253,.55)', margin: '0 0 28px',
-    fontStyle: 'italic', fontFamily: "'Cormorant Garamond', Georgia, serif",
-    letterSpacing: '0.02em',
-  },
-
-  rule: {
-    width: 48, height: 1,
-    background: 'linear-gradient(90deg, transparent, rgba(167,139,250,.5), transparent)',
-    marginBottom: 28,
-  },
-
-  detailCard: {
-    width: '100%', borderRadius: 20,
-    background: 'rgba(255,255,255,.04)',
-    backdropFilter: 'blur(20px)',
-    WebkitBackdropFilter: 'blur(20px)',
-    border: '1px solid rgba(255,255,255,.08)',
-    padding: '8px 0',
-    marginBottom: 32,
-    boxShadow: '0 8px 32px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.06)',
-  },
-  detailRow: {
-    display: 'flex', alignItems: 'flex-start', gap: 14,
-    padding: '14px 24px',
-    borderBottom: '1px solid rgba(255,255,255,.05)',
-    marginBottom: 0, textAlign: 'left',
-  },
-  detailIconWrap: {
-    width: 30, height: 30, borderRadius: 9, flexShrink: 0,
-    background: 'rgba(124,58,237,.15)', border: '1px solid rgba(167,139,250,.2)',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    marginTop: 2,
-  },
-  detailLabel: {
-    fontSize: 9, fontWeight: 700, color: 'rgba(167,139,250,.65)',
-    letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 4,
-  },
-  detailVal: {
-    fontSize: 14, fontWeight: 500, color: '#E9D5FF', lineHeight: 1.5,
-  },
-
-  ctaRow: {
-    display: 'flex', flexDirection: 'column', gap: 12, width: '100%', maxWidth: 380,
-  },
-  primaryCTA: {
-    width: '100%', padding: '15px',
-    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #0D9488 100%)',
-    color: '#fff', border: 'none', borderRadius: 14,
-    fontSize: 15, fontWeight: 700, cursor: 'pointer',
-    fontFamily: "'DM Sans', sans-serif",
-    boxShadow: '0 8px 28px rgba(124,58,237,.45), inset 0 1px 0 rgba(255,255,255,.18)',
-    transition: 'transform .18s ease, box-shadow .18s ease',
-    letterSpacing: '0.01em',
-  },
-  ghostCTA: {
-    width: '100%', padding: '14px',
-    background: 'rgba(255,255,255,.06)',
-    color: 'rgba(196,181,253,.8)', border: '1px solid rgba(255,255,255,.1)', borderRadius: 14,
-    fontSize: 14, fontWeight: 500, cursor: 'pointer',
-    fontFamily: "'DM Sans', sans-serif",
-    transition: 'background .18s ease, border-color .18s ease',
-    letterSpacing: '0.01em',
-  },
+  bgGlow1: { position: 'absolute', width: 600, height: 600, borderRadius: '50%', background: 'radial-gradient(circle, rgba(124,58,237,.22) 0%, transparent 70%)', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', pointerEvents: 'none', filter: 'blur(60px)', animation: 'ambientDrift 24s ease-in-out infinite' },
+  bgGlow2: { position: 'absolute', width: 360, height: 360, borderRadius: '50%', background: 'radial-gradient(circle, rgba(236,72,153,.14) 0%, transparent 70%)', top: '20%', right: '10%', pointerEvents: 'none', filter: 'blur(50px)' },
+  bgGlow3: { position: 'absolute', width: 280, height: 280, borderRadius: '50%', background: 'radial-gradient(circle, rgba(191,155,101,.1) 0%, transparent 70%)', bottom: '15%', left: '8%', pointerEvents: 'none', filter: 'blur(60px)' },
+  content: { position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', maxWidth: 560, width: '100%' },
+  eyebrow: { fontSize: 11, fontWeight: 600, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'rgba(196,181,253,.7)', marginBottom: 36, display: 'inline-flex', alignItems: 'center', background: 'rgba(255,255,255,.05)', padding: '8px 20px', borderRadius: 30, border: '1px solid rgba(255,255,255,.09)' },
+  checkWrap:   { position: 'relative', marginBottom: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 96, height: 96 },
+  checkGlow:   { position: 'absolute', width: 160, height: 160, borderRadius: '50%', background: 'radial-gradient(circle, rgba(124,58,237,.35) 0%, transparent 70%)', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', animation: 'glowBreath 3s ease-in-out infinite' },
+  checkCircle: { width: 96, height: 96, borderRadius: '50%', background: 'linear-gradient(135deg, rgba(124,58,237,.2) 0%, rgba(236,72,153,.15) 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 0 1px rgba(124,58,237,.35), 0 12px 40px rgba(124,58,237,.3)' },
+  salonName:   { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 'clamp(32px, 5vw, 58px)', fontWeight: 700, color: '#F0EAFF', margin: '0 0 10px', lineHeight: 1.1, letterSpacing: '-0.02em' },
+  salonSub:    { fontSize: 15, color: 'rgba(196,181,253,.55)', margin: '0 0 28px', fontStyle: 'italic', fontFamily: "'Cormorant Garamond', Georgia, serif", letterSpacing: '0.02em' },
+  rule:        { width: 48, height: 1, background: 'linear-gradient(90deg, transparent, rgba(167,139,250,.5), transparent)', marginBottom: 28 },
+  detailCard:  { width: '100%', borderRadius: 20, background: 'rgba(255,255,255,.04)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,.08)', padding: '8px 0', marginBottom: 32, boxShadow: '0 8px 32px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.06)' },
+  detailRow:   { display: 'flex', alignItems: 'flex-start', gap: 14, padding: '14px 24px', borderBottom: '1px solid rgba(255,255,255,.05)', marginBottom: 0, textAlign: 'left' },
+  detailIconWrap: { width: 30, height: 30, borderRadius: 9, flexShrink: 0, background: 'rgba(124,58,237,.15)', border: '1px solid rgba(167,139,250,.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 2 },
+  detailLabel: { fontSize: 9, fontWeight: 700, color: 'rgba(167,139,250,.65)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 4 },
+  detailVal:   { fontSize: 14, fontWeight: 500, color: '#E9D5FF', lineHeight: 1.5 },
+  ctaRow:      { display: 'flex', flexDirection: 'column', gap: 12, width: '100%', maxWidth: 380 },
+  primaryCTA:  { width: '100%', padding: '15px', background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #0D9488 100%)', color: '#fff', border: 'none', borderRadius: 14, fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", boxShadow: '0 8px 28px rgba(124,58,237,.45), inset 0 1px 0 rgba(255,255,255,.18)', transition: 'transform .18s ease, box-shadow .18s ease', letterSpacing: '0.01em' },
+  ghostCTA:    { width: '100%', padding: '14px', background: 'rgba(255,255,255,.06)', color: 'rgba(196,181,253,.8)', border: '1px solid rgba(255,255,255,.1)', borderRadius: 14, fontSize: 14, fontWeight: 500, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", transition: 'background .18s ease, border-color .18s ease', letterSpacing: '0.01em' },
 };
