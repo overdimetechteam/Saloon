@@ -93,6 +93,33 @@ def _pdf_response(title, salon_name, headers, rows, filename):
     return resp
 
 
+class AllCosmeticsView(APIView):
+    """Public endpoint: returns all active, in-stock products across all active salons."""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        products = (
+            Product.objects
+            .filter(is_active=True, current_stock__gt=0, salon__status='active')
+            .select_related('salon')
+            .order_by('category', 'name')
+        )
+        data = []
+        for p in products:
+            data.append({
+                'id': p.id,
+                'salon': p.salon.id,
+                'salon_name': p.salon.name,
+                'name': p.name,
+                'brand': p.brand,
+                'category': p.category,
+                'unit_of_measure': p.unit_of_measure,
+                'selling_price': str(p.selling_price),
+                'current_stock': p.current_stock,
+            })
+        return Response(data)
+
+
 class ProductListCreateView(APIView):
     permission_classes = [IsAuthenticated]
 

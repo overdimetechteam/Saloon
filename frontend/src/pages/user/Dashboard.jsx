@@ -305,6 +305,7 @@ const s = {
   heroSub: { color: 'rgba(255,255,255,.6)', fontSize: 15, margin: '0 0 30px' },
   heroBtns:{ display: 'flex', gap: 12, flexWrap: 'wrap' },
   primaryBtn: { padding: '12px 26px', background: 'linear-gradient(135deg, #7C3AED 0%, #0D9488 100%)', color: '#fff', borderRadius: 12, fontWeight: 700, fontSize: 14, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 7, boxShadow: '0 6px 20px rgba(124,58,237,.4)' },
+  cosmeticsBtn: { padding: '12px 26px', background: 'linear-gradient(135deg, #EC4899 0%, #F59E0B 100%)', color: '#fff', borderRadius: 12, fontWeight: 700, fontSize: 14, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 7, boxShadow: '0 6px 20px rgba(236,72,153,.35)' },
   ghostBtn:   { padding: '12px 20px', background: 'rgba(255,255,255,.1)', color: '#E9D5FF', borderRadius: 12, fontWeight: 500, fontSize: 14, textDecoration: 'none', border: '1px solid rgba(255,255,255,.14)', transition: 'background .18s ease' },
   heroDecor:  { position: 'relative', zIndex: 2, flexShrink: 0, opacity: .1 },
   scissorIcon:{ fontSize: 110, color: '#fff', display: 'block', lineHeight: 1 },

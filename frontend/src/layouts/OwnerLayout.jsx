@@ -13,6 +13,7 @@ const NAV = [
   { to: '/owner/team',                  icon: '✦', label: 'Team',          group: 'main'  },
   { to: '/owner/promotions',            icon: '⬡', label: 'Promotions',    group: 'main'  },
   { to: '/owner/offers',               icon: '◑', label: 'Offers',         group: 'main'  },
+  { to: '/owner/gallery',               icon: '◫', label: 'Gallery',       group: 'main'  },
   { to: '/owner/analytics',             icon: '◱', label: 'Analytics',     group: 'main'  },
   { to: '/owner/inventory',             icon: '▦', label: 'Products',      group: 'stock' },
   { to: '/owner/inventory/grn',         icon: '⊕', label: 'Receive Stock', group: 'stock' },

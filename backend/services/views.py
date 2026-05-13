@@ -124,6 +124,8 @@ class OwnerCustomServiceView(APIView):
         duration = request.data.get('duration')
         if not name or not category or price is None or duration is None:
             return Response({'detail': 'name, category, price and duration are required.'}, status=status.HTTP_400_BAD_REQUEST)
+        description = request.data.get('description', '')
+        is_price_starting_from = bool(request.data.get('is_price_starting_from', False))
         service = Service.objects.create(
             name=name,
             category=category,
@@ -132,5 +134,8 @@ class OwnerCustomServiceView(APIView):
             is_private=True,
             owner_salon=salon,
         )
-        ss = SalonService.objects.create(salon=salon, service=service)
+        ss = SalonService.objects.create(
+            salon=salon, service=service,
+            description=description, is_price_starting_from=is_price_starting_from,
+        )
         return Response(SalonServiceSerializer(ss).data, status=status.HTTP_201_CREATED)

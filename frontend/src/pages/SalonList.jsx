@@ -13,6 +13,67 @@ const PALETTE = [
   ['#059669', '#6EE7B7'],
 ];
 
+function SalonCard({ salon, i, isFav }) {
+  const [c1, c2] = PALETTE[i % PALETTE.length];
+  const isOpen   = salon.status === 'active';
+  return (
+    <Link
+      to={`/salons/${salon.id}`}
+      style={{
+        ...s.card,
+        ...(isFav ? s.cardFav : {}),
+      }}
+      className={`fade-up d${Math.min(i + 1, 5)}`}
+    >
+      <div style={{ ...s.banner, background: `linear-gradient(135deg, ${c1}1F 0%, ${c2}0D 100%)` }}>
+        <div style={{ ...s.orb, background: `radial-gradient(circle, ${c1}33 0%, transparent 70%)` }} />
+
+        {/* Logo or initial */}
+        <div style={{ ...s.avatar, background: `linear-gradient(145deg, ${c1} 0%, ${c2} 100%)`, boxShadow: `0 8px 28px ${c1}55`, overflow: 'hidden', padding: 0 }}>
+          {salon.logo_url
+            ? <img src={salon.logo_url} alt={salon.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+            : salon.name[0].toUpperCase()
+          }
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, position: 'relative', zIndex: 1 }}>
+          {isFav && (
+            <span style={s.favStar}>★ Saved</span>
+          )}
+          <span style={{
+            ...s.statusBadge,
+            background: isOpen ? 'rgba(52,211,153,.15)' : 'rgba(107,114,128,.1)',
+            color:      isOpen ? '#059669' : '#6B7280',
+            border:     `1px solid ${isOpen ? '#6EE7B766' : '#D1D5DB'}`,
+          }}>
+            <span style={{ width: 5, height: 5, borderRadius: '50%', background: isOpen ? '#34D399' : '#9CA3AF', display: 'inline-block', flexShrink: 0 }} />
+            {isOpen ? 'Open' : 'Closed'}
+          </span>
+        </div>
+      </div>
+
+      <div style={s.cardBody}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 3 }}>
+          <h3 style={{ ...s.salonName, marginBottom: 0, flex: 1 }}>{salon.name}</h3>
+          {isFav && <span style={s.favStarInline}>★</span>}
+        </div>
+        <div style={s.salonLoc}>
+          <span style={{ color: c1, fontSize: 11 }}>◎</span>
+          {salon.address_city}{salon.address_district ? `, ${salon.address_district}` : ''}
+        </div>
+        {salon.contact_number && (
+          <span style={s.phone}>📞 {salon.contact_number}</span>
+        )}
+      </div>
+
+      <div style={{ ...s.cardCta, borderTopColor: `${c1}22`, color: c1 }}>
+        <span>Explore Salon</span>
+        <span style={{ fontSize: 16 }}>→</span>
+      </div>
+    </Link>
+  );
+}
+
 export default function SalonList() {
   const { profile }            = useAuth();
   const { isMobile, isTablet } = useBreakpoint();
@@ -20,6 +81,7 @@ export default function SalonList() {
   const search = searchParams.get('q') || '';
 
   const [salons, setSalons]             = useState([]);
+  const [favIds, setFavIds]             = useState(new Set());
   const [statusFilter, setStatusFilter] = useState('all');
   const [sort, setSort]                 = useState('default');
   const [loading, setLoading]           = useState(true);
@@ -32,17 +94,30 @@ export default function SalonList() {
       .finally(() => setLoading(false));
   }, [search]);
 
-  const displayed = salons
-    .filter(sl => statusFilter === 'all' || sl.status === statusFilter)
-    .sort((a, b) => {
-      if (sort === 'az') return a.name.localeCompare(b.name);
-      if (sort === 'za') return b.name.localeCompare(a.name);
-      return 0;
-    });
+  useEffect(() => {
+    if (profile?.role !== 'client') return;
+    api.get('/client/favourites/')
+      .then(r => setFavIds(new Set(r.data.map(s => s.id))))
+      .catch(() => {});
+  }, [profile]);
+
+  const isClient = profile?.role === 'client';
+
+  const applySort = arr => [...arr].sort((a, b) => {
+    if (sort === 'az') return a.name.localeCompare(b.name);
+    if (sort === 'za') return b.name.localeCompare(a.name);
+    return 0;
+  });
+
+  const filtered = salons.filter(sl => statusFilter === 'all' || sl.status === statusFilter);
+  const favGroup   = isClient ? applySort(filtered.filter(sl => favIds.has(sl.id)))  : [];
+  const otherGroup = isClient ? applySort(filtered.filter(sl => !favIds.has(sl.id))) : applySort(filtered);
+  const hasFavs    = favGroup.length > 0;
 
   const openCount   = salons.filter(sl => sl.status === 'active').length;
   const closedCount = salons.length - openCount;
   const isNarrow    = isMobile || isTablet;
+  const displayedCount = favGroup.length + otherGroup.length;
   const gridCols    = isMobile ? '1fr' : isTablet ? 'repeat(2,1fr)' : 'repeat(3,1fr)';
   const hPad        = isMobile ? '10px 14px' : isTablet ? '11px 20px' : '12px 40px';
 
@@ -146,7 +221,7 @@ export default function SalonList() {
 
       {search && !loading && (
         <p style={{ ...s.resultsNote, padding: isMobile ? '8px 14px 0' : '10px 40px 0' }}>
-          {displayed.length} result{displayed.length !== 1 ? 's' : ''} for &ldquo;{search}&rdquo;
+          {displayedCount} result{displayedCount !== 1 ? 's' : ''} for &ldquo;{search}&rdquo;
         </p>
       )}
 
@@ -161,7 +236,7 @@ export default function SalonList() {
           <div key={i} style={s.skeleton} className="shimmer" />
         ))}
 
-        {!loading && displayed.length === 0 && (
+        {!loading && displayedCount === 0 && (
           <div style={{ ...s.empty, gridColumn: '1 / -1' }} className="scale-in">
             <div className="empty-icon-wrap">
               <svg width="36" height="36" viewBox="0 0 38 38" fill="none">
@@ -180,50 +255,31 @@ export default function SalonList() {
           </div>
         )}
 
-        {!loading && displayed.map((salon, i) => {
-          const [c1, c2] = PALETTE[i % PALETTE.length];
-          const isOpen   = salon.status === 'active';
-          return (
-            <Link
-              key={salon.id}
-              to={`/salons/${salon.id}`}
-              style={s.card}
-              className={`fade-up d${Math.min(i + 1, 5)}`}
-            >
-              <div style={{ ...s.banner, background: `linear-gradient(135deg, ${c1}1F 0%, ${c2}0D 100%)` }}>
-                <div style={{ ...s.orb, background: `radial-gradient(circle, ${c1}33 0%, transparent 70%)` }} />
-                <div style={{ ...s.avatar, background: `linear-gradient(145deg, ${c1} 0%, ${c2} 100%)`, boxShadow: `0 8px 28px ${c1}55` }}>
-                  {salon.name[0].toUpperCase()}
-                </div>
-                <span style={{
-                  ...s.statusBadge,
-                  background: isOpen ? 'rgba(52,211,153,.15)' : 'rgba(107,114,128,.1)',
-                  color:      isOpen ? '#059669' : '#6B7280',
-                  border:     `1px solid ${isOpen ? '#6EE7B766' : '#D1D5DB'}`,
-                }}>
-                  <span style={{ width: 5, height: 5, borderRadius: '50%', background: isOpen ? '#34D399' : '#9CA3AF', display: 'inline-block', flexShrink: 0 }} />
-                  {isOpen ? 'Open' : 'Closed'}
-                </span>
-              </div>
+        {/* ── Favourites section header ── */}
+        {!loading && hasFavs && (
+          <div style={{ ...s.sectionLabel, gridColumn: '1 / -1' }}>
+            <span style={s.sectionStar}>★</span>
+            <span>Your Favourites</span>
+            <span style={s.sectionCount}>{favGroup.length}</span>
+          </div>
+        )}
 
-              <div style={s.cardBody}>
-                <h3 style={s.salonName}>{salon.name}</h3>
-                <div style={s.salonLoc}>
-                  <span style={{ color: c1, fontSize: 11 }}>◎</span>
-                  {salon.address_city}{salon.address_district ? `, ${salon.address_district}` : ''}
-                </div>
-                {salon.contact_number && (
-                  <span style={s.phone}>📞 {salon.contact_number}</span>
-                )}
-              </div>
+        {!loading && favGroup.map((salon, i) => (
+          <SalonCard key={salon.id} salon={salon} i={i} isFav={true} />
+        ))}
 
-              <div style={{ ...s.cardCta, borderTopColor: `${c1}22`, color: c1 }}>
-                <span>Explore Salon</span>
-                <span style={{ fontSize: 16 }}>→</span>
-              </div>
-            </Link>
-          );
-        })}
+        {/* ── Divider between sections ── */}
+        {!loading && hasFavs && otherGroup.length > 0 && (
+          <div style={{ ...s.sectionLabel, gridColumn: '1 / -1', marginTop: 8 }}>
+            <span style={{ ...s.sectionStar, color: 'var(--text-muted)' }}>◈</span>
+            <span style={{ color: 'var(--text-muted)' }}>More Salons</span>
+            <span style={{ ...s.sectionCount, background: 'var(--surface2)', color: 'var(--text-muted)', borderColor: 'var(--border)' }}>{otherGroup.length}</span>
+          </div>
+        )}
+
+        {!loading && otherGroup.map((salon, i) => (
+          <SalonCard key={salon.id} salon={salon} i={i + (hasFavs ? favGroup.length : 0)} isFav={false} />
+        ))}
       </div>
     </div>
   );
@@ -368,10 +424,37 @@ const s = {
     background: 'var(--surface2)', borderRadius: 20,
     padding: '3px 10px', border: '1px solid var(--border)',
   },
+  cardFav: {
+    border: '1.5px solid rgba(245,158,11,.3)',
+    boxShadow: '0 4px 18px rgba(245,158,11,.1)',
+  },
   cardCta: {
     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
     padding: '11px 18px', borderTop: '1px solid',
     fontWeight: 700, fontSize: 13,
+  },
+  favStar: {
+    display: 'inline-flex', alignItems: 'center', gap: 4,
+    fontSize: 10, fontWeight: 800, color: '#D97706',
+    background: 'rgba(245,158,11,.15)', borderRadius: 20,
+    padding: '3px 9px', border: '1px solid rgba(245,158,11,.3)',
+    letterSpacing: '0.04em',
+  },
+  favStarInline: {
+    fontSize: 14, color: '#F59E0B', flexShrink: 0,
+  },
+  sectionLabel: {
+    display: 'flex', alignItems: 'center', gap: 8,
+    fontSize: 11, fontWeight: 700, letterSpacing: '0.12em',
+    textTransform: 'uppercase', color: '#D97706',
+    paddingBottom: 4,
+  },
+  sectionStar: { fontSize: 15, color: '#F59E0B' },
+  sectionCount: {
+    fontSize: 10, fontWeight: 800, color: '#D97706',
+    background: 'rgba(245,158,11,.12)', borderRadius: 20,
+    padding: '2px 8px', border: '1px solid rgba(245,158,11,.25)',
+    marginLeft: 2,
   },
 
   empty: {

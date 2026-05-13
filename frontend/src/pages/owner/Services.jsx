@@ -7,15 +7,22 @@ const CAT_COLORS = { Hair: '#8B5CF6', Nails: '#0D9488', Skin: '#10B981', Makeup:
 const CATEGORIES = ['Hair', 'Nails', 'Skin', 'Makeup'];
 
 function EditModal({ ss, onSave, onClose }) {
-  const [price, setPrice]       = useState(ss.custom_price ?? ss.effective_price ?? '');
-  const [duration, setDuration] = useState(ss.custom_duration ?? ss.effective_duration ?? '');
-  const [loading, setLoading]   = useState(false);
-  const [err, setErr]           = useState('');
+  const [price, setPrice]           = useState(ss.custom_price ?? ss.effective_price ?? '');
+  const [duration, setDuration]     = useState(ss.custom_duration ?? ss.effective_duration ?? '');
+  const [startingFrom, setStartingFrom] = useState(ss.is_price_starting_from ?? false);
+  const [description, setDescription]  = useState(ss.description ?? '');
+  const [loading, setLoading]       = useState(false);
+  const [err, setErr]               = useState('');
 
   const save = async () => {
     setLoading(true); setErr('');
     try {
-      await onSave(ss.id, { custom_price: Number(price), custom_duration: Number(duration) });
+      await onSave(ss.id, {
+        custom_price: Number(price),
+        custom_duration: Number(duration),
+        is_price_starting_from: startingFrom,
+        description,
+      });
       onClose();
     } catch (e) {
       setErr(e.response?.data?.detail || 'Failed to save.');
@@ -27,12 +34,40 @@ function EditModal({ ss, onSave, onClose }) {
       <div style={m.box} className="scale-in">
         <h3 style={m.title}>Edit — {ss.service_name}</h3>
         {err && <div style={m.err}>{err}</div>}
+
         <label style={m.label}>Custom Price (LKR)
           <input style={m.input} type="number" min="0" value={price} onChange={e => setPrice(e.target.value)} />
         </label>
+
+        {/* Starting From toggle */}
+        <div style={m.toggleRow}>
+          <div style={{ flex: 1 }}>
+            <div style={m.toggleTitle}>Show as "Starting From" price</div>
+            <div style={m.toggleSub}>Displays as "Starting From LKR {price || '…'}" instead of a fixed price</div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setStartingFrom(v => !v)}
+            style={{ ...m.toggle, background: startingFrom ? 'linear-gradient(135deg,#7C3AED,#0D9488)' : 'var(--surface2)', border: startingFrom ? 'none' : '1.5px solid var(--border)' }}
+            aria-pressed={startingFrom}
+          >
+            <span style={{ ...m.knob, transform: startingFrom ? 'translateX(20px)' : 'translateX(2px)' }} />
+          </button>
+        </div>
+
         <label style={m.label}>Custom Duration (min)
           <input style={m.input} type="number" min="1" value={duration} onChange={e => setDuration(e.target.value)} />
         </label>
+
+        <label style={m.label}>Service Description
+          <textarea
+            style={{ ...m.input, resize: 'vertical', minHeight: 90, lineHeight: 1.6 }}
+            placeholder="Describe what's included, the process, benefits, etc."
+            value={description}
+            onChange={e => setDescription(e.target.value)}
+          />
+        </label>
+
         <div style={m.btnRow}>
           <button style={m.cancelBtn} onClick={onClose}>Cancel</button>
           <button style={m.saveBtn} onClick={save} disabled={loading}>{loading ? 'Saving…' : 'Save Changes'}</button>
@@ -52,7 +87,7 @@ export default function OwnerServices() {
   const [msg, setMsg]           = useState('');
   const [editTarget, setEditTarget] = useState(null);
   const [showCreate, setShowCreate] = useState(false);
-  const [form, setForm] = useState({ name: '', category: 'Hair', price: '', duration: '' });
+  const [form, setForm] = useState({ name: '', category: 'Hair', price: '', duration: '', description: '', is_price_starting_from: false });
   const [creating, setCreating] = useState(false);
 
   const reload = () => {
@@ -102,10 +137,12 @@ export default function OwnerServices() {
       await api.post(`/salons/${salon.id}/services/custom/`, {
         name: form.name, category: form.category,
         price: Number(form.price), duration: Number(form.duration),
+        description: form.description,
+        is_price_starting_from: form.is_price_starting_from,
       });
       reload();
       flash('Custom service created!');
-      setForm({ name: '', category: 'Hair', price: '', duration: '' });
+      setForm({ name: '', category: 'Hair', price: '', duration: '', description: '', is_price_starting_from: false });
       setShowCreate(false);
     } catch (e) {
       setError(e.response?.data?.detail || 'Failed to create service.');
@@ -170,7 +207,32 @@ export default function OwnerServices() {
               <input style={s.fInput} type="number" min="1" value={form.duration} onChange={e => setForm(f => ({ ...f, duration: e.target.value }))} placeholder="30" />
             </label>
           </div>
-          <button style={{ ...s.addBtn, opacity: creating ? 0.7 : 1, marginTop: 6 }} onClick={createCustom} disabled={creating}>
+
+          {/* Starting From toggle */}
+          <div style={s.sfRow}>
+            <div style={{ flex: 1 }}>
+              <div style={s.sfTitle}>Show as "Starting From" price</div>
+              <div style={s.sfSub}>Clients will see "Starting From LKR {form.price || '…'}" instead of a fixed price</div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setForm(f => ({ ...f, is_price_starting_from: !f.is_price_starting_from }))}
+              style={{ ...s.sfToggle, background: form.is_price_starting_from ? 'linear-gradient(135deg,#7C3AED,#0D9488)' : 'var(--surface2)', border: form.is_price_starting_from ? 'none' : '1.5px solid var(--border)' }}
+            >
+              <span style={{ ...s.sfKnob, transform: form.is_price_starting_from ? 'translateX(20px)' : 'translateX(2px)' }} />
+            </button>
+          </div>
+
+          <label style={{ ...s.fLabel, marginTop: 14 }}>Service Description
+            <textarea
+              style={{ ...s.fInput, resize: 'vertical', minHeight: 80, lineHeight: 1.6 }}
+              placeholder="Describe what's included, the process, duration breakdown, benefits…"
+              value={form.description}
+              onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+            />
+          </label>
+
+          <button style={{ ...s.addBtn, opacity: creating ? 0.7 : 1, marginTop: 14 }} onClick={createCustom} disabled={creating}>
             {creating ? 'Creating…' : '✦ Create Service'}
           </button>
         </div>
@@ -218,8 +280,14 @@ export default function OwnerServices() {
                       </div>
                       <div style={s.meta}>
                         <span style={s.metaItem}>⏱ {ss.effective_duration} min</span>
-                        <span style={{ ...s.price, color }}>LKR {ss.effective_price}</span>
+                        <span style={{ ...s.price, color }}>
+                          {ss.is_price_starting_from && <span style={s.startingFromLabel}>Starting From </span>}
+                          LKR {ss.effective_price}
+                        </span>
                       </div>
+                      {ss.description ? (
+                        <div style={s.descText}>{ss.description}</div>
+                      ) : null}
                       {ss.custom_price != null && (
                         <div style={s.customNote}>Custom price set</div>
                       )}
@@ -289,6 +357,13 @@ const s = {
   metaItem:   { fontSize: 12, color: 'var(--text-muted)' },
   price:      { fontWeight: 700, fontSize: 16 },
   customNote: { marginTop: 8, fontSize: 11, color: '#7C3AED', background: 'rgba(124,58,237,.08)', borderRadius: 6, padding: '2px 8px', display: 'inline-block', border: '1px solid rgba(124,58,237,.2)' },
+  startingFromLabel: { fontSize: 11, fontWeight: 600, opacity: 0.75 },
+  descText: { marginTop: 8, fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.6, borderTop: '1px solid var(--border)', paddingTop: 8, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' },
+  sfRow:    { display: 'flex', alignItems: 'center', gap: 14, padding: '12px 14px', background: 'var(--surface2)', borderRadius: 12, border: '1px solid var(--border)', marginTop: 4, marginBottom: 4 },
+  sfTitle:  { fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 2 },
+  sfSub:    { fontSize: 11, color: 'var(--text-muted)' },
+  sfToggle: { width: 44, height: 24, borderRadius: 99, cursor: 'pointer', position: 'relative', transition: 'background .2s', flexShrink: 0 },
+  sfKnob:   { position: 'absolute', top: 2, width: 20, height: 20, borderRadius: '50%', background: '#fff', boxShadow: '0 1px 4px rgba(0,0,0,.2)', transition: 'transform .2s' },
 };
 
 const m = {
@@ -301,4 +376,9 @@ const m = {
   btnRow:  { display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 4 },
   cancelBtn: { padding: '9px 20px', background: 'var(--surface2)', color: 'var(--text-sub)', border: '1px solid var(--border)', borderRadius: 10, cursor: 'pointer', fontWeight: 500, fontSize: 13, fontFamily: "'DM Sans', sans-serif" },
   saveBtn:   { padding: '9px 20px', background: 'linear-gradient(135deg, #7C3AED, #0D9488)', color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 700, fontSize: 13, fontFamily: "'DM Sans', sans-serif", boxShadow: '0 4px 12px rgba(124,58,237,.3)' },
+  toggleRow:   { display: 'flex', alignItems: 'center', gap: 14, padding: '12px 14px', background: 'var(--surface2)', borderRadius: 12, border: '1px solid var(--border)', marginBottom: 16 },
+  toggleTitle: { fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 2 },
+  toggleSub:   { fontSize: 11, color: 'var(--text-muted)' },
+  toggle: { width: 44, height: 24, borderRadius: 99, cursor: 'pointer', position: 'relative', transition: 'background .2s', flexShrink: 0 },
+  knob:   { position: 'absolute', top: 2, width: 20, height: 20, borderRadius: '50%', background: '#fff', boxShadow: '0 1px 4px rgba(0,0,0,.2)', transition: 'transform .2s' },
 };

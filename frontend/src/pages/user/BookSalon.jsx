@@ -46,6 +46,11 @@ export default function BookSalon() {
   const [promoResult, setPromoResult] = useState(null);
   const [confirmed, setConfirmed] = useState(false);
   const [bookingId, setBookingId] = useState(null);
+  const [homeVisit, setHomeVisit] = useState(false);
+  const [hvStreet, setHvStreet] = useState('');
+  const [hvCity, setHvCity] = useState('');
+  const [hvDistrict, setHvDistrict] = useState('');
+  const [hvPostal, setHvPostal] = useState('');
 
   useEffect(() => {
     api.get(`/salons/${salonId}/`).then(r => setSalon(r.data)).catch(() => {});
@@ -69,6 +74,24 @@ export default function BookSalon() {
 
   useEffect(() => { setPromoResult(null); }, [selected]);
 
+  const resetAddress = () => { setHvStreet(''); setHvCity(''); setHvDistrict(''); setHvPostal(''); };
+
+  const toggleHomeVisit = () => {
+    const next = !homeVisit;
+    setHomeVisit(next);
+    resetAddress();
+    if (next) {
+      setSelected(prev => prev.filter(id => {
+        const ss = services.find(s => s.id === id);
+        return ss?.home_visit_available;
+      }));
+      if (staffId !== null) {
+        const currentStaff = staffList.find(m => m.id === staffId);
+        if (!currentStaff?.home_visit_available) setStaffId(null);
+      }
+    }
+  };
+
   const toggleService = id => setSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
 
   const applyPromo = async () => {
@@ -86,13 +109,17 @@ export default function BookSalon() {
     e.preventDefault(); setError('');
     if (selected.length === 0) return setError('Please select at least one service');
     if (!slot) return setError('Please select a time slot');
+    if (homeVisit && (!hvStreet.trim() || !hvCity.trim() || !hvDistrict.trim() || !hvPostal.trim())) return setError('Please fill in all address fields for the home visit');
     setSubmitting(true);
+    const hvAddress = homeVisit ? `${hvStreet.trim()}, ${hvCity.trim()}, ${hvDistrict.trim()} ${hvPostal.trim()}` : '';
     try {
       const payload = {
         salon: Number(salonId),
         requested_datetime: slot,
         salon_service_ids: selected,
         notes,
+        home_visit: homeVisit,
+        home_visit_address: hvAddress,
         ...(staffId !== null ? { staff_member_id: staffId } : {}),
         ...(promoResult?.valid ? { promo_id: promoResult.promo_id } : {}),
       };
@@ -108,6 +135,8 @@ export default function BookSalon() {
     <div style={s.loader}><div style={s.loaderSpinner} /></div>
   );
 
+  const displayServices = homeVisit ? services.filter(ss => ss.home_visit_available) : services;
+  const displayStaff = homeVisit ? staffList.filter(m => m.home_visit_available) : staffList;
   const selectedServices = services.filter(ss => selected.includes(ss.id));
   const total = selectedServices.reduce((sum, ss) => sum + Number(ss.effective_price), 0);
   const discount = promoResult?.valid ? Number(promoResult.discount_amount) : 0;
@@ -298,8 +327,54 @@ export default function BookSalon() {
                 </div>
               </div>
               {error && <div style={s.alert}>{error}</div>}
+
+              {/* Home Visit Option — only shown when salon has it enabled */}
+              {salon?.home_visit_enabled && (
+                <div style={{ marginBottom: 16 }}>
+                  <label style={{ ...s.homeVisitRow, ...(homeVisit ? s.homeVisitRowOn : {}), marginBottom: 0 }}>
+                    <input type="checkbox" checked={homeVisit} onChange={toggleHomeVisit} style={{ display: 'none' }} />
+                    <div style={{ ...s.hvCheckBox, ...(homeVisit ? s.hvCheckBoxOn : {}) }}>
+                      {homeVisit && <span style={{ fontSize: 12, color: '#fff', lineHeight: 1 }}>✓</span>}
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={s.hvRowTitle}>🏠 Home Visit Service</div>
+                      <div style={s.hvRowSub}>A professional will visit your location</div>
+                    </div>
+                    {homeVisit && <span style={s.hvBadge}>Selected</span>}
+                  </label>
+                  {homeVisit && (
+                    <div style={s.hvAddressWrap}>
+                      <div style={s.hvAddressTitle}>Your Address *</div>
+                      <div style={s.hvAddressGrid}>
+                        <div style={s.hvAddressField}>
+                          <label style={s.hvAddressLabel}>Street Address</label>
+                          <input style={s.hvAddressInput} placeholder="e.g. 42 Galle Road" value={hvStreet} onChange={e => setHvStreet(e.target.value)} />
+                        </div>
+                        <div style={s.hvAddressField}>
+                          <label style={s.hvAddressLabel}>City</label>
+                          <input style={s.hvAddressInput} placeholder="e.g. Colombo" value={hvCity} onChange={e => setHvCity(e.target.value)} />
+                        </div>
+                        <div style={s.hvAddressField}>
+                          <label style={s.hvAddressLabel}>District</label>
+                          <input style={s.hvAddressInput} placeholder="e.g. Western" value={hvDistrict} onChange={e => setHvDistrict(e.target.value)} />
+                        </div>
+                        <div style={s.hvAddressField}>
+                          <label style={s.hvAddressLabel}>Postal Code</label>
+                          <input style={s.hvAddressInput} placeholder="e.g. 00300" value={hvPostal} onChange={e => setHvPostal(e.target.value)} />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {homeVisit && (
+                <div style={s.hvServicesNotice}>
+                  🏠 Showing only services available for home visits
+                </div>
+              )}
               <div style={s.serviceGrid}>
-                {services.map(ss => {
+                {displayServices.map(ss => {
                   const on = selected.includes(ss.id);
                   return (
                     <label key={ss.id} style={{ ...s.serviceCard, ...(on ? s.serviceCardOn : {}) }}>
@@ -309,15 +384,23 @@ export default function BookSalon() {
                       </div>
                       <div style={s.svcInfo}>
                         <div style={s.svcName}>{ss.service_name}</div>
+                        {ss.description ? (
+                          <div style={s.svcDesc}>{ss.description}</div>
+                        ) : null}
                         <div style={s.svcMeta}>⏱ {ss.effective_duration} min</div>
                       </div>
-                      <div style={{ ...s.svcPrice, color: on ? '#7C3AED' : 'var(--text-sub)' }}>
+                      <div style={{ ...s.svcPrice, color: on ? '#7C3AED' : 'var(--text-sub)', textAlign: 'right' }}>
+                        {ss.is_price_starting_from && <div style={s.svcStartingFrom}>Starting From</div>}
                         LKR {ss.effective_price}
                       </div>
                     </label>
                   );
                 })}
-                {services.length === 0 && <p style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>No services available at this salon.</p>}
+                {displayServices.length === 0 && (
+                  <p style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: 13 }}>
+                    {homeVisit ? 'No services have been enabled for home visits at this salon.' : 'No services available at this salon.'}
+                  </p>
+                )}
               </div>
             </div>
           )}
@@ -336,7 +419,7 @@ export default function BookSalon() {
               {/* Compact professional selector */}
               {!staffLoading && (
                 <div style={s.proRow}>
-                  <span style={s.proLabel}>★ Professional</span>
+                  <span style={s.proLabel}>★ Professional{homeVisit ? ' (Home Visit)' : ''}</span>
                   <div style={s.proChips}>
                     <button
                       type="button"
@@ -345,7 +428,7 @@ export default function BookSalon() {
                     >
                       ✦ Any Available
                     </button>
-                    {staffList.map((m, i) => {
+                    {displayStaff.map((m, i) => {
                       const color = STAFF_COLORS[i % STAFF_COLORS.length];
                       return (
                         <button
@@ -359,6 +442,9 @@ export default function BookSalon() {
                         </button>
                       );
                     })}
+                    {homeVisit && displayStaff.length === 0 && (
+                      <span style={{ fontSize: 12, color: 'var(--text-muted)', fontStyle: 'italic', paddingTop: 5 }}>No staff assigned to home visits yet</span>
+                    )}
                   </div>
                 </div>
               )}
@@ -521,8 +607,18 @@ export default function BookSalon() {
         <div style={{ ...s.sidebar, width: isMobile ? '100%' : undefined }}>
           <div style={s.summaryCard} className="fade-up d2">
             <div style={s.summaryHeader}>
-              <div style={s.summaryEyebrow}>Booking Summary</div>
-              <span style={s.salonTag}>{salon.name}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                <div style={s.summaryLogo}>
+                  {salon.logo_url
+                    ? <img src={salon.logo_url} alt={salon.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                    : <span style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 18, fontWeight: 700, color: '#fff' }}>{salon.name[0]}</span>
+                  }
+                </div>
+                <div>
+                  <div style={s.summaryEyebrow}>Booking Summary</div>
+                  <span style={s.salonTag}>{salon.name}</span>
+                </div>
+              </div>
             </div>
 
             {selectedServices.length === 0 ? (
@@ -635,9 +731,11 @@ const s = {
   checkBox:   { width: 22, height: 22, borderRadius: 6, border: '2px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff', transition: 'all .2s ease' },
   checkBoxOn: { background: 'linear-gradient(135deg, #7C3AED, #0D9488)', borderColor: 'transparent' },
   svcInfo:  { flex: 1 },
-  svcName:  { fontWeight: 600, fontSize: 14, color: 'var(--text)', marginBottom: 2 },
-  svcMeta:  { fontSize: 12, color: 'var(--text-muted)' },
-  svcPrice: { fontWeight: 700, fontSize: 15, flexShrink: 0, transition: 'color .2s ease' },
+  svcName:        { fontWeight: 600, fontSize: 14, color: 'var(--text)', marginBottom: 2 },
+  svcDesc:        { fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.55, marginBottom: 4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' },
+  svcMeta:        { fontSize: 12, color: 'var(--text-muted)' },
+  svcPrice:       { fontWeight: 700, fontSize: 15, flexShrink: 0, transition: 'color .2s ease' },
+  svcStartingFrom:{ fontSize: 9, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', opacity: 0.75, lineHeight: 1.2, marginBottom: 1 },
 
   proRow: {
     display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 4,
@@ -714,8 +812,14 @@ const s = {
   sidebar:     { width: 268, flexShrink: 0, position: 'sticky', top: 100 },
   summaryCard: { background: 'var(--surface)', borderRadius: 22, padding: 22, border: '1px solid var(--border)', boxShadow: '0 4px 24px rgba(124,58,237,.08)' },
   summaryHeader:  { marginBottom: 18, paddingBottom: 14, borderBottom: '1px solid var(--border)' },
-  summaryEyebrow: { fontSize: 9, fontWeight: 700, color: 'var(--brand-label)', letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: 6 },
+  summaryEyebrow: { fontSize: 9, fontWeight: 700, color: 'var(--brand-label)', letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: 4 },
   salonTag:    { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 15, fontWeight: 700, color: 'var(--text)', letterSpacing: '-0.01em' },
+  summaryLogo: {
+    width: 40, height: 40, borderRadius: 11, flexShrink: 0,
+    background: 'linear-gradient(135deg, #7C3AED 0%, #0D9488 100%)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    overflow: 'hidden', boxShadow: '0 3px 10px rgba(124,58,237,.3)',
+  },
   emptySummary:{ fontSize: 13, color: 'var(--text-muted)', padding: '10px 0', textAlign: 'center', fontStyle: 'italic' },
   sumRow:      { display: 'flex', justifyContent: 'space-between', marginBottom: 9, fontSize: 13 },
   sumName:     { color: 'var(--text-sub)', flex: 1, lineHeight: 1.4 },
@@ -734,6 +838,26 @@ const s = {
   promoInput:   { flex: 1, padding: '9px 14px', border: '1.5px solid var(--border)', borderRadius: 10, fontSize: 13, fontFamily: "'DM Sans', sans-serif", background: 'var(--input-bg)', color: 'var(--text)', textTransform: 'uppercase', letterSpacing: '0.06em', outline: 'none' },
   promoApplyBtn:{ padding: '9px 18px', background: 'linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%)', color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 700, fontSize: 13, boxShadow: '0 4px 12px rgba(124,58,237,.3)' },
   promoMsg:     { marginTop: 8, padding: '9px 12px', borderRadius: 10, fontSize: 12, fontWeight: 500 },
+
+  homeVisitRow: { display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px', borderRadius: 14, border: '1.5px solid var(--border)', background: 'var(--surface)', cursor: 'pointer', marginBottom: 16, transition: 'border-color .2s, background .2s', userSelect: 'none' },
+  homeVisitRowOn: { borderColor: '#0D9488', background: 'rgba(13,148,136,.07)' },
+  hvCheckBox:   { width: 22, height: 22, borderRadius: 6, border: '2px solid var(--border)', background: 'var(--surface2)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background .2s, border-color .2s' },
+  hvCheckBoxOn: { background: '#0D9488', borderColor: '#0D9488' },
+  hvRowTitle:   { fontSize: 14, fontWeight: 700, color: 'var(--text)', marginBottom: 2 },
+  hvRowSub:     { fontSize: 12, color: 'var(--text-muted)' },
+  hvBadge:      { fontSize: 11, fontWeight: 700, color: '#0D9488', background: 'rgba(13,148,136,.12)', padding: '3px 9px', borderRadius: 20, flexShrink: 0 },
+  hvServicesNotice: {
+    fontSize: 12, color: '#0D9488', fontWeight: 600,
+    background: 'rgba(13,148,136,.07)', borderRadius: 10,
+    padding: '8px 14px', marginBottom: 12,
+    border: '1px solid rgba(13,148,136,.18)',
+  },
+  hvAddressWrap: { marginTop: 10, padding: '16px', background: 'rgba(13,148,136,.05)', border: '1.5px solid rgba(13,148,136,.2)', borderTop: 'none', borderRadius: '0 0 14px 14px' },
+  hvAddressTitle: { fontSize: 11, fontWeight: 700, color: '#0D9488', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 12 },
+  hvAddressGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 },
+  hvAddressField: { display: 'flex', flexDirection: 'column', gap: 5 },
+  hvAddressLabel: { fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' },
+  hvAddressInput: { padding: '9px 12px', border: '1.5px solid rgba(13,148,136,.3)', borderRadius: 10, fontSize: 13, color: 'var(--text)', background: 'var(--input-bg)', fontFamily: "'DM Sans', sans-serif", outline: 'none', boxSizing: 'border-box' },
 };
 
 const conf = {

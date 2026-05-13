@@ -36,6 +36,8 @@ class Booking(models.Model):
     )
     discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     is_walk_in = models.BooleanField(default=False)
+    home_visit = models.BooleanField(default=False)
+    home_visit_address = models.TextField(blank=True, default='')
     requested_datetime = models.DateTimeField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     negotiation_round = models.PositiveIntegerField(default=0)

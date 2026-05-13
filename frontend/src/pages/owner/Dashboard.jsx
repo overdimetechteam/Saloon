@@ -9,6 +9,42 @@ export default function OwnerDashboard() {
   const { salon, loading: salonLoading } = useOwner();
   const { isMobile, isTablet } = useBreakpoint();
   const [stats, setStats] = useState({ pending: 0, confirmed: 0, lowStock: 0, todayBookings: [] });
+  const [homeVisit, setHomeVisit] = useState(false);
+  const [homeVisitSaving, setHomeVisitSaving] = useState(false);
+  const [salonServices, setSalonServices] = useState([]);
+
+  useEffect(() => {
+    if (salon) setHomeVisit(!!salon.home_visit_enabled);
+  }, [salon]);
+
+  useEffect(() => {
+    if (!salon) return;
+    api.get(`/salons/${salon.id}/services/`).then(r => setSalonServices(r.data)).catch(() => {});
+  }, [salon]);
+
+  const toggleHomeVisit = async () => {
+    if (!salon || homeVisitSaving) return;
+    const next = !homeVisit;
+    setHomeVisit(next);
+    setHomeVisitSaving(true);
+    try {
+      await api.patch(`/salons/${salon.id}/`, { home_visit_enabled: next });
+    } catch {
+      setHomeVisit(!next);
+    } finally {
+      setHomeVisitSaving(false);
+    }
+  };
+
+  const toggleSvcHV = async (ss) => {
+    const next = !ss.home_visit_available;
+    setSalonServices(prev => prev.map(s => s.id === ss.id ? { ...s, home_visit_available: next } : s));
+    try {
+      await api.patch(`/salons/${salon.id}/services/${ss.id}/`, { home_visit_available: next });
+    } catch {
+      setSalonServices(prev => prev.map(s => s.id === ss.id ? { ...s, home_visit_available: !next } : s));
+    }
+  };
 
   useEffect(() => {
     if (!salon) return;
@@ -169,6 +205,62 @@ export default function OwnerDashboard() {
         )}
       </div>
 
+      {/* ── Home Visit Service Toggle ── */}
+      <div style={s.hvCard} className="fade-up d5">
+        <div style={s.hvLeft}>
+          <div style={{ ...s.hvIconWrap, background: homeVisit ? 'rgba(13,148,136,.12)' : 'var(--surface2)', color: homeVisit ? '#0D9488' : 'var(--text-muted)' }}>
+            🏠
+          </div>
+          <div>
+            <div style={s.hvTitle}>Home Visit Service</div>
+            <div style={s.hvSub}>
+              {homeVisit
+                ? 'Clients can request a home visit when booking'
+                : 'Enable to let clients request appointments at their location'}
+            </div>
+          </div>
+        </div>
+        <button
+          style={{ ...s.hvToggle, background: homeVisit ? 'linear-gradient(135deg, #0D9488, #059669)' : 'var(--surface2)', border: homeVisit ? 'none' : '1.5px solid var(--border)' }}
+          onClick={toggleHomeVisit}
+          disabled={homeVisitSaving}
+          aria-pressed={homeVisit}
+        >
+          <span style={{ ...s.hvKnob, transform: homeVisit ? 'translateX(20px)' : 'translateX(2px)' }} />
+        </button>
+      </div>
+
+      {/* ── Home Visit Services Panel ── shown when HV is enabled */}
+      {homeVisit && salonServices.length > 0 && (
+        <div style={s.hvServicesPanel} className="fade-in">
+          <div style={s.hvServicesHeader}>
+            <div style={s.hvServicesTitle}>Home Visit Services</div>
+            <div style={s.hvServicesSub}>Toggle which services are available during home visits</div>
+          </div>
+          <div style={s.hvServicesList}>
+            {salonServices.map(ss => (
+              <div key={ss.id} style={{ ...s.hvSvcRow, ...(ss.home_visit_available ? s.hvSvcRowOn : {}) }}>
+                <div style={s.hvSvcInfo}>
+                  <div style={s.hvSvcName}>{ss.service_name}</div>
+                  <div style={s.hvSvcPriceLine}>
+                    {ss.is_price_starting_from && <span style={s.hvSvcStartingFrom}>Starting From </span>}
+                    <span>LKR {ss.effective_price}</span>
+                    {ss.effective_duration && <span style={{ marginLeft: 8, opacity: 0.6 }}>· {ss.effective_duration} min</span>}
+                  </div>
+                </div>
+                <button
+                  style={{ ...s.hvSvcToggle, background: ss.home_visit_available ? 'linear-gradient(135deg, #0D9488, #059669)' : 'var(--surface2)', border: ss.home_visit_available ? 'none' : '1.5px solid var(--border)' }}
+                  onClick={() => toggleSvcHV(ss)}
+                  aria-pressed={ss.home_visit_available}
+                >
+                  <span style={{ ...s.hvSvcKnob, transform: ss.home_visit_available ? 'translateX(20px)' : 'translateX(2px)' }} />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
@@ -295,4 +387,66 @@ const s = {
     textDecoration: 'none',
   },
 
+  hvCard: {
+    display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16,
+    background: 'var(--surface)', borderRadius: 18, padding: '18px 22px',
+    border: '1px solid var(--border)',
+    boxShadow: '0 2px 12px rgba(124,58,237,.06)',
+    marginTop: 16, flexWrap: 'wrap',
+  },
+  hvLeft: { display: 'flex', alignItems: 'center', gap: 14, flex: 1, minWidth: 0 },
+  hvIconWrap: {
+    width: 42, height: 42, borderRadius: 12, flexShrink: 0,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    fontSize: 18, transition: 'background .25s ease, color .25s ease',
+  },
+  hvTitle: { fontWeight: 700, fontSize: 14, color: 'var(--text)', marginBottom: 3 },
+  hvSub:   { fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.4 },
+  hvToggle: {
+    width: 46, height: 26, borderRadius: 13, flexShrink: 0,
+    position: 'relative', cursor: 'pointer',
+    transition: 'background .25s ease, border .25s ease',
+    padding: 0,
+  },
+  hvKnob: {
+    position: 'absolute', top: 3, width: 20, height: 20,
+    borderRadius: '50%', background: '#fff',
+    boxShadow: '0 1px 4px rgba(0,0,0,.25)',
+    transition: 'transform .22s cubic-bezier(.16,1,.3,1)',
+    display: 'block',
+  },
+
+  hvServicesPanel: {
+    background: 'var(--surface)', borderRadius: 18,
+    border: '1.5px solid rgba(13,148,136,.2)',
+    boxShadow: '0 2px 12px rgba(13,148,136,.08)',
+    marginTop: 10, overflow: 'hidden',
+  },
+  hvServicesHeader: { padding: '16px 22px 12px', borderBottom: '1px solid var(--border)' },
+  hvServicesTitle: { fontWeight: 700, fontSize: 14, color: '#0D9488', marginBottom: 3 },
+  hvServicesSub: { fontSize: 12, color: 'var(--text-muted)' },
+  hvServicesList: { padding: '8px 16px 10px' },
+  hvSvcRow: {
+    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    padding: '10px 8px', borderRadius: 10, transition: 'background .2s ease', gap: 12,
+    borderBottom: '1px solid var(--border)',
+  },
+  hvSvcRowOn: { background: 'rgba(13,148,136,.06)' },
+  hvSvcInfo: { flex: 1, minWidth: 0 },
+  hvSvcName: { fontSize: 13, fontWeight: 600, color: 'var(--text)', marginBottom: 2 },
+  hvSvcPriceLine: { fontSize: 11, color: 'var(--text-muted)' },
+  hvSvcStartingFrom: { fontWeight: 700, color: '#0D9488', marginRight: 2 },
+  hvSvcToggle: {
+    width: 46, height: 26, borderRadius: 13, flexShrink: 0,
+    position: 'relative', cursor: 'pointer',
+    transition: 'background .25s ease, border .25s ease',
+    padding: 0,
+  },
+  hvSvcKnob: {
+    position: 'absolute', top: 3, width: 20, height: 20,
+    borderRadius: '50%', background: '#fff',
+    boxShadow: '0 1px 4px rgba(0,0,0,.25)',
+    transition: 'transform .22s cubic-bezier(.16,1,.3,1)',
+    display: 'block',
+  },
 };

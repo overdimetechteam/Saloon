@@ -191,6 +191,17 @@ export default function OwnerBookingDetail() {
               </div>
             )}
 
+            {booking.home_visit && (
+              <div style={{ ...s.section, background: 'rgba(13,148,136,.06)', borderRadius: 12, padding: '14px 18px', border: '1px solid rgba(13,148,136,.18)' }}>
+                <div style={{ ...s.secTitle, color: '#0D9488' }}>🏠 Home Visit Booking</div>
+                {booking.home_visit_address ? (
+                  <p style={s.notes}>{booking.home_visit_address}</p>
+                ) : (
+                  <p style={{ color: 'var(--text-muted)', fontSize: 13, fontStyle: 'italic', margin: 0 }}>No address provided</p>
+                )}
+              </div>
+            )}
+
             {booking.notes && (
               <div style={s.section}>
                 <div style={s.secTitle}>Client Notes</div>

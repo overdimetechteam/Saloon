@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Salon, SalonCalendar, SalonStaff, Offer
+from .models import Salon, SalonCalendar, SalonStaff, Offer, SalonImage
 from users.models import CustomUser
 
 
@@ -17,12 +17,28 @@ class SalonStaffSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'salon', 'full_name', 'role', 'phone',
             'specialties', 'specialty_ids', 'specialty_names',
-            'working_days', 'is_active', 'created_at',
+            'working_days', 'home_visit_available', 'is_active', 'created_at',
         ]
         read_only_fields = ['id', 'salon', 'created_at', 'specialty_ids', 'specialty_names']
         extra_kwargs = {
             'specialties': {'write_only': True, 'required': False},
         }
+
+
+class SalonImageSerializer(serializers.ModelSerializer):
+    image_url = serializers.SerializerMethodField()
+
+    def get_image_url(self, obj):
+        request = self.context.get('request')
+        if request and obj.image:
+            return request.build_absolute_uri(obj.image.url)
+        return obj.image.url if obj.image else None
+
+    class Meta:
+        model = SalonImage
+        fields = ['id', 'salon', 'image', 'image_url', 'caption', 'sort_order', 'created_at']
+        read_only_fields = ['salon', 'created_at', 'image_url']
+        extra_kwargs = {'image': {'write_only': True}}
 
 
 class SalonCalendarSerializer(serializers.ModelSerializer):
@@ -34,6 +50,15 @@ class SalonCalendarSerializer(serializers.ModelSerializer):
 class SalonSerializer(serializers.ModelSerializer):
     calendar = SalonCalendarSerializer(read_only=True)
     owner_email = serializers.EmailField(source='owner.email', read_only=True)
+    logo_url = serializers.SerializerMethodField()
+
+    def get_logo_url(self, obj):
+        request = self.context.get('request')
+        if obj.logo:
+            if request:
+                return request.build_absolute_uri(obj.logo.url)
+            return obj.logo.url
+        return None
 
     class Meta:
         model = Salon
@@ -41,9 +66,10 @@ class SalonSerializer(serializers.ModelSerializer):
             'id', 'name', 'business_reg_number',
             'address_street', 'address_city', 'address_district', 'address_postal',
             'contact_number', 'email', 'operating_hours',
-            'status', 'is_suspended', 'owner', 'owner_email', 'created_at', 'calendar',
+            'status', 'is_suspended', 'home_visit_enabled', 'owner', 'owner_email', 'created_at', 'calendar',
+            'logo_url',
         ]
-        read_only_fields = ['status', 'owner', 'created_at']
+        read_only_fields = ['status', 'owner', 'created_at', 'logo_url']
 
 
 class OfferSerializer(serializers.ModelSerializer):

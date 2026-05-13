@@ -19,8 +19,8 @@ class SalonServiceSerializer(serializers.ModelSerializer):
         model = SalonService
         fields = [
             'id', 'salon', 'service', 'service_name', 'service_category', 'service_is_private',
-            'custom_price', 'custom_duration', 'is_active',
-            'effective_price', 'effective_duration',
+            'custom_price', 'custom_duration', 'is_price_starting_from', 'home_visit_available',
+            'description', 'is_active', 'effective_price', 'effective_duration',
         ]
         read_only_fields = ['salon']
 
@@ -28,10 +28,10 @@ class SalonServiceSerializer(serializers.ModelSerializer):
 class SalonServiceCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = SalonService
-        fields = ['service', 'custom_price', 'custom_duration', 'is_active']
+        fields = ['service', 'custom_price', 'custom_duration', 'is_price_starting_from', 'description', 'is_active']
 
 
 class SalonServiceUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = SalonService
-        fields = ['custom_price', 'custom_duration']
+        fields = ['custom_price', 'custom_duration', 'is_price_starting_from', 'home_visit_available', 'description']

@@ -49,6 +49,8 @@ class BookingSerializer(serializers.ModelSerializer):
     has_review = serializers.SerializerMethodField()
     discount_amount = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
     is_walk_in = serializers.BooleanField(read_only=True)
+    home_visit = serializers.BooleanField(read_only=True)
+    home_visit_address = serializers.CharField(read_only=True)
 
     def get_has_review(self, obj):
         return hasattr(obj, 'review') and obj.review is not None
@@ -60,7 +62,7 @@ class BookingSerializer(serializers.ModelSerializer):
             'salon', 'salon_name',
             'staff_member', 'staff_member_name',
             'requested_datetime', 'status', 'negotiation_round', 'notes',
-            'promo_code', 'discount_amount', 'is_walk_in',
+            'promo_code', 'discount_amount', 'is_walk_in', 'home_visit', 'home_visit_address',
             'created_at', 'updated_at',
             'booking_services', 'alternative_slots',
             'review', 'has_review',
@@ -75,6 +77,8 @@ class BookingCreateSerializer(serializers.Serializer):
     notes = serializers.CharField(required=False, allow_blank=True)
     staff_member_id = serializers.IntegerField(required=False, allow_null=True)
     promo_id = serializers.IntegerField(required=False, allow_null=True)
+    home_visit = serializers.BooleanField(required=False, default=False)
+    home_visit_address = serializers.CharField(required=False, allow_blank=True, default='')
 
     def validate_salon_service_ids(self, value):
         salon_id = self.initial_data.get('salon')

@@ -92,6 +92,8 @@ class BookingListCreateView(APIView):
             discount_amount=discount_amount,
             requested_datetime=requested_dt,
             notes=data.get('notes', ''),
+            home_visit=data.get('home_visit', False),
+            home_visit_address=data.get('home_visit_address', ''),
             status='pending',
         )
         for ss_id in data['salon_service_ids']:

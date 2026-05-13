@@ -101,6 +101,16 @@ export default function OwnerTeam() {
     } catch { setMsg('Error removing member.'); }
   };
 
+  const toggleStaffHV = async (member) => {
+    const next = !member.home_visit_available;
+    setStaff(prev => prev.map(m => m.id === member.id ? { ...m, home_visit_available: next } : m));
+    try {
+      await api.patch(`/salons/${salon.id}/staff/${member.id}/`, { home_visit_available: next });
+    } catch {
+      setStaff(prev => prev.map(m => m.id === member.id ? { ...m, home_visit_available: !next } : m));
+    }
+  };
+
   if (!salon) return <div style={{ color: 'var(--text-muted)', padding: 40 }}>Loading salon…</div>;
 
   return (
@@ -236,6 +246,20 @@ export default function OwnerTeam() {
                 )}
 
                 {member.phone && <div style={s.phone}>📞 {member.phone}</div>}
+
+                <div style={{ ...s.hvRow, background: member.home_visit_available ? 'rgba(13,148,136,.07)' : 'var(--surface2)', borderColor: member.home_visit_available ? 'rgba(13,148,136,.25)' : 'var(--border)' }}>
+                  <div style={s.hvRowText}>
+                    <span style={{ ...s.hvRowLabel, color: member.home_visit_available ? '#0D9488' : 'var(--text-muted)' }}>🏠 Home Visit</span>
+                    <span style={s.hvRowSub}>{member.home_visit_available ? 'Available for home visits' : 'Not assigned to home visits'}</span>
+                  </div>
+                  <button
+                    style={{ ...s.hvToggle, background: member.home_visit_available ? 'linear-gradient(135deg, #0D9488, #059669)' : 'var(--surface)', border: member.home_visit_available ? 'none' : '1.5px solid var(--border)' }}
+                    onClick={() => toggleStaffHV(member)}
+                    aria-pressed={member.home_visit_available}
+                  >
+                    <span style={{ ...s.hvKnob, transform: member.home_visit_available ? 'translateX(20px)' : 'translateX(2px)' }} />
+                  </button>
+                </div>
 
                 <div style={s.cardActions}>
                   <button style={s.editBtn} onClick={() => openEdit(member)}>Edit</button>
@@ -391,6 +415,25 @@ const s = {
     padding: '8px 14px', background: '#FEF2F2', border: '1px solid #FECACA',
     borderRadius: 9, cursor: 'pointer', fontSize: 13, fontWeight: 600, color: '#DC2626',
     fontFamily: "'DM Sans', sans-serif",
+  },
+  hvRow: {
+    display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
+    padding: '10px 14px', borderRadius: 10, border: '1px solid var(--border)',
+    transition: 'background .2s ease, border-color .2s ease',
+  },
+  hvRowText: { flex: 1, minWidth: 0 },
+  hvRowLabel: { fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 2, transition: 'color .2s ease' },
+  hvRowSub: { fontSize: 11, color: 'var(--text-muted)' },
+  hvToggle: {
+    width: 46, height: 26, borderRadius: 13, flexShrink: 0,
+    position: 'relative', cursor: 'pointer',
+    transition: 'background .25s ease, border .25s ease', padding: 0,
+  },
+  hvKnob: {
+    position: 'absolute', top: 3, width: 20, height: 20,
+    borderRadius: '50%', background: '#fff',
+    boxShadow: '0 1px 4px rgba(0,0,0,.25)',
+    transition: 'transform .22s cubic-bezier(.16,1,.3,1)', display: 'block',
   },
   loadingRow: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 18 },
   skeleton: { height: 200, borderRadius: 20 },

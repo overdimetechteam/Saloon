@@ -10,6 +10,8 @@ from .views import (
     SalonReviewListView, SalonReviewSummaryView,
     SalonAnalyticsView,
     SalonOffersView, AllActiveOffersView, OwnerOffersView, OwnerOfferDetailView,
+    SalonImageListCreateView, SalonImageDetailView,
+    SalonLogoView,
 )
 
 urlpatterns = [
@@ -38,4 +40,7 @@ urlpatterns = [
     path('offers/active/', AllActiveOffersView.as_view(), name='offers-active'),
     path('owner/offers/', OwnerOffersView.as_view(), name='owner-offers'),
     path('owner/offers/<int:pk>/', OwnerOfferDetailView.as_view(), name='owner-offer-detail'),
+    path('salons/<int:pk>/images/', SalonImageListCreateView.as_view(), name='salon-images'),
+    path('salons/<int:pk>/images/<int:image_pk>/', SalonImageDetailView.as_view(), name='salon-image-detail'),
+    path('salons/<int:pk>/logo/', SalonLogoView.as_view(), name='salon-logo'),
 ]

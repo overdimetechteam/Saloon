@@ -26,6 +26,8 @@ class Salon(models.Model):
         related_name='salons',
         limit_choices_to={'role': 'salon_owner'},
     )
+    home_visit_enabled = models.BooleanField(default=False)
+    logo = models.FileField(upload_to='salon_logos/', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -82,8 +84,23 @@ class SalonStaff(models.Model):
     phone = models.CharField(max_length=20, blank=True)
     specialties = models.ManyToManyField('services.Service', blank=True, related_name='staff_specialties')
     working_days = models.JSONField(default=list, blank=True)
+    home_visit_available = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.full_name} @ {self.salon.name}"
+
+
+class SalonImage(models.Model):
+    salon = models.ForeignKey(Salon, on_delete=models.CASCADE, related_name='images')
+    image = models.FileField(upload_to='salon_images/')
+    caption = models.CharField(max_length=100, blank=True)
+    sort_order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['sort_order', 'created_at']
+
+    def __str__(self):
+        return f"Image for {self.salon.name} #{self.pk}"

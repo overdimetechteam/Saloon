@@ -8,8 +8,8 @@ from django.db.models import Avg, Sum, F
 from datetime import datetime, timedelta
 from collections import defaultdict
 
-from .models import Salon, SalonCalendar, SalonStaff, FavouriteSalon, Offer
-from .serializers import SalonSerializer, SalonRegisterSerializer, SalonStaffSerializer, OfferSerializer
+from .models import Salon, SalonCalendar, SalonStaff, FavouriteSalon, Offer, SalonImage
+from .serializers import SalonSerializer, SalonRegisterSerializer, SalonStaffSerializer, OfferSerializer, SalonImageSerializer
 from users.permissions import IsSystemAdmin, IsSalonOwner
 from bookings.models import Booking
 
@@ -64,7 +64,7 @@ class SalonListView(APIView):
         salons = Salon.objects.filter(status='active', is_suspended=False)
         if name:
             salons = salons.filter(name__icontains=name)
-        return Response(SalonSerializer(salons, many=True).data)
+        return Response(SalonSerializer(salons, many=True, context={'request': request}).data)
 
 
 class SalonDetailView(APIView):
@@ -75,7 +75,7 @@ class SalonDetailView(APIView):
 
     def get(self, request, pk):
         salon = get_object_or_404(Salon, pk=pk)
-        return Response(SalonSerializer(salon).data)
+        return Response(SalonSerializer(salon, context={'request': request}).data)
 
     def patch(self, request, pk):
         salon = get_object_or_404(Salon, pk=pk)
@@ -86,7 +86,7 @@ class SalonDetailView(APIView):
         serializer = SalonSerializer(salon, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data)
+            return Response(SalonSerializer(salon, context={'request': request}).data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -186,7 +186,33 @@ class MySalonView(APIView):
         salon = Salon.objects.filter(owner=request.user).first()
         if not salon:
             return Response({'detail': 'No salon registered'}, status=status.HTTP_404_NOT_FOUND)
-        return Response(SalonSerializer(salon).data)
+        return Response(SalonSerializer(salon, context={'request': request}).data)
+
+
+class SalonLogoView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        salon = get_object_or_404(Salon, pk=pk)
+        if request.user.role != 'salon_owner' or salon.owner_id != request.user.id:
+            return Response({'detail': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
+        logo_file = request.FILES.get('logo')
+        if not logo_file:
+            return Response({'detail': 'No logo file provided'}, status=status.HTTP_400_BAD_REQUEST)
+        if salon.logo:
+            salon.logo.delete(save=False)
+        salon.logo = logo_file
+        salon.save()
+        return Response(SalonSerializer(salon, context={'request': request}).data)
+
+    def delete(self, request, pk):
+        salon = get_object_or_404(Salon, pk=pk)
+        if request.user.role != 'salon_owner' or salon.owner_id != request.user.id:
+            return Response({'detail': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
+        if salon.logo:
+            salon.logo.delete(save=False)
+            salon.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class SalonStaffListCreateView(APIView):
@@ -290,7 +316,7 @@ class ClientFavouritesView(APIView):
         if request.user.role != 'client':
             return Response({'detail': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
         salons = Salon.objects.filter(favourited_by__client=request.user, status='active', is_suspended=False)
-        return Response(SalonSerializer(salons, many=True).data)
+        return Response(SalonSerializer(salons, many=True, context={'request': request}).data)
 
 
 class SalonReviewListView(APIView):
@@ -543,3 +569,49 @@ class AvailableSlotsView(APIView):
             current += timedelta(minutes=duration)
 
         return Response({'slots': slots})
+
+
+class SalonImageListCreateView(APIView):
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [AllowAny()]
+        return [IsAuthenticated()]
+
+    def get(self, request, pk):
+        salon = get_object_or_404(Salon, pk=pk)
+        images = salon.images.all()
+        return Response(SalonImageSerializer(images, many=True, context={'request': request}).data)
+
+    def post(self, request, pk):
+        salon = get_object_or_404(Salon, pk=pk)
+        if request.user.role != 'salon_owner' or salon.owner_id != request.user.id:
+            return Response({'detail': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
+        serializer = SalonImageSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save(salon=salon)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class SalonImageDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, pk, image_pk):
+        salon = get_object_or_404(Salon, pk=pk)
+        if request.user.role != 'salon_owner' or salon.owner_id != request.user.id:
+            return Response({'detail': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
+        image = get_object_or_404(SalonImage, pk=image_pk, salon=salon)
+        serializer = SalonImageSerializer(image, data=request.data, partial=True, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk, image_pk):
+        salon = get_object_or_404(Salon, pk=pk)
+        if request.user.role != 'salon_owner' or salon.owner_id != request.user.id:
+            return Response({'detail': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
+        image = get_object_or_404(SalonImage, pk=image_pk, salon=salon)
+        image.image.delete(save=False)
+        image.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

@@ -33,6 +33,9 @@ class SalonService(models.Model):
     service = models.ForeignKey(Service, on_delete=models.CASCADE, related_name='salon_services')
     custom_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     custom_duration = models.PositiveIntegerField(null=True, blank=True)
+    is_price_starting_from = models.BooleanField(default=False)
+    home_visit_available = models.BooleanField(default=False)
+    description = models.TextField(blank=True, default='')
     is_active = models.BooleanField(default=True)
 
     class Meta:

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { createPortal } from 'react-dom';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { useBreakpoint } from '../hooks/useMobile';
@@ -59,6 +60,8 @@ export default function SalonDetail() {
   const [isFav, setIsFav]           = useState(false);
   const [favLoading, setFavLoading] = useState(false);
   const [offers, setOffers]         = useState([]);
+  const [salonImages, setSalonImages] = useState([]);
+  const [lightboxIdx, setLightboxIdx] = useState(null);
   const [activeServiceCat, setActiveServiceCat] = useState(null);
 
   const servicesRef = useRef(null);
@@ -75,6 +78,7 @@ export default function SalonDetail() {
     api.get(`/salons/${id}/reviews/`).then(r => setReviews(r.data)).catch(() => {});
     api.get(`/salons/${id}/reviews/summary/`).then(r => setSummary(r.data)).catch(() => {});
     api.get(`/salons/${id}/offers/`).then(r => setOffers(r.data)).catch(() => {});
+    api.get(`/salons/${id}/images/`).then(r => setSalonImages(r.data)).catch(() => {});
     if (profile?.role === 'client') {
       api.get(`/salons/${id}/favourite/`).then(r => setIsFav(r.data.is_favourited)).catch(() => {});
     }
@@ -88,6 +92,17 @@ export default function SalonDetail() {
       setIsFav(r.data.is_favourited);
     } catch {} finally { setFavLoading(false); }
   };
+
+  useEffect(() => {
+    if (lightboxIdx === null) return;
+    const handler = e => {
+      if (e.key === 'ArrowRight') setLightboxIdx(i => Math.min(i + 1, salonImages.length - 1));
+      if (e.key === 'ArrowLeft')  setLightboxIdx(i => Math.max(i - 1, 0));
+      if (e.key === 'Escape')     setLightboxIdx(null);
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [lightboxIdx, salonImages.length]);
 
   if (!salon) return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh', background: 'var(--bg)' }}>
@@ -117,7 +132,12 @@ export default function SalonDetail() {
         <div style={s.heroBg} />
         <div style={{ ...s.heroInner, flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? 20 : 24 }}>
           <div style={{ ...s.heroLeft, gap: isMobile ? 16 : 22 }}>
-            <div style={{ ...s.salonInitial, width: isMobile ? 56 : 72, height: isMobile ? 56 : 72, fontSize: isMobile ? 24 : 34 }}>{salon.name[0]}</div>
+            <div style={{ ...s.salonInitial, width: isMobile ? 56 : 72, height: isMobile ? 56 : 72, fontSize: isMobile ? 24 : 34, padding: 0, overflow: 'hidden' }}>
+              {salon.logo_url
+                ? <img src={salon.logo_url} alt={salon.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                : salon.name[0]
+              }
+            </div>
             <div style={{ flex: 1 }}>
               <div style={s.eyebrow}>Featured Salon</div>
               <h1 style={{ ...s.salonName, fontSize: isMobile ? 28 : 42 }}>{salon.name}</h1>
@@ -151,7 +171,7 @@ export default function SalonDetail() {
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexShrink: 0, justifyContent: isMobile ? 'center' : 'flex-start' }}>
+          <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexShrink: 0, justifyContent: isMobile ? 'center' : 'flex-start', flexWrap: 'wrap' }}>
             {isClient && (
               <button
                 onClick={toggleFav}
@@ -173,6 +193,11 @@ export default function SalonDetail() {
             {isClient && (
               <Link to={`/user/book/${id}`} style={s.heroBookBtn} className="lift-sm">
                 ✦ Book Now
+              </Link>
+            )}
+            {isClient && (
+              <Link to="/user/cosmetics" style={s.heroCosmeticsBtn} className="lift-sm">
+                ✿ Cosmetics
               </Link>
             )}
           </div>
@@ -199,7 +224,10 @@ export default function SalonDetail() {
             ))}
           </div>
           {isClient && (
-            <Link to={`/user/book/${id}`} style={s.tabBookBtn}>✦ Book Now</Link>
+            <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+              <Link to="/user/cosmetics" style={s.tabCosmeticsBtn}>✿ Cosmetics</Link>
+              <Link to={`/user/book/${id}`} style={s.tabBookBtn}>✦ Book Now</Link>
+            </div>
           )}
         </div>
       </div>
@@ -207,13 +235,70 @@ export default function SalonDetail() {
       {/* PHOTOS */}
       <div style={s.photoStrip}>
         <div style={s.photoScroll}>
-          {MOCK_PHOTOS.map((p, i) => (
-            <div key={i} style={{ ...s.photoCard, background: p.grad }} className="lift-sm fade-up">
-              <div style={s.photoLabel}>{p.label}</div>
-            </div>
-          ))}
+          {salonImages.length > 0
+            ? salonImages.map((img, i) => (
+                <div key={img.id} style={{ ...s.photoCard, cursor: 'pointer' }} className="lift-sm fade-up"
+                  onClick={() => setLightboxIdx(i)}>
+                  <img src={img.image_url} alt={img.caption || `Photo ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit', display: 'block' }} />
+                  {img.caption && <div style={s.photoLabel}>{img.caption}</div>}
+                  <div style={s.photoClickHint}>⊕</div>
+                </div>
+              ))
+            : MOCK_PHOTOS.map((p, i) => (
+                <div key={i} style={{ ...s.photoCard, background: p.grad }} className="lift-sm fade-up">
+                  <div style={s.photoLabel}>{p.label}</div>
+                </div>
+              ))
+          }
         </div>
       </div>
+
+      {/* LIGHTBOX */}
+      {lightboxIdx !== null && salonImages.length > 0 && createPortal(
+        <div style={lb.overlay} onClick={() => setLightboxIdx(null)}>
+          <button style={lb.closeBtn} onClick={() => setLightboxIdx(null)}>✕</button>
+
+          {lightboxIdx > 0 && (
+            <button style={{ ...lb.navBtn, left: 16 }}
+              onClick={e => { e.stopPropagation(); setLightboxIdx(i => i - 1); }}>
+              ‹
+            </button>
+          )}
+          {lightboxIdx < salonImages.length - 1 && (
+            <button style={{ ...lb.navBtn, right: 16 }}
+              onClick={e => { e.stopPropagation(); setLightboxIdx(i => i + 1); }}>
+              ›
+            </button>
+          )}
+
+          <div style={lb.imgWrap} onClick={e => e.stopPropagation()}>
+            <img
+              src={salonImages[lightboxIdx].image_url}
+              alt={salonImages[lightboxIdx].caption || `Photo ${lightboxIdx + 1}`}
+              style={lb.img}
+            />
+            {salonImages[lightboxIdx].caption && (
+              <div style={lb.caption}>{salonImages[lightboxIdx].caption}</div>
+            )}
+          </div>
+
+          <div style={lb.counter}>{lightboxIdx + 1} / {salonImages.length}</div>
+
+          {/* Thumbnail strip */}
+          {salonImages.length > 1 && (
+            <div style={lb.thumbStrip} onClick={e => e.stopPropagation()}>
+              {salonImages.map((img, i) => (
+                <div key={img.id}
+                  style={{ ...lb.thumb, ...(i === lightboxIdx ? lb.thumbActive : {}) }}
+                  onClick={() => setLightboxIdx(i)}>
+                  <img src={img.image_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>,
+        document.body
+      )}
 
       {/* BODY */}
       <div style={{ ...s.body, padding: isMobile ? '20px 16px 48px' : isTablet ? '28px 20px' : '44px 48px' }}>
@@ -251,15 +336,31 @@ export default function SalonDetail() {
                 })}
               </div>
               <div style={{ ...s.svcGrid, gridTemplateColumns: isMobile ? '1fr' : isTablet ? 'repeat(2,1fr)' : 'repeat(auto-fill,minmax(230px,1fr))' }}>
-                {(grouped[activeCat] || []).map(ss => (
-                  <div key={ss.id} style={s.svcCard} className="lift-sm">
-                    <div style={s.svcName}>{ss.service_name}</div>
-                    <div style={s.svcMeta}>
-                      <span style={s.svcDur}>⏱ {ss.effective_duration} min</span>
-                      <span style={{ ...s.svcPrice, color: activeCatColor }}>LKR {ss.effective_price}</span>
+                {(grouped[activeCat] || []).map(ss => {
+                  const inner = (
+                    <div style={{ ...s.svcCard, cursor: isClient ? 'pointer' : 'default' }}>
+                      <div style={s.svcName}>{ss.service_name}</div>
+                      {ss.description ? (
+                        <div style={s.svcDesc}>{ss.description}</div>
+                      ) : null}
+                      <div style={s.svcMeta}>
+                        <span style={s.svcDur}>⏱ {ss.effective_duration} min</span>
+                        <span style={{ ...s.svcPrice, color: activeCatColor }}>
+                          {ss.is_price_starting_from && <span style={s.svcStarting}>Starting From </span>}
+                          LKR {ss.effective_price}
+                        </span>
+                      </div>
+                      {isClient && <div style={s.svcBookHint}>Tap to book →</div>}
                     </div>
-                  </div>
-                ))}
+                  );
+                  return isClient ? (
+                    <Link key={ss.id} to={`/user/book/${id}?services=${ss.id}`} style={{ textDecoration: 'none', display: 'block' }} className="lift-sm">
+                      {inner}
+                    </Link>
+                  ) : (
+                    <div key={ss.id} className="lift-sm">{inner}</div>
+                  );
+                })}
               </div>
             </>
           )}
@@ -495,6 +596,14 @@ const s = {
     display: 'inline-flex', alignItems: 'center', gap: 8,
     fontFamily: "'DM Sans', sans-serif",
   },
+  heroCosmeticsBtn: {
+    padding: '14px 26px', flexShrink: 0,
+    background: 'linear-gradient(135deg, #EC4899 0%, #F59E0B 100%)',
+    color: '#fff', borderRadius: 14, fontWeight: 700, fontSize: 15,
+    textDecoration: 'none', boxShadow: '0 6px 20px rgba(236,72,153,.4)',
+    display: 'inline-flex', alignItems: 'center', gap: 8,
+    fontFamily: "'DM Sans', sans-serif",
+  },
 
   tabBar: {
     position: 'sticky', top: 64, zIndex: 100,
@@ -513,12 +622,19 @@ const s = {
     whiteSpace: 'nowrap',
   },
   tabBookBtn: {
-    flexShrink: 0, marginLeft: 16,
-    padding: '8px 20px',
+    padding: '8px 18px',
     background: 'linear-gradient(135deg, #7C3AED 0%, #0D9488 100%)',
     color: '#fff', borderRadius: 10, fontWeight: 700, fontSize: 13,
     textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6,
     boxShadow: '0 4px 14px rgba(124,58,237,.3)',
+    fontFamily: "'DM Sans', sans-serif",
+  },
+  tabCosmeticsBtn: {
+    padding: '8px 16px',
+    background: 'linear-gradient(135deg, #EC4899 0%, #F59E0B 100%)',
+    color: '#fff', borderRadius: 10, fontWeight: 700, fontSize: 13,
+    textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6,
+    boxShadow: '0 4px 14px rgba(236,72,153,.28)',
     fontFamily: "'DM Sans', sans-serif",
   },
 
@@ -538,6 +654,10 @@ const s = {
     fontSize: 11, fontWeight: 600, color: '#fff',
     background: 'rgba(0,0,0,.38)', borderRadius: 6, padding: '3px 8px',
     backdropFilter: 'blur(4px)',
+  },
+  photoClickHint: {
+    position: 'absolute', top: 8, right: 10,
+    fontSize: 16, color: 'rgba(255,255,255,.7)', pointerEvents: 'none',
   },
 
   body: { maxWidth: 1100, margin: '0 auto', padding: '44px 48px' },
@@ -570,6 +690,9 @@ const s = {
   svcMeta:    { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
   svcDur:     { fontSize: 12, color: 'var(--text-muted)' },
   svcPrice:   { fontWeight: 700, fontSize: 15 },
+  svcDesc:    { fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.6, margin: '4px 0 6px', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' },
+  svcStarting: { fontSize: 10, fontWeight: 700, opacity: 0.8, letterSpacing: '0.04em' },
+  svcBookHint: { fontSize: 11, fontWeight: 600, color: '#7C3AED', marginTop: 8, letterSpacing: '0.02em' },
 
   teamGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 16 },
   teamCard: {
@@ -685,5 +808,68 @@ const s = {
     textDecoration: 'none', boxShadow: '0 6px 20px rgba(124,58,237,.45)',
     position: 'relative', zIndex: 1,
     fontFamily: "'DM Sans', sans-serif",
+  },
+};
+
+const lb = {
+  overlay: {
+    position: 'fixed', inset: 0, zIndex: 9999,
+    background: 'rgba(0,0,0,.92)',
+    display: 'flex', flexDirection: 'column',
+    alignItems: 'center', justifyContent: 'center',
+    animation: 'confirmReveal .2s ease both',
+  },
+  imgWrap: {
+    maxWidth: '90vw', maxHeight: '75vh',
+    borderRadius: 16, overflow: 'hidden',
+    boxShadow: '0 24px 80px rgba(0,0,0,.6)',
+    position: 'relative',
+    display: 'flex', flexDirection: 'column',
+  },
+  img: {
+    maxWidth: '90vw', maxHeight: '70vh',
+    objectFit: 'contain', display: 'block',
+    borderRadius: 16,
+  },
+  caption: {
+    position: 'absolute', bottom: 0, left: 0, right: 0,
+    padding: '10px 16px',
+    background: 'linear-gradient(transparent, rgba(0,0,0,.65))',
+    color: '#fff', fontSize: 13, fontWeight: 500,
+    borderRadius: '0 0 16px 16px',
+  },
+  closeBtn: {
+    position: 'absolute', top: 18, right: 18,
+    width: 40, height: 40, borderRadius: '50%',
+    background: 'rgba(255,255,255,.15)', backdropFilter: 'blur(8px)',
+    color: '#fff', border: 'none', cursor: 'pointer',
+    fontSize: 18, fontWeight: 700, zIndex: 10,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+  },
+  navBtn: {
+    position: 'absolute', top: '50%', transform: 'translateY(-50%)',
+    width: 48, height: 48, borderRadius: '50%',
+    background: 'rgba(255,255,255,.15)', backdropFilter: 'blur(8px)',
+    color: '#fff', border: 'none', cursor: 'pointer',
+    fontSize: 30, fontWeight: 300, zIndex: 10,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+  },
+  counter: {
+    marginTop: 16, fontSize: 13, fontWeight: 600,
+    color: 'rgba(255,255,255,.55)', letterSpacing: '0.08em',
+  },
+  thumbStrip: {
+    display: 'flex', gap: 8, marginTop: 12,
+    maxWidth: '90vw', overflowX: 'auto',
+    paddingBottom: 4,
+  },
+  thumb: {
+    width: 52, height: 52, borderRadius: 8, overflow: 'hidden',
+    flexShrink: 0, cursor: 'pointer', opacity: 0.5,
+    border: '2px solid transparent',
+    transition: 'opacity .15s ease, border-color .15s ease',
+  },
+  thumbActive: {
+    opacity: 1, borderColor: '#fff',
   },
 };

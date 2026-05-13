@@ -1,5 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
 from rest_framework_simplejwt.views import TokenRefreshView
 from users.views import RegisterView, LoginView
 
@@ -13,4 +15,4 @@ urlpatterns = [
     path('api/', include('bookings.urls')),
     path('api/', include('inventory.urls')),
     path('api/', include('users.urls')),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
