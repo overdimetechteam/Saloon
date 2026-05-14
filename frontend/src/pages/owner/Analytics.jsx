@@ -92,7 +92,7 @@ export default function OwnerAnalytics() {
                 { label: 'Other', value: data.total_bookings - data.completed_bookings - data.cancelled_bookings, color: '#6B7280', bg: 'var(--surface2)', border: 'var(--border)' },
               ].map(b => (
                 <div key={b.label} style={{ ...s.breakdownCard, background: b.bg, border: `1px solid ${b.border}` }}>
-                  <div style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 36, fontWeight: 700, color: b.color, lineHeight: 1 }}>{b.value}</div>
+                  <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 36, fontWeight: 800, color: b.color, lineHeight: 1 }}>{b.value}</div>
                   <div style={{ fontSize: 12, color: b.color, fontWeight: 700, marginTop: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{b.label}</div>
                 </div>
               ))}
@@ -114,7 +114,7 @@ export default function OwnerAnalytics() {
 function KpiCard({ label, value, color, bg, border }) {
   return (
     <div style={{ ...s.kpiCard, background: bg, border: `1px solid ${border}` }} className="lift-sm">
-      <div style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 32, fontWeight: 700, color, lineHeight: 1, marginBottom: 8 }}>{value}</div>
+      <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 32, fontWeight: 800, color, lineHeight: 1, marginBottom: 8 }}>{value}</div>
       <div style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>{label}</div>
     </div>
   );

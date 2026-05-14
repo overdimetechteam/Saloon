@@ -184,7 +184,7 @@ const s = {
   histInfo: { flex: 1 },
   histProduct: { fontWeight: 600, fontSize: 13, color: 'var(--text)' },
   histReason: { fontSize: 11, color: 'var(--text-muted)', textTransform: 'capitalize' },
-  histChange: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontWeight: 700, fontSize: 20, flexShrink: 0 },
+  histChange: { fontFamily: "'DM Sans', sans-serif", fontWeight: 800, fontSize: 20, flexShrink: 0 },
   histNotes: { fontSize: 12, color: 'var(--text-muted)', margin: '4px 0', paddingLeft: 28 },
   histDate: { fontSize: 11, color: 'var(--text-muted)', paddingLeft: 28, marginTop: 4 },
 };

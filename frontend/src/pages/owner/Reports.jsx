@@ -97,7 +97,7 @@ export default function OwnerReports() {
           { label: 'Total Adjustments',  value: adjustments.length,           color: '#D97706', bg: 'rgba(217,119,6,.08)', border: 'rgba(217,119,6,.18)'  },
         ].map(stat => (
           <div key={stat.label} style={{ ...s.statCard, background: stat.bg, border: `1px solid ${stat.border}` }}>
-            <div style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 32, fontWeight: 700, color: stat.color, lineHeight: 1 }}>{stat.value}</div>
+            <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 32, fontWeight: 800, color: stat.color, lineHeight: 1 }}>{stat.value}</div>
             <div style={s.statLabel}>{stat.label}</div>
           </div>
         ))}
@@ -279,7 +279,7 @@ const s = {
   urgentBadge: { background: '#DC2626', color: '#fff', fontSize: 10, fontWeight: 700, borderRadius: 8, padding: '4px 10px', letterSpacing: '0.06em' },
   lowStats: { display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 },
   lowStat: { textAlign: 'center' },
-  lowStatVal: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 28, fontWeight: 700, lineHeight: 1 },
+  lowStatVal: { fontFamily: "'DM Sans', sans-serif", fontSize: 28, fontWeight: 800, lineHeight: 1 },
   lowStatLabel: { fontSize: 11, color: 'var(--text-muted)', marginTop: 3 },
   lowArrow: { color: 'var(--text-muted)', fontSize: 16, fontWeight: 700 },
   lowUnit: { fontSize: 12, color: 'var(--text-muted)', borderTop: '1px solid var(--border)', paddingTop: 10 },

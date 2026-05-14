@@ -30,7 +30,7 @@ export default function UserDashboard() {
       .catch(() => {})
       .finally(() => setLoading(false));
     api.get('/client/favourites/')
-      .then(r => setFavourites(r.data.slice(0, 6)))
+      .then(r => setFavourites(r.data.slice(0, 8)))
       .catch(() => {})
       .finally(() => setFavLoading(false));
     api.get('/offers/active/')
@@ -40,10 +40,14 @@ export default function UserDashboard() {
 
   const firstName = profile?.full_name?.split(' ')[0] || 'there';
 
+  const upcoming   = bookings.filter(b => ['pending','confirmed'].includes(b.status)).length;
+  const needAction = bookings.filter(b => b.status === 'awaiting_client').length;
+  const total      = bookings.length;
+
   return (
     <div>
-      {/* ── Hero banner ── */}
-      <div style={{ ...s.hero, padding: isMobile ? '32px 22px' : '48px 44px', flexDirection: isMobile ? 'column' : 'row' }} className="anim-gradient noise-bg">
+      {/* ── Hero banner with embedded stats ── */}
+      <div style={{ ...s.hero, padding: isMobile ? '28px 20px 24px' : '44px 44px 32px', flexDirection: isMobile ? 'column' : 'row' }} className="anim-gradient noise-bg">
         <div style={s.heroGlow1} />
         <div style={s.heroGlow2} />
         <div style={s.heroContent} className="fade-up">
@@ -61,29 +65,85 @@ export default function UserDashboard() {
               View all bookings →
             </Link>
           </div>
+
+          {/* Mobile: compact stats row below buttons */}
+          {isMobile && (
+            <div style={s.heroStatsMobile}>
+              {[
+                { label: 'Upcoming',     value: loading ? '–' : upcoming,   icon: '◉', accent: '#C4B5FD' },
+                { label: 'Need Action',  value: loading ? '–' : needAction, icon: '⚡', accent: '#FDE68A' },
+                { label: 'Total Active', value: loading ? '–' : total,      icon: '◈', accent: '#6EE7B7' },
+              ].map((stat, i) => (
+                <div key={stat.label} style={{ ...s.heroStatMobileItem, borderLeft: i > 0 ? '1px solid rgba(255,255,255,.12)' : 'none' }}>
+                  <span style={{ ...s.heroStatMobileVal }}>{stat.value}</span>
+                  <span style={s.heroStatMobileLabel}>{stat.label}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
+
+        {/* Desktop: stats column on the right side */}
         {!isMobile && (
-          <div style={s.heroDecor}>
-            <span style={s.scissorIcon}>✂</span>
+          <div style={s.heroStatsCol} className="fade-up d2">
+            {[
+              { label: 'Upcoming',     value: loading ? '–' : upcoming,   icon: '◉', accent: '#C4B5FD' },
+              { label: 'Need Action',  value: loading ? '–' : needAction, icon: '⚡', accent: '#FDE68A' },
+              { label: 'Total Active', value: loading ? '–' : total,      icon: '◈', accent: '#6EE7B7' },
+            ].map((stat, i) => (
+              <div key={stat.label} style={{ ...s.heroStatRow, borderTop: i > 0 ? '1px solid rgba(255,255,255,.08)' : 'none' }}>
+                <div style={{ ...s.heroStatIcon, color: stat.accent, background: stat.accent + '18' }}>{stat.icon}</div>
+                <div>
+                  <div style={s.heroStatVal}>{stat.value}</div>
+                  <div style={s.heroStatLabel}>{stat.label}</div>
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>
 
-      {/* ── Stats strip ── */}
-      <div style={{ ...s.statsStrip, flexWrap: isMobile ? 'wrap' : 'nowrap' }} className="fade-up d2">
-        {[
-          { label: 'Upcoming',     value: bookings.filter(b => ['pending','confirmed'].includes(b.status)).length, color: '#7C3AED', icon: '◉' },
-          { label: 'Need Action',  value: bookings.filter(b => b.status === 'awaiting_client').length,             color: '#D97706', icon: '⚡' },
-          { label: 'Total Active', value: bookings.length,                                                          color: '#059669', icon: '◈' },
-        ].map((stat, i) => (
-          <div key={stat.label} style={{ ...s.statItem, flex: isMobile ? '1 0 calc(50% - 1px)' : 1, borderRight: (isMobile && i === 1) ? 'none' : i < 2 ? '1px solid var(--border)' : 'none', borderBottom: isMobile && i < 2 ? '1px solid var(--border)' : 'none' }}>
-            <div style={{ ...s.statIconWrap, color: stat.color, background: stat.color + '14' }}>
-              {stat.icon}
-            </div>
-            <div style={{ ...s.statVal, color: stat.color }}>{stat.value}</div>
-            <div style={s.statLabel}>{stat.label}</div>
+      {/* ── Favourites section — replaces where stats strip was ── */}
+      <div style={s.favSection} className="fade-up d2">
+        <div style={s.sectionHead}>
+          <div>
+            <div style={s.sectionEyebrow}>Saved</div>
+            <h2 style={s.sectionTitle}>Favourites</h2>
           </div>
-        ))}
+          {favourites.length > 0 && (
+            <Link to="/user/favourites" style={s.seeAll}>View all →</Link>
+          )}
+        </div>
+
+        {favLoading && (
+          <div style={s.favScroll}>
+            {[1,2,3,4].map(i => (
+              <div key={i} style={{ width: 130, height: 126, borderRadius: 16, flexShrink: 0 }} className="shimmer" />
+            ))}
+          </div>
+        )}
+
+        {!favLoading && favourites.length === 0 && (
+          <div style={s.favEmpty}>
+            <span style={{ fontSize: 22, color: '#C9A96E', opacity: .35 }}>♡</span>
+            <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>Save salons you love while browsing</span>
+            <Link to="/salons" style={{ ...s.primaryBtn, fontSize: 12, padding: '8px 18px', display: 'inline-flex' }}>Browse Salons</Link>
+          </div>
+        )}
+
+        {!favLoading && favourites.length > 0 && (
+          <div style={s.favScroll}>
+            {favourites.map((fav, i) => (
+              <Link key={fav.id} to={`/salons/${fav.id}`} style={s.favCard} className="lift-sm">
+                <div style={{ ...s.favAvatar, background: FAV_PALETTE[i % FAV_PALETTE.length] }}>
+                  {fav.name[0]}
+                </div>
+                <div style={s.favName}>{fav.name}</div>
+                <div style={s.favCity}>{fav.address_city}</div>
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* ── Active Offers Banner ── */}
@@ -118,15 +178,15 @@ export default function UserDashboard() {
         </div>
       )}
 
-      {/* ── Action required banner — shown when bookings need attention ── */}
-      {bookings.filter(b => b.status === 'awaiting_client').length > 0 && (
+      {/* ── Action required banner ── */}
+      {needAction > 0 && (
         <div style={s.actionBanner} className="fade-up d2">
           <span style={s.actionBannerIcon}>⚡</span>
           <div style={{ flex: 1 }}>
             <span style={s.actionBannerText}>
-              {bookings.filter(b => b.status === 'awaiting_client').length === 1
+              {needAction === 1
                 ? 'A salon has proposed a new time for your booking.'
-                : `${bookings.filter(b => b.status === 'awaiting_client').length} salons have proposed new times for your bookings.`}
+                : `${needAction} salons have proposed new times for your bookings.`}
             </span>
           </div>
           <Link to="/user/bookings?filter=awaiting_client" style={s.actionBannerBtn}>
@@ -135,146 +195,94 @@ export default function UserDashboard() {
         </div>
       )}
 
-      {/* ── Main content: Appointments (left) + Favourites (right) ── */}
-      <div style={{ ...s.mainRow, flexDirection: (isMobile || isTablet) ? 'column' : 'row' }}>
-
-        {/* ── Upcoming Appointments — primary column, left ── */}
-        <div style={s.apptCol}>
-          <div style={s.sectionHead}>
-            <div>
-              <div style={s.sectionEyebrow}>Your Schedule</div>
-              <h2 style={s.sectionTitle}>Upcoming Appointments</h2>
-            </div>
-            {bookings.length > 0 && (
-              <Link to="/user/bookings" style={s.seeAll}>View all →</Link>
-            )}
+      {/* ── Upcoming Appointments — full width ── */}
+      <div style={s.apptSection} className="fade-up d3">
+        <div style={s.sectionHead}>
+          <div>
+            <div style={s.sectionEyebrow}>Your Schedule</div>
+            <h2 style={s.sectionTitle}>Upcoming Appointments</h2>
           </div>
-
-          {loading && (
-            <div style={s.loadGrid}>
-              {[1,2,3].map(i => <div key={i} style={s.skeleton} className="shimmer" />)}
-            </div>
+          {bookings.length > 0 && (
+            <Link to="/user/bookings" style={s.seeAll}>View all →</Link>
           )}
-
-          {!loading && bookings.length === 0 && (
-            <div style={s.emptyCard} className="scale-in">
-              <div className="empty-icon-wrap">
-                <svg width="38" height="38" viewBox="0 0 38 38" fill="none">
-                  <defs>
-                    <linearGradient id="dashEmptyG" x1="0" y1="0" x2="1" y2="1">
-                      <stop offset="0%" stopColor="#7C3AED"/>
-                      <stop offset="100%" stopColor="#0D9488"/>
-                    </linearGradient>
-                  </defs>
-                  <rect x="5" y="10" width="28" height="23" rx="4" stroke="url(#dashEmptyG)" strokeWidth="1.5"/>
-                  <line x1="5" y1="17" x2="33" y2="17" stroke="url(#dashEmptyG)" strokeWidth="1.5"/>
-                  <line x1="13" y1="5" x2="13" y2="13" stroke="url(#dashEmptyG)" strokeWidth="1.5" strokeLinecap="round"/>
-                  <line x1="25" y1="5" x2="25" y2="13" stroke="url(#dashEmptyG)" strokeWidth="1.5" strokeLinecap="round"/>
-                </svg>
-              </div>
-              <h3 style={s.emptyTitle}>No upcoming appointments</h3>
-              <p style={{ color: 'var(--text-muted)', fontSize: 15, marginBottom: 28, lineHeight: 1.7 }}>
-                Discover our curated salons and book your first appointment today.
-              </p>
-              <Link to="/salons" style={s.primaryBtn}>Browse Salons</Link>
-            </div>
-          )}
-
-          <div style={{ ...s.grid, gridTemplateColumns: isMobile ? '1fr' : isTablet ? 'repeat(2, 1fr)' : 'repeat(auto-fill, minmax(260px, 1fr))' }}>
-            {bookings.map((b, i) => {
-              const meta = STATUS_META[b.status] || { label: b.status, color: '#888', bg: '#f0f0f0' };
-              const dt   = new Date(b.requested_datetime);
-              return (
-                <div key={b.id} style={s.card} className={`lift lift-purple card-glow fade-up d${Math.min(i + 1, 5)}`}>
-                  <div style={{ ...s.cardAccent, background: `linear-gradient(90deg, ${meta.color}, ${meta.color}66)` }} />
-
-                  <div style={s.cardInner}>
-                    <div style={{ ...s.dateBadge, background: meta.bg }}>
-                      <div style={{ ...s.dateBadgeMonth, color: meta.color }}>
-                        {dt.toLocaleDateString('en-US', { month: 'short' })}
-                      </div>
-                      <div style={{ ...s.dateBadgeDay, color: '#1A0A2E' }}>
-                        {dt.toLocaleDateString('en-US', { day: '2-digit' })}
-                      </div>
-                      <div style={s.dateBadgeTime}>
-                        {dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </div>
-                    </div>
-
-                    <div style={s.cardContent}>
-                      <div style={s.salonName}>{b.salon_name}</div>
-                      {b.booking_services?.length > 0 && (
-                        <div style={s.services}>
-                          ✂ {b.booking_services.map(bs => bs.service_name).join(' · ')}
-                        </div>
-                      )}
-                      <span style={{ ...s.statusBadge, color: meta.color, background: meta.bg, border: `1px solid ${meta.color}28` }}>
-                        {meta.label}
-                      </span>
-                    </div>
-                  </div>
-
-                  {b.status === 'awaiting_client' && (
-                    <div style={s.actionHint}>
-                      ⚡ Action required — alternative slots available
-                    </div>
-                  )}
-
-                  <Link to={`/user/bookings/${b.id}`} style={s.cardLink}>
-                    View Details <span style={s.linkArrow}>→</span>
-                  </Link>
-                </div>
-              );
-            })}
-          </div>
         </div>
 
-        {/* ── Favourite Salons — secondary column, right ── */}
-        <div style={{ ...s.favCol, width: (isMobile || isTablet) ? '100%' : 280 }}>
-          <div style={s.sectionHead}>
-            <div>
-              <div style={s.sectionEyebrow}>Saved</div>
-              <h2 style={s.sectionTitle}>Favourites</h2>
-            </div>
-            {favourites.length > 0 && (
-              <Link to="/salons" style={s.seeAll}>Browse →</Link>
-            )}
+        {loading && (
+          <div style={{ ...s.grid, gridTemplateColumns: isMobile ? '1fr' : isTablet ? 'repeat(2, 1fr)' : 'repeat(auto-fill, minmax(260px, 1fr))' }}>
+            {[1,2,3].map(i => <div key={i} style={s.skeleton} className="shimmer" />)}
           </div>
+        )}
 
-          {favLoading && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {[1,2,3].map(i => <div key={i} style={{ height: 72, borderRadius: 14 }} className="shimmer" />)}
+        {!loading && bookings.length === 0 && (
+          <div style={s.emptyCard} className="scale-in">
+            <div className="empty-icon-wrap">
+              <svg width="38" height="38" viewBox="0 0 38 38" fill="none">
+                <defs>
+                  <linearGradient id="dashEmptyG" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stopColor="#7C3AED"/>
+                    <stop offset="100%" stopColor="#0D9488"/>
+                  </linearGradient>
+                </defs>
+                <rect x="5" y="10" width="28" height="23" rx="4" stroke="url(#dashEmptyG)" strokeWidth="1.5"/>
+                <line x1="5" y1="17" x2="33" y2="17" stroke="url(#dashEmptyG)" strokeWidth="1.5"/>
+                <line x1="13" y1="5" x2="13" y2="13" stroke="url(#dashEmptyG)" strokeWidth="1.5" strokeLinecap="round"/>
+                <line x1="25" y1="5" x2="25" y2="13" stroke="url(#dashEmptyG)" strokeWidth="1.5" strokeLinecap="round"/>
+              </svg>
             </div>
-          )}
+            <h3 style={s.emptyTitle}>No upcoming appointments</h3>
+            <p style={{ color: 'var(--text-muted)', fontSize: 15, marginBottom: 28, lineHeight: 1.7 }}>
+              Discover our curated salons and book your first appointment today.
+            </p>
+            <Link to="/salons" style={s.primaryBtn}>Browse Salons</Link>
+          </div>
+        )}
 
-          {!favLoading && favourites.length === 0 && (
-            <div style={s.favEmpty} className="scale-in">
-              <div style={{ fontSize: 28, marginBottom: 10 }}>♡</div>
-              <p style={{ color: 'var(--text-muted)', fontSize: 13, margin: 0, lineHeight: 1.6 }}>
-                Save salons you love while browsing.
-              </p>
-              <Link to="/salons" style={{ ...s.primaryBtn, fontSize: 12, padding: '9px 18px', marginTop: 14, display: 'inline-flex' }}>
-                Browse Salons
-              </Link>
-            </div>
-          )}
+        <div style={{ ...s.grid, gridTemplateColumns: isMobile ? '1fr' : isTablet ? 'repeat(2, 1fr)' : 'repeat(auto-fill, minmax(260px, 1fr))' }}>
+          {bookings.map((b, i) => {
+            const meta = STATUS_META[b.status] || { label: b.status, color: '#888', bg: '#f0f0f0' };
+            const dt   = new Date(b.requested_datetime);
+            return (
+              <div key={b.id} style={s.card} className={`lift lift-purple card-glow fade-up d${Math.min(i + 1, 5)}`}>
+                <div style={{ ...s.cardAccent, background: `linear-gradient(90deg, ${meta.color}, ${meta.color}66)` }} />
 
-          {favourites.length > 0 && (
-            <div style={s.favList}>
-              {favourites.map((fav, i) => (
-                <Link key={fav.id} to={`/salons/${fav.id}`} style={s.favCard} className="lift-sm">
-                  <div style={{ ...s.favAvatar, background: FAV_PALETTE[i % FAV_PALETTE.length] }}>
-                    {fav.name[0]}
+                <div style={s.cardInner}>
+                  <div style={{ ...s.dateBadge, background: `${meta.color}18` }}>
+                    <div style={{ ...s.dateBadgeMonth, color: meta.color }}>
+                      {dt.toLocaleDateString('en-US', { month: 'short' })}
+                    </div>
+                    <div style={{ ...s.dateBadgeDay, color: 'var(--text)' }}>
+                      {dt.toLocaleDateString('en-US', { day: '2-digit' })}
+                    </div>
+                    <div style={s.dateBadgeTime}>
+                      {dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </div>
                   </div>
-                  <div style={s.favInfo}>
-                    <div style={s.favName}>{fav.name}</div>
-                    <div style={s.favCity}>{fav.address_city}</div>
+
+                  <div style={s.cardContent}>
+                    <div style={s.salonName}>{b.salon_name}</div>
+                    {b.booking_services?.length > 0 && (
+                      <div style={s.services}>
+                        ✂ {b.booking_services.map(bs => bs.service_name).join(' · ')}
+                      </div>
+                    )}
+                    <span style={{ ...s.statusBadge, color: meta.color, background: `${meta.color}15`, border: `1px solid ${meta.color}30` }}>
+                      {meta.label}
+                    </span>
                   </div>
-                  <span style={s.favArrow}>→</span>
+                </div>
+
+                {b.status === 'awaiting_client' && (
+                  <div style={s.actionHint}>
+                    ⚡ Action required — alternative slots available
+                  </div>
+                )}
+
+                <Link to={`/user/bookings/${b.id}`} style={s.cardLink}>
+                  View Details <span style={s.linkArrow}>→</span>
                 </Link>
-              ))}
-            </div>
-          )}
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
@@ -283,9 +291,9 @@ export default function UserDashboard() {
 
 const s = {
   hero: {
-    borderRadius: 24, padding: '48px 44px',
+    borderRadius: 24, padding: '44px 44px 32px',
     background: 'linear-gradient(145deg, #1A0532 0%, #2D0A5E 30%, #5B21B6 65%, #7C3AED 100%)',
-    marginBottom: 24, position: 'relative', overflow: 'hidden',
+    marginBottom: 28, position: 'relative', overflow: 'hidden',
     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
   },
   heroGlow1: {
@@ -298,23 +306,88 @@ const s = {
     background: 'radial-gradient(circle, rgba(191,155,101,.12) 0%, transparent 70%)',
     bottom: -60, left: 40, pointerEvents: 'none', filter: 'blur(50px)',
   },
-  heroContent: { position: 'relative', zIndex: 2 },
+  heroContent: { position: 'relative', zIndex: 2, flex: 1 },
   greeting: { fontSize: 12, color: 'rgba(196,181,253,.75)', letterSpacing: '0.14em', marginBottom: 10, textTransform: 'uppercase', fontWeight: 500 },
   heroName: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 'clamp(34px, 4vw, 52px)', fontWeight: 700, color: '#fff', margin: '0 0 10px', lineHeight: 1.05, display: 'flex', alignItems: 'center', gap: 14, letterSpacing: '-0.02em' },
   wave:    { fontSize: 20, color: '#C9A96E', animation: 'floatBob 3s ease-in-out infinite' },
-  heroSub: { color: 'rgba(255,255,255,.6)', fontSize: 15, margin: '0 0 30px' },
+  heroSub: { color: 'rgba(255,255,255,.6)', fontSize: 15, margin: '0 0 26px' },
   heroBtns:{ display: 'flex', gap: 12, flexWrap: 'wrap' },
   primaryBtn: { padding: '12px 26px', background: 'linear-gradient(135deg, #7C3AED 0%, #0D9488 100%)', color: '#fff', borderRadius: 12, fontWeight: 700, fontSize: 14, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 7, boxShadow: '0 6px 20px rgba(124,58,237,.4)' },
-  cosmeticsBtn: { padding: '12px 26px', background: 'linear-gradient(135deg, #EC4899 0%, #F59E0B 100%)', color: '#fff', borderRadius: 12, fontWeight: 700, fontSize: 14, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 7, boxShadow: '0 6px 20px rgba(236,72,153,.35)' },
   ghostBtn:   { padding: '12px 20px', background: 'rgba(255,255,255,.1)', color: '#E9D5FF', borderRadius: 12, fontWeight: 500, fontSize: 14, textDecoration: 'none', border: '1px solid rgba(255,255,255,.14)', transition: 'background .18s ease' },
-  heroDecor:  { position: 'relative', zIndex: 2, flexShrink: 0, opacity: .1 },
-  scissorIcon:{ fontSize: 110, color: '#fff', display: 'block', lineHeight: 1 },
+  /* Desktop: stats column on right side of hero */
+  heroStatsCol: {
+    position: 'relative', zIndex: 2, flexShrink: 0,
+    display: 'flex', flexDirection: 'column',
+    background: 'rgba(255,255,255,.06)', backdropFilter: 'blur(12px)',
+    border: '1px solid rgba(255,255,255,.1)',
+    borderRadius: 18, overflow: 'hidden', minWidth: 180,
+  },
+  heroStatRow: {
+    display: 'flex', alignItems: 'center', gap: 12,
+    padding: '14px 20px',
+  },
+  heroStatIcon: {
+    width: 32, height: 32, borderRadius: 9, flexShrink: 0,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    fontSize: 13, fontWeight: 700,
+  },
+  heroStatVal: {
+    fontFamily: "'DM Sans', sans-serif",
+    fontSize: 26, fontWeight: 800, lineHeight: 1, color: '#fff',
+  },
+  heroStatLabel: {
+    fontSize: 9, color: 'rgba(255,255,255,.5)',
+    fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.12em', marginTop: 2,
+  },
 
-  statsStrip: { display: 'flex', gap: 0, background: 'var(--surface)', borderRadius: 18, marginBottom: 32, border: '1px solid var(--border)', overflow: 'hidden', boxShadow: '0 4px 16px rgba(124,58,237,.07)' },
-  statItem:   { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '20px 16px', gap: 5 },
-  statIconWrap: { width: 36, height: 36, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, marginBottom: 4 },
-  statVal:   { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 32, fontWeight: 700, lineHeight: 1 },
-  statLabel: { fontSize: 11, color: 'var(--text-muted)', fontWeight: 500, textAlign: 'center' },
+  /* Mobile: compact stats strip below buttons */
+  heroStatsMobile: {
+    display: 'flex', marginTop: 20, paddingTop: 16,
+    borderTop: '1px solid rgba(255,255,255,.1)',
+  },
+  heroStatMobileItem: {
+    flex: 1, display: 'flex', flexDirection: 'column',
+    alignItems: 'center', gap: 2, padding: '0 12px',
+  },
+  heroStatMobileVal: {
+    fontFamily: "'DM Sans', sans-serif",
+    fontSize: 24, fontWeight: 800, lineHeight: 1, color: '#fff',
+  },
+  heroStatMobileLabel: {
+    fontSize: 8, color: 'rgba(255,255,255,.45)',
+    fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em',
+  },
+
+  /* Favourites section */
+  favSection: { marginBottom: 28 },
+  favScroll: {
+    display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 8,
+    scrollbarWidth: 'none',
+  },
+  favCard: {
+    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
+    padding: '16px 14px 12px', background: 'var(--surface)', borderRadius: 16,
+    border: '1px solid var(--border)', textDecoration: 'none',
+    minWidth: 120, flexShrink: 0, textAlign: 'center',
+    boxShadow: '0 2px 8px rgba(0,0,0,.04)',
+    transition: 'transform .2s ease, box-shadow .2s ease',
+  },
+  favAvatar: {
+    width: 50, height: 50, borderRadius: 13, flexShrink: 0,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    fontFamily: "'Cormorant Garamond', Georgia, serif",
+    fontSize: 22, fontWeight: 700, color: '#fff',
+  },
+  favName: {
+    fontWeight: 700, fontSize: 12, color: 'var(--text)',
+    maxWidth: 100, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+  },
+  favCity: { fontSize: 10, color: 'var(--text-muted)' },
+  favEmpty: {
+    display: 'flex', alignItems: 'center', gap: 14,
+    padding: '16px 20px', background: 'var(--surface)', borderRadius: 14,
+    border: '1px solid var(--border)',
+  },
 
   offersSection: { marginBottom: 28 },
   offersHead:    { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 14 },
@@ -348,33 +421,14 @@ const s = {
     fontFamily: "'DM Sans', sans-serif",
   },
 
-  mainRow: { display: 'flex', gap: 28, alignItems: 'flex-start' },
+  apptSection: { marginBottom: 48 },
 
-  favCol: { flexShrink: 0 },
-  favEmpty: { background: 'var(--surface)', borderRadius: 16, padding: '28px 20px', textAlign: 'center', border: '1px solid var(--border)', color: '#C9A96E', fontSize: 14 },
-  favList: { display: 'flex', flexDirection: 'column', gap: 8 },
-  favCard: {
-    display: 'flex', alignItems: 'center', gap: 12,
-    padding: '12px 14px', background: 'var(--surface)', borderRadius: 14,
-    border: '1px solid var(--border)', textDecoration: 'none',
-    transition: 'all .15s ease', boxShadow: '0 2px 8px rgba(0,0,0,.04)',
-  },
-  favAvatar: { width: 40, height: 40, borderRadius: 11, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 18, fontWeight: 700, color: '#fff' },
-  favInfo:   { flex: 1, minWidth: 0 },
-  favName:   { fontWeight: 700, fontSize: 13, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
-  favCity:   { fontSize: 11, color: 'var(--text-muted)', marginTop: 1 },
-  favArrow:  { color: '#7C3AED', fontSize: 14, flexShrink: 0 },
-
-  apptCol: { flex: 1, minWidth: 0 },
-
-  section: { marginTop: 0 },
-  sectionHead:   { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 16 },
-  sectionEyebrow:{ fontSize: 10, fontWeight: 700, color: 'var(--brand-label)', letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: 5 },
-  sectionTitle:  { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 24, fontWeight: 700, color: 'var(--text)', margin: 0, letterSpacing: '-0.01em' },
+  sectionHead:    { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 16 },
+  sectionEyebrow: { fontSize: 10, fontWeight: 700, color: 'var(--brand-label)', letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: 5 },
+  sectionTitle:   { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 24, fontWeight: 700, color: 'var(--text)', margin: 0, letterSpacing: '-0.01em' },
   seeAll: { fontSize: 13, color: '#7C3AED', fontWeight: 600, marginBottom: 4 },
 
   grid:     { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 18 },
-  loadGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 18 },
   skeleton: { height: 210, borderRadius: 20 },
 
   card: { background: 'var(--surface)', borderRadius: 20, boxShadow: '0 4px 20px rgba(124,58,237,.07), 0 1px 4px rgba(0,0,0,.04)', border: '1px solid var(--border)', overflow: 'hidden', display: 'flex', flexDirection: 'column' },
@@ -382,7 +436,7 @@ const s = {
   cardInner:  { display: 'flex', gap: 16, padding: '20px 22px 14px', alignItems: 'flex-start' },
   dateBadge:  { display: 'flex', flexDirection: 'column', alignItems: 'center', borderRadius: 14, padding: '10px 13px', flexShrink: 0, minWidth: 60 },
   dateBadgeMonth: { fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' },
-  dateBadgeDay:   { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 28, fontWeight: 700, lineHeight: 1.1 },
+  dateBadgeDay:   { fontFamily: "'DM Sans', sans-serif", fontSize: 26, fontWeight: 700, lineHeight: 1.1 },
   dateBadgeTime:  { fontSize: 10, color: 'var(--text-muted)', marginTop: 2 },
   cardContent: { flex: 1 },
   salonName:   { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 16, fontWeight: 700, color: 'var(--text)', marginBottom: 5, letterSpacing: '-0.01em' },

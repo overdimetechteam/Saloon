@@ -80,26 +80,26 @@ export default function OwnerDashboard() {
   const statCards = [
     {
       label: 'Pending Bookings', value: stats.pending,
-      grad: 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)',
-      color: '#D97706', border: '#FDE68A66', icon: '⏳',
+      grad: 'linear-gradient(135deg, rgba(236,72,153,.14) 0%, rgba(236,72,153,.07) 100%)',
+      color: '#EC4899', border: 'rgba(236,72,153,.28)', icon: '⏳',
       to: '/owner/bookings',
     },
     {
       label: 'Confirmed Today', value: stats.confirmed,
-      grad: 'linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)',
-      color: '#059669', border: '#6EE7B766', icon: '✓',
+      grad: 'linear-gradient(135deg, rgba(13,148,136,.14) 0%, rgba(13,148,136,.07) 100%)',
+      color: '#0D9488', border: 'rgba(13,148,136,.28)', icon: '✓',
       to: '/owner/bookings',
     },
     {
       label: 'Low Stock Alerts', value: stats.lowStock,
-      grad: 'linear-gradient(135deg, #FEF2F2 0%, #FEE2E2 100%)',
-      color: '#DC2626', border: '#FCA5A566', icon: '⚠',
+      grad: 'linear-gradient(135deg, rgba(220,38,38,.12) 0%, rgba(220,38,38,.06) 100%)',
+      color: '#DC2626', border: 'rgba(220,38,38,.25)', icon: '⚠',
       to: '/owner/reports',
     },
     {
       label: "Today's Queue", value: stats.todayBookings.length,
-      grad: 'linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%)',
-      color: '#2563EB', border: '#93C5FD66', icon: '◉',
+      grad: 'linear-gradient(135deg, rgba(124,58,237,.14) 0%, rgba(124,58,237,.07) 100%)',
+      color: '#7C3AED', border: 'rgba(124,58,237,.28)', icon: '◉',
       to: '/owner/bookings',
     },
   ];
@@ -324,8 +324,8 @@ const s = {
     fontSize: 17, marginBottom: 14,
   },
   statVal: {
-    fontFamily: "'Cormorant Garamond', Georgia, serif",
-    fontSize: 38, fontWeight: 700, lineHeight: 1, marginBottom: 5,
+    fontFamily: "'DM Sans', sans-serif",
+    fontSize: 38, fontWeight: 800, lineHeight: 1, marginBottom: 5,
   },
   statLabel: { fontSize: 12, fontWeight: 600, lineHeight: 1.3 },
   statArrow: { position: 'absolute', top: 18, right: 20, fontSize: 17, opacity: .5 },

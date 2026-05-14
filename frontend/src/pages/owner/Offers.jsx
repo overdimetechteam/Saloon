@@ -163,7 +163,7 @@ export default function OwnerOffers() {
                     </span>
                   </div>
                   <div style={s.discountBadge}>
-                    <span style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 28, fontWeight: 700, color }}>
+                    <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 28, fontWeight: 800, color }}>
                       {offer.discount_value}{DISC_LABEL[offer.discount_type]}
                     </span>
                     <span style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 1 }}>off</span>

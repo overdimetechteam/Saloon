@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
@@ -28,7 +28,7 @@ const MOCK_REVIEWS = [
 
 const CAT_COLORS = {
   Hair: '#7C3AED', Nails: '#0D9488',
-  Skin: '#059669', Makeup: '#D97706', Other: '#2563EB',
+  Skin: '#059669', Makeup: '#EC4899', Cosmetics: '#EC4899', Other: '#2563EB',
 };
 
 const PALETTE = [
@@ -42,7 +42,7 @@ function Stars({ rating, size = 14 }) {
   return (
     <span style={{ letterSpacing: 1 }}>
       {[1, 2, 3, 4, 5].map(i => (
-        <span key={i} style={{ color: i <= rating ? '#BF9B65' : 'var(--border)', fontSize: size }}>★</span>
+        <span key={i} style={{ color: i <= rating ? '#BF9B65' : 'rgba(236,72,153,.45)', fontSize: size }}>★</span>
       ))}
     </span>
   );
@@ -50,6 +50,7 @@ function Stars({ rating, size = 14 }) {
 
 export default function SalonDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { profile } = useAuth();
   const { isMobile, isTablet } = useBreakpoint();
   const [salon, setSalon]           = useState(null);
@@ -63,6 +64,10 @@ export default function SalonDetail() {
   const [salonImages, setSalonImages] = useState([]);
   const [lightboxIdx, setLightboxIdx] = useState(null);
   const [activeServiceCat, setActiveServiceCat] = useState(null);
+  const [reviewRating, setReviewRating] = useState(0);
+  const [reviewText, setReviewText] = useState('');
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
+  const [reviewMsg, setReviewMsg] = useState('');
 
   const servicesRef = useRef(null);
   const teamRef     = useRef(null);
@@ -91,6 +96,28 @@ export default function SalonDetail() {
       const r = await api.post(`/salons/${id}/favourite/`);
       setIsFav(r.data.is_favourited);
     } catch {} finally { setFavLoading(false); }
+  };
+
+  const submitReview = async () => {
+    if (!reviewRating) return;
+    setReviewSubmitting(true);
+    setReviewMsg('');
+    try {
+      await api.post(`/salons/${id}/reviews/`, { rating: reviewRating, comment: reviewText });
+      setReviewMsg('Thank you! Your review has been submitted.');
+      setReviewRating(0);
+      setReviewText('');
+      const [rv, sum] = await Promise.all([
+        api.get(`/salons/${id}/reviews/`),
+        api.get(`/salons/${id}/reviews/summary/`),
+      ]);
+      setReviews(rv.data);
+      setSummary(sum.data);
+    } catch (e) {
+      setReviewMsg(e.response?.data?.detail || 'Unable to submit review.');
+    } finally {
+      setReviewSubmitting(false);
+    }
   };
 
   useEffect(() => {
@@ -224,9 +251,9 @@ export default function SalonDetail() {
             ))}
           </div>
           {isClient && (
-            <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
-              <Link to="/user/cosmetics" style={s.tabCosmeticsBtn}>✿ Cosmetics</Link>
+            <div style={{ display: 'flex', gap: 8, flexShrink: 0, marginLeft: 8 }}>
               <Link to={`/user/book/${id}`} style={s.tabBookBtn}>✦ Book Now</Link>
+              <Link to="/user/cosmetics" style={s.tabCosmeticsBtn}>✿ Cosmetics</Link>
             </div>
           )}
         </div>
@@ -345,7 +372,7 @@ export default function SalonDetail() {
                       ) : null}
                       <div style={s.svcMeta}>
                         <span style={s.svcDur}>⏱ {ss.effective_duration} min</span>
-                        <span style={{ ...s.svcPrice, color: activeCatColor }}>
+                        <span style={{ ...s.svcPrice, background: activeCatColor, color: '#fff', padding: '3px 10px', borderRadius: 8 }}>
                           {ss.is_price_starting_from && <span style={s.svcStarting}>Starting From </span>}
                           LKR {ss.effective_price}
                         </span>
@@ -393,31 +420,56 @@ export default function SalonDetail() {
           </section>
         )}
 
-        {/* About Us — moved above Team */}
-        <section style={s.sec} className="fade-up d1">
-          <div style={s.eyebrowSm}>Our Story</div>
-          <h2 style={s.secTitle}>About {salon.name}</h2>
-          <div style={s.aboutCard}>
-            <p style={s.aboutText}>
-              {salon.description ||
-                `Welcome to ${salon.name}, where beauty meets excellence. Nestled in the heart of ${salon.address_city}, we are dedicated to providing an unparalleled salon experience that combines artistry, expertise, and personalised care.`}
-            </p>
-            <p style={s.aboutText}>
-              Our team of highly trained professionals is passionate about helping you look and feel your absolute best. Whether you're in for a fresh cut, a luxurious treatment, or a complete transformation, we promise results that exceed your expectations.
-            </p>
-            <div style={{ ...s.aboutStats, gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)' }}>
-              {[
-                { val: '500+', label: 'Happy Clients'   },
-                { val: '4+',  label: 'Years Experience' },
-                { val: '15+', label: 'Expert Staff'     },
-                { val: '4.8', label: 'Average Rating'   },
-              ].map(stat => (
-                <div key={stat.label} style={{ textAlign: 'center' }}>
-                  <div style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 34, fontWeight: 700, color: '#7C3AED', marginBottom: 4 }}>{stat.val}</div>
-                  <div style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 500 }}>{stat.label}</div>
+        {/* About + Working Hours — side by side */}
+        <section ref={infoRef} style={s.sec} className="fade-up d1">
+          <div style={{ display: 'flex', gap: 24, flexDirection: isMobile ? 'column' : 'row', alignItems: 'flex-start' }}>
+
+            {/* About — 75% */}
+            <div style={{ flex: 3, minWidth: 0 }}>
+              <div style={s.eyebrowSm}>Our Story</div>
+              <h2 style={s.secTitle}>About {salon.name}</h2>
+              <div style={s.aboutCard}>
+                <p style={s.aboutText}>
+                  {salon.description ||
+                    `Welcome to ${salon.name}, where beauty meets excellence. Nestled in the heart of ${salon.address_city}, we are dedicated to providing an unparalleled salon experience that combines artistry, expertise, and personalised care.`}
+                </p>
+                <p style={s.aboutText}>
+                  Our team of highly trained professionals is passionate about helping you look and feel your absolute best. Whether you're in for a fresh cut, a luxurious treatment, or a complete transformation, we promise results that exceed your expectations.
+                </p>
+                <div style={{ ...s.aboutStats, gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)' }}>
+                  {[
+                    { val: '500+', label: 'Happy Clients'   },
+                    { val: '4+',  label: 'Years Experience' },
+                    { val: '15+', label: 'Expert Staff'     },
+                    { val: '4.8', label: 'Average Rating'   },
+                  ].map(stat => (
+                    <div key={stat.label} style={{ textAlign: 'center', padding: '14px 8px', background: 'linear-gradient(135deg, rgba(124,58,237,.18) 0%, rgba(236,72,153,.14) 100%)', borderRadius: 14, border: '1px solid rgba(236,72,153,.15)' }}>
+                      <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 28, fontWeight: 800, color: '#fff', marginBottom: 4 }}>{stat.val}</div>
+                      <div style={{ fontSize: 11, color: 'rgba(255,255,255,.65)', fontWeight: 600 }}>{stat.label}</div>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              </div>
             </div>
+
+            {/* Working Hours — 25% */}
+            <div style={{ flex: 1, minWidth: 160 }}>
+              <div style={s.eyebrowSm}>When We're Open</div>
+              <h2 style={s.secTitle}>Hours</h2>
+              <div style={{ ...s.hoursCard, padding: '16px 18px' }}>
+                {Object.keys(salon.operating_hours || {}).length === 0 ? (
+                  <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>Hours not specified</p>
+                ) : (
+                  Object.entries(salon.operating_hours).map(([day, hours]) => (
+                    <div key={day} style={{ ...s.hourRow, padding: '7px 0' }}>
+                      <span style={s.dayLabel}>{day.slice(0, 3).toUpperCase()}</span>
+                      <span style={{ ...s.hoursVal, fontSize: 12 }}>{hours.open} – {hours.close}</span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
           </div>
         </section>
 
@@ -448,7 +500,7 @@ export default function SalonDetail() {
             </div>
             {summary && summary.total_reviews > 0 && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                <div style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 52, fontWeight: 700, color: 'var(--text)', lineHeight: 1 }}>{summary.average_rating.toFixed(1)}</div>
+                <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 52, fontWeight: 800, color: 'var(--text)', lineHeight: 1 }}>{summary.average_rating.toFixed(1)}</div>
                 <div>
                   <Stars rating={Math.round(summary.average_rating)} size={16} />
                   <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 3 }}>Based on {summary.total_reviews} review{summary.total_reviews !== 1 ? 's' : ''}</div>
@@ -477,27 +529,49 @@ export default function SalonDetail() {
               ))}
             </div>
           )}
+
+          {isClient && (
+            <div style={s.reviewForm}>
+              <div style={s.reviewFormTitle}>Leave a Review</div>
+              <div style={s.reviewFormStars}>
+                {[1, 2, 3, 4, 5].map(i => (
+                  <button
+                    key={i}
+                    style={{ ...s.reviewStarBtn, color: i <= reviewRating ? '#BF9B65' : 'rgba(236,72,153,.4)', transform: i <= reviewRating ? 'scale(1.15)' : 'scale(1)' }}
+                    onClick={() => setReviewRating(i)}
+                  >★</button>
+                ))}
+                {reviewRating > 0 && (
+                  <span style={{ fontSize: 12, color: 'var(--text-muted)', alignSelf: 'center', marginLeft: 6 }}>
+                    {['', 'Poor', 'Fair', 'Good', 'Great', 'Excellent'][reviewRating]}
+                  </span>
+                )}
+              </div>
+              {reviewRating > 0 && (
+                <textarea
+                  style={s.reviewTextarea}
+                  value={reviewText}
+                  onChange={e => setReviewText(e.target.value)}
+                  placeholder="Share your experience…"
+                  rows={3}
+                />
+              )}
+              {reviewMsg && (
+                <div style={{ ...s.reviewMsg, color: reviewMsg.startsWith('Thank') ? '#059669' : '#DC2626' }}>
+                  {reviewMsg}
+                </div>
+              )}
+              <button
+                style={{ ...s.reviewSubmitBtn, opacity: !reviewRating || reviewSubmitting ? 0.5 : 1 }}
+                onClick={submitReview}
+                disabled={!reviewRating || reviewSubmitting}
+              >
+                {reviewSubmitting ? 'Submitting…' : '★ Submit Review'}
+              </button>
+            </div>
+          )}
         </section>
 
-        {/* Working Hours */}
-        <section ref={infoRef} style={s.sec} className="fade-up d3">
-          <div style={s.eyebrowSm}>When We're Open</div>
-          <h2 style={s.secTitle}>Working Hours</h2>
-          <div style={s.hoursCard}>
-            {Object.keys(salon.operating_hours || {}).length === 0 ? (
-              <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>Hours not specified</p>
-            ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '0 40px' }}>
-                {Object.entries(salon.operating_hours).map(([day, hours]) => (
-                  <div key={day} style={s.hourRow}>
-                    <span style={s.dayLabel}>{day.slice(0, 3).toUpperCase()}</span>
-                    <span style={s.hoursVal}>{hours.open} – {hours.close}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </section>
 
         {/* Other Salons */}
         {otherSalons.length > 0 && (
@@ -575,7 +649,7 @@ const s = {
     fontSize: 42, fontWeight: 700, color: '#fff', margin: '0 0 12px', lineHeight: 1.1, letterSpacing: '-0.01em',
   },
   ratingRow: { display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' },
-  ratingNum: { fontSize: 16, fontWeight: 800, color: '#BF9B65' },
+  ratingNum: { fontSize: 16, fontWeight: 800, color: '#BF9B65', fontFamily: "'DM Sans', sans-serif" },
   ratingCt:  { fontSize: 13, color: 'rgba(255,255,255,.6)' },
   dot:       { color: 'rgba(255,255,255,.3)', fontSize: 18 },
   openBadge: { fontSize: 12, color: '#F0FFFE', background: 'rgba(52,211,153,.15)', borderRadius: 20, padding: '3px 10px', fontWeight: 600 },
@@ -598,11 +672,12 @@ const s = {
   },
   heroCosmeticsBtn: {
     padding: '14px 26px', flexShrink: 0,
-    background: 'linear-gradient(135deg, #EC4899 0%, #F59E0B 100%)',
+    background: 'linear-gradient(315deg, #EC4899 0%, #A855F7 100%)',
     color: '#fff', borderRadius: 14, fontWeight: 700, fontSize: 15,
-    textDecoration: 'none', boxShadow: '0 6px 20px rgba(236,72,153,.4)',
+    textDecoration: 'none', boxShadow: '0 6px 20px rgba(168,85,247,.38)',
     display: 'inline-flex', alignItems: 'center', gap: 8,
     fontFamily: "'DM Sans', sans-serif",
+    border: 'none', cursor: 'pointer',
   },
 
   tabBar: {
@@ -631,10 +706,10 @@ const s = {
   },
   tabCosmeticsBtn: {
     padding: '8px 16px',
-    background: 'linear-gradient(135deg, #EC4899 0%, #F59E0B 100%)',
+    background: 'linear-gradient(315deg, #EC4899 0%, #A855F7 100%)',
     color: '#fff', borderRadius: 10, fontWeight: 700, fontSize: 13,
     textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6,
-    boxShadow: '0 4px 14px rgba(236,72,153,.28)',
+    boxShadow: '0 4px 14px rgba(168,85,247,.28)',
     fontFamily: "'DM Sans', sans-serif",
   },
 
@@ -689,7 +764,7 @@ const s = {
   svcName:    { fontWeight: 700, fontSize: 14, color: 'var(--text)' },
   svcMeta:    { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
   svcDur:     { fontSize: 12, color: 'var(--text-muted)' },
-  svcPrice:   { fontWeight: 700, fontSize: 15 },
+  svcPrice:   { fontWeight: 700, fontSize: 13, fontFamily: "'DM Sans', sans-serif" },
   svcDesc:    { fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.6, margin: '4px 0 6px', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' },
   svcStarting: { fontSize: 10, fontWeight: 700, opacity: 0.8, letterSpacing: '0.04em' },
   svcBookHint: { fontSize: 11, fontWeight: 600, color: '#7C3AED', marginTop: 8, letterSpacing: '0.02em' },
@@ -770,7 +845,7 @@ const s = {
 
   offersGrid:      { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 14 },
   offerCard:       { background: 'var(--surface)', borderRadius: 14, padding: '18px 20px', border: '1px solid var(--border)', boxShadow: '0 2px 10px rgba(0,0,0,.05)' },
-  offerDiscount:   { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 26, fontWeight: 700, lineHeight: 1, marginBottom: 6 },
+  offerDiscount:   { fontFamily: "'DM Sans', sans-serif", fontSize: 26, fontWeight: 800, lineHeight: 1, marginBottom: 6 },
   offerCardTitle:  { fontWeight: 700, fontSize: 15, color: 'var(--text)', marginBottom: 6 },
   offerDesc:       { fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.6, margin: '0 0 6px' },
   offerNote:       { fontSize: 12, color: 'var(--text-muted)', fontStyle: 'italic' },
@@ -783,6 +858,37 @@ const s = {
   aboutStats: {
     display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16,
     marginTop: 24, paddingTop: 24, borderTop: '1px solid var(--border)',
+  },
+
+  reviewForm: {
+    background: 'var(--surface)', borderRadius: 18, padding: '24px 26px',
+    border: '1px solid var(--border)', boxShadow: '0 2px 8px rgba(0,0,0,.05)',
+    marginTop: 24,
+  },
+  reviewFormTitle: {
+    fontFamily: "'Cormorant Garamond', Georgia, serif",
+    fontSize: 18, fontWeight: 700, color: 'var(--text)', marginBottom: 14, letterSpacing: '-0.01em',
+  },
+  reviewFormStars: { display: 'flex', alignItems: 'center', gap: 4, marginBottom: 14 },
+  reviewStarBtn: {
+    fontSize: 28, background: 'none', border: 'none', cursor: 'pointer',
+    padding: '0 1px', lineHeight: 1, transition: 'transform .12s ease, color .12s ease',
+  },
+  reviewTextarea: {
+    width: '100%', padding: '12px 14px', border: '1.5px solid var(--border)',
+    borderRadius: 12, fontSize: 14, background: 'var(--input-bg)', color: 'var(--text)',
+    fontFamily: "'DM Sans', sans-serif", outline: 'none', resize: 'vertical',
+    boxSizing: 'border-box', marginBottom: 12, lineHeight: 1.6, minHeight: 90,
+    display: 'block',
+  },
+  reviewMsg: { fontSize: 13, fontWeight: 600, marginBottom: 12 },
+  reviewSubmitBtn: {
+    padding: '10px 24px',
+    background: 'linear-gradient(135deg, #7C3AED 0%, #0D9488 100%)',
+    color: '#fff', borderRadius: 12, fontWeight: 700, fontSize: 13,
+    border: 'none', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif",
+    boxShadow: '0 4px 14px rgba(124,58,237,.3)',
+    transition: 'opacity .2s ease',
   },
 
   cta: {

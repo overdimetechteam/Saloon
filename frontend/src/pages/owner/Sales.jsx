@@ -78,7 +78,7 @@ export default function OwnerSales() {
                     </select>
                     <input style={{ ...s.input, flex: 1, textAlign: 'center' }} type="number" min={1} value={it.quantity} onChange={e => setItem(i, 'quantity', e.target.value)} required />
                     <input style={{ ...s.input, flex: 1, textAlign: 'right' }} type="number" step="0.01" value={it.unit_price} onChange={e => setItem(i, 'unit_price', e.target.value)} required />
-                    <span style={{ flex: 1, textAlign: 'right', fontWeight: 700, color: '#7C3AED', paddingRight: 8, fontSize: 14, fontFamily: "'Cormorant Garamond', Georgia, serif" }}>LKR {subtotal}</span>
+                    <span style={{ flex: 1, textAlign: 'right', fontWeight: 700, color: '#7C3AED', paddingRight: 8, fontSize: 14, fontFamily: "'DM Sans', sans-serif" }}>LKR {subtotal}</span>
                   </div>
                 );
               })}
@@ -169,8 +169,8 @@ const s = {
   totalRow: { display: 'flex', alignItems: 'center', gap: 10 },
   totalLabel: { fontSize: 13, fontWeight: 600, color: 'var(--text-muted)' },
   totalVal: {
-    fontFamily: "'Cormorant Garamond', Georgia, serif",
-    fontSize: 24, fontWeight: 700, color: '#7C3AED',
+    fontFamily: "'DM Sans', sans-serif",
+    fontSize: 24, fontWeight: 800, color: '#7C3AED',
   },
   submitBtn: {
     padding: '11px 28px',
@@ -191,8 +191,8 @@ const s = {
   saleId: { fontWeight: 700, fontSize: 14, color: 'var(--text)' },
   saleDate: { fontSize: 13, color: 'var(--text-muted)' },
   saleTotal: {
-    fontFamily: "'Cormorant Garamond', Georgia, serif",
-    fontWeight: 700, fontSize: 18, color: '#059669',
+    fontFamily: "'DM Sans', sans-serif",
+    fontWeight: 800, fontSize: 18, color: '#059669',
   },
   saleItems: { padding: '10px 22px' },
   saleItem: { display: 'flex', gap: 12, alignItems: 'center', padding: '7px 0', borderBottom: '1px solid var(--border)' },

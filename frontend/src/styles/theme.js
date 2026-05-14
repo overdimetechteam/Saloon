@@ -100,7 +100,7 @@ export const shadow = {
 };
 
 export const STATUS_META = {
-  pending:         { label: 'Pending',      color: '#D97706', bg: '#FFFBEB',  border: '#FCD34D' },
+  pending:         { label: 'Pending',      color: '#fff',    bg: '#EC4899',  border: '#EC4899' },
   confirmed:       { label: 'Confirmed',    color: '#059669', bg: '#ECFDF5',  border: '#6EE7B7' },
   rejected:        { label: 'Rejected',     color: '#DC2626', bg: '#FEF2F2',  border: '#FCA5A5' },
   awaiting_client: { label: 'Awaiting You', color: '#7C3AED', bg: '#EDE9FE',  border: '#C4B5FD' },

@@ -39,7 +39,7 @@ export default function BookSalon() {
   const [notes, setNotes] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const [step, setStep] = useState(preIds.length > 0 ? 1 : 0);
+  const [step, setStep] = useState(0);
   const [promoCode, setPromoCode] = useState('');
   const [promoOpen, setPromoOpen] = useState(false);
   const [promoLoading, setPromoLoading] = useState(false);
@@ -825,7 +825,7 @@ const s = {
   sumName:     { color: 'var(--text-sub)', flex: 1, lineHeight: 1.4 },
   sumPrice:    { fontWeight: 600, color: 'var(--text)', flexShrink: 0, marginLeft: 8 },
   sumTotal:    { display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 12, marginTop: 6, borderTop: '1.5px solid rgba(124,58,237,.15)' },
-  sumTotalVal: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 22, fontWeight: 700, color: '#7C3AED' },
+  sumTotalVal: { fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 700, color: 'var(--text)' },
   sumDetail:   { display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--text-sub)', padding: '8px 12px', background: 'var(--surface2)', borderRadius: 10, marginTop: 8, border: '1px solid var(--border)' },
   sumDetailIcon: { color: '#7C3AED', fontSize: 13 },
   checklist:   { marginTop: 18, display: 'flex', flexDirection: 'column', gap: 6, paddingTop: 14, borderTop: '1px solid var(--border)' },
@@ -865,8 +865,8 @@ const conf = {
     position: 'fixed', inset: 0, zIndex: 9999,
     background: 'linear-gradient(160deg, #060411 0%, #0D0721 45%, #17093A 100%)',
     display: 'flex', flexDirection: 'column',
-    alignItems: 'center', justifyContent: 'center',
-    overflowY: 'auto', padding: '48px 24px',
+    alignItems: 'center', justifyContent: 'flex-start',
+    overflowY: 'auto', padding: '72px 24px 60px',
     animation: 'confirmReveal .45s cubic-bezier(.16,1,.3,1) both',
   },
   bgGlow1: { position: 'absolute', width: 600, height: 600, borderRadius: '50%', background: 'radial-gradient(circle, rgba(124,58,237,.22) 0%, transparent 70%)', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', pointerEvents: 'none', filter: 'blur(60px)', animation: 'ambientDrift 24s ease-in-out infinite' },
