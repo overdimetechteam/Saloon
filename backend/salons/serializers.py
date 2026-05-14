@@ -66,7 +66,7 @@ class SalonSerializer(serializers.ModelSerializer):
             'id', 'name', 'business_reg_number',
             'address_street', 'address_city', 'address_district', 'address_postal',
             'contact_number', 'email', 'operating_hours',
-            'status', 'is_suspended', 'home_visit_enabled', 'owner', 'owner_email', 'created_at', 'calendar',
+            'status', 'is_suspended', 'home_visit_enabled', 'cosmetics_enabled', 'owner', 'owner_email', 'created_at', 'calendar',
             'logo_url',
         ]
         read_only_fields = ['status', 'owner', 'created_at', 'logo_url']
@@ -97,7 +97,7 @@ class SalonRegisterSerializer(serializers.ModelSerializer):
             'name', 'business_reg_number',
             'address_street', 'address_city', 'address_district', 'address_postal',
             'contact_number', 'email', 'operating_hours',
-            'full_name', 'phone', 'password',
+            'full_name', 'phone', 'password', 'cosmetics_enabled',
         ]
 
     def create(self, validated_data):

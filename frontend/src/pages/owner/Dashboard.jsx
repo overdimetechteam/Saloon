@@ -5,16 +5,46 @@ import { useOwner } from '../../context/OwnerContext';
 import { STATUS_META } from '../../styles/theme';
 import { useBreakpoint } from '../../hooks/useMobile';
 
+const DAYS = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday'];
+
+function buildLocalHours(operatingHours) {
+  const out = {};
+  DAYS.forEach(d => {
+    out[d] = operatingHours?.[d]
+      ? { open: operatingHours[d].open, close: operatingHours[d].close, closed: false }
+      : { open: '09:00', close: '17:00', closed: true };
+  });
+  return out;
+}
+
+function toApiHours(localHours) {
+  const out = {};
+  DAYS.forEach(d => {
+    if (!localHours[d].closed) out[d] = { open: localHours[d].open, close: localHours[d].close };
+  });
+  return out;
+}
+
 export default function OwnerDashboard() {
-  const { salon, loading: salonLoading } = useOwner();
+  const { salon, setSalon, loading: salonLoading } = useOwner();
   const { isMobile, isTablet } = useBreakpoint();
   const [stats, setStats] = useState({ pending: 0, confirmed: 0, lowStock: 0, todayBookings: [] });
   const [homeVisit, setHomeVisit] = useState(false);
   const [homeVisitSaving, setHomeVisitSaving] = useState(false);
   const [salonServices, setSalonServices] = useState([]);
+  const [cosmetics, setCosmetics] = useState(false);
+  const [cosmeticsSaving, setCosmeticsSaving] = useState(false);
+  const [hours, setHours] = useState({});
+  const [hoursOpen, setHoursOpen] = useState(false);
+  const [hoursSaving, setHoursSaving] = useState(false);
+  const [hoursMsg, setHoursMsg] = useState('');
 
   useEffect(() => {
-    if (salon) setHomeVisit(!!salon.home_visit_enabled);
+    if (salon) {
+      setHomeVisit(!!salon.home_visit_enabled);
+      setCosmetics(!!salon.cosmetics_enabled);
+      setHours(buildLocalHours(salon.operating_hours));
+    }
   }, [salon]);
 
   useEffect(() => {
@@ -43,6 +73,40 @@ export default function OwnerDashboard() {
       await api.patch(`/salons/${salon.id}/services/${ss.id}/`, { home_visit_available: next });
     } catch {
       setSalonServices(prev => prev.map(s => s.id === ss.id ? { ...s, home_visit_available: !next } : s));
+    }
+  };
+
+  const toggleCosmetics = async () => {
+    if (!salon || cosmeticsSaving) return;
+    const next = !cosmetics;
+    setCosmetics(next);
+    setCosmeticsSaving(true);
+    try {
+      const r = await api.patch(`/salons/${salon.id}/`, { cosmetics_enabled: next });
+      setSalon(r.data);
+    } catch {
+      setCosmetics(!next);
+    } finally {
+      setCosmeticsSaving(false);
+    }
+  };
+
+  const setHourField = (day, field, val) =>
+    setHours(h => ({ ...h, [day]: { ...h[day], [field]: val } }));
+
+  const saveHours = async () => {
+    if (hoursSaving) return;
+    setHoursSaving(true);
+    setHoursMsg('');
+    try {
+      const r = await api.patch(`/salons/${salon.id}/`, { operating_hours: toApiHours(hours) });
+      setSalon(r.data);
+      setHoursMsg('saved');
+      setTimeout(() => setHoursMsg(''), 2500);
+    } catch {
+      setHoursMsg('error');
+    } finally {
+      setHoursSaving(false);
     }
   };
 
@@ -261,6 +325,91 @@ export default function OwnerDashboard() {
         </div>
       )}
 
+      {/* ── Cosmetics Toggle ── */}
+      <div style={{ ...s.hvCard, marginTop: 12 }} className="fade-up d6">
+        <div style={s.hvLeft}>
+          <div style={{ ...s.hvIconWrap, background: cosmetics ? 'rgba(236,72,153,.12)' : 'var(--surface2)', color: cosmetics ? '#EC4899' : 'var(--text-muted)' }}>
+            ✿
+          </div>
+          <div>
+            <div style={s.hvTitle}>Cosmetics Section</div>
+            <div style={s.hvSub}>
+              {cosmetics
+                ? 'Clients can browse your cosmetics products from your salon page'
+                : 'Enable to let clients discover your beauty products'}
+            </div>
+          </div>
+        </div>
+        <button
+          style={{ ...s.hvToggle, background: cosmetics ? 'linear-gradient(135deg, #EC4899, #9B59E8)' : 'var(--surface2)', border: cosmetics ? 'none' : '1.5px solid var(--border)' }}
+          onClick={toggleCosmetics}
+          disabled={cosmeticsSaving}
+          aria-pressed={cosmetics}
+        >
+          <span style={{ ...s.hvKnob, transform: cosmetics ? 'translateX(20px)' : 'translateX(2px)' }} />
+        </button>
+      </div>
+
+      {/* ── Operating Hours Editor ── */}
+      <div style={{ ...s.hvCard, flexDirection: 'column', alignItems: 'stretch', marginTop: 12, padding: 0, overflow: 'hidden' }} className="fade-up d6">
+        <button
+          style={s.hoursHeader}
+          onClick={() => setHoursOpen(o => !o)}
+        >
+          <div style={s.hvLeft}>
+            <div style={{ ...s.hvIconWrap, background: 'rgba(124,58,237,.1)', color: '#7C3AED' }}>🕐</div>
+            <div>
+              <div style={s.hvTitle}>Operating Hours</div>
+              <div style={s.hvSub}>Update your salon's opening and closing times</div>
+            </div>
+          </div>
+          <span style={{ fontSize: 18, color: 'var(--text-muted)', transition: 'transform .2s', transform: hoursOpen ? 'rotate(180deg)' : 'none', flexShrink: 0 }}>▾</span>
+        </button>
+
+        {hoursOpen && (
+          <div style={s.hoursBody}>
+            {DAYS.map(day => (
+              <div key={day} style={s.dayRow}>
+                <span style={s.dayName}>{day.slice(0,3).toUpperCase()}</span>
+                <label style={s.closedLabel}>
+                  <input
+                    type="checkbox"
+                    checked={hours[day]?.closed ?? true}
+                    onChange={e => setHourField(day, 'closed', e.target.checked)}
+                    style={{ marginRight: 5 }}
+                  />
+                  Closed
+                </label>
+                {!hours[day]?.closed && (
+                  <>
+                    <input
+                      type="time"
+                      style={s.timeInput}
+                      value={hours[day]?.open || '09:00'}
+                      onChange={e => setHourField(day, 'open', e.target.value)}
+                    />
+                    <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>–</span>
+                    <input
+                      type="time"
+                      style={s.timeInput}
+                      value={hours[day]?.close || '17:00'}
+                      onChange={e => setHourField(day, 'close', e.target.value)}
+                    />
+                  </>
+                )}
+              </div>
+            ))}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, paddingTop: 14, borderTop: '1px solid var(--border)', marginTop: 8 }}>
+              <button style={s.saveHoursBtn} onClick={saveHours} disabled={hoursSaving}>
+                {hoursSaving ? 'Saving…' : '✓ Save Hours'}
+              </button>
+              {hoursMsg === 'saved' && <span style={{ fontSize: 13, color: '#059669', fontWeight: 600 }}>✓ Saved successfully</span>}
+              {hoursMsg === 'error' && <span style={{ fontSize: 13, color: '#DC2626', fontWeight: 600 }}>✕ Failed to save</span>}
+            </div>
+          </div>
+        )}
+      </div>
+
     </div>
   );
 }
@@ -448,5 +597,40 @@ const s = {
     boxShadow: '0 1px 4px rgba(0,0,0,.25)',
     transition: 'transform .22s cubic-bezier(.16,1,.3,1)',
     display: 'block',
+  },
+
+  hoursHeader: {
+    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    padding: '18px 22px', background: 'none', border: 'none', cursor: 'pointer',
+    width: '100%', gap: 12, textAlign: 'left',
+  },
+  hoursBody: {
+    padding: '4px 22px 20px',
+    borderTop: '1px solid var(--border)',
+  },
+  dayRow: {
+    display: 'flex', alignItems: 'center', gap: 12,
+    padding: '9px 0', borderBottom: '1px solid var(--border)',
+    flexWrap: 'wrap',
+  },
+  dayName: {
+    width: 36, fontSize: 11, fontWeight: 700, color: 'var(--text-muted)',
+    letterSpacing: '0.08em', flexShrink: 0,
+  },
+  closedLabel: {
+    display: 'flex', alignItems: 'center', fontSize: 13,
+    color: 'var(--text-muted)', cursor: 'pointer', flexShrink: 0, minWidth: 70,
+  },
+  timeInput: {
+    padding: '7px 10px', border: '1.5px solid var(--border)', borderRadius: 8,
+    fontSize: 13, color: 'var(--text)', background: 'var(--input-bg)',
+    fontFamily: "'DM Sans', sans-serif", outline: 'none',
+  },
+  saveHoursBtn: {
+    padding: '10px 22px',
+    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #0D9488 100%)',
+    color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer',
+    fontWeight: 700, fontSize: 13, boxShadow: '0 4px 14px rgba(124,58,237,.3)',
+    fontFamily: "'DM Sans', sans-serif",
   },
 };

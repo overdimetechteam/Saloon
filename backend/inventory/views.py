@@ -1,16 +1,18 @@
 import io
+from decimal import Decimal
 from datetime import datetime
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.shortcuts import get_object_or_404
 from django.db.models import Q, F, Sum
 from django.http import HttpResponse
 
-from .models import Product, GRN, GRNItem, Sale, SaleItem, StockAdjustment
+from .models import Product, GRN, GRNItem, Sale, SaleItem, StockAdjustment, ProductImage, CosmeticOrder
 from .serializers import (
-    ProductSerializer, GRNSerializer, SaleSerializer, StockAdjustmentSerializer
+    ProductSerializer, GRNSerializer, SaleSerializer, StockAdjustmentSerializer,
+    ProductImageSerializer, CosmeticOrderSerializer,
 )
 from salons.models import Salon
 
@@ -94,13 +96,13 @@ def _pdf_response(title, salon_name, headers, rows, filename):
 
 
 class AllCosmeticsView(APIView):
-    """Public endpoint: returns all active, in-stock products across all active salons."""
+    """Returns all active, in-stock products from salons that have cosmetics enabled."""
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         products = (
             Product.objects
-            .filter(is_active=True, current_stock__gt=0, salon__status='active')
+            .filter(is_active=True, current_stock__gt=0, salon__status='active', salon__cosmetics_enabled=True)
             .select_related('salon')
             .order_by('category', 'name')
         )
@@ -118,6 +120,79 @@ class AllCosmeticsView(APIView):
                 'current_stock': p.current_stock,
             })
         return Response(data)
+
+
+class SalonPublicCosmeticsView(APIView):
+    """Public view: products for a specific salon (no auth required)."""
+    permission_classes = [AllowAny]
+
+    def get(self, request, salon_pk):
+        salon = get_object_or_404(Salon, pk=salon_pk, status='active', cosmetics_enabled=True)
+        qs = request.query_params.get('q', '').lower()
+        cat = request.query_params.get('category', '')
+        products = Product.objects.filter(salon=salon, is_active=True).order_by('category', 'name')
+        if cat:
+            products = products.filter(category=cat)
+        if qs:
+            products = products.filter(
+                Q(name__icontains=qs) | Q(brand__icontains=qs) | Q(sku__icontains=qs)
+            )
+        data = []
+        for p in products.prefetch_related('images'):
+            first_img = p.images.first()
+            first_image_url = (
+                request.build_absolute_uri(first_img.image.url) if first_img and first_img.image else None
+            )
+            data.append({
+                'id': p.id,
+                'name': p.name,
+                'brand': p.brand,
+                'sku': p.sku,
+                'category': p.category,
+                'subcategory': p.subcategory,
+                'shade_variant': p.shade_variant,
+                'size': p.size,
+                'unit_of_measure': p.unit_of_measure,
+                'selling_price': str(p.selling_price),
+                'current_stock': p.current_stock,
+                'expiry_date': str(p.expiry_date) if p.expiry_date else None,
+                'skin_type': p.skin_type,
+                'status': p.status,
+                'first_image_url': first_image_url,
+            })
+        return Response({'salon_name': salon.name, 'salon_id': salon.id, 'products': data})
+
+
+class ProductSummaryView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, salon_pk):
+        salon, err = _get_salon_for_owner(request, salon_pk)
+        if err:
+            return err
+        products = Product.objects.filter(salon=salon, is_active=True)
+        total_skus = products.count()
+        active_count = low_stock_count = out_stock_count = expiring_count = 0
+        total_value = Decimal('0')
+        for p in products:
+            s = p.status
+            if s == 'active':
+                active_count += 1
+            elif s == 'low_stock':
+                low_stock_count += 1
+            elif s == 'out_of_stock':
+                out_stock_count += 1
+            elif s == 'expiring_soon':
+                expiring_count += 1
+            total_value += p.selling_price * p.current_stock
+        return Response({
+            'total_skus': total_skus,
+            'active': active_count,
+            'low_stock': low_stock_count,
+            'out_of_stock': out_stock_count,
+            'expiring_soon': expiring_count,
+            'total_value': str(total_value),
+        })
 
 
 class ProductListCreateView(APIView):
@@ -450,3 +525,149 @@ class MovementsReportView(APIView):
             'sales': SaleSerializer(sale_qs, many=True).data,
             'adjustments': StockAdjustmentSerializer(adj_qs, many=True).data,
         })
+
+
+class ProductImageListCreateView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, salon_pk, product_pk):
+        salon, err = _get_salon_for_owner(request, salon_pk)
+        if err:
+            return err
+        product = get_object_or_404(Product, pk=product_pk, salon=salon)
+        images = product.images.all()
+        return Response(ProductImageSerializer(images, many=True, context={'request': request}).data)
+
+    def post(self, request, salon_pk, product_pk):
+        salon, err = _get_salon_for_owner(request, salon_pk)
+        if err:
+            return err
+        product = get_object_or_404(Product, pk=product_pk, salon=salon)
+        serializer = ProductImageSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save(product=product)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ProductImageDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, salon_pk, product_pk, pk):
+        salon, err = _get_salon_for_owner(request, salon_pk)
+        if err:
+            return err
+        product = get_object_or_404(Product, pk=product_pk, salon=salon)
+        image = get_object_or_404(ProductImage, pk=pk, product=product)
+        image.image.delete(save=False)
+        image.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class ProductPublicDetailView(APIView):
+    """Public view: full product detail for a single product."""
+    permission_classes = [AllowAny]
+
+    def get(self, request, salon_pk, product_pk):
+        salon = get_object_or_404(Salon, pk=salon_pk, status='active', cosmetics_enabled=True)
+        product = get_object_or_404(Product, pk=product_pk, salon=salon, is_active=True)
+        images = product.images.all()
+        image_urls = [
+            request.build_absolute_uri(img.image.url) for img in images if img.image
+        ]
+        return Response({
+            'id': product.id,
+            'salon_id': salon.id,
+            'salon_name': salon.name,
+            'name': product.name,
+            'brand': product.brand,
+            'sku': product.sku,
+            'category': product.category,
+            'subcategory': product.subcategory,
+            'shade_variant': product.shade_variant,
+            'size': product.size,
+            'unit_of_measure': product.unit_of_measure,
+            'cost_price': str(product.cost_price),
+            'selling_price': str(product.selling_price),
+            'current_stock': product.current_stock,
+            'reorder_level': product.reorder_level,
+            'supplier': product.supplier,
+            'manufacturing_date': str(product.manufacturing_date) if product.manufacturing_date else None,
+            'expiry_date': str(product.expiry_date) if product.expiry_date else None,
+            'pao': product.pao,
+            'barcode': product.barcode,
+            'country_of_origin': product.country_of_origin,
+            'certifications': product.certifications,
+            'skin_type': product.skin_type,
+            'notes': product.notes,
+            'status': product.status,
+            'images': image_urls,
+        })
+
+
+class ValidatePromoView(APIView):
+    """Public: validate a promo code for a salon."""
+    permission_classes = [AllowAny]
+
+    def post(self, request, salon_pk):
+        from datetime import date
+        from salons.models import Offer
+        from decimal import Decimal
+
+        salon = get_object_or_404(Salon, pk=salon_pk, status='active')
+        code = (request.data.get('code') or '').strip()
+        subtotal = Decimal(str(request.data.get('subtotal', '0')))
+
+        if not code:
+            return Response({'valid': False, 'message': 'No code provided.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        today = date.today()
+        offer = Offer.objects.filter(
+            salon=salon, title__iexact=code, is_active=True,
+            start_date__lte=today, end_date__gte=today,
+        ).first()
+
+        if not offer:
+            return Response({'valid': False, 'message': 'Invalid or expired promo code.'})
+
+        if offer.discount_type == 'percentage':
+            discount = (subtotal * offer.discount_value / 100).quantize(Decimal('0.01'))
+            label = f"{offer.discount_value}% off"
+        else:
+            discount = min(offer.discount_value, subtotal)
+            label = f"LKR {offer.discount_value} off"
+
+        return Response({
+            'valid': True,
+            'discount_type': offer.discount_type,
+            'discount_value': str(offer.discount_value),
+            'discount_amount': str(discount),
+            'label': label,
+            'description': offer.description,
+        })
+
+
+class CosmeticOrderListCreateView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, salon_pk):
+        salon = get_object_or_404(Salon, pk=salon_pk, status='active', cosmetics_enabled=True)
+        serializer = CosmeticOrderSerializer(data=request.data)
+        if serializer.is_valid():
+            order = serializer.save(
+                salon=salon,
+                client=request.user if request.user.role == 'client' else None,
+            )
+            return Response(CosmeticOrderSerializer(order).data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def get(self, request, salon_pk):
+        salon = get_object_or_404(Salon, pk=salon_pk, status='active')
+        if request.user.role == 'client':
+            orders = CosmeticOrder.objects.filter(salon=salon, client=request.user).prefetch_related('items').order_by('-created_at')
+        else:
+            salon, err = _get_salon_for_owner(request, salon_pk)
+            if err:
+                return err
+            orders = CosmeticOrder.objects.filter(salon=salon).prefetch_related('items').order_by('-created_at')
+        return Response(CosmeticOrderSerializer(orders, many=True).data)

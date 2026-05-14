@@ -4,7 +4,8 @@ const DAY_JS   = ['sunday','monday','tuesday','wednesday','thursday','friday','s
 const CAL_HEADS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 const MONTH_FMT = { month: 'long', year: 'numeric' };
 
-export default function MiniCalendar({ value, onChange, operatingHours, minDate }) {
+export default function MiniCalendar({ value, onChange, operatingHours, minDate, selectedDates, onToggle }) {
+  const multiMode = Array.isArray(selectedDates);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const floor = minDate ?? today;
@@ -72,8 +73,15 @@ export default function MiniCalendar({ value, onChange, operatingHours, minDate 
           const isPast   = d < floor;
           const isClosed = !isOpen(d);
           const isToday  = d.getTime() === today.getTime();
-          const isSel    = value === dateStr;
-          const disabled = isPast || isClosed;
+          const selIdx   = multiMode ? selectedDates.indexOf(dateStr) : -1;
+          const isSel    = multiMode ? selIdx !== -1 : value === dateStr;
+          const isMaxed  = multiMode && selectedDates.length >= 3 && !isSel;
+          const disabled = isPast || isClosed || isMaxed;
+
+          const handleClick = () => {
+            if (multiMode) onToggle(dateStr);
+            else onChange(dateStr);
+          };
 
           let st = { ...c.cell };
           if      (isSel)     st = { ...st, ...c.cellSel };
@@ -81,14 +89,17 @@ export default function MiniCalendar({ value, onChange, operatingHours, minDate 
           else if (isToday)   st = { ...st, ...c.cellToday };
           else                st = { ...st, ...c.cellAvail };
 
+          const slotNumber = multiMode && selIdx !== -1 ? selIdx + 1 : null;
+
           return (
-            <button key={i} disabled={disabled} onClick={() => onChange(dateStr)} style={st}
-              title={isClosed ? 'Closed' : isPast ? 'Past' : dateStr}>
+            <button key={i} disabled={disabled} onClick={handleClick} style={st}
+              title={isClosed ? 'Closed' : isPast ? 'Past' : isMaxed ? '3 dates selected' : dateStr}>
               <span style={{ ...c.dayNum, color: isSel ? '#fff' : disabled ? 'var(--text-light)' : 'var(--text)' }}>
                 {cell.day}
               </span>
               {isClosed && !isPast && <span style={c.closedDot} />}
-              {isSel && <span style={c.check}>✓</span>}
+              {isSel && !multiMode && <span style={c.check}>✓</span>}
+              {isSel && multiMode && <span style={c.check}>{slotNumber}</span>}
               {isToday && !isSel && <span style={c.todayDot} />}
             </button>
           );

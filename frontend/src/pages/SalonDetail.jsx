@@ -222,8 +222,8 @@ export default function SalonDetail() {
                 ✦ Book Now
               </Link>
             )}
-            {isClient && (
-              <Link to="/user/cosmetics" style={s.heroCosmeticsBtn} className="lift-sm">
+            {salon.cosmetics_enabled && (
+              <Link to={`/salons/${id}/cosmetics`} style={s.heroCosmeticsBtn} className="lift-sm">
                 ✿ Cosmetics
               </Link>
             )}
@@ -250,12 +250,10 @@ export default function SalonDetail() {
               </button>
             ))}
           </div>
-          {isClient && (
-            <div style={{ display: 'flex', gap: 8, flexShrink: 0, marginLeft: 8 }}>
-              <Link to={`/user/book/${id}`} style={s.tabBookBtn}>✦ Book Now</Link>
-              <Link to="/user/cosmetics" style={s.tabCosmeticsBtn}>✿ Cosmetics</Link>
-            </div>
-          )}
+          <div style={{ display: 'flex', gap: 8, flexShrink: 0, marginLeft: 8 }}>
+            {isClient && <Link to={`/user/book/${id}`} style={s.tabBookBtn}>✦ Book Now</Link>}
+            {salon.cosmetics_enabled && <Link to={`/salons/${id}/cosmetics`} style={s.tabCosmeticsBtn}>✿ Cosmetics</Link>}
+          </div>
         </div>
       </div>
 

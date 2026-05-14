@@ -27,6 +27,7 @@ class Salon(models.Model):
         limit_choices_to={'role': 'salon_owner'},
     )
     home_visit_enabled = models.BooleanField(default=False)
+    cosmetics_enabled = models.BooleanField(default=False)
     logo = models.FileField(upload_to='salon_logos/', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

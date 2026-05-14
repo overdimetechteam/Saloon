@@ -1,8 +1,10 @@
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { OwnerProvider } from './context/OwnerContext';
+import { CartProvider } from './context/CartContext';
 import RequireRole from './components/RequireRole';
 import Navbar from './components/Navbar';
+import CartDrawer from './components/CartDrawer';
 
 import AdminLayout from './layouts/AdminLayout';
 import OwnerLayout from './layouts/OwnerLayout';
@@ -13,6 +15,8 @@ import RegisterClient from './pages/RegisterClient';
 import RegisterSalon from './pages/RegisterSalon';
 import SalonList from './pages/SalonList';
 import SalonDetail from './pages/SalonDetail';
+import SalonCosmetics from './pages/SalonCosmetics';
+import ProductDetail from './pages/ProductDetail';
 
 import AdminSalons from './pages/admin/Salons';
 import PendingSalons from './pages/admin/PendingSalons';
@@ -39,6 +43,7 @@ import UserBookingDetail from './pages/user/BookingDetail';
 import BookSalon from './pages/user/BookSalon';
 import UserFavourites from './pages/user/Favourites';
 import UserCosmetics from './pages/user/Cosmetics';
+import Checkout from './pages/user/Checkout';
 
 function PublicLayout() {
   return (
@@ -60,13 +65,16 @@ function OwnerLayoutWithProvider() {
 export default function App() {
   return (
     <AuthProvider>
+      <CartProvider>
       <BrowserRouter>
+        <CartDrawer />
         <Routes>
           {/* Public pages with top navbar */}
           <Route element={<PublicLayout />}>
             <Route path="/" element={<Navigate to="/salons" replace />} />
             <Route path="/salons" element={<SalonList />} />
             <Route path="/salons/:id" element={<SalonDetail />} />
+            <Route path="/salons/:id/cosmetics" element={<SalonCosmetics />} />
           </Route>
 
           {/* Standalone auth pages */}
@@ -105,6 +113,11 @@ export default function App() {
             </Route>
           </Route>
 
+          {/* Public product detail */}
+          <Route element={<PublicLayout />}>
+            <Route path="/salons/:id/cosmetics/:productId" element={<ProductDetail />} />
+          </Route>
+
           {/* User portal — /user/* */}
           <Route path="/user" element={<RequireRole roles={['client']} />}>
             <Route element={<UserLayout />}>
@@ -115,10 +128,12 @@ export default function App() {
               <Route path="book/:salonId" element={<BookSalon />} />
               <Route path="favourites" element={<UserFavourites />} />
               <Route path="cosmetics" element={<UserCosmetics />} />
+              <Route path="checkout" element={<Checkout />} />
             </Route>
           </Route>
         </Routes>
       </BrowserRouter>
+      </CartProvider>
     </AuthProvider>
   );
 }

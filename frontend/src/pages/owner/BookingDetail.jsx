@@ -5,66 +5,106 @@ import { c, STATUS_META } from '../../styles/theme';
 import MiniCalendar from '../../components/MiniCalendar';
 import { useBreakpoint } from '../../hooks/useMobile';
 
-/* ─── Compact date+time picker for a single slot ──────────────────────── */
-function SlotPicker({ label, value, onChange, operatingHours }) {
-  const datePart = value ? value.split('T')[0] : '';
-  const timePart = value ? value.split('T')[1] || '' : '';
+/* ─── Single calendar, pick up to 3 dates, then set times ─────────────── */
+function MultiSlotPicker({ slots, setSlots, operatingHours }) {
+  const DAY_NAMES = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
 
-  const dayNames = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
   const getHours = dateStr => {
     if (!dateStr || !operatingHours) return { open: '08:00', close: '20:00' };
-    const day = new Date(dateStr).getDay();
-    const h   = operatingHours[dayNames[day]];
+    const h = operatingHours[DAY_NAMES[new Date(dateStr).getDay()]];
     return h || { open: '08:00', close: '20:00' };
   };
 
-  const handleDate = d => onChange(d + (timePart ? 'T' + timePart : 'T09:00'));
-  const handleTime = t => onChange((datePart || '') + 'T' + t);
+  const selectedDates = slots.map(s => s ? s.split('T')[0] : '').filter(Boolean);
 
-  const { open, close } = getHours(datePart);
+  const handleToggle = dateStr => {
+    const idx = selectedDates.indexOf(dateStr);
+    if (idx !== -1) {
+      // deselect — remove that slot, shift others up, pad with ''
+      const next = slots.filter((_, i) => slots[i]?.split('T')[0] !== dateStr);
+      while (next.length < 3) next.push('');
+      setSlots(next);
+    } else if (selectedDates.length < 3) {
+      // select — fill the first empty slot
+      const next = [...slots];
+      const emptyIdx = next.findIndex(s => !s || !s.split('T')[0]);
+      const time = next[emptyIdx]?.split('T')[1] || '09:00';
+      next[emptyIdx] = dateStr + 'T' + time;
+      setSlots(next);
+    }
+  };
+
+  const handleTime = (slotIdx, time) => {
+    const next = [...slots];
+    const dateStr = next[slotIdx]?.split('T')[0] || '';
+    next[slotIdx] = dateStr + 'T' + time;
+    setSlots(next);
+  };
 
   return (
-    <div style={sp.wrap}>
-      <span style={sp.label}>{label}</span>
-      <div style={sp.body}>
-        <div style={sp.calWrap}>
-          <MiniCalendar
-            value={datePart}
-            onChange={handleDate}
-            operatingHours={operatingHours}
-          />
+    <div>
+      {/* One calendar */}
+      <div style={sp.calCard}>
+        <div style={sp.calHint}>
+          Click up to 3 dates — they'll appear as options below.
+          {selectedDates.length === 3 && <span style={{ color: '#7C3AED', fontWeight: 700 }}> (3 selected)</span>}
         </div>
-        <div style={sp.timeRow}>
-          <span style={sp.timeLabel}>Time</span>
-          <input
-            type="time"
-            style={sp.timeInput}
-            value={timePart}
-            min={open}
-            max={close}
-            onChange={e => handleTime(e.target.value)}
-          />
-          {datePart && !timePart && (
-            <span style={sp.timeHint}>Pick a time</span>
-          )}
-          {datePart && timePart && (
-            <span style={sp.timeSet}>
-              {new Date(value).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-            </span>
-          )}
-        </div>
+        <MiniCalendar
+          selectedDates={selectedDates}
+          onToggle={handleToggle}
+          operatingHours={operatingHours}
+        />
+      </div>
+
+      {/* Three time rows */}
+      <div style={sp.timeList}>
+        {[0, 1, 2].map(i => {
+          const raw      = slots[i] || '';
+          const dateStr  = raw.split('T')[0] || '';
+          const timePart = raw.split('T')[1] || '';
+          const filled   = !!dateStr;
+          const { open, close } = getHours(dateStr);
+          const label = dateStr
+            ? new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+            : 'No date selected';
+
+          return (
+            <div key={i} style={{ ...sp.timeRow, opacity: filled ? 1 : 0.45 }}>
+              <div style={sp.optBadge}>{i + 1}</div>
+              <div style={sp.dateLabel}>{label}</div>
+              <div style={sp.timeWrap}>
+                <input
+                  type="time"
+                  style={{ ...sp.timeInput, cursor: filled ? 'pointer' : 'not-allowed' }}
+                  value={timePart}
+                  min={open}
+                  max={close}
+                  disabled={!filled}
+                  onChange={e => handleTime(i, e.target.value)}
+                />
+                {filled && timePart && (
+                  <span style={sp.timeSet}>
+                    {new Date(dateStr + 'T' + timePart).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                )}
+                {filled && !timePart && <span style={sp.timeHint}>pick a time</span>}
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
 }
 
 const sp = {
-  wrap:      { marginBottom: 18 },
-  label:     { fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: 8 },
-  body:      { background: 'var(--surface2)', borderRadius: 14, padding: '14px 16px', border: '1px solid var(--border)' },
-  calWrap:   { marginBottom: 10 },
-  timeRow:   { display: 'flex', alignItems: 'center', gap: 10, paddingTop: 10, borderTop: '1px solid var(--border)' },
-  timeLabel: { fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', width: 36, flexShrink: 0 },
+  calCard:   { background: 'var(--surface2)', borderRadius: 14, padding: '16px', border: '1px solid var(--border)', marginBottom: 16 },
+  calHint:   { fontSize: 12, color: 'var(--text-muted)', marginBottom: 12, lineHeight: 1.5 },
+  timeList:  { display: 'flex', flexDirection: 'column', gap: 10 },
+  timeRow:   { display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', background: 'var(--surface2)', borderRadius: 12, border: '1px solid var(--border)', transition: 'opacity .2s ease' },
+  optBadge:  { width: 24, height: 24, borderRadius: '50%', background: 'linear-gradient(135deg, #7C3AED, #0D9488)', color: '#fff', fontSize: 11, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  dateLabel: { fontSize: 13, fontWeight: 600, color: 'var(--text)', minWidth: 130, flexShrink: 0 },
+  timeWrap:  { display: 'flex', alignItems: 'center', gap: 8, flex: 1 },
   timeInput: { padding: '7px 10px', border: '1.5px solid var(--border)', borderRadius: 9, fontSize: 13, background: 'var(--input-bg)', color: 'var(--text)', fontFamily: "'DM Sans', sans-serif", outline: 'none' },
   timeHint:  { fontSize: 11, color: 'var(--text-muted)', fontStyle: 'italic' },
   timeSet:   { fontSize: 11, fontWeight: 600, color: '#0D9488' },
@@ -122,8 +162,6 @@ export default function OwnerBookingDetail() {
     } catch (err) { setError(err.response?.data?.detail || 'Error assigning staff'); }
     finally { setAssigning(false); }
   };
-
-  const updateSlot = (i, v) => setSlots(prev => prev.map((s, idx) => idx === i ? v : s));
 
   if (!booking) return (
     <div style={s.loader}><div style={s.loaderSpinner} /></div>
@@ -226,16 +264,12 @@ export default function OwnerBookingDetail() {
                   Select 3 alternative dates and times for the client to choose from.
                   {Object.keys(opHours).length > 0 && ' Closed days are greyed out.'}
                 </p>
-                {[0, 1, 2].map(i => (
-                  <SlotPicker
-                    key={i}
-                    label={`Option ${i + 1}`}
-                    value={slots[i]}
-                    onChange={v => updateSlot(i, v)}
-                    operatingHours={opHours}
-                  />
-                ))}
-                <button style={s.rejectBtn} onClick={reject}>✗ Reject & Send Alternatives</button>
+                <MultiSlotPicker
+                  slots={slots}
+                  setSlots={setSlots}
+                  operatingHours={opHours}
+                />
+                <button style={{ ...s.rejectBtn, marginTop: 16 }} onClick={reject}>✗ Reject & Send Alternatives</button>
               </div>
             </div>
           )}

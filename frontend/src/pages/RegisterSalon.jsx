@@ -20,6 +20,7 @@ export default function RegisterSalon() {
   const [services, setServices] = useState([{ ...EMPTY_SVC }]);
   const [offer, setOffer] = useState({ title: '', description: '', discount_type: 'percentage', discount_value: '', start_date: '', end_date: '', note: '', is_active: true });
   const [hasOffer, setHasOffer]   = useState(false);
+  const [cosmeticsEnabled, setCosmeticsEnabled] = useState(false);
   const [error, setError]         = useState('');
   const [success, setSuccess]     = useState(false);
   const [loading, setLoading]     = useState(false);
@@ -38,7 +39,7 @@ export default function RegisterSalon() {
   const handle = async e => {
     e.preventDefault(); setError(''); setLoading(true);
     try {
-      const payload = { ...form };
+      const payload = { ...form, cosmetics_enabled: cosmeticsEnabled };
       const hours = {};
       DAYS.forEach(d => { if (!form.operating_hours[d].closed) hours[d] = { open: form.operating_hours[d].open, close: form.operating_hours[d].close }; });
       payload.operating_hours = hours;
@@ -187,6 +188,25 @@ export default function RegisterSalon() {
           {/* Step 4 — Services & Opening Offer */}
           {step === 4 && (
             <div style={s.fields}>
+
+              {/* Cosmetics Section Toggle */}
+              <div style={s.step4Block}>
+                <div style={s.offerToggleRow}>
+                  <div>
+                    <h4 style={{ ...s.sectionTitle, margin: 0 }}>Cosmetics Section</h4>
+                    <p style={{ ...s.hint, margin: '4px 0 0' }}>Enable if your salon sells beauty & cosmetic products.</p>
+                  </div>
+                  <button type="button" style={{ ...s.toggleBtn, ...(cosmeticsEnabled ? s.toggleOn : s.toggleOff) }} onClick={() => setCosmeticsEnabled(o => !o)}>
+                    {cosmeticsEnabled ? '● Enabled' : '○ Disabled'}
+                  </button>
+                </div>
+                {cosmeticsEnabled && (
+                  <div style={{ marginTop: 10, padding: '10px 14px', borderRadius: 10, background: 'rgba(236,72,153,.07)', border: '1px solid rgba(236,72,153,.2)', fontSize: 13, color: '#9D174D' }}>
+                    ✿ Clients will be able to browse your cosmetics products from your salon page.
+                  </div>
+                )}
+              </div>
+
               {/* Services */}
               <div style={s.step4Block}>
                 <h4 style={s.sectionTitle}>Initial Services <span style={s.optTag}>optional</span></h4>
