@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../../api/axios';
 import { c, STATUS_META } from '../../styles/theme';
@@ -15,10 +15,10 @@ function StarPicker({ value, onChange }) {
           onClick={() => onChange(n)}
           style={{
             background: 'none', border: 'none', cursor: 'pointer', fontSize: 32, lineHeight: 1, padding: '2px 3px',
-            color: n <= (hover || value) ? '#BF9B65' : 'var(--border)',
+            color: n <= (hover || value) ? '#D4AF37' : 'var(--border)',
             transition: 'color .12s ease, transform .12s ease',
             transform: n <= (hover || value) ? 'scale(1.2)' : 'scale(1)',
-            filter: n <= (hover || value) ? 'drop-shadow(0 0 6px rgba(191,155,101,.5))' : 'none',
+            filter: n <= (hover || value) ? 'drop-shadow(0 0 6px rgba(212,175,55,.5))' : 'none',
           }}
         >★</button>
       ))}
@@ -204,7 +204,7 @@ export default function UserBookingDetail() {
                 <div style={s.reviewTitle}>Your Review</div>
                 <div style={{ display: 'flex', gap: 3, marginTop: 4 }}>
                   {[1,2,3,4,5].map(n => (
-                    <span key={n} style={{ fontSize: 18, color: n <= booking.review.rating ? '#BF9B65' : 'var(--border)' }}>★</span>
+                    <span key={n} style={{ fontSize: 18, color: n <= booking.review.rating ? '#D4AF37' : 'var(--border)' }}>★</span>
                   ))}
                 </div>
               </div>
@@ -231,18 +231,18 @@ const s = {
   loader: { display: 'flex', justifyContent: 'center', alignItems: 'center', height: 200 },
   loaderSpinner: {
     width: 32, height: 32, borderRadius: '50%',
-    border: '3px solid rgba(124,58,237,.15)', borderTopColor: '#7C3AED',
+    border: '3px solid rgba(13,148,136,.15)', borderTopColor: '#0D9488',
     animation: 'spinSlow .7s linear infinite',
   },
   back: {
     display: 'inline-flex', alignItems: 'center', gap: 6,
-    fontSize: 13, color: '#7C3AED', fontWeight: 600, marginBottom: 22,
+    fontSize: 13, color: '#0D9488', fontWeight: 600, marginBottom: 22,
     transition: 'gap .15s ease', textDecoration: 'none',
   },
 
   card: {
     background: 'var(--surface)', borderRadius: 24,
-    boxShadow: '0 8px 40px rgba(124,58,237,.1), 0 2px 8px rgba(0,0,0,.04)',
+    boxShadow: '0 8px 40px rgba(13,148,136,.1), 0 2px 8px rgba(0,0,0,.04)',
     border: '1px solid var(--border)',
     overflow: 'hidden',
   },
@@ -264,7 +264,7 @@ const s = {
   },
   salonInitial: {
     width: 58, height: 58, borderRadius: 17, flexShrink: 0,
-    background: 'linear-gradient(135deg, #7C3AED 0%, #0D9488 100%)',
+    background: 'linear-gradient(135deg, #0D9488 0%, #0D9488 100%)',
     color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
     fontFamily: "'Cormorant Garamond', Georgia, serif",
     fontSize: 26, fontWeight: 700,
@@ -310,8 +310,8 @@ const s = {
   },
   serviceChips: { display: 'flex', flexWrap: 'wrap', gap: 8 },
   serviceChip: {
-    padding: '6px 14px', background: 'rgba(124,58,237,.08)', color: '#7C3AED',
-    borderRadius: 20, fontSize: 13, fontWeight: 500, border: '1px solid rgba(124,58,237,.18)',
+    padding: '6px 14px', background: 'rgba(13,148,136,.08)', color: '#0D9488',
+    borderRadius: 20, fontSize: 13, fontWeight: 500, border: '1px solid rgba(13,148,136,.18)',
   },
 
   altSection: {
@@ -348,16 +348,16 @@ const s = {
 
   reviewSection: {
     margin: '0 18px 20px',
-    background: 'linear-gradient(135deg, rgba(191,155,101,.06) 0%, rgba(245,234,216,.12) 100%)',
+    background: 'linear-gradient(135deg, rgba(212,175,55,.06) 0%, rgba(245,234,216,.12) 100%)',
     borderRadius: 18, padding: 20,
-    border: '1px solid rgba(191,155,101,.3)',
+    border: '1px solid rgba(212,175,55,.3)',
   },
   reviewHeader: { display: 'flex', gap: 14, marginBottom: 14, alignItems: 'flex-start' },
   reviewIconWrap: {
     width: 36, height: 36, borderRadius: 10, flexShrink: 0,
-    background: 'linear-gradient(135deg, #BF9B65 0%, #9A7845 100%)',
+    background: 'linear-gradient(135deg, #D4AF37 0%, #B8932A 100%)',
     color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
-    fontSize: 16, boxShadow: '0 4px 12px rgba(191,155,101,.35)',
+    fontSize: 16, boxShadow: '0 4px 12px rgba(212,175,55,.35)',
   },
   reviewTitle: { fontWeight: 700, fontSize: 14, color: 'var(--text)', marginBottom: 2 },
   reviewSub: { fontSize: 12, color: 'var(--text-muted)' },
@@ -370,10 +370,10 @@ const s = {
   },
   reviewSubmitBtn: {
     marginTop: 12, padding: '10px 24px',
-    background: 'linear-gradient(135deg, #BF9B65 0%, #9A7845 100%)',
+    background: 'linear-gradient(135deg, #D4AF37 0%, #B8932A 100%)',
     color: '#fff', border: 'none', borderRadius: 10,
     cursor: 'pointer', fontWeight: 700, fontSize: 13,
-    boxShadow: '0 4px 14px rgba(191,155,101,.4)',
+    boxShadow: '0 4px 14px rgba(212,175,55,.4)',
   },
 
   actions: {

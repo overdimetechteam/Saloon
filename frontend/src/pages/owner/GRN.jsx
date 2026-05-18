@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import api from '../../api/axios';
 import { useOwner } from '../../context/OwnerContext';
 
@@ -143,16 +143,16 @@ const s = {
   sub: { color: 'var(--text-muted)', fontSize: 13, margin: 0 },
   primaryBtn: {
     padding: '11px 22px',
-    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #0D9488 100%)',
+    background: 'linear-gradient(135deg, #0D9488 0%, #14B8A8 50%, #0D9488 100%)',
     color: '#fff', border: 'none', borderRadius: 12, cursor: 'pointer',
-    fontWeight: 700, fontSize: 13, boxShadow: '0 6px 18px rgba(124,58,237,.35)',
+    fontWeight: 700, fontSize: 13, boxShadow: '0 6px 18px rgba(13,148,136,.35)',
     fontFamily: "'DM Sans', sans-serif", flexShrink: 0,
   },
   alertOk: { background: '#ECFDF5', border: '1px solid #6EE7B7', color: '#059669', borderRadius: 12, padding: '11px 16px', fontSize: 13, marginBottom: 18 },
   alertErr: { background: '#FEF2F2', border: '1px solid #FCA5A5', color: '#DC2626', borderRadius: 12, padding: '11px 16px', fontSize: 13, marginBottom: 18 },
   formCard: {
     background: 'var(--surface)', borderRadius: 20, padding: 26,
-    border: '1px solid var(--border)', boxShadow: '0 4px 24px rgba(124,58,237,.08)',
+    border: '1px solid var(--border)', boxShadow: '0 4px 24px rgba(13,148,136,.08)',
     marginBottom: 28,
   },
   formTitle: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 18, fontWeight: 700, color: 'var(--text)', marginBottom: 20, letterSpacing: '-0.01em' },
@@ -182,21 +182,21 @@ const s = {
   },
   submitBtn: {
     padding: '11px 28px',
-    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #0D9488 100%)',
+    background: 'linear-gradient(135deg, #0D9488 0%, #14B8A8 50%, #0D9488 100%)',
     color: '#fff', border: 'none', borderRadius: 11, cursor: 'pointer',
-    fontWeight: 700, fontSize: 13, boxShadow: '0 4px 14px rgba(124,58,237,.35)',
+    fontWeight: 700, fontSize: 13, boxShadow: '0 4px 14px rgba(13,148,136,.35)',
     fontFamily: "'DM Sans', sans-serif",
   },
   list: { display: 'flex', flexDirection: 'column', gap: 14 },
   grnCard: {
     background: 'var(--surface)', borderRadius: 18, border: '1px solid var(--border)',
-    boxShadow: '0 4px 16px rgba(124,58,237,.06)', overflow: 'hidden',
+    boxShadow: '0 4px 16px rgba(13,148,136,.06)', overflow: 'hidden',
   },
   grnHead: {
     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
     padding: '16px 22px', borderBottom: '1px solid var(--border)',
   },
-  refNum: { fontWeight: 800, fontSize: 15, color: '#7C3AED', fontFamily: 'monospace', letterSpacing: '0.04em' },
+  refNum: { fontWeight: 800, fontSize: 15, color: '#0D9488', fontFamily: 'monospace', letterSpacing: '0.04em' },
   supplier: { fontSize: 14, color: 'var(--text-muted)' },
   grnRight: { display: 'flex', alignItems: 'center', gap: 12 },
   confirmed: { padding: '3px 12px', borderRadius: 20, fontSize: 11, fontWeight: 700, background: '#ECFDF5', color: '#059669', border: '1px solid rgba(5,150,105,.2)' },
@@ -205,7 +205,7 @@ const s = {
   grnItems: { padding: '12px 22px', display: 'flex', flexDirection: 'column', gap: 6 },
   grnItem: { display: 'flex', alignItems: 'center', gap: 12, padding: '7px 0', borderBottom: '1px solid var(--border)' },
   itemName: { flex: 1, fontSize: 14, color: 'var(--text)', fontWeight: 500 },
-  itemQty: { fontWeight: 700, fontSize: 14, color: '#7C3AED' },
+  itemQty: { fontWeight: 700, fontSize: 14, color: '#0D9488' },
   itemCost: { fontSize: 13, color: 'var(--text-muted)' },
   grnFooter: { padding: '13px 22px', background: 'var(--surface2)', borderTop: '1px solid var(--border)' },
   confirmBtn: {
@@ -218,7 +218,7 @@ const s = {
   empty: {
     background: 'var(--surface)', borderRadius: 22, padding: '64px 40px',
     textAlign: 'center', border: '1px solid var(--border)',
-    boxShadow: '0 4px 20px rgba(124,58,237,.06)',
+    boxShadow: '0 4px 20px rgba(13,148,136,.06)',
   },
   emptyOrb: { fontSize: 36, marginBottom: 16, display: 'block' },
   emptyTitle: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 22, color: 'var(--text)', marginBottom: 8 },

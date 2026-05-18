@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import api from '../../api/axios';
 import { useBreakpoint } from '../../hooks/useMobile';
 
@@ -6,7 +6,7 @@ const STATUS_META = {
   pending:  { label: 'Pending',   color: '#D97706', bg: '#FFFBEB', border: 'rgba(217,119,6,.2)'  },
   active:   { label: 'Active',    color: '#059669', bg: '#ECFDF5', border: 'rgba(5,150,105,.2)'  },
   inactive: { label: 'Inactive',  color: '#DC2626', bg: '#FEF2F2', border: 'rgba(220,38,38,.2)'  },
-  suspended:{ label: 'Suspended', color: '#7C3AED', bg: '#F5F3FF', border: 'rgba(124,58,237,.2)' },
+  suspended:{ label: 'Suspended', color: '#0D9488', bg: '#F0FDFA', border: 'rgba(13,148,136,.2)' },
 };
 
 function ConfirmModal({ title, message, danger, onConfirm, onCancel, loading }) {
@@ -76,10 +76,10 @@ export default function AdminSalons() {
   })();
 
   const STAT_TABS = [
-    { key: 'all',       label: 'Total',     val: salons.length,            color: '#7C3AED', bg: 'rgba(124,58,237,.08)',  border: 'rgba(124,58,237,.18)' },
+    { key: 'all',       label: 'Total',     val: salons.length,            color: '#0D9488', bg: 'rgba(13,148,136,.08)',  border: 'rgba(13,148,136,.18)' },
     { key: 'pending',   label: 'Pending',   val: counts.pending   || 0,    color: '#D97706', bg: 'rgba(217,119,6,.08)',   border: 'rgba(217,119,6,.18)'  },
     { key: 'active',    label: 'Active',    val: counts.active    || 0,    color: '#059669', bg: 'rgba(5,150,105,.08)',   border: 'rgba(5,150,105,.18)'  },
-    { key: 'suspended', label: 'Suspended', val: counts.suspended || 0,    color: '#7C3AED', bg: 'rgba(124,58,237,.08)', border: 'rgba(124,58,237,.18)' },
+    { key: 'suspended', label: 'Suspended', val: counts.suspended || 0,    color: '#0D9488', bg: 'rgba(13,148,136,.08)', border: 'rgba(13,148,136,.18)' },
     { key: 'inactive',  label: 'Inactive',  val: counts.inactive  || 0,    color: '#DC2626', bg: 'rgba(220,38,38,.08)',  border: 'rgba(220,38,38,.18)'  },
   ];
 
@@ -227,7 +227,7 @@ const s = {
   statLabel: { fontSize: 11, color: 'var(--text-muted)', marginTop: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' },
   tableCard: {
     background: 'var(--surface)', borderRadius: 16, border: '1px solid var(--border)',
-    boxShadow: '0 4px 20px rgba(124,58,237,.06)', overflow: 'hidden', overflowX: 'auto',
+    boxShadow: '0 4px 20px rgba(13,148,136,.06)', overflow: 'hidden', overflowX: 'auto',
   },
   table: { width: '100%', borderCollapse: 'collapse' },
   th: { padding: '12px 16px', textAlign: 'left', fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', background: 'var(--surface2)', borderBottom: '2px solid var(--border)' },
@@ -243,7 +243,7 @@ const s = {
   actions:    { display: 'flex', gap: 6, flexWrap: 'wrap' },
   approveBtn: { padding: '6px 14px', background: '#ECFDF5', color: '#059669', border: '1px solid rgba(5,150,105,.25)', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: "'DM Sans', sans-serif" },
   rejectBtn:  { padding: '6px 14px', background: '#FEF2F2', color: '#DC2626', border: '1px solid rgba(220,38,38,.25)', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: "'DM Sans', sans-serif" },
-  suspendBtn: { padding: '6px 14px', background: '#F5F3FF', color: '#7C3AED', border: '1px solid rgba(124,58,237,.25)', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: "'DM Sans', sans-serif" },
+  suspendBtn: { padding: '6px 14px', background: '#F0FDFA', color: '#0D9488', border: '1px solid rgba(13,148,136,.25)', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: "'DM Sans', sans-serif" },
   enableBtn:  { padding: '6px 14px', background: '#ECFDF5', color: '#059669', border: '1px solid rgba(5,150,105,.25)', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: "'DM Sans', sans-serif" },
   removeBtn:  { padding: '6px 14px', background: '#FEF2F2', color: '#DC2626', border: '1px solid rgba(220,38,38,.25)', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: "'DM Sans', sans-serif" },
   noAction:   { color: 'var(--text-muted)', fontSize: 14 },
@@ -268,5 +268,5 @@ const m = {
   cancelBtn:  { padding: '9px 20px', background: 'var(--surface2)', color: 'var(--text-sub)', border: '1px solid var(--border)', borderRadius: 10, cursor: 'pointer', fontWeight: 500, fontSize: 13, fontFamily: "'DM Sans', sans-serif" },
   confirmBtn: { padding: '9px 20px', border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 700, fontSize: 13, fontFamily: "'DM Sans', sans-serif", color: '#fff' },
   dangerBtn:  { background: 'linear-gradient(135deg, #DC2626, #B91C1C)', boxShadow: '0 4px 12px rgba(220,38,38,.35)' },
-  actionBtn:  { background: 'linear-gradient(135deg, #7C3AED, #6D28D9)', boxShadow: '0 4px 12px rgba(124,58,237,.35)' },
+  actionBtn:  { background: 'linear-gradient(135deg, #0D9488, #0B7A70)', boxShadow: '0 4px 12px rgba(13,148,136,.35)' },
 };

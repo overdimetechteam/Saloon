@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import api from '../../api/axios';
 import { useOwner } from '../../context/OwnerContext';
 
@@ -64,7 +64,7 @@ export default function OwnerAdjustments() {
 
             {selectedProduct && (
               <div style={s.stockInfo}>
-                Current Stock: <strong style={{ color: '#7C3AED' }}>{selectedProduct.current_stock} {selectedProduct.unit_of_measure}</strong>
+                Current Stock: <strong style={{ color: '#0D9488' }}>{selectedProduct.current_stock} {selectedProduct.unit_of_measure}</strong>
               </div>
             )}
 
@@ -142,7 +142,7 @@ const s = {
   layout: { display: 'grid', gridTemplateColumns: '1fr 360px', gap: 24, alignItems: 'flex-start' },
   formCard: {
     background: 'var(--surface)', borderRadius: 20, padding: 26,
-    border: '1px solid var(--border)', boxShadow: '0 4px 24px rgba(124,58,237,.08)',
+    border: '1px solid var(--border)', boxShadow: '0 4px 24px rgba(13,148,136,.08)',
   },
   formTitle: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 18, fontWeight: 700, color: 'var(--text)', marginBottom: 20, letterSpacing: '-0.01em' },
   label: { display: 'block', fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6, marginTop: 16 },
@@ -167,14 +167,14 @@ const s = {
   reasonLabel: { fontSize: 10, fontWeight: 700, textTransform: 'capitalize', textAlign: 'center', letterSpacing: '0.04em' },
   submitBtn: {
     marginTop: 22, width: '100%', padding: '12px',
-    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #0D9488 100%)',
+    background: 'linear-gradient(135deg, #0D9488 0%, #14B8A8 50%, #0D9488 100%)',
     color: '#fff', border: 'none', borderRadius: 12, cursor: 'pointer',
-    fontWeight: 700, fontSize: 14, boxShadow: '0 4px 14px rgba(124,58,237,.35)',
+    fontWeight: 700, fontSize: 14, boxShadow: '0 4px 14px rgba(13,148,136,.35)',
     fontFamily: "'DM Sans', sans-serif",
   },
   historyCol: {
     background: 'var(--surface)', borderRadius: 20, padding: 22,
-    border: '1px solid var(--border)', boxShadow: '0 4px 24px rgba(124,58,237,.06)',
+    border: '1px solid var(--border)', boxShadow: '0 4px 24px rgba(13,148,136,.06)',
   },
   histTitle: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 16, fontWeight: 700, color: 'var(--text)', marginBottom: 16, letterSpacing: '-0.01em' },
   histList: { display: 'flex', flexDirection: 'column', gap: 10 },

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import api from '../../api/axios';
@@ -11,7 +11,7 @@ const STATUS_META = {
   active:        { label: 'Active',        color: '#059669', bg: 'rgba(5,150,105,.12)'  },
   low_stock:     { label: 'Low Stock',      color: '#D97706', bg: 'rgba(217,119,6,.12)'  },
   out_of_stock:  { label: 'Out of Stock',   color: '#DC2626', bg: 'rgba(220,38,38,.12)'  },
-  expiring_soon: { label: 'Expiring Soon',  color: '#7C3AED', bg: 'rgba(124,58,237,.12)' },
+  expiring_soon: { label: 'Expiring Soon',  color: '#0D9488', bg: 'rgba(13,148,136,.12)' },
 };
 
 const EMPTY_FORM = {
@@ -347,7 +347,7 @@ export default function OwnerInventory() {
       {/* Summary bar */}
       {summary && (
         <div style={s.summRow} className="fade-up">
-          <SummaryCard label="Total SKUs"     value={summary.total_skus}  color="#7C3AED" icon="▦" />
+          <SummaryCard label="Total SKUs"     value={summary.total_skus}  color="#0D9488" icon="▦" />
           <SummaryCard label="Active"         value={summary.active}      color="#059669" icon="●" />
           <SummaryCard label="Low Stock"      value={summary.low_stock}   color="#D97706" icon="⚠" />
           <SummaryCard label="Out of Stock"   value={summary.out_of_stock}  color="#DC2626" icon="✕" />
@@ -399,7 +399,7 @@ export default function OwnerInventory() {
             </thead>
             <tbody>
               {filtered.map(p => {
-                const catColor = CAT_COLORS[p.category] || '#7C3AED';
+                const catColor = CAT_COLORS[p.category] || '#0D9488';
                 const meta = STATUS_META[p.status] || STATUS_META.active;
                 return (
                   <tr key={p.id} style={{ background: p.status === 'out_of_stock' ? 'rgba(220,38,38,.03)' : p.status === 'low_stock' ? 'rgba(217,119,6,.03)' : '' }}>
@@ -417,15 +417,15 @@ export default function OwnerInventory() {
                       <span style={{ fontWeight: 700, color: meta.color }}>{p.current_stock}</span>
                       <span style={{ color: 'var(--text-muted)', fontSize: 11 }}> {p.unit_of_measure}</span>
                     </td>
-                    <td style={s.td}><span style={{ fontWeight: 700, color: '#7C3AED' }}>LKR {Number(p.selling_price).toLocaleString()}</span></td>
-                    <td style={s.td}><span style={{ fontSize: 12, color: p.status === 'expiring_soon' ? '#7C3AED' : 'var(--text-muted)' }}>{p.expiry_date || '—'}</span></td>
+                    <td style={s.td}><span style={{ fontWeight: 700, color: '#0D9488' }}>LKR {Number(p.selling_price).toLocaleString()}</span></td>
+                    <td style={s.td}><span style={{ fontSize: 12, color: p.status === 'expiring_soon' ? '#0D9488' : 'var(--text-muted)' }}>{p.expiry_date || '—'}</span></td>
                     <td style={s.td}>
                       <span style={{ ...s.statusBadge, color: meta.color, background: meta.bg }}>
                         ● {meta.label}
                       </span>
                     </td>
                     <td style={{ ...s.td, whiteSpace: 'nowrap' }}>
-                      <button style={{ ...s.iconBtn, color: '#7C3AED' }} title="Photos" onClick={() => setImagesProduct(p)}>📷</button>
+                      <button style={{ ...s.iconBtn, color: '#0D9488' }} title="Photos" onClick={() => setImagesProduct(p)}>📷</button>
                       <button style={s.iconBtn} title="Edit" onClick={() => setModal({ type: 'edit', product: p })}>✎</button>
                       <button style={{ ...s.iconBtn, color: '#DC2626' }} title="Delete" onClick={() => setDeleteTarget(p.id)}>✕</button>
                     </td>
@@ -488,7 +488,7 @@ const s = {
   title: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 30, fontWeight: 700, color: 'var(--text)', margin: 0, letterSpacing: '-0.01em' },
   headerBtns: { display: 'flex', gap: 10, flexWrap: 'wrap' },
   outlineBtn: { padding: '10px 18px', border: '1.5px solid var(--border)', borderRadius: 11, textDecoration: 'none', color: 'var(--text)', fontSize: 13, fontWeight: 600, fontFamily: "'DM Sans', sans-serif" },
-  primaryBtn: { padding: '10px 22px', background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #0D9488 100%)', color: '#fff', border: 'none', borderRadius: 11, cursor: 'pointer', fontWeight: 700, fontSize: 13, boxShadow: '0 6px 18px rgba(124,58,237,.35)', fontFamily: "'DM Sans', sans-serif" },
+  primaryBtn: { padding: '10px 22px', background: 'linear-gradient(135deg, #0D9488 0%, #14B8A8 50%, #0D9488 100%)', color: '#fff', border: 'none', borderRadius: 11, cursor: 'pointer', fontWeight: 700, fontSize: 13, boxShadow: '0 6px 18px rgba(13,148,136,.35)', fontFamily: "'DM Sans', sans-serif" },
 
   summRow: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 14, marginBottom: 22 },
   summCard: { background: 'var(--surface)', borderRadius: 14, padding: '16px 18px', border: '1px solid var(--border)', boxShadow: '0 2px 10px rgba(0,0,0,.05)' },
@@ -497,7 +497,7 @@ const s = {
   filterInput: { width: '100%', padding: '10px 12px', border: '1.5px solid var(--border)', borderRadius: 10, fontSize: 13, color: 'var(--text)', background: 'var(--input-bg)', fontFamily: "'DM Sans', sans-serif", outline: 'none', boxSizing: 'border-box' },
   filterSelect: { padding: '10px 12px', border: '1.5px solid var(--border)', borderRadius: 10, fontSize: 13, color: 'var(--text)', background: 'var(--input-bg)', fontFamily: "'DM Sans', sans-serif", outline: 'none', minWidth: 150 },
 
-  tableCard: { background: 'var(--surface)', borderRadius: 16, border: '1px solid var(--border)', boxShadow: '0 4px 20px rgba(124,58,237,.06)', overflow: 'hidden' },
+  tableCard: { background: 'var(--surface)', borderRadius: 16, border: '1px solid var(--border)', boxShadow: '0 4px 20px rgba(13,148,136,.06)', overflow: 'hidden' },
   table: { width: '100%', borderCollapse: 'collapse' },
   th: { padding: '12px 16px', textAlign: 'left', fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', background: 'var(--surface2)', borderBottom: '2px solid var(--border)' },
   td: { padding: '12px 16px', borderBottom: '1px solid var(--border)', verticalAlign: 'middle' },
@@ -524,5 +524,5 @@ const s = {
   mInput: { padding: '10px 12px', border: '1.5px solid var(--border)', borderRadius: 10, fontSize: 13, color: 'var(--text)', background: 'var(--input-bg)', fontFamily: "'DM Sans', sans-serif", outline: 'none', width: '100%', boxSizing: 'border-box' },
   mFooter: { display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 28 },
   mCancel: { padding: '10px 22px', border: '1.5px solid var(--border)', borderRadius: 11, background: 'none', color: 'var(--text)', cursor: 'pointer', fontWeight: 600, fontSize: 13, fontFamily: "'DM Sans', sans-serif" },
-  mSave: { padding: '10px 28px', background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #0D9488 100%)', color: '#fff', border: 'none', borderRadius: 11, cursor: 'pointer', fontWeight: 700, fontSize: 13, boxShadow: '0 4px 14px rgba(124,58,237,.35)', fontFamily: "'DM Sans', sans-serif" },
+  mSave: { padding: '10px 28px', background: 'linear-gradient(135deg, #0D9488 0%, #14B8A8 50%, #0D9488 100%)', color: '#fff', border: 'none', borderRadius: 11, cursor: 'pointer', fontWeight: 700, fontSize: 13, boxShadow: '0 4px 14px rgba(13,148,136,.35)', fontFamily: "'DM Sans', sans-serif" },
 };

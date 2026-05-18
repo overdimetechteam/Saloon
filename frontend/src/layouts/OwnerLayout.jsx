@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+﻿import { useState, useEffect, useRef } from 'react';
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useOwner } from '../context/OwnerContext';
@@ -24,7 +24,7 @@ const NAV = [
 ];
 
 const PLAN_LABELS = { free_trial: 'Free Trial', starter: 'Starter', professional: 'Professional', premium: 'Premium' };
-const PLAN_COLORS = { free_trial: '#6B7280', starter: '#3B82F6', professional: '#7C3AED', premium: '#D97706' };
+const PLAN_COLORS = { free_trial: '#6B7280', starter: '#3B82F6', professional: '#0D9488', premium: '#D97706' };
 const PLAN_ICONS  = { free_trial: '🆓', starter: '🚀', professional: '💎', premium: '👑' };
 
 const GROUPS = [
@@ -95,7 +95,7 @@ export default function OwnerLayout() {
             {salon?.name || 'Saloon'}
           </div>
           <div style={{ display: 'flex', gap: 6 }}>
-            <button onClick={toggle} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: isDark ? '#A78BFA' : '#7C3AED' }}>
+            <button onClick={toggle} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: isDark ? '#5EEAD4' : '#0D9488' }}>
               {isDark ? '☀' : '☾'}
             </button>
           </div>
@@ -134,10 +134,10 @@ export default function OwnerLayout() {
                   <div style={{
                     display: 'inline-flex', alignItems: 'center', gap: 3, marginTop: 5,
                     fontSize: 9, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase',
-                    color: PLAN_COLORS[salon.subscription_plan] || '#A78BFA',
-                    background: (PLAN_COLORS[salon.subscription_plan] || '#7C3AED') + '1A',
+                    color: PLAN_COLORS[salon.subscription_plan] || '#5EEAD4',
+                    background: (PLAN_COLORS[salon.subscription_plan] || '#0D9488') + '1A',
                     borderRadius: 20, padding: '2px 8px',
-                    border: `1px solid ${(PLAN_COLORS[salon.subscription_plan] || '#7C3AED')}35`,
+                    border: `1px solid ${(PLAN_COLORS[salon.subscription_plan] || '#0D9488')}35`,
                   }}>
                     {PLAN_ICONS[salon.subscription_plan]}{' '}
                     {PLAN_LABELS[salon.subscription_plan]}
@@ -196,6 +196,7 @@ export default function OwnerLayout() {
               background: salon.status === 'active' ? '#34D399' : '#FBBF24',
               boxShadow: salon.status === 'active' ? '0 0 8px rgba(52,211,153,.5)' : '0 0 8px rgba(251,191,36,.5)',
             }} />
+
             <span style={s.statusText}>
               {salon.status === 'active' ? 'Live & Accepting' : salon.status === 'pending' ? 'Pending Approval' : 'Inactive'}
             </span>
@@ -283,23 +284,23 @@ export default function OwnerLayout() {
 
 const s = {
   sidebar: {
-    background: 'linear-gradient(180deg, #0E0720 0%, #080611 100%)',
+    background: 'linear-gradient(180deg, #111120 0%, #0D0D16 100%)',
     display: 'flex', flexDirection: 'column',
     position: 'fixed', top: 0, left: 0, height: '100vh',
     zIndex: 100, flexShrink: 0,
     transition: 'width .28s cubic-bezier(.4,0,.2,1)',
     overflow: 'hidden',
-    borderRight: '1px solid rgba(124,58,237,.1)',
+    borderRight: '1px solid rgba(13,148,136,.1)',
   },
   brandArea: {
     display: 'flex', alignItems: 'center', gap: 10, padding: '22px 14px 14px', flexShrink: 0,
   },
   brandIcon: {
     width: 36, height: 36, borderRadius: 10, flexShrink: 0,
-    background: 'linear-gradient(145deg, #7C3AED 0%, #9B59E8 45%, #0D9488 100%)',
+    background: 'linear-gradient(145deg, #0D9488 0%, #14B8A8 100%)',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     color: '#fff', fontSize: 14, fontWeight: 900, cursor: 'pointer',
-    boxShadow: '0 4px 16px rgba(124,58,237,.5), inset 0 1px 0 rgba(255,255,255,.2)',
+    boxShadow: '0 4px 16px rgba(13,148,136,.5), inset 0 1px 0 rgba(255,255,255,.2)',
     transition: 'transform .2s ease',
   },
   brandText: { overflow: 'hidden', flex: 1, minWidth: 0 },
@@ -310,27 +311,27 @@ const s = {
     letterSpacing: '-0.01em',
   },
   brandSub: {
-    color: '#7C3AED', fontSize: 9, letterSpacing: '0.14em',
+    color: '#5EEAD4', fontSize: 9, letterSpacing: '0.14em',
     textTransform: 'uppercase', marginTop: 2, fontWeight: 600,
   },
   sideToggle: {
     width: 30, height: 30, borderRadius: 8, flexShrink: 0,
     background: 'rgba(255,255,255,.07)', border: '1px solid rgba(255,255,255,.1)',
-    color: '#A78BFA', cursor: 'pointer', fontSize: 14,
+    color: '#5EEAD4', cursor: 'pointer', fontSize: 14,
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     position: 'relative',
   },
   bellBadge: {
     position: 'absolute', top: -5, right: -5,
-    background: '#7C3AED', color: '#fff',
+    background: '#0D9488', color: '#fff',
     fontSize: 9, fontWeight: 800, borderRadius: 20,
     padding: '1px 4px', lineHeight: 1.4, minWidth: 14, textAlign: 'center',
-    boxShadow: '0 2px 6px rgba(124,58,237,.5)',
+    boxShadow: '0 2px 6px rgba(13,148,136,.5)',
   },
   notifDropdown: {
     position: 'absolute', top: 38, right: 0,
-    width: 300, background: '#140E28',
-    border: '1px solid rgba(124,58,237,.25)',
+    width: 300, background: '#12121C',
+    border: '1px solid rgba(13,148,136,.25)',
     borderRadius: 16, boxShadow: '0 20px 48px rgba(0,0,0,.55)',
     zIndex: 200, overflow: 'hidden',
   },
@@ -340,17 +341,17 @@ const s = {
   },
   notifTitle: {
     fontFamily: "'Cormorant Garamond', Georgia, serif",
-    fontSize: 13, fontWeight: 700, color: '#C4B5FD', letterSpacing: '0.02em',
+    fontSize: 13, fontWeight: 700, color: '#99F6E4', letterSpacing: '0.02em',
   },
-  markReadBtn: { fontSize: 11, color: '#A78BFA', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 },
+  markReadBtn: { fontSize: 11, color: '#5EEAD4', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 },
   notifList: { maxHeight: 320, overflowY: 'auto' },
   notifEmpty: { padding: '28px 18px', textAlign: 'center', color: '#6B7280', fontSize: 13 },
   notifItem: {
     display: 'flex', alignItems: 'flex-start', gap: 10,
     padding: '11px 18px', borderBottom: '1px solid rgba(255,255,255,.04)',
   },
-  notifUnread: { background: 'rgba(124,58,237,.1)' },
-  notifDot: { width: 7, height: 7, borderRadius: '50%', background: '#A78BFA', flexShrink: 0, marginTop: 5 },
+  notifUnread: { background: 'rgba(13,148,136,.1)' },
+  notifDot: { width: 7, height: 7, borderRadius: '50%', background: '#5EEAD4', flexShrink: 0, marginTop: 5 },
   notifMsg: { fontSize: 12, color: '#E5E7EB', lineHeight: 1.5 },
   notifTime: { fontSize: 10, color: '#6B7280', marginTop: 3 },
 
@@ -358,13 +359,13 @@ const s = {
     display: 'flex', alignItems: 'center', gap: 8, padding: '2px 16px 14px', flexShrink: 0,
   },
   statusDot: { width: 7, height: 7, borderRadius: '50%', flexShrink: 0 },
-  statusText: { fontSize: 11, color: '#A78BFA', fontWeight: 500 },
+  statusText: { fontSize: 11, color: '#5EEAD4', fontWeight: 500 },
 
-  divider: { height: 1, background: 'rgba(124,58,237,.14)', margin: '0 14px', flexShrink: 0 },
+  divider: { height: 1, background: 'rgba(13,148,136,.14)', margin: '0 14px', flexShrink: 0 },
 
   nav: { flex: 1, padding: '12px 10px', overflowY: 'auto', overflowX: 'hidden' },
   groupLabel: {
-    fontSize: 9, fontWeight: 700, color: 'rgba(124,58,237,.55)',
+    fontSize: 9, fontWeight: 700, color: 'rgba(13,148,136,.55)',
     letterSpacing: '0.14em', padding: '10px 10px 5px', textTransform: 'uppercase',
   },
   groupDivider: { height: 1, background: 'rgba(255,255,255,.04)', margin: '8px 6px' },
@@ -372,15 +373,15 @@ const s = {
   navItem: {
     display: 'flex', alignItems: 'center', gap: 11,
     padding: '10px 13px', borderRadius: 10,
-    color: '#A78BFA', textDecoration: 'none',
+    color: '#5EEAD4', textDecoration: 'none',
     fontSize: 13, fontWeight: 500,
     position: 'relative', whiteSpace: 'nowrap',
   },
   navItemCollapsed: { padding: '11px', justifyContent: 'center' },
   navActive: {
-    background: 'linear-gradient(135deg, rgba(124,58,237,.22) 0%, rgba(13,148,136,.09) 100%)',
+    background: 'rgba(13,148,136,.22)',
     color: '#FFFFFF',
-    boxShadow: 'inset 0 0 0 1px rgba(124,58,237,.3)',
+    boxShadow: 'inset 0 0 0 1px rgba(13,148,136,.3)',
   },
   navIcon:  { fontSize: 15, width: 18, textAlign: 'center', flexShrink: 0 },
   navLabel: { flex: 1 },
@@ -389,24 +390,24 @@ const s = {
   footerInner: { display: 'flex', alignItems: 'center', gap: 10, padding: '13px 6px' },
   footerAvatar: {
     width: 33, height: 33, borderRadius: '50%', flexShrink: 0,
-    background: 'linear-gradient(145deg, #7C3AED, #0D9488)',
+    background: 'linear-gradient(145deg, #0D9488, #14B8A8)',
     color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
     fontSize: 12, fontWeight: 700,
   },
   avatarCollapsed: {
     width: 34, height: 34, borderRadius: '50%', margin: '10px auto',
-    background: 'linear-gradient(145deg, #7C3AED, #0D9488)',
+    background: 'linear-gradient(145deg, #0D9488, #14B8A8)',
     color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
     fontSize: 12, fontWeight: 700, cursor: 'default',
   },
   footerInfo: { flex: 1, minWidth: 0 },
   footerName:  { color: '#FFFFFF', fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
-  footerEmail: { color: '#7C3AED', fontSize: 10, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: 1 },
+  footerEmail: { color: '#5EEAD4', fontSize: 10, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: 1 },
 
   logoutBtn: {
     width: '100%', padding: '9px 10px',
-    background: 'transparent', border: '1px solid rgba(124,58,237,.22)',
-    color: '#A78BFA', borderRadius: 9, cursor: 'pointer',
+    background: 'transparent', border: '1px solid rgba(13,148,136,.22)',
+    color: '#5EEAD4', borderRadius: 9, cursor: 'pointer',
     fontSize: 12, display: 'flex', alignItems: 'center', gap: 7, marginTop: 4,
     transition: 'background .18s ease, border-color .18s ease',
   },

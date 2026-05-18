@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import api from '../../api/axios';
 
 export default function PendingSalons() {
@@ -117,14 +117,14 @@ const s = {
   empty: {
     textAlign: 'center', padding: '72px 40px',
     background: 'var(--surface)', borderRadius: 22, border: '1px solid var(--border)',
-    boxShadow: '0 4px 20px rgba(124,58,237,.06)',
+    boxShadow: '0 4px 20px rgba(13,148,136,.06)',
   },
   emptyOrb: { fontSize: 40, marginBottom: 16, display: 'block' },
   emptyTitle: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 22, color: 'var(--text)', marginBottom: 8 },
   list: { display: 'flex', flexDirection: 'column', gap: 16 },
   card: {
     background: 'var(--surface)', borderRadius: 20, border: '1px solid var(--border)',
-    boxShadow: '0 4px 20px rgba(124,58,237,.07)', overflow: 'hidden',
+    boxShadow: '0 4px 20px rgba(13,148,136,.07)', overflow: 'hidden',
   },
   cardHead: {
     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
@@ -133,9 +133,9 @@ const s = {
   cardLeft: { display: 'flex', alignItems: 'center', gap: 16 },
   salonIcon: {
     width: 54, height: 54, borderRadius: 14, flexShrink: 0,
-    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #0D9488 100%)',
+    background: 'linear-gradient(135deg, #0D9488 0%, #14B8A8 50%, #0D9488 100%)',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
-    boxShadow: '0 6px 18px rgba(124,58,237,.35)',
+    boxShadow: '0 6px 18px rgba(13,148,136,.35)',
   },
   salonInitial: {
     fontFamily: "'Cormorant Garamond', Georgia, serif",

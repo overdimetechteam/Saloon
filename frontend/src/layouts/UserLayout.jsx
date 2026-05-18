@@ -76,7 +76,7 @@ function NotificationBell() {
             {notifs.map(n => (
               <div
                 key={n.id}
-                style={{ ...nb.item, background: n.is_read ? 'transparent' : 'rgba(124,58,237,.05)' }}
+                style={{ ...nb.item, background: n.is_read ? 'transparent' : 'rgba(13,148,136,.05)' }}
                 onClick={() => handleNotifClick(n)}
               >
                 <div style={{
@@ -114,17 +114,17 @@ const nb = {
   },
   badge: {
     position: 'absolute', top: -2, right: -2,
-    background: 'linear-gradient(135deg, #7C3AED, #0D9488)', color: '#fff',
+    background: 'linear-gradient(135deg, #0D9488, #14B8A8)', color: '#fff',
     fontSize: 9, fontWeight: 800, borderRadius: 20,
     padding: '1px 4px', minWidth: 14, textAlign: 'center',
     border: '1.5px solid var(--surface)',
-    boxShadow: '0 2px 6px rgba(124,58,237,.45)',
+    boxShadow: '0 2px 6px rgba(13,148,136,.45)',
   },
   dropdown: {
     position: 'absolute', top: 'calc(100% + 12px)', right: 0,
     width: 330, background: 'var(--surface)',
     border: '1px solid var(--border)', borderRadius: 18,
-    boxShadow: '0 20px 56px rgba(124,58,237,.12), 0 4px 16px rgba(0,0,0,.08)',
+    boxShadow: '0 20px 56px rgba(13,148,136,.12), 0 4px 16px rgba(0,0,0,.08)',
     zIndex: 500, overflow: 'hidden',
   },
   dropHeader: {
@@ -136,8 +136,8 @@ const nb = {
     fontSize: 15, fontWeight: 700, color: 'var(--text)',
   },
   markAll: {
-    fontSize: 11, color: '#7C3AED', background: '#F5F2FF',
-    border: '1px solid #DDD6FE', cursor: 'pointer', fontWeight: 600,
+    fontSize: 11, color: '#0D9488', background: '#F0FDFA',
+    border: '1px solid #99F6E4', cursor: 'pointer', fontWeight: 600,
     padding: '3px 10px', borderRadius: 20,
   },
   list: { maxHeight: 380, overflowY: 'auto' },
@@ -161,8 +161,8 @@ const nb = {
   itemTime: { fontSize: 11, color: 'var(--text-muted)' },
   dot: {
     width: 7, height: 7, borderRadius: '50%',
-    background: '#7C3AED', flexShrink: 0, marginTop: 7,
-    boxShadow: '0 0 6px rgba(124,58,237,.5)',
+    background: '#0D9488', flexShrink: 0, marginTop: 7,
+    boxShadow: '0 0 6px rgba(13,148,136,.5)',
   },
 };
 
@@ -188,12 +188,12 @@ export default function UserLayout() {
       <header style={{
         position: 'sticky', top: 0, zIndex: 200,
         background: isDark
-          ? scrolled ? 'rgba(16,13,31,.96)' : 'rgba(8,6,17,.99)'
+          ? scrolled ? 'rgba(22,22,31,.96)' : 'rgba(13,13,22,.99)'
           : scrolled ? 'rgba(255,255,255,.92)' : 'rgba(255,255,255,.99)',
         backdropFilter: scrolled ? 'blur(24px) saturate(1.5)' : 'none',
         WebkitBackdropFilter: scrolled ? 'blur(24px) saturate(1.5)' : 'none',
         borderBottom: '1px solid var(--border)',
-        boxShadow: scrolled ? '0 4px 28px rgba(124,58,237,.07)' : 'none',
+        boxShadow: scrolled ? '0 4px 28px rgba(13,148,136,.07)' : 'none',
         transition: 'background .3s ease, box-shadow .3s ease',
       }}>
         <div style={{
@@ -206,10 +206,10 @@ export default function UserLayout() {
           <Link to="/salons" style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0, textDecoration: 'none' }}>
             <div style={{
               width: 36, height: 36, borderRadius: 10, flexShrink: 0,
-              background: 'linear-gradient(145deg, #7C3AED 0%, #9B59E8 45%, #0D9488 100%)',
+              background: 'linear-gradient(145deg, #0D9488 0%, #14B8A8 100%)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               color: '#fff', fontSize: 15, fontWeight: 900,
-              boxShadow: '0 4px 16px rgba(124,58,237,.4), inset 0 1px 0 rgba(255,255,255,.2)',
+              boxShadow: '0 4px 16px rgba(13,148,136,.4), inset 0 1px 0 rgba(255,255,255,.2)',
             }}>✦</div>
             <div>
               <div style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontWeight: 700, fontSize: isMobile ? 18 : 20, color: 'var(--text)', lineHeight: 1, letterSpacing: '-0.01em' }}>Saloon</div>
@@ -227,9 +227,9 @@ export default function UserLayout() {
                   style={({ isActive }) => ({
                     padding: '6px 16px', borderRadius: 9, fontSize: 14,
                     fontWeight: isActive ? 600 : 500,
-                    color: isActive ? '#7C3AED' : 'var(--text-muted)',
+                    color: isActive ? '#0D9488' : 'var(--text-muted)',
                     background: isActive
-                      ? (isDark ? 'rgba(124,58,237,.18)' : '#F5F2FF')
+                      ? (isDark ? 'rgba(13,148,136,.18)' : '#F0FDFA')
                       : 'transparent',
                     transition: 'all .18s ease',
                   })}
@@ -244,15 +244,15 @@ export default function UserLayout() {
           <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 8 : 10, marginLeft: 'auto' }}>
             <NotificationBell />
             <button onClick={toggle} className="theme-toggle" title={isDark ? 'Light mode' : 'Dark mode'}
-              style={{ color: isDark ? '#A78BFA' : '#7C3AED' }}>
+              style={{ color: isDark ? '#5EEAD4' : '#0D9488' }}>
               {isDark ? '☀' : '☾'}
             </button>
             <div style={{ position: 'relative' }}>
               <div style={{
                 width: 34, height: 34, borderRadius: '50%',
-                background: 'linear-gradient(145deg, #7C3AED 0%, #0D9488 100%)',
+                background: 'linear-gradient(145deg, #0D9488 0%, #14B8A8 100%)',
                 color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 12, fontWeight: 700, boxShadow: '0 2px 10px rgba(124,58,237,.35)',
+                fontSize: 12, fontWeight: 700, boxShadow: '0 2px 10px rgba(13,148,136,.35)',
               }}>{initials}</div>
               <div style={{
                 width: 8, height: 8, borderRadius: '50%', background: '#34D399',

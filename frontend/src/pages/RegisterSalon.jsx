@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../api/axios';
 import { useBreakpoint } from '../hooks/useMobile';
@@ -316,15 +316,15 @@ export default function RegisterSalon() {
 }
 
 const s = {
-  page: { minHeight: '100vh', background: 'linear-gradient(145deg, #F5F2FF 0%, var(--bg) 60%)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '48px 20px' },
-  card: { background: 'var(--surface)', borderRadius: 22, padding: '44px 40px', width: '100%', maxWidth: 600, boxShadow: '0 24px 56px rgba(124,58,237,.12), 0 8px 20px rgba(0,0,0,.06)', border: '1px solid var(--border)' },
+  page: { minHeight: '100vh', background: 'linear-gradient(145deg, #F0FDFA 0%, var(--bg) 60%)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '48px 20px' },
+  card: { background: 'var(--surface)', borderRadius: 22, padding: '44px 40px', width: '100%', maxWidth: 600, boxShadow: '0 24px 56px rgba(13,148,136,.12), 0 8px 20px rgba(0,0,0,.06)', border: '1px solid var(--border)' },
   header:     { textAlign: 'center', marginBottom: 32 },
-  headerMark: { fontSize: 28, color: '#7C3AED', marginBottom: 14, filter: 'drop-shadow(0 0 10px rgba(124,58,237,.4))' },
+  headerMark: { fontSize: 28, color: '#0D9488', marginBottom: 14, filter: 'drop-shadow(0 0 10px rgba(13,148,136,.4))' },
   title: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 34, fontWeight: 700, color: 'var(--text)', margin: 0, letterSpacing: '-0.01em' },
   sub:   { color: 'var(--text-muted)', fontSize: 14, marginTop: 6 },
   stepBar: { display: 'flex', justifyContent: 'center', gap: 10, marginTop: 20 },
   step: { width: 32, height: 32, borderRadius: '50%', background: 'var(--surface2)', border: '1.5px solid var(--border)', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700 },
-  stepActive: { width: 32, height: 32, borderRadius: '50%', background: 'linear-gradient(135deg, #7C3AED, #0D9488)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, boxShadow: '0 4px 14px rgba(124,58,237,.4)' },
+  stepActive: { width: 32, height: 32, borderRadius: '50%', background: 'linear-gradient(135deg, #0D9488, #0D9488)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, boxShadow: '0 4px 14px rgba(13,148,136,.4)' },
   alert: { background: '#FEF2F2', border: '1px solid #FCA5A5', color: '#DC2626', borderRadius: 12, padding: '12px 16px', fontSize: 13, marginBottom: 20, display: 'flex', alignItems: 'center', gap: 8 },
   fields:       { display: 'flex', flexDirection: 'column', gap: 16 },
   sectionTitle: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 17, fontWeight: 700, color: 'var(--text-sub)', margin: 0 },
@@ -342,7 +342,7 @@ const s = {
   step4Block:    { display: 'flex', flexDirection: 'column', gap: 12, padding: '20px 0', borderBottom: '1px solid var(--border)' },
   svcRow:        { display: 'flex', gap: 10, alignItems: 'flex-end', flexWrap: 'wrap', background: 'var(--surface2)', borderRadius: 12, padding: '14px 16px', border: '1px solid var(--border)' },
   removeBtn:     { padding: '8px 12px', background: '#FEF2F2', color: '#DC2626', border: '1px solid #FECACA', borderRadius: 9, cursor: 'pointer', fontSize: 13, fontWeight: 700, fontFamily: "'DM Sans', sans-serif", alignSelf: 'flex-end' },
-  addSvcBtn:     { padding: '9px 18px', background: 'var(--surface2)', color: '#7C3AED', border: '1.5px dashed rgba(124,58,237,.35)', borderRadius: 10, cursor: 'pointer', fontWeight: 600, fontSize: 13, fontFamily: "'DM Sans', sans-serif", alignSelf: 'flex-start' },
+  addSvcBtn:     { padding: '9px 18px', background: 'var(--surface2)', color: '#0D9488', border: '1.5px dashed rgba(13,148,136,.35)', borderRadius: 10, cursor: 'pointer', fontWeight: 600, fontSize: 13, fontFamily: "'DM Sans', sans-serif", alignSelf: 'flex-start' },
   offerToggleRow:{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
   toggleBtn:     { padding: '7px 16px', borderRadius: 10, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 13, fontFamily: "'DM Sans', sans-serif" },
   toggleOn:      { background: 'rgba(13,148,136,.12)', color: '#0D9488', border: '1px solid rgba(13,148,136,.25)' },
@@ -350,11 +350,11 @@ const s = {
 
   actions: { display: 'flex', gap: 12, marginTop: 28 },
   backBtn: { flex: 1, padding: '13px', background: 'transparent', border: '1.5px solid var(--border)', borderRadius: 12, fontSize: 14, fontWeight: 500, cursor: 'pointer', color: 'var(--text-sub)', fontFamily: "'DM Sans', sans-serif" },
-  nextBtn: { flex: 2, padding: '13px', background: 'linear-gradient(135deg, #7C3AED 0%, #0D9488 100%)', color: '#fff', border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 600, cursor: 'pointer', boxShadow: '0 6px 20px rgba(124,58,237,.35), inset 0 1px 0 rgba(255,255,255,.15)', fontFamily: "'DM Sans', sans-serif" },
-  primaryBtn: { display: 'inline-block', padding: '13px 32px', background: 'linear-gradient(135deg, #7C3AED 0%, #0D9488 100%)', color: '#fff', borderRadius: 12, textDecoration: 'none', fontWeight: 600, fontSize: 15, boxShadow: '0 6px 20px rgba(124,58,237,.35)' },
-  successOrb:   { fontSize: 36, color: '#7C3AED', textAlign: 'center', marginBottom: 18, filter: 'drop-shadow(0 0 14px rgba(124,58,237,.5))' },
+  nextBtn: { flex: 2, padding: '13px', background: 'linear-gradient(135deg, #0D9488 0%, #0D9488 100%)', color: '#fff', border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 600, cursor: 'pointer', boxShadow: '0 6px 20px rgba(13,148,136,.35), inset 0 1px 0 rgba(255,255,255,.15)', fontFamily: "'DM Sans', sans-serif" },
+  primaryBtn: { display: 'inline-block', padding: '13px 32px', background: 'linear-gradient(135deg, #0D9488 0%, #0D9488 100%)', color: '#fff', borderRadius: 12, textDecoration: 'none', fontWeight: 600, fontSize: 15, boxShadow: '0 6px 20px rgba(13,148,136,.35)' },
+  successOrb:   { fontSize: 36, color: '#0D9488', textAlign: 'center', marginBottom: 18, filter: 'drop-shadow(0 0 14px rgba(13,148,136,.5))' },
   successTitle: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 32, fontWeight: 700, color: 'var(--text)', textAlign: 'center', marginBottom: 12 },
   successSub:   { color: 'var(--text-muted)', fontSize: 15, textAlign: 'center', lineHeight: 1.7, marginBottom: 28 },
   footer:       { marginTop: 20, textAlign: 'center', fontSize: 14, color: 'var(--text-muted)' },
-  footerLink:   { color: '#7C3AED', fontWeight: 600 },
+  footerLink:   { color: '#0D9488', fontWeight: 600 },
 };

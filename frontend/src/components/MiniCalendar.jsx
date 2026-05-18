@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 
 const DAY_JS   = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
 const CAL_HEADS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
@@ -119,12 +119,12 @@ const c = {
   grid:       { display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 3 },
   cell:       { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 34, borderRadius: 8, border: '1.5px solid transparent', cursor: 'pointer', transition: 'all .12s ease', position: 'relative', gap: 1 },
   cellAvail:  { background: 'rgba(236,72,153,.1)', borderColor: 'rgba(236,72,153,.2)' },
-  cellSel:    { background: 'linear-gradient(135deg, #7C3AED 0%, #0D9488 100%)', borderColor: 'transparent', boxShadow: '0 3px 10px rgba(124,58,237,.4)', transform: 'scale(1.04)' },
+  cellSel:    { background: 'linear-gradient(135deg, #0D9488 0%, #0D9488 100%)', borderColor: 'transparent', boxShadow: '0 3px 10px rgba(13,148,136,.4)', transform: 'scale(1.04)' },
   cellDis:    { background: 'var(--surface)', borderColor: 'transparent', cursor: 'not-allowed', opacity: 0.35 },
-  cellToday:  { background: 'rgba(236,72,153,.1)', borderColor: '#7C3AED', boxShadow: '0 0 0 2px rgba(124,58,237,.15)' },
+  cellToday:  { background: 'rgba(236,72,153,.1)', borderColor: '#0D9488', boxShadow: '0 0 0 2px rgba(13,148,136,.15)' },
   outsideCell:{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 34, fontSize: 11, color: 'var(--text-light)', opacity: 0.25 },
   dayNum:     { fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, lineHeight: 1 },
   closedDot:  { width: 3, height: 3, borderRadius: '50%', background: '#DC2626', flexShrink: 0 },
   check:      { fontSize: 8, color: 'rgba(255,255,255,.9)', fontWeight: 700 },
-  todayDot:   { width: 3, height: 3, borderRadius: '50%', background: '#7C3AED', flexShrink: 0 },
+  todayDot:   { width: 3, height: 3, borderRadius: '50%', background: '#0D9488', flexShrink: 0 },
 };

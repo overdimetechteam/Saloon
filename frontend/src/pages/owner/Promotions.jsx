@@ -184,7 +184,7 @@ export default function OwnerPromotions() {
                   <span style={{ fontWeight: 700, color: 'var(--text)' }}>{p.times_used} / {p.max_uses}</span>
                 </div>
                 <div style={s.progressBg}>
-                  <div style={{ ...s.progressFill, width: `${usePct}%`, background: usePct >= 90 ? '#EF4444' : usePct >= 60 ? '#F59E0B' : '#7C3AED' }} />
+                  <div style={{ ...s.progressFill, width: `${usePct}%`, background: usePct >= 90 ? '#EF4444' : usePct >= 60 ? '#F59E0B' : '#0D9488' }} />
                 </div>
               </div>
 
@@ -222,10 +222,10 @@ const s = {
   sub: { color: 'var(--text-muted)', fontSize: 13, margin: 0 },
   addBtn: {
     padding: '11px 22px',
-    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #0D9488 100%)',
+    background: 'linear-gradient(135deg, #0D9488 0%, #14B8A8 50%, #0D9488 100%)',
     color: '#fff', border: 'none', borderRadius: 12, cursor: 'pointer',
     fontWeight: 700, fontSize: 13,
-    boxShadow: '0 6px 18px rgba(124,58,237,.35)',
+    boxShadow: '0 6px 18px rgba(13,148,136,.35)',
     flexShrink: 0,
   },
   alertErr: {
@@ -239,7 +239,7 @@ const s = {
 
   formCard: {
     background: 'var(--surface)', borderRadius: 20, padding: 26,
-    boxShadow: '0 4px 24px rgba(124,58,237,.08)',
+    boxShadow: '0 4px 24px rgba(13,148,136,.08)',
     border: '1px solid var(--border)', marginBottom: 26,
   },
   formTitle: {
@@ -261,10 +261,10 @@ const s = {
   formFooter: { display: 'flex', justifyContent: 'flex-end' },
   submitBtn: {
     padding: '10px 26px',
-    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #0D9488 100%)',
+    background: 'linear-gradient(135deg, #0D9488 0%, #14B8A8 50%, #0D9488 100%)',
     color: '#fff', border: 'none', borderRadius: 11, cursor: 'pointer',
     fontWeight: 700, fontSize: 13,
-    boxShadow: '0 4px 14px rgba(124,58,237,.35)',
+    boxShadow: '0 4px 14px rgba(13,148,136,.35)',
     fontFamily: "'DM Sans', sans-serif",
   },
 
@@ -274,7 +274,7 @@ const s = {
   empty: {
     background: 'var(--surface)', borderRadius: 22, padding: '64px 40px',
     textAlign: 'center', border: '1px solid var(--border)',
-    boxShadow: '0 4px 20px rgba(124,58,237,.06)',
+    boxShadow: '0 4px 20px rgba(13,148,136,.06)',
   },
   emptyOrb: { fontSize: 36, marginBottom: 16, display: 'block' },
   emptyTitle: {
@@ -286,7 +286,7 @@ const s = {
   promoCard: {
     background: 'var(--surface)', borderRadius: 20, padding: 22,
     border: '1px solid var(--border)',
-    boxShadow: '0 4px 16px rgba(124,58,237,.06)',
+    boxShadow: '0 4px 16px rgba(13,148,136,.06)',
     display: 'flex', flexDirection: 'column', gap: 16,
     transition: 'transform .2s ease, box-shadow .2s ease',
   },
@@ -300,7 +300,7 @@ const s = {
   discountBig: {
     fontFamily: "'Cormorant Garamond', Georgia, serif",
     fontSize: 28, fontWeight: 700, letterSpacing: '-0.01em',
-    background: 'linear-gradient(135deg, #7C3AED, #0D9488)',
+    background: 'linear-gradient(135deg, #0D9488, #0D9488)',
     WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
   },
   promoMeta: { display: 'flex', flexDirection: 'column', gap: 4 },

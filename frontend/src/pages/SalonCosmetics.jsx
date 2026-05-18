@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../api/axios';
 import { useBreakpoint } from '../hooks/useMobile';
@@ -24,7 +24,7 @@ const STATUS_META = {
   active:        { label: 'In Stock',       color: '#059669', bg: 'rgba(5,150,105,.12)'  },
   low_stock:     { label: 'Low Stock',       color: '#D97706', bg: 'rgba(217,119,6,.12)'  },
   out_of_stock:  { label: 'Out of Stock',    color: '#DC2626', bg: 'rgba(220,38,38,.12)'  },
-  expiring_soon: { label: 'Expiring Soon',   color: '#7C3AED', bg: 'rgba(124,58,237,.12)' },
+  expiring_soon: { label: 'Expiring Soon',   color: '#0D9488', bg: 'rgba(13,148,136,.12)' },
 };
 
 export default function SalonCosmetics() {
@@ -64,7 +64,7 @@ export default function SalonCosmetics() {
       <div style={{ fontSize: 48 }}>🛍</div>
       <div style={{ fontSize: 22, fontFamily: "'Cormorant Garamond', Georgia, serif", fontWeight: 700, color: 'var(--text)' }}>Cosmetics not available</div>
       <div style={{ fontSize: 14, color: 'var(--text-muted)' }}>This salon hasn't enabled their cosmetics section.</div>
-      <Link to={`/salons/${id}`} style={{ padding: '10px 22px', borderRadius: 10, background: '#7C3AED', color: '#fff', textDecoration: 'none', fontWeight: 700, fontSize: 13 }}>← Back to Salon</Link>
+      <Link to={`/salons/${id}`} style={{ padding: '10px 22px', borderRadius: 10, background: '#0D9488', color: '#fff', textDecoration: 'none', fontWeight: 700, fontSize: 13 }}>← Back to Salon</Link>
     </div>
   );
 
@@ -235,7 +235,7 @@ const s = {
   page: { background: 'var(--bg)', minHeight: '100vh' },
 
   hero: {
-    background: 'linear-gradient(135deg, #1a0533 0%, #3B0764 35%, #7C3AED 70%, #EC4899 100%)',
+    background: 'linear-gradient(135deg, #1a0533 0%, #3B0764 35%, #0D9488 70%, #EC4899 100%)',
     position: 'relative', overflow: 'hidden',
   },
   heroGlow1: { position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at top left, rgba(236,72,153,.3) 0%, transparent 60%)', pointerEvents: 'none' },
@@ -305,10 +305,10 @@ const s = {
   floatCart: {
     position: 'fixed', bottom: 28, right: 28,
     padding: '14px 24px', borderRadius: 40,
-    background: 'linear-gradient(135deg, #7C3AED, #EC4899)',
+    background: 'linear-gradient(135deg, #0D9488, #EC4899)',
     color: '#fff', border: 'none', fontSize: 14, fontWeight: 800,
     cursor: 'pointer', zIndex: 500,
-    boxShadow: '0 8px 28px rgba(124,58,237,.45)',
+    boxShadow: '0 8px 28px rgba(13,148,136,.45)',
     fontFamily: "'DM Sans', sans-serif",
   },
 };

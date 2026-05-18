@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { useBreakpoint } from '../hooks/useMobile';
 
 const PALETTE = [
-  ['#7C3AED', '#A78BFA'],
+  ['#0D9488', '#5EEAD4'],
   ['#0D9488', '#2DD4BF'],
   ['#D97706', '#FCD34D'],
   ['#2563EB', '#93C5FD'],
@@ -134,7 +134,7 @@ export default function SalonList() {
           <div style={s.glow2} />
           <div style={s.heroContent} className="fade-up">
             <div style={s.eyebrow}>
-              <span style={{ color: '#BF9B65', fontSize: 10 }}>✦</span>
+              <span style={{ color: '#D4AF37', fontSize: 10 }}>✦</span>
               Discover · Book · Glow
             </div>
             <h1 style={{ ...s.heroTitle, fontSize: isMobile ? 32 : isTablet ? 44 : 'clamp(34px,4.8vw,58px)' }}>
@@ -145,7 +145,7 @@ export default function SalonList() {
               Browse curated premium salons and book your next beauty appointment in seconds.
             </p>
             <div style={{ ...s.heroSearch, maxWidth: isMobile ? '100%' : 480 }} className="fade-up d2">
-              <span style={{ color: '#7C3AED', fontSize: 15, flexShrink: 0 }}>✦</span>
+              <span style={{ color: '#0D9488', fontSize: 15, flexShrink: 0 }}>✦</span>
               <input
                 className="hero-search"
                 style={s.heroSearchInput}
@@ -165,7 +165,7 @@ export default function SalonList() {
       {profile && isNarrow && (
         <div style={s.topSearch}>
           <div style={s.topSearchBox}>
-            <span style={{ color: '#7C3AED', fontSize: 14, flexShrink: 0 }}>✦</span>
+            <span style={{ color: '#0D9488', fontSize: 14, flexShrink: 0 }}>✦</span>
             <input
               style={s.searchInput}
               placeholder="Search salons…"
@@ -241,7 +241,7 @@ export default function SalonList() {
             <div className="empty-icon-wrap">
               <svg width="36" height="36" viewBox="0 0 38 38" fill="none">
                 <defs><linearGradient id="eg" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stopColor="#7C3AED"/>
+                  <stop offset="0%" stopColor="#0D9488"/>
                   <stop offset="100%" stopColor="#0D9488"/>
                 </linearGradient></defs>
                 <circle cx="13" cy="13" r="7.5" stroke="url(#eg)" strokeWidth="1.5"/>
@@ -290,7 +290,7 @@ const s = {
 
   /* ── Hero (guests only) ── */
   hero: {
-    background: 'linear-gradient(145deg, #1A0532 0%, #2D0A5E 30%, #5B21B6 65%, #7C3AED 100%)',
+    background: 'linear-gradient(145deg, #0D0D16, #1A1A24, #0B3832, #0D9488)',
     textAlign: 'center', position: 'relative', overflow: 'hidden',
   },
   glow1: {
@@ -300,7 +300,7 @@ const s = {
   },
   glow2: {
     position: 'absolute', width: 320, height: 320, borderRadius: '50%',
-    background: 'radial-gradient(circle, rgba(124,58,237,.18) 0%, transparent 70%)',
+    background: 'radial-gradient(circle, rgba(13,148,136,.18) 0%, transparent 70%)',
     bottom: -60, left: 60, pointerEvents: 'none', filter: 'blur(50px)',
   },
   heroContent: { position: 'relative', zIndex: 2, maxWidth: 660, margin: '0 auto' },
@@ -316,7 +316,7 @@ const s = {
     fontWeight: 700, color: '#fff', margin: '0 0 18px',
     lineHeight: 1.12, letterSpacing: '-0.02em',
   },
-  heroItalic: { fontStyle: 'italic', color: '#C4B5FD' },
+  heroItalic: { fontStyle: 'italic', color: '#99F6E4' },
   heroSub: {
     color: 'rgba(255,255,255,.65)', lineHeight: 1.65,
     maxWidth: 500, margin: '0 auto 36px',
@@ -325,7 +325,7 @@ const s = {
     display: 'flex', alignItems: 'center',
     background: 'rgba(255,255,255,.97)',
     borderRadius: 60, padding: '13px 20px', gap: 12, margin: '0 auto',
-    boxShadow: '0 12px 48px rgba(0,0,0,.22), 0 4px 16px rgba(124,58,237,.15)',
+    boxShadow: '0 12px 48px rgba(0,0,0,.22), 0 4px 16px rgba(13,148,136,.15)',
   },
   heroSearchInput: {
     border: 'none', outline: 'none', fontSize: 15, flex: 1,
@@ -367,9 +367,9 @@ const s = {
     display: 'inline-flex', alignItems: 'center', gap: 5,
     fontFamily: "'DM Sans', sans-serif", transition: 'all .15s ease',
   },
-  chipOn:      { background: 'rgba(124,58,237,.08)', color: '#7C3AED', borderColor: 'rgba(124,58,237,.3)' },
+  chipOn:      { background: 'rgba(13,148,136,.08)', color: '#0D9488', borderColor: 'rgba(13,148,136,.3)' },
   chipBadge:   { background: 'var(--surface2)', color: 'var(--text-muted)', borderRadius: 20, fontSize: 10, fontWeight: 700, padding: '1px 5px' },
-  chipBadgeOn: { background: 'rgba(124,58,237,.12)', color: '#7C3AED' },
+  chipBadgeOn: { background: 'rgba(13,148,136,.12)', color: '#0D9488' },
   sortLabel:   { fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.14em' },
 
   resultsNote: { fontSize: 13, color: 'var(--text-muted)', fontStyle: 'italic', margin: 0 },

@@ -1,4 +1,4 @@
-import { createPortal } from 'react-dom';
+﻿import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 
@@ -144,7 +144,7 @@ const s = {
   itemInfo: { flex: 1, minWidth: 0 },
   itemName: { fontWeight: 700, fontSize: 13, color: 'var(--text)', marginBottom: 2, lineHeight: 1.3 },
   itemBrand: { fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 },
-  itemVariant: { fontSize: 11, color: '#7C3AED', fontStyle: 'italic', marginBottom: 4 },
+  itemVariant: { fontSize: 11, color: '#0D9488', fontStyle: 'italic', marginBottom: 4 },
   itemPrice: { fontWeight: 800, fontSize: 14, color: '#EC4899' },
   itemMeta: { fontSize: 10, color: 'var(--text-muted)', marginTop: 2 },
   itemRight: { display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8, flexShrink: 0 },
@@ -169,7 +169,7 @@ const s = {
   taxNote: { fontSize: 11, color: 'var(--text-muted)', marginBottom: 16 },
   checkoutBtn: {
     width: '100%', padding: '14px 0',
-    background: 'linear-gradient(135deg, #7C3AED, #EC4899)',
+    background: 'linear-gradient(135deg, #0D9488, #EC4899)',
     color: '#fff', border: 'none', borderRadius: 12,
     fontSize: 15, fontWeight: 800, cursor: 'pointer',
     marginBottom: 10, fontFamily: "'DM Sans', sans-serif",

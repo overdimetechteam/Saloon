@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+﻿import { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import api from '../api/axios';
@@ -6,15 +6,15 @@ import { useAuth } from '../context/AuthContext';
 import { useBreakpoint } from '../hooks/useMobile';
 
 const MOCK_PHOTOS = [
-  { grad: 'linear-gradient(135deg, #7C3AED 0%, #0D9488 100%)', label: 'Styling Area'  },
-  { grad: 'linear-gradient(135deg, #1E0A3C 0%, #7C3AED 100%)', label: 'Interior'      },
+  { grad: 'linear-gradient(135deg, #0D9488 0%, #0D9488 100%)', label: 'Styling Area'  },
+  { grad: 'linear-gradient(135deg, #1E0A3C 0%, #0D9488 100%)', label: 'Interior'      },
   { grad: 'linear-gradient(135deg, #0D9488 0%, #F59E0B 100%)', label: 'Nail Station'  },
   { grad: 'linear-gradient(135deg, #059669 0%, #2563EB 100%)', label: 'Skin Room'     },
-  { grad: 'linear-gradient(135deg, #D97706 0%, #7C3AED 100%)', label: 'Lounge'        },
+  { grad: 'linear-gradient(135deg, #D97706 0%, #0D9488 100%)', label: 'Lounge'        },
 ];
 
 const MOCK_TEAM = [
-  { name: 'Sophie Laurent', role: 'Senior Stylist',   specialty: 'Color & Cuts',     color: '#7C3AED', bg: 'rgba(124,58,237,.12)'  },
+  { name: 'Sophie Laurent', role: 'Senior Stylist',   specialty: 'Color & Cuts',     color: '#0D9488', bg: 'rgba(13,148,136,.12)'  },
   { name: 'James Kai',      role: 'Nail Technician',  specialty: 'Gel & Acrylics',   color: '#0D9488', bg: 'rgba(13,148,136,.12)'  },
   { name: 'Aria Chen',      role: 'Skin Therapist',   specialty: 'Facials & Peels',  color: '#059669', bg: 'rgba(5,150,105,.12)'   },
   { name: 'Luca Moretti',   role: 'Hair Artist',      specialty: 'Balayage & Perms', color: '#2563EB', bg: 'rgba(37,99,235,.12)'   },
@@ -27,22 +27,22 @@ const MOCK_REVIEWS = [
 ];
 
 const CAT_COLORS = {
-  Hair: '#7C3AED', Nails: '#0D9488',
+  Hair: '#0D9488', Nails: '#0D9488',
   Skin: '#059669', Makeup: '#EC4899', Cosmetics: '#EC4899', Other: '#2563EB',
 };
 
 const PALETTE = [
-  'linear-gradient(135deg, #7C3AED 0%, #0D9488 100%)',
+  'linear-gradient(135deg, #0D9488 0%, #0D9488 100%)',
   'linear-gradient(135deg, #059669 0%, #2563EB 100%)',
   'linear-gradient(135deg, #D97706 0%, #DC2626 100%)',
-  'linear-gradient(135deg, #1E0A3C 0%, #7C3AED 100%)',
+  'linear-gradient(135deg, #1E0A3C 0%, #0D9488 100%)',
 ];
 
 function Stars({ rating, size = 14 }) {
   return (
     <span style={{ letterSpacing: 1 }}>
       {[1, 2, 3, 4, 5].map(i => (
-        <span key={i} style={{ color: i <= rating ? '#BF9B65' : 'rgba(236,72,153,.45)', fontSize: size }}>★</span>
+        <span key={i} style={{ color: i <= rating ? '#D4AF37' : 'rgba(236,72,153,.45)', fontSize: size }}>★</span>
       ))}
     </span>
   );
@@ -133,7 +133,7 @@ export default function SalonDetail() {
 
   if (!salon) return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh', background: 'var(--bg)' }}>
-      <div style={{ width: 38, height: 38, borderRadius: '50%', border: '3px solid rgba(124,58,237,.15)', borderTopColor: '#7C3AED', animation: 'spinSlow .7s linear infinite' }} />
+      <div style={{ width: 38, height: 38, borderRadius: '50%', border: '3px solid rgba(13,148,136,.15)', borderTopColor: '#0D9488', animation: 'spinSlow .7s linear infinite' }} />
     </div>
   );
 
@@ -149,7 +149,7 @@ export default function SalonDetail() {
 
   const cats = Object.keys(grouped);
   const activeCat = activeServiceCat && cats.includes(activeServiceCat) ? activeServiceCat : cats[0];
-  const activeCatColor = CAT_COLORS[activeCat] || '#7C3AED';
+  const activeCatColor = CAT_COLORS[activeCat] || '#0D9488';
 
   return (
     <div style={{ background: 'var(--bg)', minHeight: '100vh' }}>
@@ -206,12 +206,12 @@ export default function SalonDetail() {
                 title={isFav ? 'Remove from favourites' : 'Save to favourites'}
                 style={{
                   width: 48, height: 48, borderRadius: 14, border: 'none',
-                  background: isFav ? 'rgba(124,58,237,.25)' : 'rgba(255,255,255,.12)',
-                  color: isFav ? '#A78BFA' : 'rgba(255,255,255,.7)',
+                  background: isFav ? 'rgba(13,148,136,.25)' : 'rgba(255,255,255,.12)',
+                  color: isFav ? '#5EEAD4' : 'rgba(255,255,255,.7)',
                   fontSize: 22, cursor: 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   transition: 'all .2s ease',
-                  boxShadow: isFav ? '0 4px 14px rgba(124,58,237,.35)' : 'none',
+                  boxShadow: isFav ? '0 4px 14px rgba(13,148,136,.35)' : 'none',
                 }}
               >
                 {isFav ? '♥' : '♡'}
@@ -341,7 +341,7 @@ export default function SalonDetail() {
             <>
               <div style={s.catTabs}>
                 {cats.map(cat => {
-                  const tc = CAT_COLORS[cat] || '#7C3AED';
+                  const tc = CAT_COLORS[cat] || '#0D9488';
                   const isActive = cat === activeCat;
                   return (
                     <button
@@ -398,7 +398,7 @@ export default function SalonDetail() {
             <h2 style={s.secTitle}>Ongoing Offers</h2>
             <div style={s.offersGrid}>
               {offers.map((o, i) => {
-                const oc = ['#7C3AED','#0D9488','#D97706','#2563EB'][i % 4];
+                const oc = ['#0D9488','#0D9488','#D97706','#2563EB'][i % 4];
                 const daysLeft = Math.ceil((new Date(o.end_date) - new Date()) / 86400000);
                 return (
                   <div key={o.id} style={{ ...s.offerCard, borderLeft: `4px solid ${oc}` }}>
@@ -441,7 +441,7 @@ export default function SalonDetail() {
                     { val: '15+', label: 'Expert Staff'     },
                     { val: '4.8', label: 'Average Rating'   },
                   ].map(stat => (
-                    <div key={stat.label} style={{ textAlign: 'center', padding: '14px 8px', background: 'linear-gradient(135deg, rgba(124,58,237,.18) 0%, rgba(236,72,153,.14) 100%)', borderRadius: 14, border: '1px solid rgba(236,72,153,.15)' }}>
+                    <div key={stat.label} style={{ textAlign: 'center', padding: '14px 8px', background: 'linear-gradient(135deg, rgba(13,148,136,.18) 0%, rgba(236,72,153,.14) 100%)', borderRadius: 14, border: '1px solid rgba(236,72,153,.15)' }}>
                       <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 28, fontWeight: 800, color: '#fff', marginBottom: 4 }}>{stat.val}</div>
                       <div style={{ fontSize: 11, color: 'rgba(255,255,255,.65)', fontWeight: 600 }}>{stat.label}</div>
                     </div>
@@ -535,7 +535,7 @@ export default function SalonDetail() {
                 {[1, 2, 3, 4, 5].map(i => (
                   <button
                     key={i}
-                    style={{ ...s.reviewStarBtn, color: i <= reviewRating ? '#BF9B65' : 'rgba(236,72,153,.4)', transform: i <= reviewRating ? 'scale(1.15)' : 'scale(1)' }}
+                    style={{ ...s.reviewStarBtn, color: i <= reviewRating ? '#D4AF37' : 'rgba(236,72,153,.4)', transform: i <= reviewRating ? 'scale(1.15)' : 'scale(1)' }}
                     onClick={() => setReviewRating(i)}
                   >★</button>
                 ))}
@@ -619,7 +619,7 @@ export default function SalonDetail() {
 
 const s = {
   hero: {
-    background: 'linear-gradient(135deg, #1E0A3C 0%, #3B0764 40%, #6D28D9 75%, #7C3AED 100%)',
+    background: 'linear-gradient(135deg, #1E0A3C 0%, #3B0764 40%, #0B7A70 75%, #0D9488 100%)',
     padding: '52px 48px 44px', position: 'relative', overflow: 'hidden',
   },
   heroBg: {
@@ -647,24 +647,24 @@ const s = {
     fontSize: 42, fontWeight: 700, color: '#fff', margin: '0 0 12px', lineHeight: 1.1, letterSpacing: '-0.01em',
   },
   ratingRow: { display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' },
-  ratingNum: { fontSize: 16, fontWeight: 800, color: '#BF9B65', fontFamily: "'DM Sans', sans-serif" },
+  ratingNum: { fontSize: 16, fontWeight: 800, color: '#D4AF37', fontFamily: "'DM Sans', sans-serif" },
   ratingCt:  { fontSize: 13, color: 'rgba(255,255,255,.6)' },
   dot:       { color: 'rgba(255,255,255,.3)', fontSize: 18 },
   openBadge: { fontSize: 12, color: '#F0FFFE', background: 'rgba(52,211,153,.15)', borderRadius: 20, padding: '3px 10px', fontWeight: 600 },
   addrRow:   { display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10, flexWrap: 'wrap' },
   addrText:  { fontSize: 14, color: 'rgba(255,255,255,.75)' },
   locationBtn: {
-    fontSize: 12, fontWeight: 600, color: '#A78BFA',
-    background: 'rgba(124,58,237,.22)', borderRadius: 8, padding: '5px 12px',
-    border: '1px solid rgba(124,58,237,.35)', flexShrink: 0,
+    fontSize: 12, fontWeight: 600, color: '#5EEAD4',
+    background: 'rgba(13,148,136,.22)', borderRadius: 8, padding: '5px 12px',
+    border: '1px solid rgba(13,148,136,.35)', flexShrink: 0,
   },
   contactRow: { display: 'flex', gap: 10, flexWrap: 'wrap' },
   contactTag: { fontSize: 12, color: 'rgba(255,255,255,.65)', background: 'rgba(255,255,255,.08)', borderRadius: 8, padding: '4px 10px' },
   heroBookBtn: {
     padding: '14px 32px', flexShrink: 0,
-    background: 'linear-gradient(135deg, #7C3AED 0%, #0D9488 100%)',
+    background: 'linear-gradient(135deg, #0D9488 0%, #0D9488 100%)',
     color: '#fff', borderRadius: 14, fontWeight: 700, fontSize: 16,
-    textDecoration: 'none', boxShadow: '0 6px 20px rgba(124,58,237,.45)',
+    textDecoration: 'none', boxShadow: '0 6px 20px rgba(13,148,136,.45)',
     display: 'inline-flex', alignItems: 'center', gap: 8,
     fontFamily: "'DM Sans', sans-serif",
   },
@@ -696,10 +696,10 @@ const s = {
   },
   tabBookBtn: {
     padding: '8px 18px',
-    background: 'linear-gradient(135deg, #7C3AED 0%, #0D9488 100%)',
+    background: 'linear-gradient(135deg, #0D9488 0%, #0D9488 100%)',
     color: '#fff', borderRadius: 10, fontWeight: 700, fontSize: 13,
     textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6,
-    boxShadow: '0 4px 14px rgba(124,58,237,.3)',
+    boxShadow: '0 4px 14px rgba(13,148,136,.3)',
     fontFamily: "'DM Sans', sans-serif",
   },
   tabCosmeticsBtn: {
@@ -765,7 +765,7 @@ const s = {
   svcPrice:   { fontWeight: 700, fontSize: 13, fontFamily: "'DM Sans', sans-serif" },
   svcDesc:    { fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.6, margin: '4px 0 6px', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' },
   svcStarting: { fontSize: 10, fontWeight: 700, opacity: 0.8, letterSpacing: '0.04em' },
-  svcBookHint: { fontSize: 11, fontWeight: 600, color: '#7C3AED', marginTop: 8, letterSpacing: '0.02em' },
+  svcBookHint: { fontSize: 11, fontWeight: 600, color: '#0D9488', marginTop: 8, letterSpacing: '0.02em' },
 
   teamGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 16 },
   teamCard: {
@@ -791,7 +791,7 @@ const s = {
   reviewTop:  { display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 },
   reviewAvatar: {
     width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
-    background: 'linear-gradient(135deg, #7C3AED 0%, #0D9488 100%)',
+    background: 'linear-gradient(135deg, #0D9488 0%, #0D9488 100%)',
     color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
     fontFamily: "'Cormorant Garamond', Georgia, serif",
     fontSize: 17, fontWeight: 700,
@@ -835,9 +835,9 @@ const s = {
   },
   otherCity: { fontSize: 12, color: 'var(--text-muted)' },
   seeAllBtn: {
-    padding: '8px 18px', fontSize: 13, fontWeight: 600, color: '#7C3AED',
-    background: 'rgba(124,58,237,.1)', borderRadius: 9,
-    border: '1px solid rgba(124,58,237,.2)', textDecoration: 'none', flexShrink: 0,
+    padding: '8px 18px', fontSize: 13, fontWeight: 600, color: '#0D9488',
+    background: 'rgba(13,148,136,.1)', borderRadius: 9,
+    border: '1px solid rgba(13,148,136,.2)', textDecoration: 'none', flexShrink: 0,
     fontFamily: "'DM Sans', sans-serif",
   },
 
@@ -882,17 +882,17 @@ const s = {
   reviewMsg: { fontSize: 13, fontWeight: 600, marginBottom: 12 },
   reviewSubmitBtn: {
     padding: '10px 24px',
-    background: 'linear-gradient(135deg, #7C3AED 0%, #0D9488 100%)',
+    background: 'linear-gradient(135deg, #0D9488 0%, #0D9488 100%)',
     color: '#fff', borderRadius: 12, fontWeight: 700, fontSize: 13,
     border: 'none', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif",
-    boxShadow: '0 4px 14px rgba(124,58,237,.3)',
+    boxShadow: '0 4px 14px rgba(13,148,136,.3)',
     transition: 'opacity .2s ease',
   },
 
   cta: {
-    background: 'linear-gradient(135deg, #1E0A3C 0%, #7C3AED 100%)',
+    background: 'linear-gradient(135deg, #1E0A3C 0%, #0D9488 100%)',
     borderRadius: 24, padding: '52px 40px', textAlign: 'center',
-    boxShadow: '0 10px 40px rgba(124,58,237,.35)', position: 'relative', overflow: 'hidden',
+    boxShadow: '0 10px 40px rgba(13,148,136,.35)', position: 'relative', overflow: 'hidden',
   },
   ctaGlow: {
     position: 'absolute', inset: 0,
@@ -907,9 +907,9 @@ const s = {
   ctaBtn: {
     display: 'inline-flex', alignItems: 'center', gap: 8,
     padding: '14px 38px',
-    background: 'linear-gradient(135deg, #7C3AED 0%, #0D9488 100%)',
+    background: 'linear-gradient(135deg, #0D9488 0%, #0D9488 100%)',
     color: '#fff', borderRadius: 14, fontWeight: 700, fontSize: 16,
-    textDecoration: 'none', boxShadow: '0 6px 20px rgba(124,58,237,.45)',
+    textDecoration: 'none', boxShadow: '0 6px 20px rgba(13,148,136,.45)',
     position: 'relative', zIndex: 1,
     fontFamily: "'DM Sans', sans-serif",
   },

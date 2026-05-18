@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../api/axios';
 import { useBreakpoint } from '../../hooks/useMobile';
@@ -74,7 +74,7 @@ export default function Cosmetics() {
         {/* Category filter */}
         <div style={s.catRow}>
           {CATS.map(cat => {
-            const color = cat === 'All' ? '#7C3AED' : (CAT_COLORS[cat] || '#7C3AED');
+            const color = cat === 'All' ? '#0D9488' : (CAT_COLORS[cat] || '#0D9488');
             const isActive = cat === activeCat;
             return (
               <button
@@ -133,7 +133,7 @@ export default function Cosmetics() {
 
                 <div style={{ ...s.grid, gridTemplateColumns: isMobile ? '1fr 1fr' : isTablet ? 'repeat(3, 1fr)' : 'repeat(auto-fill, minmax(200px, 1fr))' }}>
                   {salonProducts.map(p => {
-                    const color = CAT_COLORS[p.category] || '#7C3AED';
+                    const color = CAT_COLORS[p.category] || '#0D9488';
                     return (
                       <div key={p.id} style={s.card} className="lift-sm fade-up">
                         <div style={{ ...s.cardTop, background: `${color}18` }}>
@@ -170,7 +170,7 @@ const s = {
   page: { background: 'var(--bg)', minHeight: '100vh' },
 
   hero: {
-    background: 'linear-gradient(135deg, #1a0533 0%, #3B0764 35%, #7C3AED 70%, #EC4899 100%)',
+    background: 'linear-gradient(135deg, #1a0533 0%, #3B0764 35%, #0D9488 70%, #EC4899 100%)',
     position: 'relative', overflow: 'hidden',
   },
   heroGlow1: { position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at top left, rgba(236,72,153,.3) 0%, transparent 60%)', pointerEvents: 'none' },

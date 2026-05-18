@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
@@ -9,10 +9,10 @@ const HOUR     = new Date().getHours();
 const GREETING = HOUR < 12 ? 'Good morning' : HOUR < 17 ? 'Good afternoon' : 'Good evening';
 
 const FAV_PALETTE = [
-  'linear-gradient(135deg, #7C3AED 0%, #0D9488 100%)',
-  'linear-gradient(135deg, #1E0A3C 0%, #7C3AED 100%)',
+  'linear-gradient(135deg, #0D9488 0%, #0D9488 100%)',
+  'linear-gradient(135deg, #1E0A3C 0%, #0D9488 100%)',
   'linear-gradient(135deg, #0D9488 0%, #2563EB 100%)',
-  'linear-gradient(135deg, #D97706 0%, #7C3AED 100%)',
+  'linear-gradient(135deg, #D97706 0%, #0D9488 100%)',
 ];
 
 export default function UserDashboard() {
@@ -70,7 +70,7 @@ export default function UserDashboard() {
           {isMobile && (
             <div style={s.heroStatsMobile}>
               {[
-                { label: 'Upcoming',     value: loading ? '–' : upcoming,   icon: '◉', accent: '#C4B5FD' },
+                { label: 'Upcoming',     value: loading ? '–' : upcoming,   icon: '◉', accent: '#99F6E4' },
                 { label: 'Need Action',  value: loading ? '–' : needAction, icon: '⚡', accent: '#FDE68A' },
                 { label: 'Total Active', value: loading ? '–' : total,      icon: '◈', accent: '#6EE7B7' },
               ].map((stat, i) => (
@@ -87,7 +87,7 @@ export default function UserDashboard() {
         {!isMobile && (
           <div style={s.heroStatsCol} className="fade-up d2">
             {[
-              { label: 'Upcoming',     value: loading ? '–' : upcoming,   icon: '◉', accent: '#C4B5FD' },
+              { label: 'Upcoming',     value: loading ? '–' : upcoming,   icon: '◉', accent: '#99F6E4' },
               { label: 'Need Action',  value: loading ? '–' : needAction, icon: '⚡', accent: '#FDE68A' },
               { label: 'Total Active', value: loading ? '–' : total,      icon: '◈', accent: '#6EE7B7' },
             ].map((stat, i) => (
@@ -157,7 +157,7 @@ export default function UserDashboard() {
           </div>
           <div style={s.offersScroll}>
             {offers.map((o, i) => {
-              const colors = ['#7C3AED','#0D9488','#D97706','#2563EB'];
+              const colors = ['#0D9488','#0D9488','#D97706','#2563EB'];
               const color  = colors[i % colors.length];
               const daysLeft = Math.ceil((new Date(o.end_date) - new Date()) / 86400000);
               return (
@@ -219,7 +219,7 @@ export default function UserDashboard() {
               <svg width="38" height="38" viewBox="0 0 38 38" fill="none">
                 <defs>
                   <linearGradient id="dashEmptyG" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stopColor="#7C3AED"/>
+                    <stop offset="0%" stopColor="#0D9488"/>
                     <stop offset="100%" stopColor="#0D9488"/>
                   </linearGradient>
                 </defs>
@@ -292,7 +292,7 @@ export default function UserDashboard() {
 const s = {
   hero: {
     borderRadius: 24, padding: '44px 44px 32px',
-    background: 'linear-gradient(145deg, #1A0532 0%, #2D0A5E 30%, #5B21B6 65%, #7C3AED 100%)',
+    background: 'linear-gradient(145deg, #0D0D16, #1A1A24, #0B3832, #0D9488)',
     marginBottom: 28, position: 'relative', overflow: 'hidden',
     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
   },
@@ -303,7 +303,7 @@ const s = {
   },
   heroGlow2: {
     position: 'absolute', width: 240, height: 240, borderRadius: '50%',
-    background: 'radial-gradient(circle, rgba(191,155,101,.12) 0%, transparent 70%)',
+    background: 'radial-gradient(circle, rgba(212,175,55,.12) 0%, transparent 70%)',
     bottom: -60, left: 40, pointerEvents: 'none', filter: 'blur(50px)',
   },
   heroContent: { position: 'relative', zIndex: 2, flex: 1 },
@@ -312,7 +312,7 @@ const s = {
   wave:    { fontSize: 20, color: '#C9A96E', animation: 'floatBob 3s ease-in-out infinite' },
   heroSub: { color: 'rgba(255,255,255,.6)', fontSize: 15, margin: '0 0 26px' },
   heroBtns:{ display: 'flex', gap: 12, flexWrap: 'wrap' },
-  primaryBtn: { padding: '12px 26px', background: 'linear-gradient(135deg, #7C3AED 0%, #0D9488 100%)', color: '#fff', borderRadius: 12, fontWeight: 700, fontSize: 14, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 7, boxShadow: '0 6px 20px rgba(124,58,237,.4)' },
+  primaryBtn: { padding: '12px 26px', background: 'linear-gradient(135deg, #0D9488 0%, #0D9488 100%)', color: '#fff', borderRadius: 12, fontWeight: 700, fontSize: 14, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 7, boxShadow: '0 6px 20px rgba(13,148,136,.4)' },
   ghostBtn:   { padding: '12px 20px', background: 'rgba(255,255,255,.1)', color: '#E9D5FF', borderRadius: 12, fontWeight: 500, fontSize: 14, textDecoration: 'none', border: '1px solid rgba(255,255,255,.14)', transition: 'background .18s ease' },
   /* Desktop: stats column on right side of hero */
   heroStatsCol: {
@@ -426,12 +426,12 @@ const s = {
   sectionHead:    { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 16 },
   sectionEyebrow: { fontSize: 10, fontWeight: 700, color: 'var(--brand-label)', letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: 5 },
   sectionTitle:   { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 24, fontWeight: 700, color: 'var(--text)', margin: 0, letterSpacing: '-0.01em' },
-  seeAll: { fontSize: 13, color: '#7C3AED', fontWeight: 600, marginBottom: 4 },
+  seeAll: { fontSize: 13, color: '#0D9488', fontWeight: 600, marginBottom: 4 },
 
   grid:     { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 18 },
   skeleton: { height: 210, borderRadius: 20 },
 
-  card: { background: 'var(--surface)', borderRadius: 20, boxShadow: '0 4px 20px rgba(124,58,237,.07), 0 1px 4px rgba(0,0,0,.04)', border: '1px solid var(--border)', overflow: 'hidden', display: 'flex', flexDirection: 'column' },
+  card: { background: 'var(--surface)', borderRadius: 20, boxShadow: '0 4px 20px rgba(13,148,136,.07), 0 1px 4px rgba(0,0,0,.04)', border: '1px solid var(--border)', overflow: 'hidden', display: 'flex', flexDirection: 'column' },
   cardAccent: { height: 3, width: '100%', flexShrink: 0 },
   cardInner:  { display: 'flex', gap: 16, padding: '20px 22px 14px', alignItems: 'flex-start' },
   dateBadge:  { display: 'flex', flexDirection: 'column', alignItems: 'center', borderRadius: 14, padding: '10px 13px', flexShrink: 0, minWidth: 60 },
@@ -443,9 +443,9 @@ const s = {
   services:    { fontSize: 12, color: 'var(--text-muted)', marginBottom: 9, lineHeight: 1.5 },
   statusBadge: { display: 'inline-flex', padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700 },
   actionHint:  { padding: '9px 22px', background: 'rgba(217,119,6,.09)', fontSize: 12, color: '#D97706', fontWeight: 600, borderTop: '1px solid rgba(217,119,6,.2)' },
-  cardLink:    { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '13px 22px', fontSize: 13, fontWeight: 600, color: '#7C3AED', borderTop: '1px solid var(--border)', transition: 'background .15s ease' },
+  cardLink:    { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '13px 22px', fontSize: 13, fontWeight: 600, color: '#0D9488', borderTop: '1px solid var(--border)', transition: 'background .15s ease' },
   linkArrow:   { fontSize: 16 },
 
-  emptyCard: { background: 'var(--surface)', borderRadius: 24, padding: '68px 40px', textAlign: 'center', border: '1px solid var(--border)', boxShadow: '0 4px 20px rgba(124,58,237,.06)' },
+  emptyCard: { background: 'var(--surface)', borderRadius: 24, padding: '68px 40px', textAlign: 'center', border: '1px solid var(--border)', boxShadow: '0 4px 20px rgba(13,148,136,.06)' },
   emptyTitle: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 26, fontWeight: 700, color: 'var(--text)', marginBottom: 10 },
 };

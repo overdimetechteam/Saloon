@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import api from '../../api/axios';
 import { useOwner } from '../../context/OwnerContext';
 
@@ -91,7 +91,7 @@ export default function OwnerReports() {
 
       <div style={s.statsRow} className="fade-up">
         {[
-          { label: 'Total Products',      value: products.length,              color: '#7C3AED', bg: 'rgba(124,58,237,.08)', border: 'rgba(124,58,237,.18)' },
+          { label: 'Total Products',      value: products.length,              color: '#0D9488', bg: 'rgba(13,148,136,.08)', border: 'rgba(13,148,136,.18)' },
           { label: 'Low Stock Items',     value: lowStock.length,              color: '#DC2626', bg: 'rgba(220,38,38,.08)',  border: 'rgba(220,38,38,.18)'  },
           { label: 'Stock Value (Cost)',  value: `LKR ${totalValue.toFixed(0)}`,color: '#059669', bg: 'rgba(5,150,105,.08)', border: 'rgba(5,150,105,.18)'  },
           { label: 'Total Adjustments',  value: adjustments.length,           color: '#D97706', bg: 'rgba(217,119,6,.08)', border: 'rgba(217,119,6,.18)'  },
@@ -139,7 +139,7 @@ export default function OwnerReports() {
                     </td>
                     <td style={s.td}>{p.reorder_level}</td>
                     <td style={s.td}>LKR {p.cost_price}</td>
-                    <td style={s.td}><span style={{ fontWeight: 700, color: '#7C3AED' }}>LKR {p.selling_price}</span></td>
+                    <td style={s.td}><span style={{ fontWeight: 700, color: '#0D9488' }}>LKR {p.selling_price}</span></td>
                     <td style={s.td}><span style={{ fontWeight: 600, color: 'var(--text)' }}>LKR {(p.current_stock * Number(p.cost_price || 0)).toFixed(2)}</span></td>
                   </tr>
                 );
@@ -180,7 +180,7 @@ export default function OwnerReports() {
                     </div>
                     <div style={s.lowArrow}>·</div>
                     <div style={s.lowStat}>
-                      <div style={{ ...s.lowStatVal, color: '#7C3AED' }}>{p.reorder_level - p.current_stock + Math.ceil(p.reorder_level * 0.5)}</div>
+                      <div style={{ ...s.lowStatVal, color: '#0D9488' }}>{p.reorder_level - p.current_stock + Math.ceil(p.reorder_level * 0.5)}</div>
                       <div style={s.lowStatLabel}>Suggest Order</div>
                     </div>
                   </div>
@@ -255,9 +255,9 @@ const s = {
   statLabel: { fontSize: 11, color: 'var(--text-muted)', marginTop: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' },
   tabs: { display: 'flex', gap: 4, marginBottom: 20, borderBottom: '2px solid var(--border)', paddingBottom: 0 },
   tab: { padding: '10px 20px', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: 'var(--text-muted)', borderBottom: '2px solid transparent', marginBottom: -2, display: 'flex', alignItems: 'center', gap: 6, fontFamily: "'DM Sans', sans-serif" },
-  tabActive: { color: '#7C3AED', borderBottomColor: '#7C3AED', fontWeight: 700 },
+  tabActive: { color: '#0D9488', borderBottomColor: '#0D9488', fontWeight: 700 },
   tabBadge: { background: '#DC2626', color: '#fff', borderRadius: 10, fontSize: 11, padding: '1px 7px', fontWeight: 700 },
-  card: { background: 'var(--surface)', borderRadius: 16, border: '1px solid var(--border)', boxShadow: '0 4px 20px rgba(124,58,237,.06)', overflow: 'hidden' },
+  card: { background: 'var(--surface)', borderRadius: 16, border: '1px solid var(--border)', boxShadow: '0 4px 20px rgba(13,148,136,.06)', overflow: 'hidden' },
   table: { width: '100%', borderCollapse: 'collapse' },
   th: { padding: '12px 16px', textAlign: 'left', fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', background: 'var(--surface2)', borderBottom: '2px solid var(--border)' },
   td: { padding: '13px 16px', borderBottom: '1px solid var(--border)', verticalAlign: 'middle' },

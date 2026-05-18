@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import api from '../../api/axios';
 import { useOwner } from '../../context/OwnerContext';
 import { useBreakpoint } from '../../hooks/useMobile';
@@ -55,7 +55,7 @@ export default function OwnerAnalytics() {
       {!loading && data && (
         <>
           <div style={s.kpiGrid} className="fade-up">
-            <KpiCard label="Total Revenue" value={`LKR ${Number(data.total_revenue).toLocaleString()}`} color="#7C3AED" bg="rgba(124,58,237,.08)" border="rgba(124,58,237,.18)" />
+            <KpiCard label="Total Revenue" value={`LKR ${Number(data.total_revenue).toLocaleString()}`} color="#0D9488" bg="rgba(13,148,136,.08)" border="rgba(13,148,136,.18)" />
             <KpiCard label="Product Sales" value={`LKR ${Number(data.product_sales_revenue).toLocaleString()}`} color="#0284C7" bg="rgba(2,132,199,.08)" border="rgba(2,132,199,.18)" />
             <KpiCard label="Total Bookings" value={data.total_bookings} color="#059669" bg="rgba(5,150,105,.08)" border="rgba(5,150,105,.18)" />
             <KpiCard label="Cancellation Rate" value={`${data.cancellation_rate}%`} color={data.cancellation_rate > 20 ? '#DC2626' : '#D97706'} bg={data.cancellation_rate > 20 ? 'rgba(220,38,38,.08)' : 'rgba(217,119,6,.08)'} border={data.cancellation_rate > 20 ? 'rgba(220,38,38,.18)' : 'rgba(217,119,6,.18)'} />
@@ -147,13 +147,13 @@ function RevenueChart({ data }) {
       <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', maxWidth: W, display: 'block' }}>
         <defs>
           <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#7C3AED" stopOpacity="0.22" />
-            <stop offset="100%" stopColor="#7C3AED" stopOpacity="0" />
+            <stop offset="0%" stopColor="#0D9488" stopOpacity="0.22" />
+            <stop offset="100%" stopColor="#0D9488" stopOpacity="0" />
           </linearGradient>
         </defs>
         {yTicks.map(t => (
           <g key={t.value}>
-            <line x1={PAD.left} x2={W - PAD.right} y1={t.y} y2={t.y} stroke="rgba(124,58,237,.1)" strokeWidth="1" strokeDasharray="4,4" />
+            <line x1={PAD.left} x2={W - PAD.right} y1={t.y} y2={t.y} stroke="rgba(13,148,136,.1)" strokeWidth="1" strokeDasharray="4,4" />
             <text x={PAD.left - 6} y={t.y + 4} textAnchor="end" fill="#9CA3AF" fontSize="9">
               {t.value >= 1000 ? `${(t.value / 1000).toFixed(0)}k` : t.value}
             </text>
@@ -161,10 +161,10 @@ function RevenueChart({ data }) {
         ))}
         {points.length > 1 && <path d={area} fill="url(#revGrad)" />}
         {points.length > 1 && (
-          <polyline points={polyline} fill="none" stroke="#7C3AED" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+          <polyline points={polyline} fill="none" stroke="#0D9488" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
         )}
         {points.map((p, i) => (
-          <circle key={i} cx={p.x} cy={p.y} r="3.5" fill="#7C3AED" stroke="#fff" strokeWidth="2" />
+          <circle key={i} cx={p.x} cy={p.y} r="3.5" fill="#0D9488" stroke="#fff" strokeWidth="2" />
         ))}
         {xLabels.map((d, i) => {
           const idx = data.indexOf(d);
@@ -220,7 +220,7 @@ function BusiestHoursChart({ data }) {
     <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', maxWidth: W, display: 'block', margin: '0 auto' }}>
       <defs>
         <linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#7C3AED" />
+          <stop offset="0%" stopColor="#0D9488" />
           <stop offset="100%" stopColor="#0D9488" />
         </linearGradient>
       </defs>
@@ -232,7 +232,7 @@ function BusiestHoursChart({ data }) {
           <g key={d.hour}>
             <rect x={x} y={y} width={barW} height={barH} rx="5" fill="url(#barGrad)" />
             <text x={x + barW / 2} y={88} textAnchor="middle" fill="#9CA3AF" fontSize="8">{fmt(d.hour)}</text>
-            <text x={x + barW / 2} y={y - 4} textAnchor="middle" fill="#7C3AED" fontSize="9" fontWeight="700">{d.count}</text>
+            <text x={x + barW / 2} y={y - 4} textAnchor="middle" fill="#0D9488" fontSize="9" fontWeight="700">{d.count}</text>
           </g>
         );
       })}
@@ -250,7 +250,7 @@ const s = {
     border: '1px solid var(--border)', overflow: 'hidden', flexShrink: 0,
   },
   periodBtn: { padding: '9px 18px', border: 'none', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 12, fontWeight: 600, fontFamily: "'DM Sans', sans-serif" },
-  periodBtnActive: { background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #0D9488 100%)', color: '#fff' },
+  periodBtnActive: { background: 'linear-gradient(135deg, #0D9488 0%, #14B8A8 50%, #0D9488 100%)', color: '#fff' },
 
   loadGrid: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 },
   skeleton: { height: 120, borderRadius: 16 },
@@ -260,7 +260,7 @@ const s = {
 
   card: {
     background: 'var(--surface)', borderRadius: 18, padding: '22px 24px',
-    border: '1px solid var(--border)', boxShadow: '0 4px 20px rgba(124,58,237,.06)',
+    border: '1px solid var(--border)', boxShadow: '0 4px 20px rgba(13,148,136,.06)',
     marginBottom: 20,
   },
   cardEyebrow: {

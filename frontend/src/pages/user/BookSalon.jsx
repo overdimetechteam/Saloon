@@ -1,20 +1,20 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import api from '../../api/axios';
 import { useBreakpoint } from '../../hooks/useMobile';
 import MiniCalendar from '../../components/MiniCalendar';
 
-const STAFF_COLORS = ['#7C3AED','#0D9488','#2563EB','#059669','#D97706','#DC2626'];
+const STAFF_COLORS = ['#0D9488','#0D9488','#2563EB','#059669','#D97706','#DC2626'];
 
 const CONFETTI_PARTICLES = [
-  { size: 8,  top: '22%', left: '10%',  color: '#7C3AED', round: true,  anim: 'confettiA', dur: '2.8s', delay: '0.1s'  },
+  { size: 8,  top: '22%', left: '10%',  color: '#0D9488', round: true,  anim: 'confettiA', dur: '2.8s', delay: '0.1s'  },
   { size: 6,  top: '28%', left: '84%',  color: '#0D9488', round: true,  anim: 'confettiB', dur: '2.5s', delay: '0.2s'  },
-  { size: 10, top: '62%', left: '7%',   color: '#BF9B65', round: false, anim: 'confettiC', dur: '2.6s', delay: '0.3s'  },
-  { size: 7,  top: '58%', left: '89%',  color: '#A78BFA', round: false, anim: 'confettiA', dur: '2.7s', delay: '0.05s' },
-  { size: 5,  top: '44%', left: '4%',   color: '#C4B5FD', round: true,  anim: 'confettiB', dur: '2.4s', delay: '0.15s' },
-  { size: 9,  top: '34%', left: '93%',  color: '#C4B5FD', round: true,  anim: 'confettiC', dur: '2.9s', delay: '0.25s' },
-  { size: 6,  top: '76%', left: '47%',  color: '#7C3AED', round: false, anim: 'confettiA', dur: '2.3s', delay: '0.35s' },
+  { size: 10, top: '62%', left: '7%',   color: '#D4AF37', round: false, anim: 'confettiC', dur: '2.6s', delay: '0.3s'  },
+  { size: 7,  top: '58%', left: '89%',  color: '#5EEAD4', round: false, anim: 'confettiA', dur: '2.7s', delay: '0.05s' },
+  { size: 5,  top: '44%', left: '4%',   color: '#99F6E4', round: true,  anim: 'confettiB', dur: '2.4s', delay: '0.15s' },
+  { size: 9,  top: '34%', left: '93%',  color: '#99F6E4', round: true,  anim: 'confettiC', dur: '2.9s', delay: '0.25s' },
+  { size: 6,  top: '76%', left: '47%',  color: '#0D9488', round: false, anim: 'confettiA', dur: '2.3s', delay: '0.35s' },
   { size: 7,  top: '14%', left: '57%',  color: '#0D9488', round: true,  anim: 'confettiB', dur: '2.6s', delay: '0.4s'  },
 ];
 
@@ -176,7 +176,7 @@ export default function BookSalon() {
 
         <div style={conf.content}>
           <div style={conf.eyebrow} className="fade-in d1">
-            <span style={{ color: '#BF9B65', marginRight: 8 }}>✦</span>
+            <span style={{ color: '#D4AF37', marginRight: 8 }}>✦</span>
             Your Appointment is Confirmed
           </div>
 
@@ -186,7 +186,7 @@ export default function BookSalon() {
               <svg width="96" height="96" viewBox="0 0 96 96" fill="none" style={{ display: 'block' }}>
                 <defs>
                   <linearGradient id="cGrad" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stopColor="#7C3AED" />
+                    <stop offset="0%" stopColor="#0D9488" />
                     <stop offset="100%" stopColor="#0D9488" />
                   </linearGradient>
                 </defs>
@@ -207,10 +207,10 @@ export default function BookSalon() {
               <div style={conf.detailRow}>
                 <div style={conf.detailIconWrap}>
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                    <rect x="1" y="2.5" width="12" height="10.5" rx="2" stroke="#A78BFA" strokeWidth="1.2"/>
-                    <line x1="1" y1="6" x2="13" y2="6" stroke="#A78BFA" strokeWidth="1.2"/>
-                    <line x1="4.5" y1="1" x2="4.5" y2="4" stroke="#A78BFA" strokeWidth="1.2" strokeLinecap="round"/>
-                    <line x1="9.5" y1="1" x2="9.5" y2="4" stroke="#A78BFA" strokeWidth="1.2" strokeLinecap="round"/>
+                    <rect x="1" y="2.5" width="12" height="10.5" rx="2" stroke="#5EEAD4" strokeWidth="1.2"/>
+                    <line x1="1" y1="6" x2="13" y2="6" stroke="#5EEAD4" strokeWidth="1.2"/>
+                    <line x1="4.5" y1="1" x2="4.5" y2="4" stroke="#5EEAD4" strokeWidth="1.2" strokeLinecap="round"/>
+                    <line x1="9.5" y1="1" x2="9.5" y2="4" stroke="#5EEAD4" strokeWidth="1.2" strokeLinecap="round"/>
                   </svg>
                 </div>
                 <div>
@@ -223,9 +223,9 @@ export default function BookSalon() {
               <div style={conf.detailRow}>
                 <div style={conf.detailIconWrap}>
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                    <circle cx="4.5" cy="4.5" r="3" stroke="#A78BFA" strokeWidth="1.2"/>
-                    <circle cx="9.5" cy="9.5" r="3" stroke="#A78BFA" strokeWidth="1.2"/>
-                    <line x1="7" y1="7" x2="13" y2="1" stroke="#A78BFA" strokeWidth="1.2" strokeLinecap="round"/>
+                    <circle cx="4.5" cy="4.5" r="3" stroke="#5EEAD4" strokeWidth="1.2"/>
+                    <circle cx="9.5" cy="9.5" r="3" stroke="#5EEAD4" strokeWidth="1.2"/>
+                    <line x1="7" y1="7" x2="13" y2="1" stroke="#5EEAD4" strokeWidth="1.2" strokeLinecap="round"/>
                   </svg>
                 </div>
                 <div>
@@ -238,8 +238,8 @@ export default function BookSalon() {
               <div style={conf.detailRow}>
                 <div style={conf.detailIconWrap}>
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                    <circle cx="7" cy="4.5" r="3" stroke="#A78BFA" strokeWidth="1.2"/>
-                    <path d="M1 13c0-3.314 2.686-5 6-5s6 1.686 6 5" stroke="#A78BFA" strokeWidth="1.2" strokeLinecap="round"/>
+                    <circle cx="7" cy="4.5" r="3" stroke="#5EEAD4" strokeWidth="1.2"/>
+                    <path d="M1 13c0-3.314 2.686-5 6-5s6 1.686 6 5" stroke="#5EEAD4" strokeWidth="1.2" strokeLinecap="round"/>
                   </svg>
                 </div>
                 <div>
@@ -252,13 +252,13 @@ export default function BookSalon() {
               <div style={{ ...conf.detailRow, borderBottom: 'none', paddingBottom: 0, marginBottom: 0 }}>
                 <div style={conf.detailIconWrap}>
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                    <circle cx="7" cy="7" r="6" stroke="#A78BFA" strokeWidth="1.2"/>
-                    <text x="4.5" y="10.5" fontSize="7" fill="#A78BFA" fontWeight="700">LKR</text>
+                    <circle cx="7" cy="7" r="6" stroke="#5EEAD4" strokeWidth="1.2"/>
+                    <text x="4.5" y="10.5" fontSize="7" fill="#5EEAD4" fontWeight="700">LKR</text>
                   </svg>
                 </div>
                 <div>
                   <div style={conf.detailLabel}>Total</div>
-                  <div style={{ ...conf.detailVal, color: '#C4B5FD', fontWeight: 700 }}>
+                  <div style={{ ...conf.detailVal, color: '#99F6E4', fontWeight: 700 }}>
                     LKR {finalTotal.toFixed(2)}
                     {promoResult?.valid && (
                       <span style={{ fontSize: 11, color: '#6EE7B7', marginLeft: 8, fontWeight: 500 }}>(promo applied)</span>
@@ -295,19 +295,19 @@ export default function BookSalon() {
             <div style={{
               ...s.progressDot,
               width: isMobile ? 26 : 30, height: isMobile ? 26 : 30,
-              background: i <= step ? 'linear-gradient(135deg, #7C3AED, #0D9488)' : 'var(--border)',
-              boxShadow: i === step ? '0 0 0 4px rgba(124,58,237,.18)' : 'none',
+              background: i <= step ? 'linear-gradient(135deg, #0D9488, #0D9488)' : 'var(--border)',
+              boxShadow: i === step ? '0 0 0 4px rgba(13,148,136,.18)' : 'none',
               cursor: i < step ? 'pointer' : 'default',
             }}>
               {i < step ? '✓' : i + 1}
             </div>
             {!isMobile && (
-              <div style={{ ...s.progressLabel, color: i <= step ? '#7C3AED' : 'var(--text-light)', fontWeight: i === step ? 700 : 500 }}>
+              <div style={{ ...s.progressLabel, color: i <= step ? '#0D9488' : 'var(--text-light)', fontWeight: i === step ? 700 : 500 }}>
                 {label}
               </div>
             )}
             {i < STEPS.length - 1 && (
-              <div style={{ ...s.progressLine, background: i < step ? 'linear-gradient(90deg, #7C3AED, #0D9488)' : 'var(--border)' }} />
+              <div style={{ ...s.progressLine, background: i < step ? 'linear-gradient(90deg, #0D9488, #0D9488)' : 'var(--border)' }} />
             )}
           </div>
         ))}
@@ -389,7 +389,7 @@ export default function BookSalon() {
                         ) : null}
                         <div style={s.svcMeta}>⏱ {ss.effective_duration} min</div>
                       </div>
-                      <div style={{ ...s.svcPrice, color: on ? '#7C3AED' : 'var(--text-sub)', textAlign: 'right' }}>
+                      <div style={{ ...s.svcPrice, color: on ? '#0D9488' : 'var(--text-sub)', textAlign: 'right' }}>
                         {ss.is_price_starting_from && <div style={s.svcStartingFrom}>Starting From</div>}
                         LKR {ss.effective_price}
                       </div>
@@ -461,7 +461,7 @@ export default function BookSalon() {
                   />
                   {date && (
                     <div style={s.selectedDateBanner}>
-                      <span style={{ fontSize: 14, color: '#7C3AED' }}>◷</span>
+                      <span style={{ fontSize: 14, color: '#0D9488' }}>◷</span>
                       <span style={{ fontWeight: 600, color: 'var(--text)', fontSize: 13 }}>
                         {new Date(date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
                       </span>
@@ -685,19 +685,19 @@ const s = {
   loader: { display: 'flex', justifyContent: 'center', padding: 80 },
   loaderSpinner: {
     width: 32, height: 32, borderRadius: '50%',
-    border: '3px solid rgba(124,58,237,.15)', borderTopColor: '#7C3AED',
+    border: '3px solid rgba(13,148,136,.15)', borderTopColor: '#0D9488',
     animation: 'spinSlow .7s linear infinite',
   },
   back: {
     display: 'inline-flex', alignItems: 'center', gap: 6,
-    fontSize: 13, color: '#7C3AED', fontWeight: 600, marginBottom: 24,
+    fontSize: 13, color: '#0D9488', fontWeight: 600, marginBottom: 24,
     textDecoration: 'none',
   },
 
   progress: {
     display: 'flex', alignItems: 'center', marginBottom: 28,
     background: 'var(--surface)', borderRadius: 18, padding: '18px 28px',
-    boxShadow: '0 4px 16px rgba(124,58,237,.07)',
+    boxShadow: '0 4px 16px rgba(13,148,136,.07)',
     border: '1px solid var(--border)',
   },
   progressStep:  { display: 'flex', alignItems: 'center', flex: 1 },
@@ -710,15 +710,15 @@ const s = {
 
   stepCard: {
     background: 'var(--surface)', borderRadius: 20, padding: 22,
-    boxShadow: '0 4px 24px rgba(124,58,237,.08)',
+    boxShadow: '0 4px 24px rgba(13,148,136,.08)',
     border: '1px solid var(--border)', marginBottom: 16,
   },
   stepHeader: { display: 'flex', gap: 16, alignItems: 'center', marginBottom: 24 },
   stepIcon: {
     width: 46, height: 46, borderRadius: 14, flexShrink: 0,
-    background: 'linear-gradient(135deg, #7C3AED 0%, #0D9488 100%)',
+    background: 'linear-gradient(135deg, #0D9488 0%, #0D9488 100%)',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
-    fontSize: 18, color: '#fff', boxShadow: '0 6px 16px rgba(124,58,237,.35)',
+    fontSize: 18, color: '#fff', boxShadow: '0 6px 16px rgba(13,148,136,.35)',
   },
   stepTitle: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 20, fontWeight: 700, color: 'var(--text)', letterSpacing: '-0.01em' },
   stepSub:   { fontSize: 13, color: 'var(--text-muted)', marginTop: 3 },
@@ -726,10 +726,10 @@ const s = {
 
   serviceGrid: { display: 'flex', flexDirection: 'column', gap: 10 },
   serviceCard: { display: 'flex', alignItems: 'center', gap: 14, padding: '14px 18px', border: '2px solid var(--border)', borderRadius: 14, cursor: 'pointer', background: 'var(--surface)', transition: 'all .18s ease' },
-  serviceCardOn: { border: '2px solid #7C3AED', background: 'linear-gradient(135deg, rgba(124,58,237,.05) 0%, rgba(236,72,153,.03) 100%)', boxShadow: '0 3px 12px rgba(124,58,237,.12)' },
+  serviceCardOn: { border: '2px solid #0D9488', background: 'linear-gradient(135deg, rgba(13,148,136,.05) 0%, rgba(236,72,153,.03) 100%)', boxShadow: '0 3px 12px rgba(13,148,136,.12)' },
   svcCheck: { flexShrink: 0 },
   checkBox:   { width: 22, height: 22, borderRadius: 6, border: '2px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff', transition: 'all .2s ease' },
-  checkBoxOn: { background: 'linear-gradient(135deg, #7C3AED, #0D9488)', borderColor: 'transparent' },
+  checkBoxOn: { background: 'linear-gradient(135deg, #0D9488, #0D9488)', borderColor: 'transparent' },
   svcInfo:  { flex: 1 },
   svcName:        { fontWeight: 600, fontSize: 14, color: 'var(--text)', marginBottom: 2 },
   svcDesc:        { fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.55, marginBottom: 4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' },
@@ -749,15 +749,15 @@ const s = {
     color: 'var(--text-sub)', cursor: 'pointer', transition: 'all .15s ease',
     fontFamily: "'DM Sans', sans-serif",
   },
-  proChipOn: { background: 'rgba(124,58,237,.08)', color: '#7C3AED', borderColor: '#7C3AED50' },
+  proChipOn: { background: 'rgba(13,148,136,.08)', color: '#0D9488', borderColor: '#0D948850' },
 
   subLabel: { fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 },
 
   selectedDateBanner: {
     display: 'flex', alignItems: 'center', gap: 10,
     marginTop: 12, padding: '10px 14px',
-    background: 'rgba(124,58,237,.06)', borderRadius: 10,
-    border: '1px solid rgba(124,58,237,.15)',
+    background: 'rgba(13,148,136,.06)', borderRadius: 10,
+    border: '1px solid rgba(13,148,136,.15)',
   },
 
   slotLoading:  { display: 'flex', alignItems: 'center', gap: 12, padding: '20px 0' },
@@ -774,7 +774,7 @@ const s = {
   },
   slotGrid: { display: 'flex', flexWrap: 'wrap', gap: 10 },
   slotBtn: { padding: '11px 16px', border: '2px solid var(--border)', borderRadius: 12, background: 'var(--surface)', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: 'var(--text)', minWidth: 72, textAlign: 'center', transition: 'all .15s ease' },
-  slotOn:  { background: 'linear-gradient(135deg, #7C3AED 0%, #0D9488 100%)', color: '#fff', borderColor: 'transparent', boxShadow: '0 5px 14px rgba(124,58,237,.38)' },
+  slotOn:  { background: 'linear-gradient(135deg, #0D9488 0%, #0D9488 100%)', color: '#fff', borderColor: 'transparent', boxShadow: '0 5px 14px rgba(13,148,136,.38)' },
   slotOff: { background: 'var(--surface2)', color: 'var(--text-muted)', cursor: 'not-allowed', borderColor: 'transparent', opacity: 0.5 },
 
   textarea: {
@@ -786,10 +786,10 @@ const s = {
   },
   confirmBtn: {
     width: '100%', padding: '15px',
-    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #0D9488 100%)',
+    background: 'linear-gradient(135deg, #0D9488 0%, #14B8A8 50%, #0D9488 100%)',
     color: '#fff', border: 'none', borderRadius: 14,
     fontSize: 16, fontWeight: 700, cursor: 'pointer',
-    boxShadow: '0 8px 24px rgba(124,58,237,.4), inset 0 1px 0 rgba(255,255,255,.15)',
+    boxShadow: '0 8px 24px rgba(13,148,136,.4), inset 0 1px 0 rgba(255,255,255,.15)',
     transition: 'opacity .2s ease, transform .2s ease',
   },
 
@@ -802,41 +802,41 @@ const s = {
   },
   nextBtn: {
     flex: 1, padding: '12px 24px',
-    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #0D9488 100%)',
+    background: 'linear-gradient(135deg, #0D9488 0%, #14B8A8 50%, #0D9488 100%)',
     color: '#fff', border: 'none', borderRadius: 12,
     cursor: 'pointer', fontSize: 14, fontWeight: 700,
-    boxShadow: '0 6px 18px rgba(124,58,237,.35)', transition: 'opacity .2s ease',
+    boxShadow: '0 6px 18px rgba(13,148,136,.35)', transition: 'opacity .2s ease',
     fontFamily: "'DM Sans', sans-serif",
   },
 
   sidebar:     { width: 268, flexShrink: 0, position: 'sticky', top: 100 },
-  summaryCard: { background: 'var(--surface)', borderRadius: 22, padding: 22, border: '1px solid var(--border)', boxShadow: '0 4px 24px rgba(124,58,237,.08)' },
+  summaryCard: { background: 'var(--surface)', borderRadius: 22, padding: 22, border: '1px solid var(--border)', boxShadow: '0 4px 24px rgba(13,148,136,.08)' },
   summaryHeader:  { marginBottom: 18, paddingBottom: 14, borderBottom: '1px solid var(--border)' },
   summaryEyebrow: { fontSize: 9, fontWeight: 700, color: 'var(--brand-label)', letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: 4 },
   salonTag:    { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 15, fontWeight: 700, color: 'var(--text)', letterSpacing: '-0.01em' },
   summaryLogo: {
     width: 40, height: 40, borderRadius: 11, flexShrink: 0,
-    background: 'linear-gradient(135deg, #7C3AED 0%, #0D9488 100%)',
+    background: 'linear-gradient(135deg, #0D9488 0%, #0D9488 100%)',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
-    overflow: 'hidden', boxShadow: '0 3px 10px rgba(124,58,237,.3)',
+    overflow: 'hidden', boxShadow: '0 3px 10px rgba(13,148,136,.3)',
   },
   emptySummary:{ fontSize: 13, color: 'var(--text-muted)', padding: '10px 0', textAlign: 'center', fontStyle: 'italic' },
   sumRow:      { display: 'flex', justifyContent: 'space-between', marginBottom: 9, fontSize: 13 },
   sumName:     { color: 'var(--text-sub)', flex: 1, lineHeight: 1.4 },
   sumPrice:    { fontWeight: 600, color: 'var(--text)', flexShrink: 0, marginLeft: 8 },
-  sumTotal:    { display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 12, marginTop: 6, borderTop: '1.5px solid rgba(124,58,237,.15)' },
+  sumTotal:    { display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 12, marginTop: 6, borderTop: '1.5px solid rgba(13,148,136,.15)' },
   sumTotalVal: { fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 700, color: 'var(--text)' },
   sumDetail:   { display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--text-sub)', padding: '8px 12px', background: 'var(--surface2)', borderRadius: 10, marginTop: 8, border: '1px solid var(--border)' },
-  sumDetailIcon: { color: '#7C3AED', fontSize: 13 },
+  sumDetailIcon: { color: '#0D9488', fontSize: 13 },
   checklist:   { marginTop: 18, display: 'flex', flexDirection: 'column', gap: 6, paddingTop: 14, borderTop: '1px solid var(--border)' },
   checkItem:   { display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 500, transition: 'color .3s ease' },
 
   promoSection: { marginTop: 14, borderTop: '1px solid var(--border)', paddingTop: 14 },
-  promoToggle:  { display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: '#7C3AED', padding: 0 },
+  promoToggle:  { display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: '#0D9488', padding: 0 },
   promoBody:    { marginTop: 12 },
   promoRow:     { display: 'flex', gap: 8 },
   promoInput:   { flex: 1, padding: '9px 14px', border: '1.5px solid var(--border)', borderRadius: 10, fontSize: 13, fontFamily: "'DM Sans', sans-serif", background: 'var(--input-bg)', color: 'var(--text)', textTransform: 'uppercase', letterSpacing: '0.06em', outline: 'none' },
-  promoApplyBtn:{ padding: '9px 18px', background: 'linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%)', color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 700, fontSize: 13, boxShadow: '0 4px 12px rgba(124,58,237,.3)' },
+  promoApplyBtn:{ padding: '9px 18px', background: 'linear-gradient(135deg, #0D9488 0%, #0B7A70 100%)', color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 700, fontSize: 13, boxShadow: '0 4px 12px rgba(13,148,136,.3)' },
   promoMsg:     { marginTop: 8, padding: '9px 12px', borderRadius: 10, fontSize: 12, fontWeight: 500 },
 
   homeVisitRow: { display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px', borderRadius: 14, border: '1.5px solid var(--border)', background: 'var(--surface)', cursor: 'pointer', marginBottom: 16, transition: 'border-color .2s, background .2s', userSelect: 'none' },
@@ -869,23 +869,23 @@ const conf = {
     overflowY: 'auto', padding: '72px 24px 60px',
     animation: 'confirmReveal .45s cubic-bezier(.16,1,.3,1) both',
   },
-  bgGlow1: { position: 'absolute', width: 600, height: 600, borderRadius: '50%', background: 'radial-gradient(circle, rgba(124,58,237,.22) 0%, transparent 70%)', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', pointerEvents: 'none', filter: 'blur(60px)', animation: 'ambientDrift 24s ease-in-out infinite' },
+  bgGlow1: { position: 'absolute', width: 600, height: 600, borderRadius: '50%', background: 'radial-gradient(circle, rgba(13,148,136,.22) 0%, transparent 70%)', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', pointerEvents: 'none', filter: 'blur(60px)', animation: 'ambientDrift 24s ease-in-out infinite' },
   bgGlow2: { position: 'absolute', width: 360, height: 360, borderRadius: '50%', background: 'radial-gradient(circle, rgba(236,72,153,.14) 0%, transparent 70%)', top: '20%', right: '10%', pointerEvents: 'none', filter: 'blur(50px)' },
-  bgGlow3: { position: 'absolute', width: 280, height: 280, borderRadius: '50%', background: 'radial-gradient(circle, rgba(191,155,101,.1) 0%, transparent 70%)', bottom: '15%', left: '8%', pointerEvents: 'none', filter: 'blur(60px)' },
+  bgGlow3: { position: 'absolute', width: 280, height: 280, borderRadius: '50%', background: 'radial-gradient(circle, rgba(212,175,55,.1) 0%, transparent 70%)', bottom: '15%', left: '8%', pointerEvents: 'none', filter: 'blur(60px)' },
   content: { position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', maxWidth: 560, width: '100%' },
   eyebrow: { fontSize: 11, fontWeight: 600, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'rgba(196,181,253,.7)', marginBottom: 36, display: 'inline-flex', alignItems: 'center', background: 'rgba(255,255,255,.05)', padding: '8px 20px', borderRadius: 30, border: '1px solid rgba(255,255,255,.09)' },
   checkWrap:   { position: 'relative', marginBottom: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 96, height: 96 },
-  checkGlow:   { position: 'absolute', width: 160, height: 160, borderRadius: '50%', background: 'radial-gradient(circle, rgba(124,58,237,.35) 0%, transparent 70%)', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', animation: 'glowBreath 3s ease-in-out infinite' },
-  checkCircle: { width: 96, height: 96, borderRadius: '50%', background: 'linear-gradient(135deg, rgba(124,58,237,.2) 0%, rgba(236,72,153,.15) 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 0 1px rgba(124,58,237,.35), 0 12px 40px rgba(124,58,237,.3)' },
+  checkGlow:   { position: 'absolute', width: 160, height: 160, borderRadius: '50%', background: 'radial-gradient(circle, rgba(13,148,136,.35) 0%, transparent 70%)', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', animation: 'glowBreath 3s ease-in-out infinite' },
+  checkCircle: { width: 96, height: 96, borderRadius: '50%', background: 'linear-gradient(135deg, rgba(13,148,136,.2) 0%, rgba(236,72,153,.15) 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 0 1px rgba(13,148,136,.35), 0 12px 40px rgba(13,148,136,.3)' },
   salonName:   { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 'clamp(32px, 5vw, 58px)', fontWeight: 700, color: '#F0EAFF', margin: '0 0 10px', lineHeight: 1.1, letterSpacing: '-0.02em' },
   salonSub:    { fontSize: 15, color: 'rgba(196,181,253,.55)', margin: '0 0 28px', fontStyle: 'italic', fontFamily: "'Cormorant Garamond', Georgia, serif", letterSpacing: '0.02em' },
   rule:        { width: 48, height: 1, background: 'linear-gradient(90deg, transparent, rgba(167,139,250,.5), transparent)', marginBottom: 28 },
   detailCard:  { width: '100%', borderRadius: 20, background: 'rgba(255,255,255,.04)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,.08)', padding: '8px 0', marginBottom: 32, boxShadow: '0 8px 32px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.06)' },
   detailRow:   { display: 'flex', alignItems: 'flex-start', gap: 14, padding: '14px 24px', borderBottom: '1px solid rgba(255,255,255,.05)', marginBottom: 0, textAlign: 'left' },
-  detailIconWrap: { width: 30, height: 30, borderRadius: 9, flexShrink: 0, background: 'rgba(124,58,237,.15)', border: '1px solid rgba(167,139,250,.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 2 },
+  detailIconWrap: { width: 30, height: 30, borderRadius: 9, flexShrink: 0, background: 'rgba(13,148,136,.15)', border: '1px solid rgba(167,139,250,.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 2 },
   detailLabel: { fontSize: 9, fontWeight: 700, color: 'rgba(167,139,250,.65)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 4 },
   detailVal:   { fontSize: 14, fontWeight: 500, color: '#E9D5FF', lineHeight: 1.5 },
   ctaRow:      { display: 'flex', flexDirection: 'column', gap: 12, width: '100%', maxWidth: 380 },
-  primaryCTA:  { width: '100%', padding: '15px', background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #0D9488 100%)', color: '#fff', border: 'none', borderRadius: 14, fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", boxShadow: '0 8px 28px rgba(124,58,237,.45), inset 0 1px 0 rgba(255,255,255,.18)', transition: 'transform .18s ease, box-shadow .18s ease', letterSpacing: '0.01em' },
+  primaryCTA:  { width: '100%', padding: '15px', background: 'linear-gradient(135deg, #0D9488 0%, #14B8A8 50%, #0D9488 100%)', color: '#fff', border: 'none', borderRadius: 14, fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", boxShadow: '0 8px 28px rgba(13,148,136,.45), inset 0 1px 0 rgba(255,255,255,.18)', transition: 'transform .18s ease, box-shadow .18s ease', letterSpacing: '0.01em' },
   ghostCTA:    { width: '100%', padding: '14px', background: 'rgba(255,255,255,.06)', color: 'rgba(196,181,253,.8)', border: '1px solid rgba(255,255,255,.1)', borderRadius: 14, fontSize: 14, fontWeight: 500, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", transition: 'background .18s ease, border-color .18s ease', letterSpacing: '0.01em' },
 };

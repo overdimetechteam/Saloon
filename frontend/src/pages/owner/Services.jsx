@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import api from '../../api/axios';
 import { useOwner } from '../../context/OwnerContext';
 import { useBreakpoint } from '../../hooks/useMobile';
@@ -48,7 +48,7 @@ function EditModal({ ss, onSave, onClose }) {
           <button
             type="button"
             onClick={() => setStartingFrom(v => !v)}
-            style={{ ...m.toggle, background: startingFrom ? 'linear-gradient(135deg,#7C3AED,#0D9488)' : 'var(--surface2)', border: startingFrom ? 'none' : '1.5px solid var(--border)' }}
+            style={{ ...m.toggle, background: startingFrom ? 'linear-gradient(135deg,#0D9488,#0D9488)' : 'var(--surface2)', border: startingFrom ? 'none' : '1.5px solid var(--border)' }}
             aria-pressed={startingFrom}
           >
             <span style={{ ...m.knob, transform: startingFrom ? 'translateX(20px)' : 'translateX(2px)' }} />
@@ -217,7 +217,7 @@ export default function OwnerServices() {
             <button
               type="button"
               onClick={() => setForm(f => ({ ...f, is_price_starting_from: !f.is_price_starting_from }))}
-              style={{ ...s.sfToggle, background: form.is_price_starting_from ? 'linear-gradient(135deg,#7C3AED,#0D9488)' : 'var(--surface2)', border: form.is_price_starting_from ? 'none' : '1.5px solid var(--border)' }}
+              style={{ ...s.sfToggle, background: form.is_price_starting_from ? 'linear-gradient(135deg,#0D9488,#0D9488)' : 'var(--surface2)', border: form.is_price_starting_from ? 'none' : '1.5px solid var(--border)' }}
             >
               <span style={{ ...s.sfKnob, transform: form.is_price_starting_from ? 'translateX(20px)' : 'translateX(2px)' }} />
             </button>
@@ -252,7 +252,7 @@ export default function OwnerServices() {
       )}
 
       {Object.entries(grouped).map(([cat, items]) => {
-        const color = CAT_COLORS[cat] || '#7C3AED';
+        const color = CAT_COLORS[cat] || '#0D9488';
         return (
           <div key={cat} style={s.catSection}>
             <div style={s.catHeader}>
@@ -315,20 +315,20 @@ const s = {
   select:  { padding: '10px 14px', border: '1.5px solid var(--border)', borderRadius: 11, fontSize: 14, color: 'var(--text)', background: 'var(--input-bg)', fontFamily: "'DM Sans', sans-serif", outline: 'none', minWidth: 220 },
   addBtn: {
     padding: '10px 22px',
-    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #0D9488 100%)',
+    background: 'linear-gradient(135deg, #0D9488 0%, #14B8A8 50%, #0D9488 100%)',
     color: '#fff', border: 'none', borderRadius: 11, cursor: 'pointer',
-    fontWeight: 700, fontSize: 14, boxShadow: '0 4px 14px rgba(124,58,237,.3)',
+    fontWeight: 700, fontSize: 14, boxShadow: '0 4px 14px rgba(13,148,136,.3)',
     fontFamily: "'DM Sans', sans-serif",
   },
   createBtn: {
     padding: '10px 22px',
-    background: 'var(--surface)', color: '#7C3AED',
-    border: '1.5px solid rgba(124,58,237,.3)', borderRadius: 11, cursor: 'pointer',
+    background: 'var(--surface)', color: '#0D9488',
+    border: '1.5px solid rgba(13,148,136,.3)', borderRadius: 11, cursor: 'pointer',
     fontWeight: 700, fontSize: 14, fontFamily: "'DM Sans', sans-serif",
   },
   createCard: {
     background: 'var(--surface)', borderRadius: 18, padding: '22px 24px',
-    border: '1px solid var(--border)', boxShadow: '0 4px 16px rgba(124,58,237,.08)',
+    border: '1px solid var(--border)', boxShadow: '0 4px 16px rgba(13,148,136,.08)',
     marginBottom: 24,
   },
   createTitle: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 20, fontWeight: 700, color: 'var(--text)', marginBottom: 18, letterSpacing: '-0.01em' },
@@ -337,7 +337,7 @@ const s = {
   fInput:  { padding: '9px 12px', border: '1.5px solid var(--border)', borderRadius: 10, fontSize: 14, color: 'var(--text)', background: 'var(--input-bg)', outline: 'none', fontFamily: "'DM Sans', sans-serif" },
   alertErr: { background: '#FEF2F2', border: '1px solid #FCA5A5', color: '#DC2626', borderRadius: 12, padding: '11px 16px', fontSize: 13, marginBottom: 18 },
   alertOk:  { background: '#ECFDF5', border: '1px solid #6EE7B7', color: '#059669', borderRadius: 12, padding: '11px 16px', fontSize: 13, marginBottom: 18 },
-  empty: { textAlign: 'center', padding: '64px 40px', background: 'var(--surface)', borderRadius: 22, border: '1px solid var(--border)', boxShadow: '0 4px 20px rgba(124,58,237,.06)' },
+  empty: { textAlign: 'center', padding: '64px 40px', background: 'var(--surface)', borderRadius: 22, border: '1px solid var(--border)', boxShadow: '0 4px 20px rgba(13,148,136,.06)' },
   emptyOrb:   { fontSize: 36, marginBottom: 16, display: 'block', color: 'var(--text-muted)' },
   emptyTitle: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 22, fontWeight: 700, color: 'var(--text)', marginBottom: 8 },
   catSection: { marginBottom: 30 },
@@ -345,18 +345,18 @@ const s = {
   catBadge:   { padding: '5px 16px', borderRadius: 20, fontSize: 13, fontWeight: 700 },
   catCount:   { fontSize: 12, color: 'var(--text-muted)' },
   grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: 14 },
-  card: { background: 'var(--surface)', borderRadius: 16, overflow: 'hidden', boxShadow: '0 2px 12px rgba(124,58,237,.06)', border: '1px solid var(--border)' },
+  card: { background: 'var(--surface)', borderRadius: 16, overflow: 'hidden', boxShadow: '0 2px 12px rgba(13,148,136,.06)', border: '1px solid var(--border)' },
   cardAccent: { height: 3, width: '100%' },
   cardBody:   { padding: '16px 18px' },
   cardTop:    { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 },
   svcName:    { fontWeight: 700, fontSize: 15, color: 'var(--text)', lineHeight: 1.3, marginBottom: 4 },
   customTag:  { fontSize: 10, fontWeight: 700, color: '#0D9488', background: 'rgba(13,148,136,.1)', border: '1px solid rgba(13,148,136,.25)', borderRadius: 10, padding: '2px 8px', display: 'inline-block' },
-  editBtn:    { padding: '4px 10px', background: 'rgba(124,58,237,.08)', color: '#7C3AED', border: '1px solid rgba(124,58,237,.2)', borderRadius: 7, cursor: 'pointer', fontSize: 11, fontWeight: 600, flexShrink: 0 },
+  editBtn:    { padding: '4px 10px', background: 'rgba(13,148,136,.08)', color: '#0D9488', border: '1px solid rgba(13,148,136,.2)', borderRadius: 7, cursor: 'pointer', fontSize: 11, fontWeight: 600, flexShrink: 0 },
   detachBtn:  { padding: '4px 10px', background: '#FEF2F2', color: '#DC2626', border: '1px solid #FECACA', borderRadius: 7, cursor: 'pointer', fontSize: 11, fontWeight: 600, flexShrink: 0 },
   meta:       { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
   metaItem:   { fontSize: 12, color: 'var(--text-muted)' },
   price:      { fontWeight: 700, fontSize: 16 },
-  customNote: { marginTop: 8, fontSize: 11, color: '#7C3AED', background: 'rgba(124,58,237,.08)', borderRadius: 6, padding: '2px 8px', display: 'inline-block', border: '1px solid rgba(124,58,237,.2)' },
+  customNote: { marginTop: 8, fontSize: 11, color: '#0D9488', background: 'rgba(13,148,136,.08)', borderRadius: 6, padding: '2px 8px', display: 'inline-block', border: '1px solid rgba(13,148,136,.2)' },
   startingFromLabel: { fontSize: 11, fontWeight: 600, opacity: 0.75 },
   descText: { marginTop: 8, fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.6, borderTop: '1px solid var(--border)', paddingTop: 8, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' },
   sfRow:    { display: 'flex', alignItems: 'center', gap: 14, padding: '12px 14px', background: 'var(--surface2)', borderRadius: 12, border: '1px solid var(--border)', marginTop: 4, marginBottom: 4 },
@@ -375,7 +375,7 @@ const m = {
   input:   { padding: '10px 14px', border: '1.5px solid var(--border)', borderRadius: 10, fontSize: 14, color: 'var(--text)', background: 'var(--input-bg)', outline: 'none', fontFamily: "'DM Sans', sans-serif" },
   btnRow:  { display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 4 },
   cancelBtn: { padding: '9px 20px', background: 'var(--surface2)', color: 'var(--text-sub)', border: '1px solid var(--border)', borderRadius: 10, cursor: 'pointer', fontWeight: 500, fontSize: 13, fontFamily: "'DM Sans', sans-serif" },
-  saveBtn:   { padding: '9px 20px', background: 'linear-gradient(135deg, #7C3AED, #0D9488)', color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 700, fontSize: 13, fontFamily: "'DM Sans', sans-serif", boxShadow: '0 4px 12px rgba(124,58,237,.3)' },
+  saveBtn:   { padding: '9px 20px', background: 'linear-gradient(135deg, #0D9488, #0D9488)', color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 700, fontSize: 13, fontFamily: "'DM Sans', sans-serif", boxShadow: '0 4px 12px rgba(13,148,136,.3)' },
   toggleRow:   { display: 'flex', alignItems: 'center', gap: 14, padding: '12px 14px', background: 'var(--surface2)', borderRadius: 12, border: '1px solid var(--border)', marginBottom: 16 },
   toggleTitle: { fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 2 },
   toggleSub:   { fontSize: 11, color: 'var(--text-muted)' },

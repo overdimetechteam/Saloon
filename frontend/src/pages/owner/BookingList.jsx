@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+﻿import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../api/axios';
 import { useOwner } from '../../context/OwnerContext';
@@ -49,7 +49,7 @@ export default function OwnerBookingList() {
           onClick={() => setFilter('all')}
         >
           All
-          <span style={{ ...s.chipBadge, background: filter === 'all' ? '#7C3AED' : 'var(--surface2)', color: filter === 'all' ? '#fff' : 'var(--text-muted)' }}>
+          <span style={{ ...s.chipBadge, background: filter === 'all' ? '#0D9488' : 'var(--surface2)', color: filter === 'all' ? '#fff' : 'var(--text-muted)' }}>
             {bookings.length}
           </span>
         </button>
@@ -264,7 +264,7 @@ function WalkInModal({ salonId, onClose, onCreated }) {
                   type="button"
                 >
                   <span style={m.serviceChipName}>{sv.service_name}</span>
-                  <span style={{ ...m.serviceChipPrice, color: sel ? '#7C3AED' : 'var(--text-muted)' }}>
+                  <span style={{ ...m.serviceChipPrice, color: sel ? '#0D9488' : 'var(--text-muted)' }}>
                     LKR {sv.effective_price}
                   </span>
                 </button>
@@ -319,10 +319,10 @@ const s = {
   },
   walkInBtn: {
     padding: '11px 22px',
-    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #0D9488 100%)',
+    background: 'linear-gradient(135deg, #0D9488 0%, #14B8A8 50%, #0D9488 100%)',
     color: '#fff', border: 'none', borderRadius: 12, cursor: 'pointer',
     fontWeight: 700, fontSize: 13,
-    boxShadow: '0 6px 20px rgba(124,58,237,.35)',
+    boxShadow: '0 6px 20px rgba(13,148,136,.35)',
     flexShrink: 0, marginTop: 4,
   },
 
@@ -334,7 +334,7 @@ const s = {
     display: 'inline-flex', alignItems: 'center', gap: 7,
     transition: 'all .18s ease',
   },
-  chipAll: { background: 'rgba(124,58,237,.08)', color: '#7C3AED', borderColor: 'rgba(124,58,237,.3)' },
+  chipAll: { background: 'rgba(13,148,136,.08)', color: '#0D9488', borderColor: 'rgba(13,148,136,.3)' },
   chipBadge: {
     borderRadius: 20, fontSize: 10, fontWeight: 700,
     padding: '1px 6px', transition: 'all .18s ease',
@@ -346,7 +346,7 @@ const s = {
   empty: {
     background: 'var(--surface)', borderRadius: 22, padding: '60px 40px',
     textAlign: 'center', border: '1px solid var(--border)',
-    boxShadow: '0 4px 20px rgba(124,58,237,.06)',
+    boxShadow: '0 4px 20px rgba(13,148,136,.06)',
   },
   emptyOrb: { fontSize: 38, marginBottom: 14, display: 'block', color: 'var(--text-muted)' },
   emptyTitle: {
@@ -357,7 +357,7 @@ const s = {
   list: { display: 'flex', flexDirection: 'column', gap: 10 },
   card: {
     background: 'var(--surface)', borderRadius: 18,
-    boxShadow: '0 4px 16px rgba(124,58,237,.07), 0 1px 4px rgba(0,0,0,.04)',
+    boxShadow: '0 4px 16px rgba(13,148,136,.07), 0 1px 4px rgba(0,0,0,.04)',
     border: '1px solid var(--border)',
     display: 'flex', alignItems: 'center', overflow: 'hidden',
     transition: 'transform .2s ease, box-shadow .2s ease',
@@ -389,14 +389,14 @@ const s = {
   roundTag: { fontSize: 10, color: 'var(--text-muted)' },
   manageBtn: {
     fontSize: 12, fontWeight: 700, padding: '7px 16px', borderRadius: 9,
-    background: 'rgba(124,58,237,.08)', color: '#7C3AED',
-    border: '1px solid rgba(124,58,237,.15)',
+    background: 'rgba(13,148,136,.08)', color: '#0D9488',
+    border: '1px solid rgba(13,148,136,.15)',
     transition: 'background .15s ease', textDecoration: 'none',
   },
   manageBtnPending: {
-    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #0D9488 100%)',
+    background: 'linear-gradient(135deg, #0D9488 0%, #14B8A8 50%, #0D9488 100%)',
     color: '#fff', border: 'none',
-    boxShadow: '0 4px 12px rgba(124,58,237,.35)',
+    boxShadow: '0 4px 12px rgba(13,148,136,.35)',
   },
 };
 
@@ -411,7 +411,7 @@ const m = {
     background: 'var(--surface)', borderRadius: 24, padding: 32,
     width: '100%', maxWidth: 640, maxHeight: '90vh',
     overflowY: 'auto',
-    boxShadow: '0 32px 80px rgba(0,0,0,.35), 0 8px 24px rgba(124,58,237,.15)',
+    boxShadow: '0 32px 80px rgba(0,0,0,.35), 0 8px 24px rgba(13,148,136,.15)',
     border: '1px solid var(--border)',
   },
   modalHead: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 },
@@ -452,8 +452,8 @@ const m = {
     background: 'var(--surface2)', cursor: 'pointer', transition: 'all .15s ease',
   },
   serviceChipSel: {
-    background: 'rgba(124,58,237,.08)', border: '1.5px solid #7C3AED',
-    boxShadow: '0 3px 10px rgba(124,58,237,.15)',
+    background: 'rgba(13,148,136,.08)', border: '1.5px solid #0D9488',
+    boxShadow: '0 3px 10px rgba(13,148,136,.15)',
   },
   serviceChipName: { fontSize: 13, fontWeight: 600, color: 'var(--text)' },
   serviceChipPrice: { fontSize: 11, fontWeight: 500, marginTop: 2 },
@@ -469,10 +469,10 @@ const m = {
   },
   submitBtn: {
     padding: '10px 24px',
-    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #0D9488 100%)',
+    background: 'linear-gradient(135deg, #0D9488 0%, #14B8A8 50%, #0D9488 100%)',
     color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer',
     fontWeight: 700, fontSize: 13,
-    boxShadow: '0 6px 18px rgba(124,58,237,.35)',
+    boxShadow: '0 6px 18px rgba(13,148,136,.35)',
     fontFamily: "'DM Sans', sans-serif",
   },
 };

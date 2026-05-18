@@ -56,7 +56,7 @@ export default function Navbar() {
       {/* Centered search — desktop explore page only */}
       {showNavSearch && (
         <div style={s.navSearch}>
-          <span style={{ color: '#7C3AED', fontSize: 13, flexShrink: 0 }}>✦</span>
+          <span style={{ color: '#0D9488', fontSize: 13, flexShrink: 0 }}>✦</span>
           <input
             style={s.navSearchInput}
             placeholder="Search salons…"
@@ -83,7 +83,7 @@ export default function Navbar() {
               </>
             )}
             <button onClick={toggle} className="theme-toggle" title={isDark ? 'Light mode' : 'Dark mode'}
-              style={{ color: isDark ? '#A78BFA' : '#7C3AED' }}>
+              style={{ color: isDark ? '#5EEAD4' : '#0D9488' }}>
               {isDark ? '☀' : '☾'}
             </button>
             <Link to={dashTo} style={s.avatarWrap} title="Go to dashboard">
@@ -104,7 +104,7 @@ export default function Navbar() {
             {!isMobile && <Link to="/salons" style={s.ghostLink}>Browse Salons</Link>}
             <Link to="/login" style={s.ghostLink}>Sign In</Link>
             <button onClick={toggle} className="theme-toggle" title={isDark ? 'Light mode' : 'Dark mode'}
-              style={{ color: isDark ? '#A78BFA' : '#7C3AED' }}>
+              style={{ color: isDark ? '#5EEAD4' : '#0D9488' }}>
               {isDark ? '☀' : '☾'}
             </button>
             {!isMobile && (
@@ -153,7 +153,7 @@ const s = {
     borderBottom: '1px solid var(--border)',
     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
     position: 'sticky', top: 0, zIndex: 200,
-    boxShadow: '0 1px 0 var(--border), 0 4px 20px rgba(124,58,237,.04)',
+    boxShadow: '0 1px 0 var(--border), 0 4px 20px rgba(13,148,136,.04)',
     transition: 'background .3s ease',
   },
   brand: {
@@ -162,10 +162,10 @@ const s = {
   },
   brandMark: {
     width: 40, height: 40, borderRadius: 12, flexShrink: 0,
-    background: 'linear-gradient(145deg, #7C3AED 0%, #9B59E8 45%, #0D9488 100%)',
+    background: 'linear-gradient(145deg, #0D9488 0%, #14B8A8 100%)',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     color: '#fff', fontSize: 16, fontWeight: 900,
-    boxShadow: '0 4px 16px rgba(124,58,237,.4), inset 0 1px 0 rgba(255,255,255,.2)',
+    boxShadow: '0 4px 16px rgba(13,148,136,.4), inset 0 1px 0 rgba(255,255,255,.2)',
   },
   brandText: { display: 'flex', flexDirection: 'column' },
   brandName: {
@@ -207,9 +207,9 @@ const s = {
   avatarWrap: { position: 'relative', flexShrink: 0 },
   avatar: {
     width: 36, height: 36, borderRadius: '50%',
-    background: 'linear-gradient(145deg, #7C3AED 0%, #0D9488 100%)',
+    background: 'linear-gradient(145deg, #0D9488 0%, #14B8A8 100%)',
     color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
-    fontSize: 12, fontWeight: 700, boxShadow: '0 2px 10px rgba(124,58,237,.35)',
+    fontSize: 12, fontWeight: 700, boxShadow: '0 2px 10px rgba(13,148,136,.35)',
   },
   onlineDot: {
     width: 9, height: 9, borderRadius: '50%', background: '#34D399',
@@ -229,9 +229,9 @@ const s = {
   primaryBtn: {
     padding: '9px 22px', textDecoration: 'none', color: '#fff',
     fontSize: 14, fontWeight: 600,
-    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #0D9488 100%)',
+    background: 'linear-gradient(135deg, #0D9488 0%, #14B8A8 50%, #0D9488 100%)',
     borderRadius: 10,
-    boxShadow: '0 4px 14px rgba(124,58,237,.35), inset 0 1px 0 rgba(255,255,255,.15)',
+    boxShadow: '0 4px 14px rgba(13,148,136,.35), inset 0 1px 0 rgba(255,255,255,.15)',
     transition: 'box-shadow .2s ease, transform .2s ease',
   },
   hamburger: {

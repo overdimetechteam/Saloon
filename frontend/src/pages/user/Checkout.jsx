@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
@@ -18,10 +18,10 @@ function StepBar({ step }) {
         const active  = i === step;
         return (
           <div key={i} style={sb.stepWrap}>
-            <div style={{ ...sb.dot, background: done ? '#059669' : active ? '#7C3AED' : 'var(--border)', color: done || active ? '#fff' : 'var(--text-muted)' }}>
+            <div style={{ ...sb.dot, background: done ? '#059669' : active ? '#0D9488' : 'var(--border)', color: done || active ? '#fff' : 'var(--text-muted)' }}>
               {done ? '✓' : i + 1}
             </div>
-            <div style={{ ...sb.label, color: active ? '#7C3AED' : done ? '#059669' : 'var(--text-muted)', fontWeight: active ? 800 : 500 }}>{label}</div>
+            <div style={{ ...sb.label, color: active ? '#0D9488' : done ? '#059669' : 'var(--text-muted)', fontWeight: active ? 800 : 500 }}>{label}</div>
             {i < STEPS.length - 1 && <div style={{ ...sb.line, background: done ? '#059669' : 'var(--border)' }} />}
           </div>
         );
@@ -479,10 +479,10 @@ const c = {
 
   cartItem: { display: 'flex', gap: 16, padding: '16px', borderRadius: 12, border: '1px solid var(--border)', background: 'var(--bg)', alignItems: 'flex-start' },
   itemImg: { width: 72, height: 72, objectFit: 'cover', borderRadius: 10, flexShrink: 0 },
-  itemImgPlaceholder: { width: 72, height: 72, borderRadius: 10, background: 'rgba(124,58,237,.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, flexShrink: 0 },
+  itemImgPlaceholder: { width: 72, height: 72, borderRadius: 10, background: 'rgba(13,148,136,.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, flexShrink: 0 },
   itemName: { fontWeight: 700, fontSize: 14, color: 'var(--text)', marginBottom: 2 },
   itemMeta: { fontSize: 11, color: 'var(--text-muted)', marginBottom: 2 },
-  itemPrice: { fontWeight: 800, fontSize: 15, color: '#7C3AED' },
+  itemPrice: { fontWeight: 800, fontSize: 15, color: '#0D9488' },
   qtyRow: { display: 'flex', alignItems: 'center', gap: 8 },
   qtyBtn: { width: 28, height: 28, border: '1.5px solid var(--border)', borderRadius: 6, background: 'var(--surface)', cursor: 'pointer', fontSize: 14, fontWeight: 700, color: 'var(--text)' },
   qty: { fontSize: 14, fontWeight: 700, minWidth: 22, textAlign: 'center', color: 'var(--text)' },
@@ -505,7 +505,7 @@ const c = {
 
   promoApplied: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: 'rgba(5,150,105,.1)', border: '1.5px solid #059669', borderRadius: 10, fontSize: 13, color: '#059669', fontWeight: 700 },
   promoRemove: { background: 'none', border: 'none', color: '#DC2626', cursor: 'pointer', fontWeight: 700, fontSize: 12 },
-  applyBtn: { padding: '10px 18px', background: 'linear-gradient(135deg, #7C3AED, #9B59E8)', color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 700, fontSize: 13, whiteSpace: 'nowrap', fontFamily: "'DM Sans', sans-serif" },
+  applyBtn: { padding: '10px 18px', background: 'linear-gradient(135deg, #0D9488, #14B8A8)', color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 700, fontSize: 13, whiteSpace: 'nowrap', fontFamily: "'DM Sans', sans-serif" },
 
   summaryCard: { background: 'var(--bg)', borderRadius: 12, border: '1px solid var(--border)', padding: '16px 18px', marginBottom: 14 },
   summaryLabel: { fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 },
@@ -513,6 +513,6 @@ const c = {
   errorBox: { background: '#FEF2F2', border: '1px solid #FCA5A5', color: '#DC2626', borderRadius: 10, padding: '12px 16px', fontSize: 13, marginBottom: 16 },
 
   btnRow: { display: 'flex', justifyContent: 'space-between', marginTop: 24, gap: 12 },
-  primaryBtn: { padding: '13px 28px', background: 'linear-gradient(135deg, #7C3AED, #EC4899)', color: '#fff', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 800, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" },
+  primaryBtn: { padding: '13px 28px', background: 'linear-gradient(135deg, #0D9488, #EC4899)', color: '#fff', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 800, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" },
   outlineBtn: { padding: '13px 22px', border: '1.5px solid var(--border)', borderRadius: 12, background: 'none', color: 'var(--text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" },
 };

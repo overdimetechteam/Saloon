@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
 import { STATUS_META } from '../../styles/theme';
@@ -197,7 +197,7 @@ const s = {
   sub: { color: 'var(--text-muted)', fontSize: 13, margin: 0 },
   bookBtn: {
     padding: '11px 24px',
-    background: 'linear-gradient(135deg, #7C3AED 0%, #0D9488 100%)',
+    background: 'linear-gradient(135deg, #0D9488 0%, #0D9488 100%)',
     color: '#fff', borderRadius: 12, fontWeight: 700, fontSize: 14,
     textDecoration: 'none', boxShadow: '0 6px 20px rgba(236,72,153,.35)',
     display: 'inline-flex', alignItems: 'center', gap: 7,
@@ -209,9 +209,9 @@ const s = {
     padding: '11px 18px', marginBottom: 16,
     background: 'var(--surface)', borderRadius: 12,
     border: '1px solid var(--border)',
-    boxShadow: '0 2px 8px rgba(124,58,237,.05)',
+    boxShadow: '0 2px 8px rgba(13,148,136,.05)',
   },
-  searchIcon:  { color: '#7C3AED', fontSize: 13, flexShrink: 0 },
+  searchIcon:  { color: '#0D9488', fontSize: 13, flexShrink: 0 },
   searchInput: {
     flex: 1, border: 'none', outline: 'none', fontSize: 14,
     background: 'transparent', color: 'var(--text)',
@@ -230,13 +230,13 @@ const s = {
     display: 'inline-flex', alignItems: 'center', gap: 6,
     transition: 'all .18s ease',
   },
-  chipActive: { background: 'rgba(124,58,237,.08)', color: '#7C3AED', borderColor: '#7C3AED50' },
+  chipActive: { background: 'rgba(13,148,136,.08)', color: '#0D9488', borderColor: '#0D948850' },
   chipCount: {
     background: 'var(--surface2)', color: 'var(--text-muted)',
     borderRadius: 20, fontSize: 10, fontWeight: 700,
     padding: '1px 6px', transition: 'all .18s ease',
   },
-  chipCountActive: { background: 'rgba(124,58,237,.12)', color: '#7C3AED' },
+  chipCountActive: { background: 'rgba(13,148,136,.12)', color: '#0D9488' },
 
   loadStack: { display: 'flex', flexDirection: 'column', gap: 12 },
   skeleton: { height: 90, borderRadius: 18 },
@@ -244,7 +244,7 @@ const s = {
   empty: {
     background: 'var(--surface)', borderRadius: 24, padding: '68px 40px',
     textAlign: 'center', border: '1px solid var(--border)',
-    boxShadow: '0 4px 20px rgba(124,58,237,.06)',
+    boxShadow: '0 4px 20px rgba(13,148,136,.06)',
   },
   emptyOrb: {
     fontSize: 44, marginBottom: 18, color: 'var(--text-light)',
@@ -258,7 +258,7 @@ const s = {
   list: { display: 'flex', flexDirection: 'column', gap: 12 },
   card: {
     background: 'var(--surface)', borderRadius: 18,
-    boxShadow: '0 4px 16px rgba(124,58,237,.07), 0 1px 4px rgba(0,0,0,.04)',
+    boxShadow: '0 4px 16px rgba(13,148,136,.07), 0 1px 4px rgba(0,0,0,.04)',
     border: '1px solid var(--border)',
     display: 'flex', alignItems: 'center',
     overflow: 'hidden', transition: 'box-shadow .2s ease, transform .2s ease',
@@ -299,8 +299,8 @@ const s = {
     borderRadius: 8, cursor: 'pointer', transition: 'background .15s ease',
   },
   detailBtn: {
-    fontSize: 13, color: '#7C3AED', fontWeight: 700,
-    padding: '6px 14px', background: 'rgba(124,58,237,.08)', borderRadius: 8,
+    fontSize: 13, color: '#0D9488', fontWeight: 700,
+    padding: '6px 14px', background: 'rgba(13,148,136,.08)', borderRadius: 8,
     transition: 'background .15s ease',
   },
 };

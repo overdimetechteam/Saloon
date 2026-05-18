@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+﻿import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import api from '../../api/axios';
 import { useOwner } from '../../context/OwnerContext';
@@ -312,13 +312,13 @@ const s = {
   eyebrow: { fontSize: 10, fontWeight: 700, color: 'var(--brand-label)', letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: 6 },
   title: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 30, fontWeight: 700, color: 'var(--text)', margin: '0 0 4px', letterSpacing: '-0.01em' },
   sub: { fontSize: 14, color: 'var(--text-muted)', margin: 0 },
-  uploadBtn: { padding: '11px 24px', background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #0D9488 100%)', color: '#fff', border: 'none', borderRadius: 12, cursor: 'pointer', fontWeight: 700, fontSize: 14, boxShadow: '0 6px 18px rgba(124,58,237,.35)', flexShrink: 0 },
+  uploadBtn: { padding: '11px 24px', background: 'linear-gradient(135deg, #0D9488 0%, #14B8A8 50%, #0D9488 100%)', color: '#fff', border: 'none', borderRadius: 12, cursor: 'pointer', fontWeight: 700, fontSize: 14, boxShadow: '0 6px 18px rgba(13,148,136,.35)', flexShrink: 0 },
 
   toast: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#ECFDF5', border: '1px solid #6EE7B7', color: '#059669', borderRadius: 12, padding: '11px 18px', fontSize: 13, marginBottom: 22 },
   toastClose: { background: 'none', border: 'none', cursor: 'pointer', color: '#059669', fontSize: 14 },
 
   /* Logo section */
-  logoCard: { background: 'var(--surface)', borderRadius: 20, border: '1.5px solid rgba(124,58,237,.15)', marginBottom: 28, overflow: 'hidden', boxShadow: '0 4px 20px rgba(124,58,237,.07)' },
+  logoCard: { background: 'var(--surface)', borderRadius: 20, border: '1.5px solid rgba(13,148,136,.15)', marginBottom: 28, overflow: 'hidden', boxShadow: '0 4px 20px rgba(13,148,136,.07)' },
   logoSectionHead: { padding: '18px 24px 14px', borderBottom: '1px solid var(--border)' },
   logoSectionTitle: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 18, fontWeight: 700, color: 'var(--text)', marginBottom: 3 },
   logoSectionSub: { fontSize: 12, color: 'var(--text-muted)' },
@@ -326,11 +326,11 @@ const s = {
   logoDisplayWrap: { position: 'relative', width: 110, height: 110, flexShrink: 0, borderRadius: 20, overflow: 'hidden', border: '2px solid var(--border)', background: 'var(--surface2)', boxShadow: '0 4px 14px rgba(0,0,0,.08)' },
   logoImg: { width: '100%', height: '100%', objectFit: 'cover', display: 'block' },
   logoPlaceholder: { width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4 },
-  logoPlaceholderInitial: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 36, fontWeight: 700, color: '#7C3AED', lineHeight: 1 },
+  logoPlaceholderInitial: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 36, fontWeight: 700, color: '#0D9488', lineHeight: 1 },
   logoPlaceholderText: { fontSize: 9, color: 'var(--text-muted)', textAlign: 'center', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' },
   logoNewBadge: { position: 'absolute', top: 6, right: 6, background: '#0D9488', color: '#fff', fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 6, letterSpacing: '0.06em' },
   logoPendingNote: { fontSize: 12, color: '#0D9488', fontWeight: 600 },
-  logoPickBtn: { padding: '10px 20px', background: 'linear-gradient(135deg, #7C3AED, #0D9488)', color: '#fff', border: 'none', borderRadius: 11, cursor: 'pointer', fontWeight: 700, fontSize: 13, boxShadow: '0 4px 12px rgba(124,58,237,.3)', alignSelf: 'flex-start' },
+  logoPickBtn: { padding: '10px 20px', background: 'linear-gradient(135deg, #0D9488, #0D9488)', color: '#fff', border: 'none', borderRadius: 11, cursor: 'pointer', fontWeight: 700, fontSize: 13, boxShadow: '0 4px 12px rgba(13,148,136,.3)', alignSelf: 'flex-start' },
   logoUploadBtn: { padding: '10px 22px', background: 'linear-gradient(135deg, #0D9488, #059669)', color: '#fff', border: 'none', borderRadius: 11, cursor: 'pointer', fontWeight: 700, fontSize: 13, boxShadow: '0 4px 12px rgba(13,148,136,.3)' },
   logoCancelBtn: { padding: '10px 18px', background: 'var(--surface2)', border: '1.5px solid var(--border)', borderRadius: 11, cursor: 'pointer', fontSize: 13, fontWeight: 500, color: 'var(--text-muted)' },
   logoRemoveBtn: { padding: '8px 16px', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 10, cursor: 'pointer', fontSize: 12, fontWeight: 600, color: '#DC2626', alignSelf: 'flex-start' },
@@ -341,7 +341,7 @@ const s = {
   gallerySectionTitle: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 20, fontWeight: 700, color: 'var(--text)', marginBottom: 3 },
   gallerySectionSub: { fontSize: 12, color: 'var(--text-muted)' },
 
-  uploadPanel: { background: 'var(--surface)', borderRadius: 20, padding: 24, border: '1.5px solid rgba(124,58,237,.2)', marginBottom: 28, boxShadow: '0 4px 24px rgba(124,58,237,.08)' },
+  uploadPanel: { background: 'var(--surface)', borderRadius: 20, padding: 24, border: '1.5px solid rgba(13,148,136,.2)', marginBottom: 28, boxShadow: '0 4px 24px rgba(13,148,136,.08)' },
   uploadPanelTitle: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 18, fontWeight: 700, color: 'var(--text)', marginBottom: 18 },
   alert: { background: '#FEF2F2', border: '1px solid #FCA5A5', color: '#DC2626', borderRadius: 12, padding: '10px 14px', fontSize: 13, marginBottom: 16 },
   previewWrap: { width: 160, height: 160, borderRadius: 14, overflow: 'hidden', flexShrink: 0, border: '1px solid var(--border)' },
@@ -350,11 +350,11 @@ const s = {
   input: { width: '100%', padding: '10px 14px', border: '1.5px solid var(--border)', borderRadius: 11, fontSize: 14, background: 'var(--input-bg)', color: 'var(--text)', fontFamily: "'DM Sans', sans-serif", outline: 'none', boxSizing: 'border-box', marginBottom: 16 },
   uploadActions: { display: 'flex', gap: 10 },
   cancelBtn: { padding: '10px 22px', background: 'var(--surface2)', border: '1.5px solid var(--border)', borderRadius: 12, cursor: 'pointer', fontSize: 14, fontWeight: 500, color: 'var(--text-muted)', fontFamily: "'DM Sans', sans-serif" },
-  saveBtn: { padding: '10px 24px', background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #0D9488 100%)', color: '#fff', border: 'none', borderRadius: 12, cursor: 'pointer', fontSize: 14, fontWeight: 700, boxShadow: '0 4px 14px rgba(124,58,237,.3)', fontFamily: "'DM Sans', sans-serif" },
+  saveBtn: { padding: '10px 24px', background: 'linear-gradient(135deg, #0D9488 0%, #14B8A8 50%, #0D9488 100%)', color: '#fff', border: 'none', borderRadius: 12, cursor: 'pointer', fontSize: 14, fontWeight: 700, boxShadow: '0 4px 14px rgba(13,148,136,.3)', fontFamily: "'DM Sans', sans-serif" },
 
   grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 18 },
   skeleton: { height: 280, borderRadius: 18 },
-  card: { background: 'var(--surface)', borderRadius: 18, overflow: 'hidden', border: '1px solid var(--border)', boxShadow: '0 4px 16px rgba(124,58,237,.06)' },
+  card: { background: 'var(--surface)', borderRadius: 18, overflow: 'hidden', border: '1px solid var(--border)', boxShadow: '0 4px 16px rgba(13,148,136,.06)' },
   imgWrap: { position: 'relative', aspectRatio: '4/3', overflow: 'hidden', background: 'var(--surface2)' },
   img: { width: '100%', height: '100%', objectFit: 'cover', display: 'block' },
   imgOverlay: { position: 'absolute', bottom: 8, right: 8, display: 'flex', gap: 6 },
@@ -365,7 +365,7 @@ const s = {
   orderNum: { fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', background: 'var(--surface2)', padding: '2px 8px', borderRadius: 20, border: '1px solid var(--border)' },
   deleteBtn: { fontSize: 12, fontWeight: 600, color: '#DC2626', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 8, padding: '5px 12px', cursor: 'pointer' },
 
-  empty: { textAlign: 'center', padding: '72px 40px', background: 'var(--surface)', borderRadius: 22, border: '1px solid var(--border)', boxShadow: '0 4px 20px rgba(124,58,237,.06)' },
-  emptyIcon: { fontSize: 30, marginBottom: 18, display: 'inline-flex', width: 72, height: 72, borderRadius: 20, alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #7C3AED 0%, #0D9488 100%)', color: '#fff', boxShadow: '0 8px 24px rgba(124,58,237,.35)' },
+  empty: { textAlign: 'center', padding: '72px 40px', background: 'var(--surface)', borderRadius: 22, border: '1px solid var(--border)', boxShadow: '0 4px 20px rgba(13,148,136,.06)' },
+  emptyIcon: { fontSize: 30, marginBottom: 18, display: 'inline-flex', width: 72, height: 72, borderRadius: 20, alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #0D9488 0%, #0D9488 100%)', color: '#fff', boxShadow: '0 8px 24px rgba(13,148,136,.35)' },
   emptyTitle: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 24, fontWeight: 700, color: 'var(--text)', margin: '0 0 10px' },
 };

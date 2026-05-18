@@ -2,7 +2,7 @@
 import { Link } from 'react-router-dom';
 import api from '../../api/axios';
 
-const PALETTE = ['#7C3AED','#0D9488','#2563EB','#059669','#D97706','#DC2626'];
+const PALETTE = ['#0D9488','#0D9488','#2563EB','#059669','#D97706','#DC2626'];
 
 export default function UserFavourites() {
   const [salons, setSalons] = useState([]);
@@ -80,9 +80,9 @@ const s = {
   sub: { color: 'var(--text-muted)', fontSize: 13, margin: 0 },
   browseBtn: {
     padding: '10px 22px',
-    background: 'linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%)',
+    background: 'linear-gradient(135deg, #0D9488 0%, #0B7A70 100%)',
     color: '#fff', borderRadius: 12, fontWeight: 600, fontSize: 14,
-    textDecoration: 'none', boxShadow: '0 4px 12px rgba(124,58,237,.3)',
+    textDecoration: 'none', boxShadow: '0 4px 12px rgba(13,148,136,.3)',
   },
   grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 },
   skeleton: { height: 240, borderRadius: 18 },
@@ -116,7 +116,7 @@ const s = {
   emptyHeart: {
     fontSize: 44, display: 'flex', width: 72, height: 72, borderRadius: '50%',
     alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px',
-    background: 'linear-gradient(135deg, #0D9488, #7C3AED)', color: '#fff',
+    background: 'linear-gradient(135deg, #0D9488, #0D9488)', color: '#fff',
     boxShadow: '0 6px 20px rgba(13,148,136,.3)',
   },
   emptyTitle: { fontFamily: "'Playfair Display', serif", fontSize: 22, fontWeight: 700, color: 'var(--text)', margin: '0 0 8px' },

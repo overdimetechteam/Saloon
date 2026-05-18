@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import api from '../../api/axios';
 import { useOwner } from '../../context/OwnerContext';
@@ -147,7 +147,7 @@ const pm = {
   error:      { margin: '0 28px 0', padding: '11px 14px', background: '#FEF2F2', border: '1px solid #FCA5A5', color: '#DC2626', borderRadius: 10, fontSize: 13, marginTop: 12 },
   form:       { padding: '4px 28px 28px' },
   section:    { fontSize: 10, fontWeight: 700, color: 'var(--brand-label)', letterSpacing: '0.12em', textTransform: 'uppercase', margin: '20px 0 12px', paddingBottom: 8, borderBottom: '1px solid var(--border)' },
-  testNote:   { fontSize: 12, color: '#7C3AED', background: 'rgba(124,58,237,.07)', borderRadius: 8, padding: '8px 12px', marginBottom: 14, lineHeight: 1.5 },
+  testNote:   { fontSize: 12, color: '#0D9488', background: 'rgba(13,148,136,.07)', borderRadius: 8, padding: '8px 12px', marginBottom: 14, lineHeight: 1.5 },
   twoCol:     { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 },
   fieldLabel: { display: 'block', fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 5 },
   input:      { width: '100%', padding: '10px 13px', border: '1.5px solid var(--border)', borderRadius: 10, fontSize: 14, color: 'var(--text)', background: 'var(--surface)', fontFamily: "'DM Sans', sans-serif", outline: 'none', boxSizing: 'border-box' },
@@ -242,7 +242,7 @@ export default function OwnerSubscription() {
 
   const { subscription: sub, plans } = data;
   const currentPlan = plans[sub.plan] || {};
-  const planColor = sub.plan === 'free_trial' ? '#6B7280' : currentPlan.color || '#7C3AED';
+  const planColor = sub.plan === 'free_trial' ? '#6B7280' : currentPlan.color || '#0D9488';
 
   return (
     <div style={s.page}>
@@ -422,7 +422,7 @@ export default function OwnerSubscription() {
               <div style={{ fontSize: 14, color: 'var(--text-muted)', marginBottom: 20 }}>
                 No payment information on file. Upgrade to a paid plan to access premium features.
               </div>
-              <button style={{ ...s.planBtn, display: 'inline-block', width: 'auto', padding: '12px 28px', background: 'linear-gradient(135deg, #7C3AED, #EC4899)' }}
+              <button style={{ ...s.planBtn, display: 'inline-block', width: 'auto', padding: '12px 28px', background: 'linear-gradient(135deg, #0D9488, #EC4899)' }}
                 onClick={() => setTab('plans')}>
                 View Plans
               </button>
@@ -443,7 +443,7 @@ export default function OwnerSubscription() {
               </div>
               {sub.is_active && sub.plan !== 'free_trial' && (
                 <div style={{ marginTop: 24, paddingTop: 20, borderTop: '1px solid var(--border)', display: 'flex', gap: 12 }}>
-                  <button style={{ ...s.planBtn, background: 'linear-gradient(135deg, #7C3AED, #EC4899)', display: 'inline-block', width: 'auto', padding: '11px 24px' }}
+                  <button style={{ ...s.planBtn, background: 'linear-gradient(135deg, #0D9488, #EC4899)', display: 'inline-block', width: 'auto', padding: '11px 24px' }}
                     onClick={() => setTab('plans')}>
                     Change Plan
                   </button>
@@ -492,14 +492,14 @@ function BillingRow({ label, value, highlight, mono }) {
 
 const s = {
   page: {},
-  spinner: { width: 36, height: 36, borderRadius: '50%', border: '3px solid rgba(124,58,237,.15)', borderTopColor: '#7C3AED', animation: 'spinSlow .7s linear infinite' },
+  spinner: { width: 36, height: 36, borderRadius: '50%', border: '3px solid rgba(13,148,136,.15)', borderTopColor: '#0D9488', animation: 'spinSlow .7s linear infinite' },
 
   pageHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 22, flexWrap: 'wrap', gap: 14 },
   eyebrow:    { fontSize: 10, fontWeight: 700, color: 'var(--brand-label)', letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: 6 },
   pageTitle:  { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 30, fontWeight: 700, color: 'var(--text)', margin: 0 },
 
   tabBtn:    { padding: '8px 18px', border: '1.5px solid var(--border)', borderRadius: 10, background: 'var(--surface)', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 13, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", transition: 'all .15s' },
-  tabActive: { background: 'linear-gradient(135deg, #7C3AED, #0D9488)', color: '#fff', border: '1.5px solid transparent', boxShadow: '0 4px 12px rgba(124,58,237,.3)' },
+  tabActive: { background: 'linear-gradient(135deg, #0D9488, #0D9488)', color: '#fff', border: '1.5px solid transparent', boxShadow: '0 4px 12px rgba(13,148,136,.3)' },
 
   alert: { padding: '13px 18px', borderRadius: 12, border: '1px solid', fontSize: 14, fontWeight: 500, marginBottom: 20 },
 

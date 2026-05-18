@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../../api/axios';
 import { c, STATUS_META } from '../../styles/theme';
@@ -47,7 +47,7 @@ function MultiSlotPicker({ slots, setSlots, operatingHours }) {
       <div style={sp.calCard}>
         <div style={sp.calHint}>
           Click up to 3 dates — they'll appear as options below.
-          {selectedDates.length === 3 && <span style={{ color: '#7C3AED', fontWeight: 700 }}> (3 selected)</span>}
+          {selectedDates.length === 3 && <span style={{ color: '#0D9488', fontWeight: 700 }}> (3 selected)</span>}
         </div>
         <MiniCalendar
           selectedDates={selectedDates}
@@ -102,7 +102,7 @@ const sp = {
   calHint:   { fontSize: 12, color: 'var(--text-muted)', marginBottom: 12, lineHeight: 1.5 },
   timeList:  { display: 'flex', flexDirection: 'column', gap: 10 },
   timeRow:   { display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', background: 'var(--surface2)', borderRadius: 12, border: '1px solid var(--border)', transition: 'opacity .2s ease' },
-  optBadge:  { width: 24, height: 24, borderRadius: '50%', background: 'linear-gradient(135deg, #7C3AED, #0D9488)', color: '#fff', fontSize: 11, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  optBadge:  { width: 24, height: 24, borderRadius: '50%', background: 'linear-gradient(135deg, #0D9488, #0D9488)', color: '#fff', fontSize: 11, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   dateLabel: { fontSize: 13, fontWeight: 600, color: 'var(--text)', minWidth: 130, flexShrink: 0 },
   timeWrap:  { display: 'flex', alignItems: 'center', gap: 8, flex: 1 },
   timeInput: { padding: '7px 10px', border: '1.5px solid var(--border)', borderRadius: 9, fontSize: 13, background: 'var(--input-bg)', color: 'var(--text)', fontFamily: "'DM Sans', sans-serif", outline: 'none' },
@@ -317,12 +317,12 @@ export default function OwnerBookingDetail() {
 const s = {
   page: {},
   loader: { display: 'flex', justifyContent: 'center', alignItems: 'center', height: 200 },
-  loaderSpinner: { width: 32, height: 32, borderRadius: '50%', border: '3px solid rgba(124,58,237,.15)', borderTopColor: '#7C3AED', animation: 'spinSlow .7s linear infinite' },
-  back: { display: 'inline-block', marginBottom: 22, color: '#7C3AED', textDecoration: 'none', fontWeight: 600, fontSize: 13 },
+  loaderSpinner: { width: 32, height: 32, borderRadius: '50%', border: '3px solid rgba(13,148,136,.15)', borderTopColor: '#0D9488', animation: 'spinSlow .7s linear infinite' },
+  back: { display: 'inline-block', marginBottom: 22, color: '#0D9488', textDecoration: 'none', fontWeight: 600, fontSize: 13 },
   layout: { display: 'flex', gap: 24, alignItems: 'flex-start' },
   mainCol: { flex: 1, display: 'flex', flexDirection: 'column', gap: 16 },
   sideCol: { width: 248, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 14 },
-  card: { background: 'var(--surface)', borderRadius: 22, padding: 28, boxShadow: '0 8px 32px rgba(124,58,237,.08)', border: '1px solid var(--border)' },
+  card: { background: 'var(--surface)', borderRadius: 22, padding: 28, boxShadow: '0 8px 32px rgba(13,148,136,.08)', border: '1px solid var(--border)' },
   cardHead: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24, paddingBottom: 20, borderBottom: '1px solid var(--border)' },
   clientName: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 22, fontWeight: 700, color: 'var(--text)', margin: 0, letterSpacing: '-0.01em' },
   walkInBadge: { fontSize: 10, fontWeight: 700, padding: '3px 9px', borderRadius: 20, background: '#DBEAFE', color: '#1D4ED8', border: '1px solid #BFDBFE', flexShrink: 0 },
@@ -337,9 +337,9 @@ const s = {
   section:  { marginBottom: 18 },
   secTitle: { fontSize: 9, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 10 },
   chips:    { display: 'flex', flexWrap: 'wrap', gap: 8 },
-  chip:     { padding: '6px 14px', background: 'rgba(124,58,237,.08)', color: '#7C3AED', borderRadius: 20, fontSize: 13, fontWeight: 500, border: '1px solid rgba(124,58,237,.18)' },
+  chip:     { padding: '6px 14px', background: 'rgba(13,148,136,.08)', color: '#0D9488', borderRadius: 20, fontSize: 13, fontWeight: 500, border: '1px solid rgba(13,148,136,.18)' },
   notes:    { fontSize: 14, color: 'var(--text-sub)', fontStyle: 'italic', background: 'var(--surface2)', borderRadius: 12, padding: '12px 16px', margin: 0, lineHeight: 1.6, border: '1px solid var(--border)' },
-  actionsCard: { background: 'var(--surface)', borderRadius: 22, padding: 26, boxShadow: '0 4px 20px rgba(124,58,237,.07)', border: '1px solid var(--border)' },
+  actionsCard: { background: 'var(--surface)', borderRadius: 22, padding: 26, boxShadow: '0 4px 20px rgba(13,148,136,.07)', border: '1px solid var(--border)' },
   confirmSection: { marginBottom: 20 },
   actTitle: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 17, fontWeight: 700, color: 'var(--text)', marginBottom: 6, letterSpacing: '-0.01em' },
   confirmBtn: { padding: '11px 26px', background: 'linear-gradient(135deg, #059669 0%, #047857 100%)', color: '#fff', border: 'none', borderRadius: 12, cursor: 'pointer', fontWeight: 700, fontSize: 14, boxShadow: '0 4px 14px rgba(5,150,105,.3)', fontFamily: "'DM Sans', sans-serif" },
@@ -347,9 +347,9 @@ const s = {
   rejectSection: {},
   rejectBtn: { padding: '11px 24px', background: '#FEF2F2', color: '#DC2626', border: '1px solid #FECACA', borderRadius: 12, cursor: 'pointer', fontWeight: 700, fontSize: 14, fontFamily: "'DM Sans', sans-serif", marginTop: 4 },
   cancelBtn: { width: '100%', padding: '11px', background: 'transparent', color: 'var(--text-muted)', border: '1.5px solid var(--border)', borderRadius: 12, cursor: 'pointer', fontWeight: 600, fontSize: 13, fontFamily: "'DM Sans', sans-serif" },
-  assignCard: { background: 'var(--surface)', borderRadius: 16, padding: 18, border: '1px solid var(--border)', boxShadow: '0 2px 10px rgba(124,58,237,.06)', display: 'flex', flexDirection: 'column', gap: 10 },
+  assignCard: { background: 'var(--surface)', borderRadius: 16, padding: 18, border: '1px solid var(--border)', boxShadow: '0 2px 10px rgba(13,148,136,.06)', display: 'flex', flexDirection: 'column', gap: 10 },
   select: { width: '100%', padding: '10px 12px', border: '1.5px solid var(--border)', borderRadius: 10, fontSize: 13, background: 'var(--input-bg)', color: 'var(--text)', fontFamily: "'DM Sans', sans-serif", outline: 'none' },
-  assignBtn: { padding: '10px 16px', background: 'linear-gradient(135deg, #7C3AED 0%, #0D9488 100%)', color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 700, fontSize: 13, boxShadow: '0 4px 12px rgba(124,58,237,.3)', fontFamily: "'DM Sans', sans-serif" },
-  histCard:  { background: 'var(--surface)', borderRadius: 16, padding: 18, border: '1px solid var(--border)', boxShadow: '0 2px 10px rgba(124,58,237,.05)' },
+  assignBtn: { padding: '10px 16px', background: 'linear-gradient(135deg, #0D9488 0%, #0D9488 100%)', color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 700, fontSize: 13, boxShadow: '0 4px 12px rgba(13,148,136,.3)', fontFamily: "'DM Sans', sans-serif" },
+  histCard:  { background: 'var(--surface)', borderRadius: 16, padding: 18, border: '1px solid var(--border)', boxShadow: '0 2px 10px rgba(13,148,136,.05)' },
   histSlot:  { border: '1px solid var(--border)', borderRadius: 10, padding: '10px 14px', marginBottom: 8, transition: 'border-color .2s ease, background .2s ease' },
 };

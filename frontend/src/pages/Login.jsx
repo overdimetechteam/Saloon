@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useBreakpoint } from '../hooks/useMobile';
@@ -29,7 +29,7 @@ export default function Login() {
       {(isMobile || isTablet) ? (
         <div style={s.mobileBrand}>
           <div style={s.mobileBrandInner}>
-            <div style={{ fontSize: 22, color: '#7C3AED', marginBottom: 4 }}>✦</div>
+            <div style={{ fontSize: 22, color: '#0D9488', marginBottom: 4 }}>✦</div>
             <div style={s.leftTitle}>Saloon</div>
             <div style={{ ...s.leftTagline, fontSize: 10 }}>Beauty & Wellness</div>
           </div>
@@ -123,7 +123,7 @@ const s = {
   },
 
   mobileBrand: {
-    background: 'linear-gradient(145deg, #1A0532 0%, #2D0A5E 50%, #7C3AED 100%)',
+    background: 'linear-gradient(145deg, #0D0D16 0%, #0B3832 50%, #0D9488 100%)',
     padding: '32px 22px 28px', textAlign: 'center',
     position: 'relative', overflow: 'hidden', flexShrink: 0,
   },
@@ -132,15 +132,15 @@ const s = {
   /* ── Left panel ── */
   left: {
     flex: '0 0 42%', maxWidth: 520,
-    background: 'linear-gradient(145deg, #1A0532 0%, #2D0A5E 30%, #5B21B6 65%, #7C3AED 100%)',
+    background: 'linear-gradient(145deg, #0D0D16, #1A1A24, #0B3832, #0D9488)',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     padding: '60px 48px', position: 'relative', overflow: 'hidden',
   },
   leftInner: { position: 'relative', zIndex: 2, color: '#fff' },
   leftMark: {
-    fontSize: 32, fontWeight: 900, color: '#7C3AED',
+    fontSize: 32, fontWeight: 900, color: '#0D9488',
     marginBottom: 12,
-    filter: 'drop-shadow(0 0 12px rgba(124,58,237,.5))',
+    filter: 'drop-shadow(0 0 12px rgba(13,148,136,.5))',
   },
   leftTitle: {
     fontFamily: "'Cormorant Garamond', Georgia, serif",
@@ -153,7 +153,7 @@ const s = {
   },
   leftDivider: {
     width: 48, height: 2, marginTop: 32, marginBottom: 28,
-    background: 'linear-gradient(90deg, #7C3AED, transparent)',
+    background: 'linear-gradient(90deg, #0D9488, transparent)',
     borderRadius: 2,
   },
   leftQuote: {
@@ -163,7 +163,7 @@ const s = {
   },
   leftFeatures: { marginTop: 36, display: 'flex', flexDirection: 'column', gap: 12 },
   leftFeature: { display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, color: 'rgba(255,255,255,.7)' },
-  leftFeatureDot: { color: '#BF9B65', fontSize: 10 },
+  leftFeatureDot: { color: '#D4AF37', fontSize: 10 },
   leftBlob1: {
     position: 'absolute', width: 300, height: 300,
     background: 'radial-gradient(circle, rgba(236,72,153,.2) 0%, transparent 70%)',
@@ -172,7 +172,7 @@ const s = {
   },
   leftBlob2: {
     position: 'absolute', width: 250, height: 250,
-    background: 'radial-gradient(circle, rgba(124,58,237,.15) 0%, transparent 70%)',
+    background: 'radial-gradient(circle, rgba(13,148,136,.15) 0%, transparent 70%)',
     bottom: -60, left: 20, pointerEvents: 'none',
     filter: 'blur(50px)',
   },
@@ -217,12 +217,12 @@ const s = {
   },
   btn: {
     marginTop: 4, padding: '14px',
-    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #0D9488 100%)',
+    background: 'linear-gradient(135deg, #0D9488 0%, #14B8A8 50%, #0D9488 100%)',
     color: '#fff', border: 'none', borderRadius: 12,
     fontSize: 15, fontWeight: 600, cursor: 'pointer', width: '100%',
-    boxShadow: '0 6px 20px rgba(124,58,237,.35), inset 0 1px 0 rgba(255,255,255,.15)',
+    boxShadow: '0 6px 20px rgba(13,148,136,.35), inset 0 1px 0 rgba(255,255,255,.15)',
     letterSpacing: '0.01em',
   },
   footer: { marginTop: 28, textAlign: 'center', fontSize: 14, color: 'var(--text-muted)' },
-  footerLink: { color: '#7C3AED', fontWeight: 600 },
+  footerLink: { color: '#0D9488', fontWeight: 600 },
 };

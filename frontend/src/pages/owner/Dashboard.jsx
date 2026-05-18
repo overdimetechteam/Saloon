@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
 import { useOwner } from '../../context/OwnerContext';
@@ -25,7 +25,7 @@ function toApiHours(localHours) {
   return out;
 }
 
-const COSMETICS_PLANS = ['professional', 'premium'];
+const COSMETICS_PLANS = ['starter', 'professional', 'premium'];
 
 export default function OwnerDashboard() {
   const { salon, setSalon, loading: salonLoading } = useOwner();
@@ -165,8 +165,8 @@ export default function OwnerDashboard() {
     },
     {
       label: "Today's Queue", value: stats.todayBookings.length,
-      grad: 'linear-gradient(135deg, rgba(124,58,237,.14) 0%, rgba(124,58,237,.07) 100%)',
-      color: '#7C3AED', border: 'rgba(124,58,237,.28)', icon: '◉',
+      grad: 'linear-gradient(135deg, rgba(13,148,136,.14) 0%, rgba(13,148,136,.07) 100%)',
+      color: '#0D9488', border: 'rgba(13,148,136,.28)', icon: '◉',
       to: '/owner/bookings',
     },
   ];
@@ -337,17 +337,17 @@ export default function OwnerDashboard() {
           <div>
             <div style={s.hvTitle}>Cosmetics Section</div>
             <div style={s.hvSub}>
-              {!COSMETICS_PLANS.includes(salon.subscription_plan)
-                ? 'Sell products to clients — requires Professional or Premium plan'
+              {salon.subscription_plan === 'free_trial'
+                ? 'Sell products to clients — requires any paid subscription'
                 : cosmetics
                   ? 'Clients can browse your cosmetics products from your salon page'
                   : 'Enable to let clients discover your beauty products'}
             </div>
           </div>
         </div>
-        {COSMETICS_PLANS.includes(salon.subscription_plan) ? (
+        {(!salon.subscription_plan || COSMETICS_PLANS.includes(salon.subscription_plan)) ? (
           <button
-            style={{ ...s.hvToggle, background: cosmetics ? 'linear-gradient(135deg, #EC4899, #9B59E8)' : 'var(--surface2)', border: cosmetics ? 'none' : '1.5px solid var(--border)' }}
+            style={{ ...s.hvToggle, background: cosmetics ? 'linear-gradient(135deg, #EC4899, #14B8A8)' : 'var(--surface2)', border: cosmetics ? 'none' : '1.5px solid var(--border)' }}
             onClick={toggleCosmetics}
             disabled={cosmeticsSaving}
             aria-pressed={cosmetics}
@@ -371,7 +371,7 @@ export default function OwnerDashboard() {
           onClick={() => setHoursOpen(o => !o)}
         >
           <div style={s.hvLeft}>
-            <div style={{ ...s.hvIconWrap, background: 'rgba(124,58,237,.1)', color: '#7C3AED' }}>🕐</div>
+            <div style={{ ...s.hvIconWrap, background: 'rgba(13,148,136,.1)', color: '#0D9488' }}>🕐</div>
             <div>
               <div style={s.hvTitle}>Operating Hours</div>
               <div style={s.hvSub}>Update your salon's opening and closing times</div>
@@ -432,14 +432,14 @@ const s = {
   loader: { display: 'flex', justifyContent: 'center', alignItems: 'center', height: 200 },
   loaderSpinner: {
     width: 36, height: 36, borderRadius: '50%',
-    border: '3px solid rgba(124,58,237,.15)', borderTopColor: '#7C3AED',
+    border: '3px solid rgba(13,148,136,.15)', borderTopColor: '#0D9488',
     animation: 'spinSlow .7s linear infinite',
   },
   noSalon: {
     textAlign: 'center', padding: '80px 40px',
     background: 'var(--surface)', borderRadius: 24,
     border: '1px solid var(--border)',
-    boxShadow: '0 4px 24px rgba(124,58,237,.08)',
+    boxShadow: '0 4px 24px rgba(13,148,136,.08)',
   },
   noSalonOrb: {
     fontSize: 44, marginBottom: 18, color: 'var(--text-muted)', display: 'block',
@@ -468,9 +468,9 @@ const s = {
 
   heroBtn: {
     padding: '11px 24px',
-    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #0D9488 100%)',
+    background: 'linear-gradient(135deg, #0D9488 0%, #14B8A8 50%, #0D9488 100%)',
     color: '#fff', borderRadius: 12, fontWeight: 700, fontSize: 14,
-    textDecoration: 'none', boxShadow: '0 6px 20px rgba(124,58,237,.35)',
+    textDecoration: 'none', boxShadow: '0 6px 20px rgba(13,148,136,.35)',
     display: 'inline-flex', alignItems: 'center', gap: 6,
   },
 
@@ -496,7 +496,7 @@ const s = {
   section: {
     background: 'var(--surface)', borderRadius: 22, overflow: 'hidden',
     border: '1px solid var(--border)',
-    boxShadow: '0 4px 20px rgba(124,58,237,.07)', marginBottom: 24,
+    boxShadow: '0 4px 20px rgba(13,148,136,.07)', marginBottom: 24,
   },
   sectionHead: {
     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
@@ -537,16 +537,16 @@ const s = {
   },
   clientEmail: { fontWeight: 500, color: 'var(--text)', fontSize: 13 },
   timeChip: {
-    background: 'rgba(124,58,237,.08)', color: '#7C3AED', borderRadius: 8,
+    background: 'rgba(13,148,136,.08)', color: '#0D9488', borderRadius: 8,
     padding: '3px 10px', fontSize: 12, fontWeight: 700,
-    border: '1px solid rgba(124,58,237,.15)',
+    border: '1px solid rgba(13,148,136,.15)',
   },
   svcsText: { fontSize: 12, color: 'var(--text-muted)' },
   badge: { display: 'inline-flex', padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700 },
   manageBtn: {
-    fontSize: 12, color: '#7C3AED', fontWeight: 700,
-    background: 'rgba(124,58,237,.08)', borderRadius: 8, padding: '5px 12px',
-    border: '1px solid rgba(124,58,237,.15)', transition: 'background .15s ease',
+    fontSize: 12, color: '#0D9488', fontWeight: 700,
+    background: 'rgba(13,148,136,.08)', borderRadius: 8, padding: '5px 12px',
+    border: '1px solid rgba(13,148,136,.15)', transition: 'background .15s ease',
     textDecoration: 'none',
   },
 
@@ -554,7 +554,7 @@ const s = {
     display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16,
     background: 'var(--surface)', borderRadius: 18, padding: '18px 22px',
     border: '1px solid var(--border)',
-    boxShadow: '0 2px 12px rgba(124,58,237,.06)',
+    boxShadow: '0 2px 12px rgba(13,148,136,.06)',
     marginTop: 16, flexWrap: 'wrap',
   },
   hvLeft: { display: 'flex', alignItems: 'center', gap: 14, flex: 1, minWidth: 0 },
@@ -642,17 +642,17 @@ const s = {
   },
   saveHoursBtn: {
     padding: '10px 22px',
-    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #0D9488 100%)',
+    background: 'linear-gradient(135deg, #0D9488 0%, #14B8A8 50%, #0D9488 100%)',
     color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer',
-    fontWeight: 700, fontSize: 13, boxShadow: '0 4px 14px rgba(124,58,237,.3)',
+    fontWeight: 700, fontSize: 13, boxShadow: '0 4px 14px rgba(13,148,136,.3)',
     fontFamily: "'DM Sans', sans-serif",
   },
   upgradeBtn: {
     padding: '9px 18px',
-    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 100%)',
+    background: 'linear-gradient(135deg, #0D9488 0%, #14B8A8 100%)',
     color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer',
     fontWeight: 700, fontSize: 12, flexShrink: 0,
-    boxShadow: '0 4px 14px rgba(124,58,237,.35)',
+    boxShadow: '0 4px 14px rgba(13,148,136,.35)',
     fontFamily: "'DM Sans', sans-serif",
     whiteSpace: 'nowrap',
   },

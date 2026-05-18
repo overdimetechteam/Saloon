@@ -3,7 +3,7 @@ import api from '../../api/axios';
 import { useOwner } from '../../context/OwnerContext';
 import { useBreakpoint } from '../../hooks/useMobile';
 
-const COLORS = ['#7C3AED','#0D9488','#2563EB','#059669','#D97706','#DC2626'];
+const COLORS = ['#0D9488','#0D9488','#2563EB','#059669','#D97706','#DC2626'];
 const ALL_DAYS = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday'];
 const DAY_LABELS = { monday:'Mon', tuesday:'Tue', wednesday:'Wed', thursday:'Thu', friday:'Fri', saturday:'Sat', sunday:'Sun' };
 
@@ -288,9 +288,9 @@ const s = {
   sub: { fontSize: 14, color: 'var(--text-muted)', margin: 0 },
   addBtn: {
     padding: '11px 24px',
-    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #0D9488 100%)',
+    background: 'linear-gradient(135deg, #0D9488 0%, #14B8A8 50%, #0D9488 100%)',
     color: '#fff', border: 'none', borderRadius: 12, cursor: 'pointer',
-    fontWeight: 700, fontSize: 14, boxShadow: '0 6px 18px rgba(124,58,237,.35)',
+    fontWeight: 700, fontSize: 14, boxShadow: '0 6px 18px rgba(13,148,136,.35)',
     flexShrink: 0,
   },
   toast: {
@@ -303,7 +303,7 @@ const s = {
   formCard: {
     background: 'var(--surface)', borderRadius: 20, padding: 28,
     border: '1px solid var(--border)', marginBottom: 28,
-    boxShadow: '0 4px 24px rgba(124,58,237,.08)',
+    boxShadow: '0 4px 24px rgba(13,148,136,.08)',
   },
   formTitle: {
     fontFamily: "'Cormorant Garamond', Georgia, serif",
@@ -333,9 +333,9 @@ const s = {
     fontFamily: "'DM Sans', sans-serif",
   },
   dayChipOn: {
-    background: 'linear-gradient(135deg, #7C3AED, #0D9488)',
+    background: 'linear-gradient(135deg, #0D9488, #0D9488)',
     color: '#fff', borderColor: 'transparent',
-    boxShadow: '0 3px 10px rgba(124,58,237,.3)',
+    boxShadow: '0 3px 10px rgba(13,148,136,.3)',
   },
   specGrid: { display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 },
   specItem: {
@@ -344,13 +344,13 @@ const s = {
     fontSize: 13, fontWeight: 500, color: 'var(--text-muted)', background: 'var(--surface2)',
     transition: 'all .15s ease',
   },
-  specItemOn: { borderColor: '#7C3AED', background: 'rgba(124,58,237,.08)', color: '#7C3AED' },
+  specItemOn: { borderColor: '#0D9488', background: 'rgba(13,148,136,.08)', color: '#0D9488' },
   specCheck: {
     width: 18, height: 18, borderRadius: 5, border: '1.5px solid var(--border)',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     fontSize: 10, fontWeight: 700, flexShrink: 0, color: '#fff',
   },
-  specCheckOn: { background: 'linear-gradient(135deg, #7C3AED, #0D9488)', borderColor: 'transparent' },
+  specCheckOn: { background: 'linear-gradient(135deg, #0D9488, #0D9488)', borderColor: 'transparent' },
   formActions: { display: 'flex', gap: 10, paddingTop: 22 },
   cancelBtn: {
     padding: '10px 22px', background: 'var(--surface2)',
@@ -360,9 +360,9 @@ const s = {
   },
   saveBtn: {
     padding: '10px 28px',
-    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #0D9488 100%)',
+    background: 'linear-gradient(135deg, #0D9488 0%, #14B8A8 50%, #0D9488 100%)',
     color: '#fff', border: 'none', borderRadius: 12, cursor: 'pointer',
-    fontSize: 14, fontWeight: 700, boxShadow: '0 4px 14px rgba(124,58,237,.3)',
+    fontSize: 14, fontWeight: 700, boxShadow: '0 4px 14px rgba(13,148,136,.3)',
     fontFamily: "'DM Sans', sans-serif",
   },
 
@@ -370,7 +370,7 @@ const s = {
   card: {
     background: 'var(--surface)', borderRadius: 20, padding: 22,
     border: '1px solid var(--border)',
-    boxShadow: '0 4px 16px rgba(124,58,237,.06)',
+    boxShadow: '0 4px 16px rgba(13,148,136,.06)',
     display: 'flex', flexDirection: 'column', gap: 12,
   },
   cardTop: { display: 'flex', alignItems: 'center', gap: 14 },
@@ -392,8 +392,8 @@ const s = {
   daysRow: { display: 'flex', flexWrap: 'wrap', gap: 5 },
   dayBadge: {
     fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20,
-    background: 'rgba(124,58,237,.08)', color: '#7C3AED',
-    border: '1px solid rgba(124,58,237,.2)',
+    background: 'rgba(13,148,136,.08)', color: '#0D9488',
+    border: '1px solid rgba(13,148,136,.2)',
   },
   specTags: { display: 'flex', flexWrap: 'wrap', gap: 5 },
   specTag: {
@@ -441,14 +441,14 @@ const s = {
     textAlign: 'center', padding: '72px 40px',
     background: 'var(--surface)', borderRadius: 22,
     border: '1px solid var(--border)',
-    boxShadow: '0 4px 20px rgba(124,58,237,.06)',
+    boxShadow: '0 4px 20px rgba(13,148,136,.06)',
   },
   emptyIcon: {
     fontSize: 30, marginBottom: 18,
     display: 'inline-flex', width: 72, height: 72, borderRadius: 20,
     alignItems: 'center', justifyContent: 'center',
-    background: 'linear-gradient(135deg, #7C3AED 0%, #0D9488 100%)',
-    color: '#fff', boxShadow: '0 8px 24px rgba(124,58,237,.35)',
+    background: 'linear-gradient(135deg, #0D9488 0%, #0D9488 100%)',
+    color: '#fff', boxShadow: '0 8px 24px rgba(13,148,136,.35)',
   },
   emptyTitle: {
     fontFamily: "'Cormorant Garamond', Georgia, serif",
@@ -456,8 +456,8 @@ const s = {
   },
   emptyBtn: {
     padding: '11px 28px',
-    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #0D9488 100%)',
+    background: 'linear-gradient(135deg, #0D9488 0%, #14B8A8 50%, #0D9488 100%)',
     color: '#fff', border: 'none', borderRadius: 12, cursor: 'pointer',
-    fontWeight: 700, fontSize: 14, boxShadow: '0 6px 18px rgba(124,58,237,.35)',
+    fontWeight: 700, fontSize: 14, boxShadow: '0 6px 18px rgba(13,148,136,.35)',
   },
 };

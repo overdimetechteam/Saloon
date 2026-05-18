@@ -108,7 +108,7 @@ export default function AdminServices() {
       )}
 
       {Object.entries(grouped).map(([cat, items]) => {
-        const color = CAT_COLORS[cat] || '#7C3AED';
+        const color = CAT_COLORS[cat] || '#0D9488';
         return (
           <div key={cat} style={s.catSection}>
             <div style={s.catHeader}>
@@ -158,16 +158,16 @@ const s = {
   sub: { color: 'var(--text-muted)', fontSize: 13, margin: 0 },
   primaryBtn: {
     padding: '11px 22px',
-    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #0D9488 100%)',
+    background: 'linear-gradient(135deg, #0D9488 0%, #14B8A8 50%, #0D9488 100%)',
     color: '#fff', border: 'none', borderRadius: 12, cursor: 'pointer',
-    fontWeight: 700, fontSize: 13, boxShadow: '0 6px 18px rgba(124,58,237,.35)',
+    fontWeight: 700, fontSize: 13, boxShadow: '0 6px 18px rgba(13,148,136,.35)',
     fontFamily: "'DM Sans', sans-serif",
   },
   alertOk: { background: '#ECFDF5', border: '1px solid #6EE7B7', color: '#059669', borderRadius: 12, padding: '11px 16px', fontSize: 13, marginBottom: 18 },
   alertErr: { background: '#FEF2F2', border: '1px solid #FCA5A5', color: '#DC2626', borderRadius: 12, padding: '11px 16px', fontSize: 13, marginBottom: 18 },
   formCard: {
     background: 'var(--surface)', borderRadius: 20, padding: 26,
-    border: '1px solid var(--border)', boxShadow: '0 4px 24px rgba(124,58,237,.08)',
+    border: '1px solid var(--border)', boxShadow: '0 4px 24px rgba(13,148,136,.08)',
     marginBottom: 28,
   },
   formHead: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
@@ -187,9 +187,9 @@ const s = {
   },
   saveBtn: {
     padding: '11px 28px',
-    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 50%, #0D9488 100%)',
+    background: 'linear-gradient(135deg, #0D9488 0%, #14B8A8 50%, #0D9488 100%)',
     color: '#fff', border: 'none', borderRadius: 11, cursor: 'pointer',
-    fontWeight: 700, fontSize: 13, boxShadow: '0 4px 14px rgba(124,58,237,.35)',
+    fontWeight: 700, fontSize: 13, boxShadow: '0 4px 14px rgba(13,148,136,.35)',
     fontFamily: "'DM Sans', sans-serif",
   },
   catSection: { marginBottom: 30 },
@@ -197,7 +197,7 @@ const s = {
   catBadge: { padding: '5px 16px', borderRadius: 20, fontSize: 13, fontWeight: 700 },
   catCount: { fontSize: 12, color: 'var(--text-muted)' },
   grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 14 },
-  card: { background: 'var(--surface)', borderRadius: 16, overflow: 'hidden', border: '1px solid var(--border)', boxShadow: '0 2px 12px rgba(124,58,237,.06)' },
+  card: { background: 'var(--surface)', borderRadius: 16, overflow: 'hidden', border: '1px solid var(--border)', boxShadow: '0 2px 12px rgba(13,148,136,.06)' },
   cardAccent: { height: 3, width: '100%' },
   cardBody: { padding: '16px 18px' },
   cardTop: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 },
@@ -218,7 +218,7 @@ const s = {
   empty: {
     background: 'var(--surface)', borderRadius: 22, padding: '64px 40px',
     textAlign: 'center', border: '1px solid var(--border)',
-    boxShadow: '0 4px 20px rgba(124,58,237,.06)',
+    boxShadow: '0 4px 20px rgba(13,148,136,.06)',
   },
   emptyOrb: { fontSize: 36, marginBottom: 16, display: 'block', color: 'var(--text-muted)' },
   emptyTitle: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 22, color: 'var(--text)', marginBottom: 8 },

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { useCart } from '../context/CartContext';
@@ -15,7 +15,7 @@ const STATUS_META = {
   active:        { label: 'In Stock',     color: '#059669', bg: 'rgba(5,150,105,.12)' },
   low_stock:     { label: 'Low Stock',    color: '#D97706', bg: 'rgba(217,119,6,.12)'  },
   out_of_stock:  { label: 'Out of Stock', color: '#DC2626', bg: 'rgba(220,38,38,.12)'  },
-  expiring_soon: { label: 'Expiring Soon',color: '#7C3AED', bg: 'rgba(124,58,237,.12)' },
+  expiring_soon: { label: 'Expiring Soon',color: '#0D9488', bg: 'rgba(13,148,136,.12)' },
 };
 
 export default function ProductDetail() {
@@ -233,13 +233,13 @@ function InfoRow({ label, value }) {
 
 const s = {
   page: { background: 'var(--bg)', minHeight: '100vh', paddingBottom: 64 },
-  spinner: { width: 40, height: 40, borderRadius: '50%', border: '3px solid rgba(124,58,237,.15)', borderTopColor: '#7C3AED', animation: 'spinSlow .7s linear infinite' },
+  spinner: { width: 40, height: 40, borderRadius: '50%', border: '3px solid rgba(13,148,136,.15)', borderTopColor: '#0D9488', animation: 'spinSlow .7s linear infinite' },
   notFound: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', gap: 12 },
   notFoundTitle: { fontSize: 20, fontFamily: "'Cormorant Garamond', Georgia, serif", fontWeight: 700, color: 'var(--text)' },
-  backLink: { padding: '10px 22px', borderRadius: 10, background: '#7C3AED', color: '#fff', textDecoration: 'none', fontWeight: 700, fontSize: 13 },
+  backLink: { padding: '10px 22px', borderRadius: 10, background: '#0D9488', color: '#fff', textDecoration: 'none', fontWeight: 700, fontSize: 13 },
 
   breadcrumb: { display: 'flex', alignItems: 'center', gap: 8, padding: '18px 32px', borderBottom: '1px solid var(--border)' },
-  breadLink: { fontSize: 13, color: '#7C3AED', textDecoration: 'none', fontWeight: 600 },
+  breadLink: { fontSize: 13, color: '#0D9488', textDecoration: 'none', fontWeight: 600 },
   breadSep: { color: 'var(--text-muted)', fontSize: 13 },
 
   main: { display: 'flex', gap: 48, padding: '36px 32px', maxWidth: 1100, margin: '0 auto', alignItems: 'flex-start' },
