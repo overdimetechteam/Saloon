@@ -51,6 +51,9 @@ class SalonSerializer(serializers.ModelSerializer):
     calendar = SalonCalendarSerializer(read_only=True)
     owner_email = serializers.EmailField(source='owner.email', read_only=True)
     logo_url = serializers.SerializerMethodField()
+    subscription_plan = serializers.SerializerMethodField()
+    subscription_status = serializers.SerializerMethodField()
+    subscription_days_remaining = serializers.SerializerMethodField()
 
     def get_logo_url(self, obj):
         request = self.context.get('request')
@@ -60,6 +63,26 @@ class SalonSerializer(serializers.ModelSerializer):
             return obj.logo.url
         return None
 
+    def _get_sub(self, obj):
+        try:
+            return obj.subscription
+        except Exception:
+            return None
+
+    def get_subscription_plan(self, obj):
+        sub = self._get_sub(obj)
+        return sub.plan if sub else 'free_trial'
+
+    def get_subscription_status(self, obj):
+        sub = self._get_sub(obj)
+        if sub is None:
+            return 'active'
+        return 'active' if sub.is_active else sub.status
+
+    def get_subscription_days_remaining(self, obj):
+        sub = self._get_sub(obj)
+        return sub.days_remaining if sub else None
+
     class Meta:
         model = Salon
         fields = [
@@ -67,9 +90,10 @@ class SalonSerializer(serializers.ModelSerializer):
             'address_street', 'address_city', 'address_district', 'address_postal',
             'contact_number', 'email', 'operating_hours',
             'status', 'is_suspended', 'home_visit_enabled', 'cosmetics_enabled', 'owner', 'owner_email', 'created_at', 'calendar',
-            'logo_url',
+            'logo_url', 'subscription_plan', 'subscription_status', 'subscription_days_remaining',
         ]
-        read_only_fields = ['status', 'owner', 'created_at', 'logo_url']
+        read_only_fields = ['status', 'owner', 'created_at', 'logo_url',
+                            'subscription_plan', 'subscription_status', 'subscription_days_remaining']
 
 
 class OfferSerializer(serializers.ModelSerializer):

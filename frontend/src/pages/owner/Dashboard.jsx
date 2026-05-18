@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
 import { useOwner } from '../../context/OwnerContext';
 import { STATUS_META } from '../../styles/theme';
@@ -25,9 +25,12 @@ function toApiHours(localHours) {
   return out;
 }
 
+const COSMETICS_PLANS = ['professional', 'premium'];
+
 export default function OwnerDashboard() {
   const { salon, setSalon, loading: salonLoading } = useOwner();
   const { isMobile, isTablet } = useBreakpoint();
+  const navigate = useNavigate();
   const [stats, setStats] = useState({ pending: 0, confirmed: 0, lowStock: 0, todayBookings: [] });
   const [homeVisit, setHomeVisit] = useState(false);
   const [homeVisitSaving, setHomeVisitSaving] = useState(false);
@@ -334,20 +337,31 @@ export default function OwnerDashboard() {
           <div>
             <div style={s.hvTitle}>Cosmetics Section</div>
             <div style={s.hvSub}>
-              {cosmetics
-                ? 'Clients can browse your cosmetics products from your salon page'
-                : 'Enable to let clients discover your beauty products'}
+              {!COSMETICS_PLANS.includes(salon.subscription_plan)
+                ? 'Sell products to clients — requires Professional or Premium plan'
+                : cosmetics
+                  ? 'Clients can browse your cosmetics products from your salon page'
+                  : 'Enable to let clients discover your beauty products'}
             </div>
           </div>
         </div>
-        <button
-          style={{ ...s.hvToggle, background: cosmetics ? 'linear-gradient(135deg, #EC4899, #9B59E8)' : 'var(--surface2)', border: cosmetics ? 'none' : '1.5px solid var(--border)' }}
-          onClick={toggleCosmetics}
-          disabled={cosmeticsSaving}
-          aria-pressed={cosmetics}
-        >
-          <span style={{ ...s.hvKnob, transform: cosmetics ? 'translateX(20px)' : 'translateX(2px)' }} />
-        </button>
+        {COSMETICS_PLANS.includes(salon.subscription_plan) ? (
+          <button
+            style={{ ...s.hvToggle, background: cosmetics ? 'linear-gradient(135deg, #EC4899, #9B59E8)' : 'var(--surface2)', border: cosmetics ? 'none' : '1.5px solid var(--border)' }}
+            onClick={toggleCosmetics}
+            disabled={cosmeticsSaving}
+            aria-pressed={cosmetics}
+          >
+            <span style={{ ...s.hvKnob, transform: cosmetics ? 'translateX(20px)' : 'translateX(2px)' }} />
+          </button>
+        ) : (
+          <button
+            style={s.upgradeBtn}
+            onClick={() => navigate('/owner/subscription')}
+          >
+            Upgrade Plan →
+          </button>
+        )}
       </div>
 
       {/* ── Operating Hours Editor ── */}
@@ -632,5 +646,14 @@ const s = {
     color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer',
     fontWeight: 700, fontSize: 13, boxShadow: '0 4px 14px rgba(124,58,237,.3)',
     fontFamily: "'DM Sans', sans-serif",
+  },
+  upgradeBtn: {
+    padding: '9px 18px',
+    background: 'linear-gradient(135deg, #7C3AED 0%, #9B59E8 100%)',
+    color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer',
+    fontWeight: 700, fontSize: 12, flexShrink: 0,
+    boxShadow: '0 4px 14px rgba(124,58,237,.35)',
+    fontFamily: "'DM Sans', sans-serif",
+    whiteSpace: 'nowrap',
   },
 };

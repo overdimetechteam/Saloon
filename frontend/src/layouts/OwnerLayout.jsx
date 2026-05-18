@@ -15,12 +15,17 @@ const NAV = [
   { to: '/owner/offers',               icon: '◑', label: 'Offers',         group: 'main'  },
   { to: '/owner/gallery',               icon: '◫', label: 'Gallery',       group: 'main'  },
   { to: '/owner/analytics',             icon: '◱', label: 'Analytics',     group: 'main'  },
+  { to: '/owner/subscription',          icon: '◆', label: 'Subscription',  group: 'main'  },
   { to: '/owner/inventory',             icon: '▦', label: 'Products',      group: 'stock' },
   { to: '/owner/inventory/grn',         icon: '⊕', label: 'Receive Stock', group: 'stock' },
   { to: '/owner/inventory/sales',       icon: '⊘', label: 'Record Sales',  group: 'stock' },
   { to: '/owner/inventory/adjustments', icon: '⊡', label: 'Adjustments',   group: 'stock' },
   { to: '/owner/reports',               icon: '◰', label: 'Reports',       group: 'stock' },
 ];
+
+const PLAN_LABELS = { free_trial: 'Free Trial', starter: 'Starter', professional: 'Professional', premium: 'Premium' };
+const PLAN_COLORS = { free_trial: '#6B7280', starter: '#3B82F6', professional: '#7C3AED', premium: '#D97706' };
+const PLAN_ICONS  = { free_trial: '🆓', starter: '🚀', professional: '💎', premium: '👑' };
 
 const GROUPS = [
   { key: 'main',  label: 'Workspace' },
@@ -125,6 +130,20 @@ export default function OwnerLayout() {
               <div style={s.brandText}>
                 <div style={s.brandName}>{salon?.name || 'My Salon'}</div>
                 <div style={s.brandSub}>Owner Portal</div>
+                {salon?.subscription_plan && (
+                  <div style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 3, marginTop: 5,
+                    fontSize: 9, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase',
+                    color: PLAN_COLORS[salon.subscription_plan] || '#A78BFA',
+                    background: (PLAN_COLORS[salon.subscription_plan] || '#7C3AED') + '1A',
+                    borderRadius: 20, padding: '2px 8px',
+                    border: `1px solid ${(PLAN_COLORS[salon.subscription_plan] || '#7C3AED')}35`,
+                  }}>
+                    {PLAN_ICONS[salon.subscription_plan]}{' '}
+                    {PLAN_LABELS[salon.subscription_plan]}
+                    {salon.subscription_days_remaining != null && ` · ${salon.subscription_days_remaining}d`}
+                  </div>
+                )}
               </div>
               <div style={{ display: 'flex', gap: 5, flexShrink: 0 }}>
                 {/* Notification bell */}

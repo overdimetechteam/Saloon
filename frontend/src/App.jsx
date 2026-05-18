@@ -35,7 +35,8 @@ import OwnerTeam from './pages/owner/Team';
 import OwnerGallery from './pages/owner/Gallery';
 import OwnerPromotions from './pages/owner/Promotions';
 import OwnerAnalytics  from './pages/owner/Analytics';
-import OwnerOffers     from './pages/owner/Offers';
+import OwnerOffers        from './pages/owner/Offers';
+import OwnerSubscription  from './pages/owner/Subscription';
 
 import UserDashboard from './pages/user/Dashboard';
 import UserBookingList from './pages/user/BookingList';
@@ -105,6 +106,7 @@ export default function App() {
               <Route path="promotions" element={<OwnerPromotions />} />
               <Route path="analytics"  element={<OwnerAnalytics />} />
               <Route path="offers"     element={<OwnerOffers />} />
+              <Route path="subscription" element={<OwnerSubscription />} />
               <Route path="inventory" element={<OwnerInventory />} />
               <Route path="inventory/grn" element={<OwnerGRN />} />
               <Route path="inventory/sales" element={<OwnerSales />} />
