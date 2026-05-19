@@ -26,8 +26,10 @@ class Salon(models.Model):
         related_name='salons',
         limit_choices_to={'role': 'salon_owner'},
     )
+    PALETTE_CHOICES = [('teal', 'Teal'), ('purple', 'Purple'), ('olive', 'Olive')]
     home_visit_enabled = models.BooleanField(default=False)
     cosmetics_enabled = models.BooleanField(default=False)
+    color_palette = models.CharField(max_length=20, choices=PALETTE_CHOICES, default='teal')
     logo = models.FileField(upload_to='salon_logos/', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

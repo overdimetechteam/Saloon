@@ -153,9 +153,9 @@ export default function OwnerPromotions() {
         {promos.map(p => {
           const expired = isExpired(p);
           const exhausted = isExhausted(p);
-          const statusColor = !p.is_active ? '#6B7280' : expired ? '#DC2626' : exhausted ? '#D97706' : '#059669';
+          const statusColor = !p.is_active ? '#6B7280' : expired ? '#DC2626' : exhausted ? '#D4AF37' : '#0D9488';
           const statusLabel = !p.is_active ? 'Disabled' : expired ? 'Expired' : exhausted ? 'Used Up' : 'Active';
-          const statusBg = !p.is_active ? 'var(--surface2)' : expired ? '#FEF2F2' : exhausted ? '#FFFBEB' : '#ECFDF5';
+          const statusBg = !p.is_active ? 'var(--surface2)' : expired ? '#FEF2F2' : exhausted ? '#FBF3D0' : '#F0FDFA';
           const usePct = Math.min(100, Math.round((p.times_used / p.max_uses) * 100));
           return (
             <div key={p.id} style={{ ...s.promoCard, opacity: (!p.is_active || expired) ? .75 : 1 }} className="lift-sm">
@@ -184,13 +184,13 @@ export default function OwnerPromotions() {
                   <span style={{ fontWeight: 700, color: 'var(--text)' }}>{p.times_used} / {p.max_uses}</span>
                 </div>
                 <div style={s.progressBg}>
-                  <div style={{ ...s.progressFill, width: `${usePct}%`, background: usePct >= 90 ? '#EF4444' : usePct >= 60 ? '#F59E0B' : '#0D9488' }} />
+                  <div style={{ ...s.progressFill, width: `${usePct}%`, background: usePct >= 90 ? '#DC2626' : usePct >= 60 ? '#D4AF37' : '#0D9488' }} />
                 </div>
               </div>
 
               <div style={s.promoActions}>
                 <button
-                  style={{ ...s.actionBtn, color: p.is_active ? '#DC2626' : '#059669' }}
+                  style={{ ...s.actionBtn, color: p.is_active ? '#DC2626' : '#0D9488' }}
                   onClick={() => toggleActive(p)}
                 >
                   {p.is_active ? '⏸ Disable' : '▶ Enable'}
@@ -233,8 +233,8 @@ const s = {
     color: '#DC2626', borderRadius: 12, padding: '11px 16px', fontSize: 13, marginBottom: 18,
   },
   alertOk: {
-    background: '#ECFDF5', border: '1px solid #6EE7B7',
-    color: '#059669', borderRadius: 12, padding: '11px 16px', fontSize: 13, marginBottom: 18,
+    background: '#F0FDFA', border: '1px solid #99F6E4',
+    color: '#0D9488', borderRadius: 12, padding: '11px 16px', fontSize: 13, marginBottom: 18,
   },
 
   formCard: {

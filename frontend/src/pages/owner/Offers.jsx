@@ -135,8 +135,8 @@ export default function OwnerOffers() {
       <div style={s.grid}>
         {offers.map(offer => {
           const live  = isLive(offer);
-          const color = live ? '#0D9488' : offer.is_active ? '#D97706' : '#94A3B8';
-          const bg    = live ? 'rgba(13,148,136,.08)' : offer.is_active ? 'rgba(217,119,6,.08)' : 'rgba(148,163,184,.08)';
+          const color = live ? '#0D9488' : offer.is_active ? '#D4AF37' : '#94A3B8';
+          const bg    = live ? 'rgba(13,148,136,.08)' : offer.is_active ? 'rgba(212,175,55,.08)' : 'rgba(148,163,184,.08)';
 
           if (editId === offer.id) {
             return (
@@ -206,7 +206,7 @@ const s = {
   eyebrow:    { fontSize: 10, fontWeight: 700, color: 'var(--brand-label)', letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: 6 },
   title:      { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 30, fontWeight: 700, color: 'var(--text)', margin: 0, letterSpacing: '-0.01em' },
   createBtn:  { padding: '10px 22px', background: 'linear-gradient(135deg, #0D9488 0%, #0D9488 100%)', color: '#fff', border: 'none', borderRadius: 11, cursor: 'pointer', fontWeight: 700, fontSize: 14, boxShadow: '0 4px 14px rgba(13,148,136,.3)', fontFamily: "'DM Sans', sans-serif" },
-  alertOk:    { background: '#ECFDF5', border: '1px solid #6EE7B7', color: '#059669', borderRadius: 12, padding: '11px 16px', fontSize: 13, marginBottom: 18 },
+  alertOk:    { background: '#F0FDFA', border: '1px solid #99F6E4', color: '#0D9488', borderRadius: 12, padding: '11px 16px', fontSize: 13, marginBottom: 18 },
   alertErr:   { background: '#FEF2F2', border: '1px solid #FCA5A5', color: '#DC2626', borderRadius: 12, padding: '11px 16px', fontSize: 13, marginBottom: 18 },
   empty:      { textAlign: 'center', padding: '64px 40px', background: 'var(--surface)', borderRadius: 22, border: '1px solid var(--border)', boxShadow: '0 4px 20px rgba(13,148,136,.06)' },
   emptyOrb:   { fontSize: 36, marginBottom: 16, display: 'block', color: 'var(--text-muted)' },
@@ -225,7 +225,7 @@ const s = {
   note:       { fontSize: 12, color: 'var(--text-muted)', fontStyle: 'italic', marginBottom: 14, lineHeight: 1.5 },
   actions:    { display: 'flex', gap: 7, marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--border)', flexWrap: 'wrap' },
   editBtn:       { padding: '5px 14px', background: 'rgba(13,148,136,.08)', color: '#0D9488', border: '1px solid rgba(13,148,136,.2)', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 600, fontFamily: "'DM Sans', sans-serif" },
-  deactivateBtn: { padding: '5px 14px', background: 'rgba(217,119,6,.08)', color: '#D97706', border: '1px solid rgba(217,119,6,.2)', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 600, fontFamily: "'DM Sans', sans-serif" },
+  deactivateBtn: { padding: '5px 14px', background: 'rgba(212,175,55,.08)', color: '#D4AF37', border: '1px solid rgba(212,175,55,.2)', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 600, fontFamily: "'DM Sans', sans-serif" },
   activateBtn:   { padding: '5px 14px', background: 'rgba(13,148,136,.08)', color: '#0D9488', border: '1px solid rgba(13,148,136,.2)', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 600, fontFamily: "'DM Sans', sans-serif" },
   deleteBtn:     { padding: '5px 14px', background: '#FEF2F2', color: '#DC2626', border: '1px solid #FECACA', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 600, fontFamily: "'DM Sans', sans-serif" },
 };

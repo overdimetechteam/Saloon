@@ -81,12 +81,12 @@ function NotificationBell() {
               >
                 <div style={{
                   ...nb.typeIcon,
-                  color: n.notif_type === 'booking_confirmed' ? '#059669'
+                  color: n.notif_type === 'booking_confirmed' ? '#0D9488'
                        : n.notif_type === 'booking_cancelled' ? '#DC2626'
-                       : '#D97706',
-                  background: n.notif_type === 'booking_confirmed' ? '#ECFDF5'
+                       : '#D4AF37',
+                  background: n.notif_type === 'booking_confirmed' ? '#F0FDFA'
                             : n.notif_type === 'booking_cancelled' ? '#FEF2F2'
-                            : '#FFFBEB',
+                            : '#FBF3D0',
                 }}>
                   {TYPE_ICON[n.notif_type] || '•'}
                 </div>
@@ -255,7 +255,7 @@ export default function UserLayout() {
                 fontSize: 12, fontWeight: 700, boxShadow: '0 2px 10px rgba(13,148,136,.35)',
               }}>{initials}</div>
               <div style={{
-                width: 8, height: 8, borderRadius: '50%', background: '#34D399',
+                width: 8, height: 8, borderRadius: '50%', background: '#14B8A8',
                 border: '2px solid var(--surface)',
                 position: 'absolute', bottom: 0, right: 0,
               }} />

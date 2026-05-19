@@ -141,7 +141,7 @@ const s = {
     fontWeight: 700, fontSize: 13, boxShadow: '0 6px 18px rgba(13,148,136,.35)',
     fontFamily: "'DM Sans', sans-serif", flexShrink: 0,
   },
-  alertOk: { background: '#ECFDF5', border: '1px solid #6EE7B7', color: '#059669', borderRadius: 12, padding: '11px 16px', fontSize: 13, marginBottom: 18 },
+  alertOk: { background: '#F0FDFA', border: '1px solid #99F6E4', color: '#0D9488', borderRadius: 12, padding: '11px 16px', fontSize: 13, marginBottom: 18 },
   alertErr: { background: '#FEF2F2', border: '1px solid #FCA5A5', color: '#DC2626', borderRadius: 12, padding: '11px 16px', fontSize: 13, marginBottom: 18 },
   formCard: {
     background: 'var(--surface)', borderRadius: 20, padding: 26,
@@ -162,8 +162,8 @@ const s = {
   itemRow: { display: 'flex', gap: 8, padding: '8px 12px', alignItems: 'center', borderTop: '1px solid var(--border)' },
   formActions: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 },
   addItemBtn: {
-    padding: '9px 18px', background: 'rgba(37,99,235,.1)', color: '#2563EB',
-    border: '1px solid rgba(37,99,235,.2)', borderRadius: 10, cursor: 'pointer',
+    padding: '9px 18px', background: 'rgba(13,148,136,.1)', color: '#0D9488',
+    border: '1px solid rgba(13,148,136,.2)', borderRadius: 10, cursor: 'pointer',
     fontSize: 13, fontWeight: 700, fontFamily: "'DM Sans', sans-serif",
   },
   totalRow: { display: 'flex', alignItems: 'center', gap: 10 },
@@ -174,9 +174,9 @@ const s = {
   },
   submitBtn: {
     padding: '11px 28px',
-    background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+    background: 'linear-gradient(135deg, #0D9488 0%, #0B7A70 100%)',
     color: '#fff', border: 'none', borderRadius: 11, cursor: 'pointer',
-    fontWeight: 700, fontSize: 13, boxShadow: '0 4px 14px rgba(5,150,105,.3)',
+    fontWeight: 700, fontSize: 13, boxShadow: '0 4px 14px rgba(13,148,136,.3)',
     fontFamily: "'DM Sans', sans-serif",
   },
   list: { display: 'flex', flexDirection: 'column', gap: 12 },
@@ -192,7 +192,7 @@ const s = {
   saleDate: { fontSize: 13, color: 'var(--text-muted)' },
   saleTotal: {
     fontFamily: "'DM Sans', sans-serif",
-    fontWeight: 800, fontSize: 18, color: '#059669',
+    fontWeight: 800, fontSize: 18, color: '#0D9488',
   },
   saleItems: { padding: '10px 22px' },
   saleItem: { display: 'flex', gap: 12, alignItems: 'center', padding: '7px 0', borderBottom: '1px solid var(--border)' },

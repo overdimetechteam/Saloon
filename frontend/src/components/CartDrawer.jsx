@@ -3,10 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 
 const CAT_COLORS = {
-  'Hair Care': '#8B5CF6',
-  'Skin Care': '#10B981',
+  'Hair Care': '#C96B51',
+  'Skin Care': '#D4AF37',
   'Nail Care': '#0D9488',
-  'Other': '#F59E0B',
+  'Other':     '#B8932A',
 };
 
 export default function CartDrawer() {
@@ -45,7 +45,7 @@ export default function CartDrawer() {
           <>
             <div style={s.itemsList}>
               {items.map(item => {
-                const color = CAT_COLORS[item.category] || '#EC4899';
+                const color = CAT_COLORS[item.category] || '#C96B51';
                 return (
                   <div key={item._key} style={s.item}>
                     {item.first_image_url ? (
@@ -113,13 +113,13 @@ const s = {
   header: {
     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
     padding: '20px 24px', borderBottom: '1px solid var(--border)',
-    background: 'linear-gradient(135deg, #1a0533, #3B0764)',
+    background: 'linear-gradient(135deg, #1A0D09, #C96B51)',
   },
   headerLeft: { display: 'flex', alignItems: 'center', gap: 10 },
   cartIcon: { fontSize: 20 },
   title: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 20, fontWeight: 700, color: '#fff' },
   badge: {
-    background: '#EC4899', color: '#fff', borderRadius: 20,
+    background: '#C96B51', color: '#fff', borderRadius: 20,
     fontSize: 11, fontWeight: 800, padding: '2px 8px', minWidth: 22, textAlign: 'center',
   },
   closeBtn: {
@@ -145,7 +145,7 @@ const s = {
   itemName: { fontWeight: 700, fontSize: 13, color: 'var(--text)', marginBottom: 2, lineHeight: 1.3 },
   itemBrand: { fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 },
   itemVariant: { fontSize: 11, color: '#0D9488', fontStyle: 'italic', marginBottom: 4 },
-  itemPrice: { fontWeight: 800, fontSize: 14, color: '#EC4899' },
+  itemPrice: { fontWeight: 800, fontSize: 14, color: '#C96B51' },
   itemMeta: { fontSize: 10, color: 'var(--text-muted)', marginTop: 2 },
   itemRight: { display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8, flexShrink: 0 },
   qtyRow: { display: 'flex', alignItems: 'center', gap: 6 },
@@ -169,7 +169,7 @@ const s = {
   taxNote: { fontSize: 11, color: 'var(--text-muted)', marginBottom: 16 },
   checkoutBtn: {
     width: '100%', padding: '14px 0',
-    background: 'linear-gradient(135deg, #0D9488, #EC4899)',
+    background: 'linear-gradient(135deg, #C96B51, #D4AF37)',
     color: '#fff', border: 'none', borderRadius: 12,
     fontSize: 15, fontWeight: 800, cursor: 'pointer',
     marginBottom: 10, fontFamily: "'DM Sans', sans-serif",

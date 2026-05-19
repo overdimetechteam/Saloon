@@ -3,9 +3,11 @@ import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { createPortal } from 'react-dom';
 import api from '../../api/axios';
 import { useBreakpoint } from '../../hooks/useMobile';
+import { useTheme } from '../../context/ThemeContext';
+import { SALON_PALETTES } from '../../styles/theme';
 import MiniCalendar from '../../components/MiniCalendar';
 
-const STAFF_COLORS = ['#0D9488','#0D9488','#2563EB','#059669','#D97706','#DC2626'];
+const STAFF_COLORS = ['#0D9488','#14B8A8','#D4AF37','#0B7A70','#D4AF37','#0D9488'];
 
 const CONFETTI_PARTICLES = [
   { size: 8,  top: '22%', left: '10%',  color: '#0D9488', round: true,  anim: 'confettiA', dur: '2.8s', delay: '0.1s'  },
@@ -24,6 +26,7 @@ export default function BookSalon() {
   const { salonId } = useParams();
   const navigate = useNavigate();
   const { isMobile } = useBreakpoint();
+  const { setNavPalette } = useTheme();
   const [searchParams] = useSearchParams();
   const preIds = (searchParams.get('services') || '').split(',').map(Number).filter(Boolean);
   const [salon, setSalon] = useState(null);
@@ -73,6 +76,13 @@ export default function BookSalon() {
   }, [date, salonId, staffId]);
 
   useEffect(() => { setPromoResult(null); }, [selected]);
+
+  useEffect(() => {
+    if (!salon) return;
+    const p = SALON_PALETTES[salon.color_palette || 'teal'];
+    setNavPalette(p);
+    return () => setNavPalette(null);
+  }, [salon, setNavPalette]);
 
   const resetAddress = () => { setHvStreet(''); setHvCity(''); setHvDistrict(''); setHvPostal(''); };
 
@@ -134,6 +144,9 @@ export default function BookSalon() {
   if (!salon) return (
     <div style={s.loader}><div style={s.loaderSpinner} /></div>
   );
+
+  const pal = SALON_PALETTES[salon.color_palette || 'teal'];
+  const R = pal.rgb;
 
   const displayServices = homeVisit ? services.filter(ss => ss.home_visit_available) : services;
   const displayStaff = homeVisit ? staffList.filter(m => m.home_visit_available) : staffList;
@@ -261,7 +274,7 @@ export default function BookSalon() {
                   <div style={{ ...conf.detailVal, color: '#99F6E4', fontWeight: 700 }}>
                     LKR {finalTotal.toFixed(2)}
                     {promoResult?.valid && (
-                      <span style={{ fontSize: 11, color: '#6EE7B7', marginLeft: 8, fontWeight: 500 }}>(promo applied)</span>
+                      <span style={{ fontSize: 11, color: '#99F6E4', marginLeft: 8, fontWeight: 500 }}>(promo applied)</span>
                     )}
                   </div>
                 </div>
@@ -286,7 +299,7 @@ export default function BookSalon() {
 
   return (
     <div>
-      <Link to={`/salons/${salonId}`} style={s.back}>← Back to {salon.name}</Link>
+      <Link to={`/salons/${salonId}`} style={{ ...s.back, color: pal.main }}>← Back to {salon.name}</Link>
 
       {/* Progress bar — 3 steps */}
       <div style={{ ...s.progress, padding: isMobile ? '14px 16px' : '18px 28px' }} className="fade-up">
@@ -295,19 +308,19 @@ export default function BookSalon() {
             <div style={{
               ...s.progressDot,
               width: isMobile ? 26 : 30, height: isMobile ? 26 : 30,
-              background: i <= step ? 'linear-gradient(135deg, #0D9488, #0D9488)' : 'var(--border)',
-              boxShadow: i === step ? '0 0 0 4px rgba(13,148,136,.18)' : 'none',
+              background: i <= step ? pal.main : 'var(--border)',
+              boxShadow: i === step ? `0 0 0 4px rgba(${R},.18)` : 'none',
               cursor: i < step ? 'pointer' : 'default',
             }}>
               {i < step ? '✓' : i + 1}
             </div>
             {!isMobile && (
-              <div style={{ ...s.progressLabel, color: i <= step ? '#0D9488' : 'var(--text-light)', fontWeight: i === step ? 700 : 500 }}>
+              <div style={{ ...s.progressLabel, color: i <= step ? pal.main : 'var(--text-light)', fontWeight: i === step ? 700 : 500 }}>
                 {label}
               </div>
             )}
             {i < STEPS.length - 1 && (
-              <div style={{ ...s.progressLine, background: i < step ? 'linear-gradient(90deg, #0D9488, #0D9488)' : 'var(--border)' }} />
+              <div style={{ ...s.progressLine, background: i < step ? pal.main : 'var(--border)' }} />
             )}
           </div>
         ))}
@@ -320,7 +333,7 @@ export default function BookSalon() {
           {step === 0 && (
             <div style={s.stepCard} className="scale-in">
               <div style={s.stepHeader}>
-                <div style={s.stepIcon}>✂</div>
+                <div style={{ ...s.stepIcon, background: pal.main, boxShadow: `0 6px 16px rgba(${R},.35)` }}>✂</div>
                 <div>
                   <div style={s.stepTitle}>Select Services</div>
                   <div style={s.stepSub}>Choose one or more services for your appointment</div>
@@ -331,20 +344,20 @@ export default function BookSalon() {
               {/* Home Visit Option — only shown when salon has it enabled */}
               {salon?.home_visit_enabled && (
                 <div style={{ marginBottom: 16 }}>
-                  <label style={{ ...s.homeVisitRow, ...(homeVisit ? s.homeVisitRowOn : {}), marginBottom: 0 }}>
+                  <label style={{ ...s.homeVisitRow, ...(homeVisit ? { ...s.homeVisitRowOn, borderColor: pal.main, background: `rgba(${R},.07)` } : {}), marginBottom: 0 }}>
                     <input type="checkbox" checked={homeVisit} onChange={toggleHomeVisit} style={{ display: 'none' }} />
-                    <div style={{ ...s.hvCheckBox, ...(homeVisit ? s.hvCheckBoxOn : {}) }}>
+                    <div style={{ ...s.hvCheckBox, ...(homeVisit ? { ...s.hvCheckBoxOn, background: pal.main, borderColor: pal.main } : {}) }}>
                       {homeVisit && <span style={{ fontSize: 12, color: '#fff', lineHeight: 1 }}>✓</span>}
                     </div>
                     <div style={{ flex: 1 }}>
                       <div style={s.hvRowTitle}>🏠 Home Visit Service</div>
                       <div style={s.hvRowSub}>A professional will visit your location</div>
                     </div>
-                    {homeVisit && <span style={s.hvBadge}>Selected</span>}
+                    {homeVisit && <span style={{ ...s.hvBadge, color: pal.main, background: `rgba(${R},.12)` }}>Selected</span>}
                   </label>
                   {homeVisit && (
-                    <div style={s.hvAddressWrap}>
-                      <div style={s.hvAddressTitle}>Your Address *</div>
+                    <div style={{ ...s.hvAddressWrap, background: `rgba(${R},.05)`, border: `1.5px solid rgba(${R},.2)`, borderTop: 'none' }}>
+                      <div style={{ ...s.hvAddressTitle, color: pal.main }}>Your Address *</div>
                       <div style={s.hvAddressGrid}>
                         <div style={s.hvAddressField}>
                           <label style={s.hvAddressLabel}>Street Address</label>
@@ -369,7 +382,7 @@ export default function BookSalon() {
               )}
 
               {homeVisit && (
-                <div style={s.hvServicesNotice}>
+                <div style={{ ...s.hvServicesNotice, color: pal.main, background: `rgba(${R},.07)`, border: `1px solid rgba(${R},.18)` }}>
                   🏠 Showing only services available for home visits
                 </div>
               )}
@@ -377,10 +390,10 @@ export default function BookSalon() {
                 {displayServices.map(ss => {
                   const on = selected.includes(ss.id);
                   return (
-                    <label key={ss.id} style={{ ...s.serviceCard, ...(on ? s.serviceCardOn : {}) }}>
+                    <label key={ss.id} style={{ ...s.serviceCard, ...(on ? { ...s.serviceCardOn, border: `2px solid ${pal.main}`, background: `linear-gradient(135deg, rgba(${R},.05) 0%, rgba(${R},.02) 100%)`, boxShadow: `0 3px 12px rgba(${R},.12)` } : {}) }}>
                       <input type="checkbox" checked={on} onChange={() => toggleService(ss.id)} style={{ display: 'none' }} />
                       <div style={s.svcCheck}>
-                        <div style={{ ...s.checkBox, ...(on ? s.checkBoxOn : {}) }}>{on && '✓'}</div>
+                        <div style={{ ...s.checkBox, ...(on ? { ...s.checkBoxOn, background: pal.main, borderColor: 'transparent' } : {}) }}>{on && '✓'}</div>
                       </div>
                       <div style={s.svcInfo}>
                         <div style={s.svcName}>{ss.service_name}</div>
@@ -389,7 +402,7 @@ export default function BookSalon() {
                         ) : null}
                         <div style={s.svcMeta}>⏱ {ss.effective_duration} min</div>
                       </div>
-                      <div style={{ ...s.svcPrice, color: on ? '#0D9488' : 'var(--text-sub)', textAlign: 'right' }}>
+                      <div style={{ ...s.svcPrice, color: on ? pal.main : 'var(--text-sub)', textAlign: 'right' }}>
                         {ss.is_price_starting_from && <div style={s.svcStartingFrom}>Starting From</div>}
                         LKR {ss.effective_price}
                       </div>
@@ -409,7 +422,7 @@ export default function BookSalon() {
           {step === 1 && (
             <div style={s.stepCard} className="scale-in">
               <div style={s.stepHeader}>
-                <div style={s.stepIcon}>◷</div>
+                <div style={{ ...s.stepIcon, background: pal.main, boxShadow: `0 6px 16px rgba(${R},.35)` }}>◷</div>
                 <div>
                   <div style={s.stepTitle}>Choose Date & Time</div>
                   <div style={s.stepSub}>Pick your preferred slot — selecting a time auto-advances</div>
@@ -423,7 +436,7 @@ export default function BookSalon() {
                   <div style={s.proChips}>
                     <button
                       type="button"
-                      style={{ ...s.proChip, ...(staffId === null ? s.proChipOn : {}) }}
+                      style={{ ...s.proChip, ...(staffId === null ? { ...s.proChipOn, background: `rgba(${R},.08)`, color: pal.main, borderColor: `${pal.main}50` } : {}) }}
                       onClick={() => setStaffId(null)}
                     >
                       ✦ Any Available
@@ -434,7 +447,7 @@ export default function BookSalon() {
                         <button
                           key={m.id}
                           type="button"
-                          style={{ ...s.proChip, ...(staffId === m.id ? { ...s.proChipOn, borderColor: color + '80', color } : {}) }}
+                          style={{ ...s.proChip, ...(staffId === m.id ? { ...s.proChipOn, background: `rgba(${R},.08)`, color: pal.main, borderColor: `${pal.main}50` } : {}) }}
                           onClick={() => setStaffId(m.id)}
                           title={m.role || 'Stylist'}
                         >
@@ -460,12 +473,12 @@ export default function BookSalon() {
                     operatingHours={salon?.operating_hours || {}}
                   />
                   {date && (
-                    <div style={s.selectedDateBanner}>
-                      <span style={{ fontSize: 14, color: '#0D9488' }}>◷</span>
+                    <div style={{ ...s.selectedDateBanner, background: `rgba(${R},.06)`, border: `1px solid rgba(${R},.15)` }}>
+                      <span style={{ fontSize: 14, color: pal.main }}>◷</span>
                       <span style={{ fontWeight: 600, color: 'var(--text)', fontSize: 13 }}>
                         {new Date(date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
                       </span>
-                      <span style={{ marginLeft: 'auto', fontSize: 11, color: '#059669', fontWeight: 700 }}>Selected ✓</span>
+                      <span style={{ marginLeft: 'auto', fontSize: 11, color: pal.main, fontWeight: 700 }}>Selected ✓</span>
                     </div>
                   )}
                 </div>
@@ -501,7 +514,7 @@ export default function BookSalon() {
                             type="button"
                             disabled={!sl.available}
                             onClick={() => { setSlot(sl.datetime); setStep(2); }}
-                            style={{ ...s.slotBtn, ...(isOn ? s.slotOn : {}), ...(!sl.available ? s.slotOff : {}) }}
+                            style={{ ...s.slotBtn, ...(isOn ? { ...s.slotOn, background: pal.main, boxShadow: `0 5px 14px rgba(${R},.38)` } : {}), ...(!sl.available ? s.slotOff : {}) }}
                           >
                             {time}
                           </button>
@@ -518,7 +531,7 @@ export default function BookSalon() {
           {step === 2 && (
             <div style={s.stepCard} className="scale-in">
               <div style={s.stepHeader}>
-                <div style={s.stepIcon}>◈</div>
+                <div style={{ ...s.stepIcon, background: pal.main, boxShadow: `0 6px 16px rgba(${R},.35)` }}>◈</div>
                 <div>
                   <div style={s.stepTitle}>Add Notes & Confirm</div>
                   <div style={s.stepSub}>Any special requests for the salon?</div>
@@ -536,7 +549,7 @@ export default function BookSalon() {
               {/* Promo code — moved here so users apply it at checkout */}
               {selected.length > 0 && (
                 <div style={s.promoSection}>
-                  <button style={s.promoToggle} type="button" onClick={() => setPromoOpen(o => !o)}>
+                  <button style={{ ...s.promoToggle, color: pal.main }} type="button" onClick={() => setPromoOpen(o => !o)}>
                     <span>🏷 Have a promo code?</span>
                     <span style={{ fontSize: 10 }}>{promoOpen ? '▲' : '▼'}</span>
                   </button>
@@ -552,7 +565,7 @@ export default function BookSalon() {
                         />
                         <button
                           type="button"
-                          style={{ ...s.promoApplyBtn, opacity: promoLoading || !promoCode.trim() ? 0.6 : 1 }}
+                          style={{ ...s.promoApplyBtn, background: `linear-gradient(135deg, ${pal.main} 0%, ${pal.dark} 100%)`, boxShadow: `0 4px 12px rgba(${R},.3)`, opacity: promoLoading || !promoCode.trim() ? 0.6 : 1 }}
                           onClick={applyPromo}
                           disabled={promoLoading || !promoCode.trim()}
                         >
@@ -562,9 +575,9 @@ export default function BookSalon() {
                       {promoResult && (
                         <div style={{
                           ...s.promoMsg,
-                          color: promoResult.valid ? '#059669' : '#DC2626',
-                          background: promoResult.valid ? '#ECFDF5' : '#FEF2F2',
-                          border: `1px solid ${promoResult.valid ? '#6EE7B7' : '#FCA5A5'}`,
+                          color: promoResult.valid ? pal.main : '#DC2626',
+                          background: promoResult.valid ? `rgba(${R},.07)` : '#FEF2F2',
+                          border: `1px solid ${promoResult.valid ? pal.main + '60' : '#FCA5A5'}`,
                         }}>
                           {promoResult.message}
                         </div>
@@ -575,7 +588,7 @@ export default function BookSalon() {
               )}
 
               <button
-                style={{ ...s.confirmBtn, opacity: submitting ? 0.7 : 1, marginTop: 20 }}
+                style={{ ...s.confirmBtn, background: `linear-gradient(135deg, ${pal.main} 0%, ${pal.light} 50%, ${pal.main} 100%)`, boxShadow: `0 8px 24px rgba(${R},.4), inset 0 1px 0 rgba(255,255,255,.15)`, opacity: submitting ? 0.7 : 1, marginTop: 20 }}
                 onClick={submit}
                 disabled={submitting}
               >
@@ -591,7 +604,7 @@ export default function BookSalon() {
             )}
             {step < 2 && (
               <button
-                style={{ ...s.nextBtn, opacity: canAdvance ? 1 : 0.45 }}
+                style={{ ...s.nextBtn, background: `linear-gradient(135deg, ${pal.main} 0%, ${pal.light} 50%, ${pal.main} 100%)`, boxShadow: `0 6px 18px rgba(${R},.35)`, opacity: canAdvance ? 1 : 0.45 }}
                 onClick={goNext}
                 disabled={!canAdvance}
               >
@@ -605,10 +618,10 @@ export default function BookSalon() {
 
         {/* Summary sidebar */}
         <div style={{ ...s.sidebar, width: isMobile ? '100%' : undefined }}>
-          <div style={s.summaryCard} className="fade-up d2">
+          <div style={{ ...s.summaryCard, boxShadow: `0 4px 24px rgba(${R},.08)` }} className="fade-up d2">
             <div style={s.summaryHeader}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                <div style={s.summaryLogo}>
+                <div style={{ ...s.summaryLogo, background: pal.main, boxShadow: `0 3px 10px rgba(${R},.3)` }}>
                   {salon.logo_url
                     ? <img src={salon.logo_url} alt={salon.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                     : <span style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 18, fontWeight: 700, color: '#fff' }}>{salon.name[0]}</span>
@@ -636,11 +649,11 @@ export default function BookSalon() {
               <>
                 {promoResult?.valid && (
                   <div style={s.sumRow}>
-                    <span style={{ ...s.sumName, color: '#059669' }}>🏷 Promo discount</span>
-                    <span style={{ fontWeight: 600, color: '#059669', flexShrink: 0, marginLeft: 8 }}>− LKR {discount.toFixed(2)}</span>
+                    <span style={{ ...s.sumName, color: pal.main }}>🏷 Promo discount</span>
+                    <span style={{ fontWeight: 600, color: pal.main, flexShrink: 0, marginLeft: 8 }}>− LKR {discount.toFixed(2)}</span>
                   </div>
                 )}
-                <div style={s.sumTotal}>
+                <div style={{ ...s.sumTotal, borderTop: `1.5px solid rgba(${R},.15)` }}>
                   <span style={{ fontWeight: 600, color: 'var(--text-sub)', fontSize: 13 }}>Total</span>
                   <span style={s.sumTotalVal}>LKR {finalTotal.toFixed(2)}</span>
                 </div>
@@ -649,26 +662,26 @@ export default function BookSalon() {
 
             {selectedStaffName && (
               <div style={s.sumDetail}>
-                <span style={s.sumDetailIcon}>★</span>
+                <span style={{ ...s.sumDetailIcon, color: pal.main }}>★</span>
                 {selectedStaffName}
               </div>
             )}
             {date && (
               <div style={s.sumDetail}>
-                <span style={s.sumDetailIcon}>◷</span>
+                <span style={{ ...s.sumDetailIcon, color: pal.main }}>◷</span>
                 {new Date(date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
               </div>
             )}
             {slot && (
               <div style={s.sumDetail}>
-                <span style={s.sumDetailIcon}>✦</span>
+                <span style={{ ...s.sumDetailIcon, color: pal.main }}>✦</span>
                 {slot.split('T')[1]?.substring(0, 5)}
               </div>
             )}
 
             <div style={s.checklist}>
               {STEPS.map((label, i) => (
-                <div key={label} style={{ ...s.checkItem, color: stepDone[i] ? '#059669' : 'var(--text-muted)' }}>
+                <div key={label} style={{ ...s.checkItem, color: stepDone[i] ? pal.main : 'var(--text-muted)' }}>
                   <span style={{ fontSize: stepDone[i] ? 13 : 11 }}>{stepDone[i] ? '✓' : '○'}</span>
                   <span>{label}</span>
                 </div>
@@ -726,7 +739,7 @@ const s = {
 
   serviceGrid: { display: 'flex', flexDirection: 'column', gap: 10 },
   serviceCard: { display: 'flex', alignItems: 'center', gap: 14, padding: '14px 18px', border: '2px solid var(--border)', borderRadius: 14, cursor: 'pointer', background: 'var(--surface)', transition: 'all .18s ease' },
-  serviceCardOn: { border: '2px solid #0D9488', background: 'linear-gradient(135deg, rgba(13,148,136,.05) 0%, rgba(236,72,153,.03) 100%)', boxShadow: '0 3px 12px rgba(13,148,136,.12)' },
+  serviceCardOn: { border: '2px solid #0D9488', background: 'linear-gradient(135deg, rgba(13,148,136,.05) 0%, rgba(13,148,136,.02) 100%)', boxShadow: '0 3px 12px rgba(13,148,136,.12)' },
   svcCheck: { flexShrink: 0 },
   checkBox:   { width: 22, height: 22, borderRadius: 6, border: '2px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff', transition: 'all .2s ease' },
   checkBoxOn: { background: 'linear-gradient(135deg, #0D9488, #0D9488)', borderColor: 'transparent' },
@@ -749,7 +762,7 @@ const s = {
     color: 'var(--text-sub)', cursor: 'pointer', transition: 'all .15s ease',
     fontFamily: "'DM Sans', sans-serif",
   },
-  proChipOn: { background: 'rgba(13,148,136,.08)', color: '#0D9488', borderColor: '#0D948850' },
+  proChipOn: { background: `rgba(13,148,136,.08)`, color: '#0D9488', borderColor: '#0D948850' },
 
   subLabel: { fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 },
 
@@ -870,16 +883,16 @@ const conf = {
     animation: 'confirmReveal .45s cubic-bezier(.16,1,.3,1) both',
   },
   bgGlow1: { position: 'absolute', width: 600, height: 600, borderRadius: '50%', background: 'radial-gradient(circle, rgba(13,148,136,.22) 0%, transparent 70%)', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', pointerEvents: 'none', filter: 'blur(60px)', animation: 'ambientDrift 24s ease-in-out infinite' },
-  bgGlow2: { position: 'absolute', width: 360, height: 360, borderRadius: '50%', background: 'radial-gradient(circle, rgba(236,72,153,.14) 0%, transparent 70%)', top: '20%', right: '10%', pointerEvents: 'none', filter: 'blur(50px)' },
+  bgGlow2: { position: 'absolute', width: 360, height: 360, borderRadius: '50%', background: 'radial-gradient(circle, rgba(212,175,55,.14) 0%, transparent 70%)', top: '20%', right: '10%', pointerEvents: 'none', filter: 'blur(50px)' },
   bgGlow3: { position: 'absolute', width: 280, height: 280, borderRadius: '50%', background: 'radial-gradient(circle, rgba(212,175,55,.1) 0%, transparent 70%)', bottom: '15%', left: '8%', pointerEvents: 'none', filter: 'blur(60px)' },
   content: { position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', maxWidth: 560, width: '100%' },
-  eyebrow: { fontSize: 11, fontWeight: 600, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'rgba(196,181,253,.7)', marginBottom: 36, display: 'inline-flex', alignItems: 'center', background: 'rgba(255,255,255,.05)', padding: '8px 20px', borderRadius: 30, border: '1px solid rgba(255,255,255,.09)' },
+  eyebrow: { fontSize: 11, fontWeight: 600, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'rgba(153,246,228,.7)', marginBottom: 36, display: 'inline-flex', alignItems: 'center', background: 'rgba(255,255,255,.05)', padding: '8px 20px', borderRadius: 30, border: '1px solid rgba(255,255,255,.09)' },
   checkWrap:   { position: 'relative', marginBottom: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 96, height: 96 },
   checkGlow:   { position: 'absolute', width: 160, height: 160, borderRadius: '50%', background: 'radial-gradient(circle, rgba(13,148,136,.35) 0%, transparent 70%)', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', animation: 'glowBreath 3s ease-in-out infinite' },
-  checkCircle: { width: 96, height: 96, borderRadius: '50%', background: 'linear-gradient(135deg, rgba(13,148,136,.2) 0%, rgba(236,72,153,.15) 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 0 1px rgba(13,148,136,.35), 0 12px 40px rgba(13,148,136,.3)' },
+  checkCircle: { width: 96, height: 96, borderRadius: '50%', background: 'linear-gradient(135deg, rgba(13,148,136,.2) 0%, rgba(212,175,55,.15) 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 0 1px rgba(13,148,136,.35), 0 12px 40px rgba(13,148,136,.3)' },
   salonName:   { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 'clamp(32px, 5vw, 58px)', fontWeight: 700, color: '#F0EAFF', margin: '0 0 10px', lineHeight: 1.1, letterSpacing: '-0.02em' },
-  salonSub:    { fontSize: 15, color: 'rgba(196,181,253,.55)', margin: '0 0 28px', fontStyle: 'italic', fontFamily: "'Cormorant Garamond', Georgia, serif", letterSpacing: '0.02em' },
-  rule:        { width: 48, height: 1, background: 'linear-gradient(90deg, transparent, rgba(167,139,250,.5), transparent)', marginBottom: 28 },
+  salonSub:    { fontSize: 15, color: 'rgba(153,246,228,.55)', margin: '0 0 28px', fontStyle: 'italic', fontFamily: "'Cormorant Garamond', Georgia, serif", letterSpacing: '0.02em' },
+  rule:        { width: 48, height: 1, background: 'linear-gradient(90deg, transparent, rgba(153,246,228,.5), transparent)', marginBottom: 28 },
   detailCard:  { width: '100%', borderRadius: 20, background: 'rgba(255,255,255,.04)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,.08)', padding: '8px 0', marginBottom: 32, boxShadow: '0 8px 32px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.06)' },
   detailRow:   { display: 'flex', alignItems: 'flex-start', gap: 14, padding: '14px 24px', borderBottom: '1px solid rgba(255,255,255,.05)', marginBottom: 0, textAlign: 'left' },
   detailIconWrap: { width: 30, height: 30, borderRadius: 9, flexShrink: 0, background: 'rgba(13,148,136,.15)', border: '1px solid rgba(167,139,250,.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 2 },
@@ -887,5 +900,5 @@ const conf = {
   detailVal:   { fontSize: 14, fontWeight: 500, color: '#E9D5FF', lineHeight: 1.5 },
   ctaRow:      { display: 'flex', flexDirection: 'column', gap: 12, width: '100%', maxWidth: 380 },
   primaryCTA:  { width: '100%', padding: '15px', background: 'linear-gradient(135deg, #0D9488 0%, #14B8A8 50%, #0D9488 100%)', color: '#fff', border: 'none', borderRadius: 14, fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", boxShadow: '0 8px 28px rgba(13,148,136,.45), inset 0 1px 0 rgba(255,255,255,.18)', transition: 'transform .18s ease, box-shadow .18s ease', letterSpacing: '0.01em' },
-  ghostCTA:    { width: '100%', padding: '14px', background: 'rgba(255,255,255,.06)', color: 'rgba(196,181,253,.8)', border: '1px solid rgba(255,255,255,.1)', borderRadius: 14, fontSize: 14, fontWeight: 500, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", transition: 'background .18s ease, border-color .18s ease', letterSpacing: '0.01em' },
+  ghostCTA:    { width: '100%', padding: '14px', background: 'rgba(255,255,255,.06)', color: 'rgba(153,246,228,.8)', border: '1px solid rgba(255,255,255,.1)', borderRadius: 14, fontSize: 14, fontWeight: 500, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", transition: 'background .18s ease, border-color .18s ease', letterSpacing: '0.01em' },
 };

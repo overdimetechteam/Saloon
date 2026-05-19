@@ -148,7 +148,7 @@ const s = {
     lineHeight: 1, letterSpacing: '-0.02em', marginBottom: 6,
   },
   leftTagline: {
-    fontSize: 11, color: 'rgba(196,181,253,.75)',
+    fontSize: 11, color: 'rgba(153,246,228,.75)',
     letterSpacing: '0.22em', textTransform: 'uppercase', fontWeight: 500,
   },
   leftDivider: {
@@ -166,7 +166,7 @@ const s = {
   leftFeatureDot: { color: '#D4AF37', fontSize: 10 },
   leftBlob1: {
     position: 'absolute', width: 300, height: 300,
-    background: 'radial-gradient(circle, rgba(236,72,153,.2) 0%, transparent 70%)',
+    background: 'radial-gradient(circle, rgba(13,148,136,.2) 0%, transparent 70%)',
     top: -80, right: -60, pointerEvents: 'none',
     filter: 'blur(40px)',
   },

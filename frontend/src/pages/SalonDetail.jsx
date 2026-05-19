@@ -3,46 +3,37 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { useBreakpoint } from '../hooks/useMobile';
+import { SALON_PALETTES } from '../styles/theme';
 
-const MOCK_PHOTOS = [
-  { grad: 'linear-gradient(135deg, #0D9488 0%, #0D9488 100%)', label: 'Styling Area'  },
-  { grad: 'linear-gradient(135deg, #1E0A3C 0%, #0D9488 100%)', label: 'Interior'      },
-  { grad: 'linear-gradient(135deg, #0D9488 0%, #F59E0B 100%)', label: 'Nail Station'  },
-  { grad: 'linear-gradient(135deg, #059669 0%, #2563EB 100%)', label: 'Skin Room'     },
-  { grad: 'linear-gradient(135deg, #D97706 0%, #0D9488 100%)', label: 'Lounge'        },
+const getMockPhotos = pal => [
+  { grad: `linear-gradient(135deg, ${pal.main} 0%, ${pal.light} 100%)`, label: 'Styling Area' },
+  { grad: `linear-gradient(135deg, ${pal.darkBg} 0%, ${pal.main} 100%)`, label: 'Interior'    },
+  { grad: `linear-gradient(135deg, ${pal.main} 0%, #D4AF37 100%)`, label: 'Nail Station'      },
+  { grad: `linear-gradient(135deg, #D4AF37 0%, ${pal.main} 100%)`, label: 'Skin Room'         },
+  { grad: `linear-gradient(135deg, ${pal.dark} 0%, #D4AF37 100%)`, label: 'Lounge'            },
 ];
 
-const MOCK_TEAM = [
-  { name: 'Sophie Laurent', role: 'Senior Stylist',   specialty: 'Color & Cuts',     color: '#0D9488', bg: 'rgba(13,148,136,.12)'  },
-  { name: 'James Kai',      role: 'Nail Technician',  specialty: 'Gel & Acrylics',   color: '#0D9488', bg: 'rgba(13,148,136,.12)'  },
-  { name: 'Aria Chen',      role: 'Skin Therapist',   specialty: 'Facials & Peels',  color: '#059669', bg: 'rgba(5,150,105,.12)'   },
-  { name: 'Luca Moretti',   role: 'Hair Artist',      specialty: 'Balayage & Perms', color: '#2563EB', bg: 'rgba(37,99,235,.12)'   },
+const getMockTeam = pal => [
+  { name: 'Sophie Laurent', role: 'Senior Stylist',   specialty: 'Color & Cuts',     color: pal.main,  bg: `rgba(${pal.rgb},.12)` },
+  { name: 'James Kai',      role: 'Nail Technician',  specialty: 'Gel & Acrylics',   color: '#D4AF37', bg: 'rgba(212,175,55,.12)'  },
+  { name: 'Aria Chen',      role: 'Skin Therapist',   specialty: 'Facials & Peels',  color: pal.dark,  bg: `rgba(${pal.rgb},.08)` },
+  { name: 'Luca Moretti',   role: 'Hair Artist',      specialty: 'Balayage & Perms', color: pal.main,  bg: `rgba(${pal.rgb},.12)` },
 ];
 
-const MOCK_REVIEWS = [
-  { name: 'Emma W.',   rating: 5, date: 'April 2025',  text: 'Absolutely stunning experience! The team is incredibly professional and the salon is gorgeous. Best in the city without a doubt.' },
-  { name: 'Marcus B.', rating: 4, date: 'March 2025',  text: 'Great service and a beautifully designed space. My hair has never looked better. Highly recommend to everyone.' },
-  { name: 'Priya K.',  rating: 5, date: 'April 2025',  text: 'Pure luxury from start to finish. The attention to detail is incredible — worth every rupee. Will keep returning!' },
-];
-
-const CAT_COLORS = {
-  Hair: '#0D9488', Nails: '#0D9488',
-  Skin: '#059669', Makeup: '#EC4899', Cosmetics: '#EC4899', Other: '#2563EB',
-};
-
-const PALETTE = [
-  'linear-gradient(135deg, #0D9488 0%, #0D9488 100%)',
-  'linear-gradient(135deg, #059669 0%, #2563EB 100%)',
-  'linear-gradient(135deg, #D97706 0%, #DC2626 100%)',
-  'linear-gradient(135deg, #1E0A3C 0%, #0D9488 100%)',
+const getMockPalette = pal => [
+  `linear-gradient(135deg, ${pal.main} 0%, ${pal.light} 100%)`,
+  `linear-gradient(135deg, ${pal.main} 0%, #D4AF37 100%)`,
+  `linear-gradient(135deg, #D4AF37 0%, #B8932A 100%)`,
+  `linear-gradient(135deg, ${pal.darkBg} 0%, ${pal.main} 100%)`,
 ];
 
 function Stars({ rating, size = 14 }) {
   return (
     <span style={{ letterSpacing: 1 }}>
       {[1, 2, 3, 4, 5].map(i => (
-        <span key={i} style={{ color: i <= rating ? '#D4AF37' : 'rgba(236,72,153,.45)', fontSize: size }}>★</span>
+        <span key={i} style={{ color: i <= rating ? '#D4AF37' : 'rgba(212,175,55,.25)', fontSize: size }}>★</span>
       ))}
     </span>
   );
@@ -52,6 +43,7 @@ export default function SalonDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { profile } = useAuth();
+  const { setNavPalette } = useTheme();
   const { isMobile, isTablet } = useBreakpoint();
   const [salon, setSalon]           = useState(null);
   const [services, setServices]     = useState([]);
@@ -121,6 +113,13 @@ export default function SalonDetail() {
   };
 
   useEffect(() => {
+    if (!salon) return;
+    const pal = SALON_PALETTES[salon.color_palette || 'teal'];
+    setNavPalette(pal);
+    return () => setNavPalette(null);
+  }, [salon, setNavPalette]);
+
+  useEffect(() => {
     if (lightboxIdx === null) return;
     const handler = e => {
       if (e.key === 'ArrowRight') setLightboxIdx(i => Math.min(i + 1, salonImages.length - 1));
@@ -137,6 +136,13 @@ export default function SalonDetail() {
     </div>
   );
 
+  const pal = SALON_PALETTES[salon.color_palette || 'teal'];
+  const R = pal.rgb;
+  const catColors = { Hair: pal.main, Nails: '#D4AF37', Skin: pal.dark, Makeup: '#C96B51', Cosmetics: '#C96B51', Other: pal.main };
+  const mockTeam = getMockTeam(pal);
+  const mockPhotos = getMockPhotos(pal);
+  const mockPalette = getMockPalette(pal);
+
   const grouped = services.reduce((acc, ss) => {
     const cat = ss.service_category || 'Other';
     if (!acc[cat]) acc[cat] = [];
@@ -149,13 +155,13 @@ export default function SalonDetail() {
 
   const cats = Object.keys(grouped);
   const activeCat = activeServiceCat && cats.includes(activeServiceCat) ? activeServiceCat : cats[0];
-  const activeCatColor = CAT_COLORS[activeCat] || '#0D9488';
+  const activeCatColor = catColors[activeCat] || pal.main;
 
   return (
     <div style={{ background: 'var(--bg)', minHeight: '100vh' }}>
 
       {/* HERO */}
-      <div style={{ ...s.hero, padding: isMobile ? '36px 20px 30px' : '52px 48px 44px' }}>
+      <div style={{ ...s.hero, padding: isMobile ? '36px 20px 30px' : '52px 48px 44px', background: `linear-gradient(145deg, #0D0D16 0%, ${pal.darkBg} 40%, ${pal.dark} 75%, ${pal.main} 100%)` }}>
         <div style={s.heroBg} />
         <div style={{ ...s.heroInner, flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? 20 : 24 }}>
           <div style={{ ...s.heroLeft, gap: isMobile ? 16 : 22 }}>
@@ -174,8 +180,8 @@ export default function SalonDetail() {
                 <span style={s.ratingNum}>{summary ? summary.average_rating.toFixed(1) : '—'}</span>
                 <span style={s.ratingCt}>({summary ? summary.total_reviews : 0} review{summary?.total_reviews !== 1 ? 's' : ''})</span>
                 <span style={s.dot}>·</span>
-                <span style={s.openBadge}>
-                  <span style={{ color: '#34D399', marginRight: 4 }}>●</span>
+                <span style={{ ...s.openBadge, background: `rgba(${R},.15)` }}>
+                  <span style={{ color: pal.light, marginRight: 4 }}>●</span>
                   {salon.status === 'active' ? 'Open Now' : 'Closed'}
                 </span>
               </div>
@@ -185,7 +191,7 @@ export default function SalonDetail() {
                 <a
                   href={`https://www.google.com/maps/search/${encodeURIComponent(fullAddress)}`}
                   target="_blank" rel="noreferrer"
-                  style={s.locationBtn}
+                  style={{ ...s.locationBtn, color: pal.textLight, background: `rgba(${R},.22)`, border: `1px solid rgba(${R},.35)` }}
                 >
                   See Location ↗
                 </a>
@@ -206,19 +212,19 @@ export default function SalonDetail() {
                 title={isFav ? 'Remove from favourites' : 'Save to favourites'}
                 style={{
                   width: 48, height: 48, borderRadius: 14, border: 'none',
-                  background: isFav ? 'rgba(13,148,136,.25)' : 'rgba(255,255,255,.12)',
-                  color: isFav ? '#5EEAD4' : 'rgba(255,255,255,.7)',
+                  background: isFav ? `rgba(${R},.25)` : 'rgba(255,255,255,.12)',
+                  color: isFav ? pal.textLight : 'rgba(255,255,255,.7)',
                   fontSize: 22, cursor: 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   transition: 'all .2s ease',
-                  boxShadow: isFav ? '0 4px 14px rgba(13,148,136,.35)' : 'none',
+                  boxShadow: isFav ? `0 4px 14px rgba(${R},.35)` : 'none',
                 }}
               >
                 {isFav ? '♥' : '♡'}
               </button>
             )}
             {isClient && (
-              <Link to={`/user/book/${id}`} style={s.heroBookBtn} className="lift-sm">
+              <Link to={`/user/book/${id}`} style={{ ...s.heroBookBtn, background: pal.main, boxShadow: `0 6px 20px rgba(${R},.45)` }} className="lift-sm">
                 ✦ Book Now
               </Link>
             )}
@@ -251,7 +257,7 @@ export default function SalonDetail() {
             ))}
           </div>
           <div style={{ display: 'flex', gap: 8, flexShrink: 0, marginLeft: 8 }}>
-            {isClient && <Link to={`/user/book/${id}`} style={s.tabBookBtn}>✦ Book Now</Link>}
+            {isClient && <Link to={`/user/book/${id}`} style={{ ...s.tabBookBtn, background: pal.main, boxShadow: `0 4px 14px rgba(${R},.3)` }}>✦ Book Now</Link>}
             {salon.cosmetics_enabled && <Link to={`/salons/${id}/cosmetics`} style={s.tabCosmeticsBtn}>✿ Cosmetics</Link>}
           </div>
         </div>
@@ -261,7 +267,7 @@ export default function SalonDetail() {
       <div style={s.photoStrip}>
         <div style={s.photoScroll}>
           {salonImages.length > 0
-            ? salonImages.map((img, i) => (
+            ? salonImages.map((img, i) => (  // real photos
                 <div key={img.id} style={{ ...s.photoCard, cursor: 'pointer' }} className="lift-sm fade-up"
                   onClick={() => setLightboxIdx(i)}>
                   <img src={img.image_url} alt={img.caption || `Photo ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit', display: 'block' }} />
@@ -269,7 +275,7 @@ export default function SalonDetail() {
                   <div style={s.photoClickHint}>⊕</div>
                 </div>
               ))
-            : MOCK_PHOTOS.map((p, i) => (
+            : mockPhotos.map((p, i) => (
                 <div key={i} style={{ ...s.photoCard, background: p.grad }} className="lift-sm fade-up">
                   <div style={s.photoLabel}>{p.label}</div>
                 </div>
@@ -341,7 +347,6 @@ export default function SalonDetail() {
             <>
               <div style={s.catTabs}>
                 {cats.map(cat => {
-                  const tc = CAT_COLORS[cat] || '#0D9488';
                   const isActive = cat === activeCat;
                   return (
                     <button
@@ -349,10 +354,10 @@ export default function SalonDetail() {
                       onClick={() => setActiveServiceCat(cat)}
                       style={{
                         ...s.catTab,
-                        background: isActive ? tc : 'transparent',
-                        color: isActive ? '#fff' : tc,
-                        border: `1px solid ${tc}40`,
-                        boxShadow: isActive ? `0 3px 10px ${tc}40` : 'none',
+                        background: isActive ? (catColors[cat] || pal.main) : 'transparent',
+                        color: isActive ? '#fff' : (catColors[cat] || pal.main),
+                        border: `1px solid ${(catColors[cat] || pal.main)}40`,
+                        boxShadow: isActive ? `0 3px 10px ${(catColors[cat] || pal.main)}40` : 'none',
                       }}
                     >
                       {cat}
@@ -375,7 +380,7 @@ export default function SalonDetail() {
                           LKR {ss.effective_price}
                         </span>
                       </div>
-                      {isClient && <div style={s.svcBookHint}>Tap to book →</div>}
+                      {isClient && <div style={{ ...s.svcBookHint, color: pal.main }}>Tap to book →</div>}
                     </div>
                   );
                   return isClient ? (
@@ -398,7 +403,7 @@ export default function SalonDetail() {
             <h2 style={s.secTitle}>Ongoing Offers</h2>
             <div style={s.offersGrid}>
               {offers.map((o, i) => {
-                const oc = ['#0D9488','#0D9488','#D97706','#2563EB'][i % 4];
+                const oc = [pal.main, '#D4AF37', pal.dark, '#D4AF37'][i % 4];
                 const daysLeft = Math.ceil((new Date(o.end_date) - new Date()) / 86400000);
                 return (
                   <div key={o.id} style={{ ...s.offerCard, borderLeft: `4px solid ${oc}` }}>
@@ -436,14 +441,14 @@ export default function SalonDetail() {
                 </p>
                 <div style={{ ...s.aboutStats, gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)' }}>
                   {[
-                    { val: '500+', label: 'Happy Clients'   },
-                    { val: '4+',  label: 'Years Experience' },
-                    { val: '15+', label: 'Expert Staff'     },
-                    { val: '4.8', label: 'Average Rating'   },
+                    { val: '500+', label: 'Happy Clients',    color: pal.main  },
+                    { val: '4+',  label: 'Years Experience',  color: '#D4AF37' },
+                    { val: '15+', label: 'Expert Staff',      color: pal.main  },
+                    { val: '4.8', label: 'Average Rating',    color: '#D4AF37' },
                   ].map(stat => (
-                    <div key={stat.label} style={{ textAlign: 'center', padding: '14px 8px', background: 'linear-gradient(135deg, rgba(13,148,136,.18) 0%, rgba(236,72,153,.14) 100%)', borderRadius: 14, border: '1px solid rgba(236,72,153,.15)' }}>
-                      <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 28, fontWeight: 800, color: '#fff', marginBottom: 4 }}>{stat.val}</div>
-                      <div style={{ fontSize: 11, color: 'rgba(255,255,255,.65)', fontWeight: 600 }}>{stat.label}</div>
+                    <div key={stat.label} style={{ textAlign: 'center', padding: '14px 8px', background: `${stat.color}0D`, borderRadius: 14, border: `1px solid ${stat.color}28` }}>
+                      <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 28, fontWeight: 800, color: stat.color, marginBottom: 4 }}>{stat.val}</div>
+                      <div style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>{stat.label}</div>
                     </div>
                   ))}
                 </div>
@@ -476,7 +481,7 @@ export default function SalonDetail() {
           <div style={s.eyebrowSm}>Meet the Experts</div>
           <h2 style={s.secTitle}>Our Team</h2>
           <div style={{ ...s.teamGrid, gridTemplateColumns: isMobile ? 'repeat(2,1fr)' : isTablet ? 'repeat(2,1fr)' : 'repeat(auto-fill,minmax(200px,1fr))' }}>
-            {MOCK_TEAM.map((m, i) => (
+            {mockTeam.map((m, i) => (
               <div key={i} style={{ ...s.teamCard, borderTop: `3px solid ${m.color}` }} className="lift-sm">
                 <div style={{ ...s.teamAvatar, background: m.bg, color: m.color, boxShadow: `0 4px 14px ${m.color}28` }}>
                   {m.name.split(' ').map(w => w[0]).join('')}
@@ -515,7 +520,7 @@ export default function SalonDetail() {
               {reviews.slice(0, 5).map((r, i) => (
                 <div key={r.id} style={s.reviewCard} className={`lift-sm fade-up d${i + 1}`}>
                   <div style={s.reviewTop}>
-                    <div style={s.reviewAvatar}>{(r.client_name || 'A')[0].toUpperCase()}</div>
+                    <div style={{ ...s.reviewAvatar, background: pal.main }}>{(r.client_name || 'A')[0].toUpperCase()}</div>
                     <div style={{ flex: 1 }}>
                       <div style={s.reviewName}>{r.client_name || 'Anonymous'}</div>
                       <div style={s.reviewDate}>{new Date(r.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</div>
@@ -535,7 +540,7 @@ export default function SalonDetail() {
                 {[1, 2, 3, 4, 5].map(i => (
                   <button
                     key={i}
-                    style={{ ...s.reviewStarBtn, color: i <= reviewRating ? '#D4AF37' : 'rgba(236,72,153,.4)', transform: i <= reviewRating ? 'scale(1.15)' : 'scale(1)' }}
+                    style={{ ...s.reviewStarBtn, color: i <= reviewRating ? '#D4AF37' : 'rgba(212,175,55,.25)', transform: i <= reviewRating ? 'scale(1.15)' : 'scale(1)' }}
                     onClick={() => setReviewRating(i)}
                   >★</button>
                 ))}
@@ -555,12 +560,12 @@ export default function SalonDetail() {
                 />
               )}
               {reviewMsg && (
-                <div style={{ ...s.reviewMsg, color: reviewMsg.startsWith('Thank') ? '#059669' : '#DC2626' }}>
+                <div style={{ ...s.reviewMsg, color: reviewMsg.startsWith('Thank') ? pal.main : '#DC2626' }}>
                   {reviewMsg}
                 </div>
               )}
               <button
-                style={{ ...s.reviewSubmitBtn, opacity: !reviewRating || reviewSubmitting ? 0.5 : 1 }}
+                style={{ ...s.reviewSubmitBtn, background: pal.main, boxShadow: `0 4px 14px rgba(${R},.3)`, opacity: !reviewRating || reviewSubmitting ? 0.5 : 1 }}
                 onClick={submitReview}
                 disabled={!reviewRating || reviewSubmitting}
               >
@@ -579,18 +584,18 @@ export default function SalonDetail() {
                 <div style={s.eyebrowSm}>Discover More</div>
                 <h2 style={{ ...s.secTitle, margin: 0 }}>Other Salons</h2>
               </div>
-              <Link to="/salons" style={s.seeAllBtn}>Browse All →</Link>
+              <Link to="/salons" style={{ ...s.seeAllBtn, color: pal.main, background: `rgba(${R},.1)`, border: `1px solid rgba(${R},.2)` }}>Browse All →</Link>
             </div>
             <div style={s.otherScroll}>
               {otherSalons.map((os, i) => (
                 <Link key={os.id} to={`/salons/${os.id}`} style={s.otherCard} className="lift-sm">
-                  <div style={{ ...s.otherAvatar, background: PALETTE[i % PALETTE.length] }}>
+                  <div style={{ ...s.otherAvatar, background: mockPalette[i % mockPalette.length] }}>
                     {os.name[0]}
                   </div>
                   <div style={s.otherName}>{os.name}</div>
                   <div style={s.otherCity}>{os.address_city}</div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: 'var(--text-muted)', fontWeight: 500 }}>
-                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: os.status === 'active' ? '#34D399' : '#FBBF24', display: 'inline-block' }} />
+                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: os.status === 'active' ? '#14B8A8' : '#D4AF37', display: 'inline-block' }} />
                     {os.status === 'active' ? 'Open' : 'Closed'}
                   </div>
                 </Link>
@@ -601,13 +606,13 @@ export default function SalonDetail() {
 
         {/* Bottom CTA */}
         {isClient && (
-          <div style={s.cta} className="fade-up d5">
+          <div style={{ ...s.cta, background: `linear-gradient(135deg, #0D0D16 0%, ${pal.darkBg} 50%, ${pal.main} 100%)`, boxShadow: `0 10px 40px rgba(${R},.35)` }} className="fade-up d5">
             <div style={s.ctaGlow} />
             <h3 style={s.ctaTitle}>Ready for your next experience?</h3>
             <p style={{ color: 'rgba(255,255,255,.7)', marginBottom: 28, fontSize: 15, position: 'relative', zIndex: 1 }}>
               Book your appointment at {salon.name} today.
             </p>
-            <Link to={`/user/book/${id}`} style={s.ctaBtn} className="lift-sm">
+            <Link to={`/user/book/${id}`} style={{ ...s.ctaBtn, background: pal.main, boxShadow: `0 6px 20px rgba(${R},.45)` }} className="lift-sm">
               ✦ Book Appointment
             </Link>
           </div>
@@ -619,12 +624,12 @@ export default function SalonDetail() {
 
 const s = {
   hero: {
-    background: 'linear-gradient(135deg, #1E0A3C 0%, #3B0764 40%, #0B7A70 75%, #0D9488 100%)',
+    background: 'linear-gradient(145deg, #0D0D16 0%, #0B3832 40%, #0B7A70 75%, #0D9488 100%)',
     padding: '52px 48px 44px', position: 'relative', overflow: 'hidden',
   },
   heroBg: {
     position: 'absolute', inset: 0,
-    background: 'radial-gradient(ellipse at top right, rgba(236,72,153,.28) 0%, transparent 60%)',
+    background: 'radial-gradient(ellipse at top right, rgba(212,175,55,.2) 0%, transparent 60%)',
     pointerEvents: 'none',
   },
   heroInner: {
@@ -641,7 +646,7 @@ const s = {
     fontFamily: "'Cormorant Garamond', Georgia, serif",
     fontSize: 34, fontWeight: 700, boxShadow: '0 8px 24px rgba(0,0,0,.2)',
   },
-  eyebrow: { fontSize: 10, color: 'rgba(196,181,253,.85)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 8, fontWeight: 700 },
+  eyebrow: { fontSize: 10, color: 'rgba(153,246,228,.75)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 8, fontWeight: 700 },
   salonName: {
     fontFamily: "'Cormorant Garamond', Georgia, serif",
     fontSize: 42, fontWeight: 700, color: '#fff', margin: '0 0 12px', lineHeight: 1.1, letterSpacing: '-0.01em',
@@ -650,7 +655,7 @@ const s = {
   ratingNum: { fontSize: 16, fontWeight: 800, color: '#D4AF37', fontFamily: "'DM Sans', sans-serif" },
   ratingCt:  { fontSize: 13, color: 'rgba(255,255,255,.6)' },
   dot:       { color: 'rgba(255,255,255,.3)', fontSize: 18 },
-  openBadge: { fontSize: 12, color: '#F0FFFE', background: 'rgba(52,211,153,.15)', borderRadius: 20, padding: '3px 10px', fontWeight: 600 },
+  openBadge: { fontSize: 12, color: '#F0FFFE', background: 'rgba(13,148,136,.15)', borderRadius: 20, padding: '3px 10px', fontWeight: 600 },
   addrRow:   { display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10, flexWrap: 'wrap' },
   addrText:  { fontSize: 14, color: 'rgba(255,255,255,.75)' },
   locationBtn: {
@@ -670,9 +675,9 @@ const s = {
   },
   heroCosmeticsBtn: {
     padding: '14px 26px', flexShrink: 0,
-    background: 'linear-gradient(315deg, #EC4899 0%, #A855F7 100%)',
+    background: 'linear-gradient(135deg, #C96B51 0%, #D4AF37 100%)',
     color: '#fff', borderRadius: 14, fontWeight: 700, fontSize: 15,
-    textDecoration: 'none', boxShadow: '0 6px 20px rgba(168,85,247,.38)',
+    textDecoration: 'none', boxShadow: '0 6px 20px rgba(201,107,81,.38)',
     display: 'inline-flex', alignItems: 'center', gap: 8,
     fontFamily: "'DM Sans', sans-serif",
     border: 'none', cursor: 'pointer',
@@ -704,10 +709,10 @@ const s = {
   },
   tabCosmeticsBtn: {
     padding: '8px 16px',
-    background: 'linear-gradient(315deg, #EC4899 0%, #A855F7 100%)',
+    background: 'linear-gradient(135deg, #C96B51 0%, #D4AF37 100%)',
     color: '#fff', borderRadius: 10, fontWeight: 700, fontSize: 13,
     textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6,
-    boxShadow: '0 4px 14px rgba(168,85,247,.28)',
+    boxShadow: '0 4px 14px rgba(201,107,81,.28)',
     fontFamily: "'DM Sans', sans-serif",
   },
 
@@ -890,13 +895,13 @@ const s = {
   },
 
   cta: {
-    background: 'linear-gradient(135deg, #1E0A3C 0%, #0D9488 100%)',
+    background: 'linear-gradient(135deg, #0D0D16 0%, #0B3832 50%, #0D9488 100%)',
     borderRadius: 24, padding: '52px 40px', textAlign: 'center',
     boxShadow: '0 10px 40px rgba(13,148,136,.35)', position: 'relative', overflow: 'hidden',
   },
   ctaGlow: {
     position: 'absolute', inset: 0,
-    background: 'radial-gradient(ellipse at bottom right, rgba(236,72,153,.3) 0%, transparent 60%)',
+    background: 'radial-gradient(ellipse at bottom right, rgba(212,175,55,.2) 0%, transparent 60%)',
     pointerEvents: 'none',
   },
   ctaTitle: {

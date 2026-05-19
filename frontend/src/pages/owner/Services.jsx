@@ -3,7 +3,7 @@ import api from '../../api/axios';
 import { useOwner } from '../../context/OwnerContext';
 import { useBreakpoint } from '../../hooks/useMobile';
 
-const CAT_COLORS = { Hair: '#8B5CF6', Nails: '#0D9488', Skin: '#10B981', Makeup: '#F59E0B', Other: '#2563EB' };
+const CAT_COLORS = { Hair: '#0D9488', Nails: '#D4AF37', Skin: '#0B7A70', Makeup: '#C96B51', Other: '#0D9488' };
 const CATEGORIES = ['Hair', 'Nails', 'Skin', 'Makeup'];
 
 function EditModal({ ss, onSave, onClose }) {
@@ -336,7 +336,7 @@ const s = {
   fLabel:  { display: 'flex', flexDirection: 'column', gap: 6, fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' },
   fInput:  { padding: '9px 12px', border: '1.5px solid var(--border)', borderRadius: 10, fontSize: 14, color: 'var(--text)', background: 'var(--input-bg)', outline: 'none', fontFamily: "'DM Sans', sans-serif" },
   alertErr: { background: '#FEF2F2', border: '1px solid #FCA5A5', color: '#DC2626', borderRadius: 12, padding: '11px 16px', fontSize: 13, marginBottom: 18 },
-  alertOk:  { background: '#ECFDF5', border: '1px solid #6EE7B7', color: '#059669', borderRadius: 12, padding: '11px 16px', fontSize: 13, marginBottom: 18 },
+  alertOk:  { background: '#F0FDFA', border: '1px solid #99F6E4', color: '#0D9488', borderRadius: 12, padding: '11px 16px', fontSize: 13, marginBottom: 18 },
   empty: { textAlign: 'center', padding: '64px 40px', background: 'var(--surface)', borderRadius: 22, border: '1px solid var(--border)', boxShadow: '0 4px 20px rgba(13,148,136,.06)' },
   emptyOrb:   { fontSize: 36, marginBottom: 16, display: 'block', color: 'var(--text-muted)' },
   emptyTitle: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 22, fontWeight: 700, color: 'var(--text)', marginBottom: 8 },

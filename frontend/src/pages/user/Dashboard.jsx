@@ -9,10 +9,10 @@ const HOUR     = new Date().getHours();
 const GREETING = HOUR < 12 ? 'Good morning' : HOUR < 17 ? 'Good afternoon' : 'Good evening';
 
 const FAV_PALETTE = [
-  'linear-gradient(135deg, #0D9488 0%, #0D9488 100%)',
-  'linear-gradient(135deg, #1E0A3C 0%, #0D9488 100%)',
-  'linear-gradient(135deg, #0D9488 0%, #2563EB 100%)',
-  'linear-gradient(135deg, #D97706 0%, #0D9488 100%)',
+  'linear-gradient(135deg, #0D9488 0%, #14B8A8 100%)',
+  'linear-gradient(135deg, #0B3832 0%, #0D9488 100%)',
+  'linear-gradient(135deg, #0D9488 0%, #D4AF37 100%)',
+  'linear-gradient(135deg, #D4AF37 0%, #0D9488 100%)',
 ];
 
 export default function UserDashboard() {
@@ -72,7 +72,7 @@ export default function UserDashboard() {
               {[
                 { label: 'Upcoming',     value: loading ? '–' : upcoming,   icon: '◉', accent: '#99F6E4' },
                 { label: 'Need Action',  value: loading ? '–' : needAction, icon: '⚡', accent: '#FDE68A' },
-                { label: 'Total Active', value: loading ? '–' : total,      icon: '◈', accent: '#6EE7B7' },
+                { label: 'Total Active', value: loading ? '–' : total,      icon: '◈', accent: '#99F6E4' },
               ].map((stat, i) => (
                 <div key={stat.label} style={{ ...s.heroStatMobileItem, borderLeft: i > 0 ? '1px solid rgba(255,255,255,.12)' : 'none' }}>
                   <span style={{ ...s.heroStatMobileVal }}>{stat.value}</span>
@@ -89,7 +89,7 @@ export default function UserDashboard() {
             {[
               { label: 'Upcoming',     value: loading ? '–' : upcoming,   icon: '◉', accent: '#99F6E4' },
               { label: 'Need Action',  value: loading ? '–' : needAction, icon: '⚡', accent: '#FDE68A' },
-              { label: 'Total Active', value: loading ? '–' : total,      icon: '◈', accent: '#6EE7B7' },
+              { label: 'Total Active', value: loading ? '–' : total,      icon: '◈', accent: '#99F6E4' },
             ].map((stat, i) => (
               <div key={stat.label} style={{ ...s.heroStatRow, borderTop: i > 0 ? '1px solid rgba(255,255,255,.08)' : 'none' }}>
                 <div style={{ ...s.heroStatIcon, color: stat.accent, background: stat.accent + '18' }}>{stat.icon}</div>
@@ -157,7 +157,7 @@ export default function UserDashboard() {
           </div>
           <div style={s.offersScroll}>
             {offers.map((o, i) => {
-              const colors = ['#0D9488','#0D9488','#D97706','#2563EB'];
+              const colors = ['#0D9488','#D4AF37','#0B7A70','#D4AF37'];
               const color  = colors[i % colors.length];
               const daysLeft = Math.ceil((new Date(o.end_date) - new Date()) / 86400000);
               return (
@@ -307,13 +307,13 @@ const s = {
     bottom: -60, left: 40, pointerEvents: 'none', filter: 'blur(50px)',
   },
   heroContent: { position: 'relative', zIndex: 2, flex: 1 },
-  greeting: { fontSize: 12, color: 'rgba(196,181,253,.75)', letterSpacing: '0.14em', marginBottom: 10, textTransform: 'uppercase', fontWeight: 500 },
+  greeting: { fontSize: 12, color: 'rgba(153,246,228,.75)', letterSpacing: '0.14em', marginBottom: 10, textTransform: 'uppercase', fontWeight: 500 },
   heroName: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 'clamp(34px, 4vw, 52px)', fontWeight: 700, color: '#fff', margin: '0 0 10px', lineHeight: 1.05, display: 'flex', alignItems: 'center', gap: 14, letterSpacing: '-0.02em' },
   wave:    { fontSize: 20, color: '#C9A96E', animation: 'floatBob 3s ease-in-out infinite' },
   heroSub: { color: 'rgba(255,255,255,.6)', fontSize: 15, margin: '0 0 26px' },
   heroBtns:{ display: 'flex', gap: 12, flexWrap: 'wrap' },
   primaryBtn: { padding: '12px 26px', background: 'linear-gradient(135deg, #0D9488 0%, #0D9488 100%)', color: '#fff', borderRadius: 12, fontWeight: 700, fontSize: 14, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 7, boxShadow: '0 6px 20px rgba(13,148,136,.4)' },
-  ghostBtn:   { padding: '12px 20px', background: 'rgba(255,255,255,.1)', color: '#E9D5FF', borderRadius: 12, fontWeight: 500, fontSize: 14, textDecoration: 'none', border: '1px solid rgba(255,255,255,.14)', transition: 'background .18s ease' },
+  ghostBtn:   { padding: '12px 20px', background: 'rgba(255,255,255,.1)', color: 'rgba(255,255,255,.8)', borderRadius: 12, fontWeight: 500, fontSize: 14, textDecoration: 'none', border: '1px solid rgba(255,255,255,.14)', transition: 'background .18s ease' },
   /* Desktop: stats column on right side of hero */
   heroStatsCol: {
     position: 'relative', zIndex: 2, flexShrink: 0,
@@ -408,16 +408,16 @@ const s = {
   actionBanner: {
     display: 'flex', alignItems: 'center', gap: 14,
     padding: '14px 20px', marginBottom: 24, borderRadius: 14,
-    background: 'rgba(217,119,6,.08)', border: '1px solid rgba(217,119,6,.25)',
+    background: 'rgba(212,175,55,.08)', border: '1px solid rgba(212,175,55,.25)',
     flexWrap: 'wrap',
   },
-  actionBannerIcon: { fontSize: 18, color: '#D97706', flexShrink: 0 },
+  actionBannerIcon: { fontSize: 18, color: '#D4AF37', flexShrink: 0 },
   actionBannerText: { fontSize: 14, color: 'var(--text)', fontWeight: 500 },
   actionBannerBtn: {
     marginLeft: 'auto', flexShrink: 0,
-    padding: '8px 18px', fontSize: 13, fontWeight: 700, color: '#D97706',
-    background: 'rgba(217,119,6,.12)', borderRadius: 9,
-    border: '1px solid rgba(217,119,6,.3)', textDecoration: 'none',
+    padding: '8px 18px', fontSize: 13, fontWeight: 700, color: '#D4AF37',
+    background: 'rgba(212,175,55,.12)', borderRadius: 9,
+    border: '1px solid rgba(212,175,55,.3)', textDecoration: 'none',
     fontFamily: "'DM Sans', sans-serif",
   },
 
@@ -442,7 +442,7 @@ const s = {
   salonName:   { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 16, fontWeight: 700, color: 'var(--text)', marginBottom: 5, letterSpacing: '-0.01em' },
   services:    { fontSize: 12, color: 'var(--text-muted)', marginBottom: 9, lineHeight: 1.5 },
   statusBadge: { display: 'inline-flex', padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700 },
-  actionHint:  { padding: '9px 22px', background: 'rgba(217,119,6,.09)', fontSize: 12, color: '#D97706', fontWeight: 600, borderTop: '1px solid rgba(217,119,6,.2)' },
+  actionHint:  { padding: '9px 22px', background: 'rgba(212,175,55,.09)', fontSize: 12, color: '#D4AF37', fontWeight: 600, borderTop: '1px solid rgba(212,175,55,.2)' },
   cardLink:    { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '13px 22px', fontSize: 13, fontWeight: 600, color: '#0D9488', borderTop: '1px solid var(--border)', transition: 'background .15s ease' },
   linkArrow:   { fontSize: 16 },
 

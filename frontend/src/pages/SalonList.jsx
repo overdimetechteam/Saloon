@@ -5,12 +5,12 @@ import { useAuth } from '../context/AuthContext';
 import { useBreakpoint } from '../hooks/useMobile';
 
 const PALETTE = [
-  ['#0D9488', '#5EEAD4'],
+  ['#0D9488', '#14B8A8'],
   ['#0D9488', '#2DD4BF'],
-  ['#D97706', '#FCD34D'],
-  ['#2563EB', '#93C5FD'],
-  ['#DC2626', '#FCA5A5'],
-  ['#059669', '#6EE7B7'],
+  ['#D4AF37', '#E8C87A'],
+  ['#0B7A70', '#14B8A8'],
+  ['#D4AF37', '#B8932A'],
+  ['#0D9488', '#5EEAD4'],
 ];
 
 function SalonCard({ salon, i, isFav }) {
@@ -42,11 +42,11 @@ function SalonCard({ salon, i, isFav }) {
           )}
           <span style={{
             ...s.statusBadge,
-            background: isOpen ? 'rgba(52,211,153,.15)' : 'rgba(107,114,128,.1)',
-            color:      isOpen ? '#059669' : '#6B7280',
-            border:     `1px solid ${isOpen ? '#6EE7B766' : '#D1D5DB'}`,
+            background: isOpen ? 'rgba(13,148,136,.15)' : 'rgba(107,114,128,.1)',
+            color:      isOpen ? '#0D9488' : '#6B7280',
+            border:     `1px solid ${isOpen ? 'rgba(13,148,136,.4)' : '#D1D5DB'}`,
           }}>
-            <span style={{ width: 5, height: 5, borderRadius: '50%', background: isOpen ? '#34D399' : '#9CA3AF', display: 'inline-block', flexShrink: 0 }} />
+            <span style={{ width: 5, height: 5, borderRadius: '50%', background: isOpen ? '#14B8A8' : '#9CA3AF', display: 'inline-block', flexShrink: 0 }} />
             {isOpen ? 'Open' : 'Closed'}
           </span>
         </div>
@@ -144,8 +144,8 @@ export default function SalonList() {
             <p style={{ ...s.heroSub, fontSize: isMobile ? 13 : 16 }}>
               Browse curated premium salons and book your next beauty appointment in seconds.
             </p>
-            <div style={{ ...s.heroSearch, maxWidth: isMobile ? '100%' : 480 }} className="fade-up d2">
-              <span style={{ color: '#0D9488', fontSize: 15, flexShrink: 0 }}>✦</span>
+            <div style={{ ...s.heroSearch, maxWidth: isMobile ? '100%' : 480 }} className="fade-up d2 search-bar-wrap">
+              <span className="search-icon" style={{ color: '#0D9488', fontSize: 15, flexShrink: 0 }}>✦</span>
               <input
                 className="hero-search"
                 style={s.heroSearchInput}
@@ -164,8 +164,8 @@ export default function SalonList() {
       {/* ── Mobile / tablet search — shown to signed-in users only ── */}
       {profile && isNarrow && (
         <div style={s.topSearch}>
-          <div style={s.topSearchBox}>
-            <span style={{ color: '#0D9488', fontSize: 14, flexShrink: 0 }}>✦</span>
+          <div style={s.topSearchBox} className="search-bar-wrap">
+            <span className="search-icon" style={{ color: '#0D9488', fontSize: 14, flexShrink: 0 }}>✦</span>
             <input
               style={s.searchInput}
               placeholder="Search salons…"
@@ -295,7 +295,7 @@ const s = {
   },
   glow1: {
     position: 'absolute', width: 420, height: 420, borderRadius: '50%',
-    background: 'radial-gradient(circle, rgba(236,72,153,.18) 0%, transparent 70%)',
+    background: 'radial-gradient(circle, rgba(212,175,55,.18) 0%, transparent 70%)',
     top: -100, right: -40, pointerEvents: 'none', filter: 'blur(40px)',
   },
   glow2: {
@@ -307,7 +307,7 @@ const s = {
   eyebrow: {
     display: 'inline-flex', alignItems: 'center', gap: 8,
     fontSize: 11, fontWeight: 600, letterSpacing: '0.22em', textTransform: 'uppercase',
-    color: 'rgba(196,181,253,.75)', marginBottom: 24,
+    color: 'rgba(153,246,228,.75)', marginBottom: 24,
     background: 'rgba(255,255,255,.07)', padding: '7px 18px', borderRadius: 30,
     border: '1px solid rgba(255,255,255,.1)',
   },
@@ -425,8 +425,8 @@ const s = {
     padding: '3px 10px', border: '1px solid var(--border)',
   },
   cardFav: {
-    border: '1.5px solid rgba(245,158,11,.3)',
-    boxShadow: '0 4px 18px rgba(245,158,11,.1)',
+    border: '1.5px solid rgba(212,175,55,.3)',
+    boxShadow: '0 4px 18px rgba(212,175,55,.1)',
   },
   cardCta: {
     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
@@ -435,25 +435,25 @@ const s = {
   },
   favStar: {
     display: 'inline-flex', alignItems: 'center', gap: 4,
-    fontSize: 10, fontWeight: 800, color: '#D97706',
-    background: 'rgba(245,158,11,.15)', borderRadius: 20,
-    padding: '3px 9px', border: '1px solid rgba(245,158,11,.3)',
+    fontSize: 10, fontWeight: 800, color: '#D4AF37',
+    background: 'rgba(212,175,55,.15)', borderRadius: 20,
+    padding: '3px 9px', border: '1px solid rgba(212,175,55,.3)',
     letterSpacing: '0.04em',
   },
   favStarInline: {
-    fontSize: 14, color: '#F59E0B', flexShrink: 0,
+    fontSize: 14, color: '#D4AF37', flexShrink: 0,
   },
   sectionLabel: {
     display: 'flex', alignItems: 'center', gap: 8,
     fontSize: 11, fontWeight: 700, letterSpacing: '0.12em',
-    textTransform: 'uppercase', color: '#D97706',
+    textTransform: 'uppercase', color: '#D4AF37',
     paddingBottom: 4,
   },
-  sectionStar: { fontSize: 15, color: '#F59E0B' },
+  sectionStar: { fontSize: 15, color: '#D4AF37' },
   sectionCount: {
-    fontSize: 10, fontWeight: 800, color: '#D97706',
-    background: 'rgba(245,158,11,.12)', borderRadius: 20,
-    padding: '2px 8px', border: '1px solid rgba(245,158,11,.25)',
+    fontSize: 10, fontWeight: 800, color: '#D4AF37',
+    background: 'rgba(212,175,55,.12)', borderRadius: 20,
+    padding: '2px 8px', border: '1px solid rgba(212,175,55,.25)',
     marginLeft: 2,
   },
 

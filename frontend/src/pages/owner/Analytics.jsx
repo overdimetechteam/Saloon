@@ -56,9 +56,9 @@ export default function OwnerAnalytics() {
         <>
           <div style={s.kpiGrid} className="fade-up">
             <KpiCard label="Total Revenue" value={`LKR ${Number(data.total_revenue).toLocaleString()}`} color="#0D9488" bg="rgba(13,148,136,.08)" border="rgba(13,148,136,.18)" />
-            <KpiCard label="Product Sales" value={`LKR ${Number(data.product_sales_revenue).toLocaleString()}`} color="#0284C7" bg="rgba(2,132,199,.08)" border="rgba(2,132,199,.18)" />
-            <KpiCard label="Total Bookings" value={data.total_bookings} color="#059669" bg="rgba(5,150,105,.08)" border="rgba(5,150,105,.18)" />
-            <KpiCard label="Cancellation Rate" value={`${data.cancellation_rate}%`} color={data.cancellation_rate > 20 ? '#DC2626' : '#D97706'} bg={data.cancellation_rate > 20 ? 'rgba(220,38,38,.08)' : 'rgba(217,119,6,.08)'} border={data.cancellation_rate > 20 ? 'rgba(220,38,38,.18)' : 'rgba(217,119,6,.18)'} />
+            <KpiCard label="Product Sales" value={`LKR ${Number(data.product_sales_revenue).toLocaleString()}`} color="#D4AF37" bg="rgba(212,175,55,.08)" border="rgba(212,175,55,.18)" />
+            <KpiCard label="Total Bookings" value={data.total_bookings} color="#0D9488" bg="rgba(13,148,136,.08)" border="rgba(13,148,136,.18)" />
+            <KpiCard label="Cancellation Rate" value={`${data.cancellation_rate}%`} color={data.cancellation_rate > 20 ? '#DC2626' : '#D4AF37'} bg={data.cancellation_rate > 20 ? 'rgba(220,38,38,.08)' : 'rgba(212,175,55,.08)'} border={data.cancellation_rate > 20 ? 'rgba(220,38,38,.18)' : 'rgba(212,175,55,.18)'} />
           </div>
 
           {data.revenue_by_day?.length > 0 && (
@@ -87,7 +87,7 @@ export default function OwnerAnalytics() {
             <div style={s.cardEyebrow}>Booking Breakdown</div>
             <div style={s.breakdownRow}>
               {[
-                { label: 'Completed', value: data.completed_bookings, color: '#059669', bg: 'rgba(5,150,105,.08)', border: 'rgba(5,150,105,.18)' },
+                { label: 'Completed', value: data.completed_bookings, color: '#0D9488', bg: 'rgba(13,148,136,.08)', border: 'rgba(13,148,136,.18)' },
                 { label: 'Cancelled', value: data.cancelled_bookings, color: '#DC2626', bg: 'rgba(220,38,38,.08)', border: 'rgba(220,38,38,.18)' },
                 { label: 'Other', value: data.total_bookings - data.completed_bookings - data.cancelled_bookings, color: '#6B7280', bg: 'var(--surface2)', border: 'var(--border)' },
               ].map(b => (
@@ -186,7 +186,7 @@ function TopServicesChart({ data }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       {data.map((svc, i) => {
         const pct = (svc.count / maxCount) * 100;
-        const hue = [280, 300, 260, 320, 240][i % 5];
+        const barColor = ['#0D9488','#D4AF37','#0B7A70','#14B8A8','#B8932A'][i % 5];
         return (
           <div key={svc.service_name}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
@@ -194,7 +194,7 @@ function TopServicesChart({ data }) {
               <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{svc.count} bookings · LKR {svc.revenue.toLocaleString()}</span>
             </div>
             <div style={{ height: 7, background: 'var(--surface2)', borderRadius: 4, overflow: 'hidden', border: '1px solid var(--border)' }}>
-              <div style={{ width: `${pct}%`, height: '100%', borderRadius: 4, background: `hsl(${hue}, 70%, 55%)`, transition: 'width .5s ease' }} />
+              <div style={{ width: `${pct}%`, height: '100%', borderRadius: 4, background: barColor, transition: 'width .5s ease' }} />
             </div>
           </div>
         );

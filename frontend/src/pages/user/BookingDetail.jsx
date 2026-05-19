@@ -283,8 +283,8 @@ const s = {
   },
   alertOk: {
     margin: '0 18px 14px',
-    background: '#ECFDF5', border: '1px solid #6EE7B7',
-    color: '#059669', borderRadius: 12, padding: '11px 16px', fontSize: 13,
+    background: '#F0FDFA', border: '1px solid #99F6E4',
+    color: '#0D9488', borderRadius: 12, padding: '11px 16px', fontSize: 13,
   },
 
   infoGrid: {
@@ -316,18 +316,18 @@ const s = {
 
   altSection: {
     margin: '0 18px 20px',
-    background: 'rgba(217,119,6,.07)',
+    background: 'rgba(212,175,55,.07)',
     borderRadius: 18, padding: 20,
-    border: '1px solid rgba(217,119,6,.25)',
+    border: '1px solid rgba(212,175,55,.25)',
   },
   altHeader: { display: 'flex', gap: 14, marginBottom: 18, alignItems: 'flex-start' },
   altIconWrap: {
     width: 36, height: 36, borderRadius: 10, flexShrink: 0,
-    background: 'linear-gradient(135deg, #D97706 0%, #B45309 100%)',
+    background: 'linear-gradient(135deg, #D4AF37 0%, #B8932A 100%)',
     color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
-    fontSize: 16, boxShadow: '0 4px 12px rgba(217,119,6,.3)',
+    fontSize: 16, boxShadow: '0 4px 12px rgba(212,175,55,.3)',
   },
-  altTitle: { fontWeight: 700, fontSize: 14, color: '#D97706', marginBottom: 4 },
+  altTitle: { fontWeight: 700, fontSize: 14, color: '#D4AF37', marginBottom: 4 },
   altSub: { fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.5 },
   slotList: { display: 'flex', flexDirection: 'column', gap: 8 },
   slotCard: {
@@ -340,10 +340,10 @@ const s = {
   slotTime: { fontSize: 12, color: 'var(--text-muted)' },
   selectBtn: {
     padding: '9px 20px',
-    background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+    background: 'linear-gradient(135deg, #0D9488 0%, #0B7A70 100%)',
     color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer',
     fontWeight: 700, fontSize: 13,
-    boxShadow: '0 4px 12px rgba(5,150,105,.3)',
+    boxShadow: '0 4px 12px rgba(13,148,136,.3)',
   },
 
   reviewSection: {

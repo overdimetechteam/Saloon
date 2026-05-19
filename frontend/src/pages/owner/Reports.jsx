@@ -41,7 +41,7 @@ export default function OwnerReports() {
     ...adjustments.map(a => ({
       id: `adj-${a.id}`, type: 'Adjustment', date: a.adjusted_at,
       product: a.product_name, change: a.quantity_change, note: a.reason,
-      color: a.quantity_change > 0 ? '#059669' : '#DC2626',
+      color: a.quantity_change > 0 ? '#0D9488' : '#DC2626',
     })),
     ...sales.flatMap(s => (s.items || []).map(it => ({
       id: `sale-${s.id}-${it.id}`, type: 'Sale', date: s.created_at,
@@ -51,7 +51,7 @@ export default function OwnerReports() {
     ...grns.filter(g => g.status === 'confirmed').flatMap(g => (g.items || []).map(it => ({
       id: `grn-${g.id}-${it.id}`, type: 'GRN', date: g.created_at,
       product: it.product_name, change: it.quantity_received, note: g.supplier_name,
-      color: '#059669',
+      color: '#0D9488',
     }))),
   ].sort((a, b) => new Date(b.date) - new Date(a.date));
 
@@ -93,8 +93,8 @@ export default function OwnerReports() {
         {[
           { label: 'Total Products',      value: products.length,              color: '#0D9488', bg: 'rgba(13,148,136,.08)', border: 'rgba(13,148,136,.18)' },
           { label: 'Low Stock Items',     value: lowStock.length,              color: '#DC2626', bg: 'rgba(220,38,38,.08)',  border: 'rgba(220,38,38,.18)'  },
-          { label: 'Stock Value (Cost)',  value: `LKR ${totalValue.toFixed(0)}`,color: '#059669', bg: 'rgba(5,150,105,.08)', border: 'rgba(5,150,105,.18)'  },
-          { label: 'Total Adjustments',  value: adjustments.length,           color: '#D97706', bg: 'rgba(217,119,6,.08)', border: 'rgba(217,119,6,.18)'  },
+          { label: 'Stock Value (Cost)',  value: `LKR ${totalValue.toFixed(0)}`,color: '#0D9488', bg: 'rgba(13,148,136,.08)', border: 'rgba(13,148,136,.18)'  },
+          { label: 'Total Adjustments',  value: adjustments.length,           color: '#D4AF37', bg: 'rgba(212,175,55,.08)',  border: 'rgba(212,175,55,.18)'  },
         ].map(stat => (
           <div key={stat.label} style={{ ...s.statCard, background: stat.bg, border: `1px solid ${stat.border}` }}>
             <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 32, fontWeight: 800, color: stat.color, lineHeight: 1 }}>{stat.value}</div>
@@ -131,7 +131,7 @@ export default function OwnerReports() {
                     </td>
                     <td style={s.td}>{p.category}</td>
                     <td style={s.td}>
-                      <span style={{ fontWeight: 700, color: isLow ? '#DC2626' : '#059669' }}>
+                      <span style={{ fontWeight: 700, color: isLow ? '#DC2626' : '#0D9488' }}>
                         {p.current_stock}
                       </span>
                       <span style={{ color: 'var(--text-muted)', fontSize: 12 }}> {p.unit_of_measure}</span>
@@ -155,7 +155,7 @@ export default function OwnerReports() {
           {lowStock.length === 0 ? (
             <div style={s.noLow}>
               <div style={{ fontSize: 36, marginBottom: 14 }}>✅</div>
-              <p style={{ fontWeight: 700, color: '#059669', margin: 0 }}>All products are above their reorder levels.</p>
+              <p style={{ fontWeight: 700, color: '#0D9488', margin: 0 }}>All products are above their reorder levels.</p>
             </div>
           ) : (
             <div style={s.lowGrid}>
@@ -175,7 +175,7 @@ export default function OwnerReports() {
                     </div>
                     <div style={s.lowArrow}>→</div>
                     <div style={s.lowStat}>
-                      <div style={{ ...s.lowStatVal, color: '#D97706' }}>{p.reorder_level}</div>
+                      <div style={{ ...s.lowStatVal, color: '#D4AF37' }}>{p.reorder_level}</div>
                       <div style={s.lowStatLabel}>Min Level</div>
                     </div>
                     <div style={s.lowArrow}>·</div>
@@ -221,8 +221,8 @@ export default function OwnerReports() {
                     <td style={s.td}>
                       <span style={{
                         ...s.typeBadge,
-                        background: m.type === 'Sale' ? 'rgba(220,38,38,.1)' : m.type === 'GRN' ? 'rgba(5,150,105,.1)' : 'rgba(37,99,235,.1)',
-                        color: m.type === 'Sale' ? '#DC2626' : m.type === 'GRN' ? '#059669' : '#2563EB',
+                        background: m.type === 'Sale' ? 'rgba(220,38,38,.1)' : m.type === 'GRN' ? 'rgba(13,148,136,.1)' : 'rgba(212,175,55,.1)',
+                        color: m.type === 'Sale' ? '#DC2626' : m.type === 'GRN' ? '#0D9488' : '#D4AF37',
                       }}>{m.type}</span>
                     </td>
                     <td style={s.td}><span style={s.prodName}>{m.product}</span></td>

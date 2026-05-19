@@ -44,8 +44,8 @@ export default function UserBookingList() {
       </div>
 
       {/* Search */}
-      <div style={s.searchWrap} className="fade-up d1">
-        <span style={s.searchIcon}>✦</span>
+      <div style={s.searchWrap} className="fade-up d1 search-bar-wrap">
+        <span className="search-icon" style={s.searchIcon}>✦</span>
         <input
           style={s.searchInput}
           placeholder="Search by salon name…"
@@ -199,7 +199,7 @@ const s = {
     padding: '11px 24px',
     background: 'linear-gradient(135deg, #0D9488 0%, #0D9488 100%)',
     color: '#fff', borderRadius: 12, fontWeight: 700, fontSize: 14,
-    textDecoration: 'none', boxShadow: '0 6px 20px rgba(236,72,153,.35)',
+    textDecoration: 'none', boxShadow: '0 6px 20px rgba(13,148,136,.35)',
     display: 'inline-flex', alignItems: 'center', gap: 7,
     alignSelf: 'flex-start',
   },
@@ -282,10 +282,10 @@ const s = {
   svcsRow: { fontSize: 12, color: 'var(--text-muted)' },
   actionPill: {
     display: 'inline-block', marginTop: 6,
-    fontSize: 11, fontWeight: 600, color: '#D97706',
-    background: 'rgba(217,119,6,.1)',
+    fontSize: 11, fontWeight: 600, color: '#D4AF37',
+    background: 'rgba(212,175,55,.1)',
     borderRadius: 20, padding: '3px 10px',
-    border: '1px solid rgba(217,119,6,.25)',
+    border: '1px solid rgba(212,175,55,.25)',
   },
   cardRight: {
     display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8,
@@ -294,8 +294,8 @@ const s = {
   badge: { display: 'inline-flex', padding: '4px 12px', borderRadius: 20, fontSize: 11, fontWeight: 700 },
   roundTag: { fontSize: 10, color: 'var(--text-muted)' },
   rebookBtn: {
-    fontSize: 12, color: '#059669', fontWeight: 600,
-    padding: '5px 12px', background: '#ECFDF5', border: '1px solid #6EE7B7',
+    fontSize: 12, color: '#0D9488', fontWeight: 600,
+    padding: '5px 12px', background: '#F0FDFA', border: '1px solid #99F6E4',
     borderRadius: 8, cursor: 'pointer', transition: 'background .15s ease',
   },
   detailBtn: {

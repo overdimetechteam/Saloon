@@ -18,11 +18,11 @@ function StepBar({ step }) {
         const active  = i === step;
         return (
           <div key={i} style={sb.stepWrap}>
-            <div style={{ ...sb.dot, background: done ? '#059669' : active ? '#0D9488' : 'var(--border)', color: done || active ? '#fff' : 'var(--text-muted)' }}>
+            <div style={{ ...sb.dot, background: done ? '#0D9488' : active ? '#0D9488' : 'var(--border)', color: done || active ? '#fff' : 'var(--text-muted)' }}>
               {done ? '✓' : i + 1}
             </div>
-            <div style={{ ...sb.label, color: active ? '#0D9488' : done ? '#059669' : 'var(--text-muted)', fontWeight: active ? 800 : 500 }}>{label}</div>
-            {i < STEPS.length - 1 && <div style={{ ...sb.line, background: done ? '#059669' : 'var(--border)' }} />}
+            <div style={{ ...sb.label, color: active ? '#0D9488' : done ? '#0D9488' : 'var(--text-muted)', fontWeight: active ? 800 : 500 }}>{label}</div>
+            {i < STEPS.length - 1 && <div style={{ ...sb.line, background: done ? '#0D9488' : 'var(--border)' }} />}
           </div>
         );
       })}
@@ -352,7 +352,7 @@ function Step4Confirm({ form, items, salonId, clearCart, setStep }) {
         <Line label={`Tax (${(TAX_RATE * 100).toFixed(0)}% VAT)`} val={`LKR ${tax.toLocaleString(undefined, { minimumFractionDigits: 2 })}`} />
         {deliveryFee > 0 && <Line label="Delivery Fee" val={`LKR ${deliveryFee.toLocaleString()}`} />}
         {giftFee > 0 && <Line label="Gift Wrapping" val={`LKR ${giftFee.toLocaleString()}`} />}
-        {discount > 0 && <Line label={`Promo (${form.promo_label})`} val={`− LKR ${discount.toLocaleString(undefined, { minimumFractionDigits: 2 })}`} color="#059669" />}
+        {discount > 0 && <Line label={`Promo (${form.promo_label})`} val={`− LKR ${discount.toLocaleString(undefined, { minimumFractionDigits: 2 })}`} color="#0D9488" />}
         <div style={{ borderTop: '1.5px solid var(--border)', marginTop: 10, paddingTop: 10 }}>
           <Line label="Total" val={`LKR ${total.toLocaleString(undefined, { minimumFractionDigits: 2 })}`} bold />
         </div>
@@ -503,7 +503,7 @@ const c = {
   checkRow: { display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8, cursor: 'pointer' },
   checkLabel: { fontSize: 14, color: 'var(--text)', fontWeight: 500, cursor: 'pointer' },
 
-  promoApplied: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: 'rgba(5,150,105,.1)', border: '1.5px solid #059669', borderRadius: 10, fontSize: 13, color: '#059669', fontWeight: 700 },
+  promoApplied: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: 'rgba(13,148,136,.1)', border: '1.5px solid #0D9488', borderRadius: 10, fontSize: 13, color: '#0D9488', fontWeight: 700 },
   promoRemove: { background: 'none', border: 'none', color: '#DC2626', cursor: 'pointer', fontWeight: 700, fontSize: 12 },
   applyBtn: { padding: '10px 18px', background: 'linear-gradient(135deg, #0D9488, #14B8A8)', color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 700, fontSize: 13, whiteSpace: 'nowrap', fontFamily: "'DM Sans', sans-serif" },
 
@@ -513,6 +513,6 @@ const c = {
   errorBox: { background: '#FEF2F2', border: '1px solid #FCA5A5', color: '#DC2626', borderRadius: 10, padding: '12px 16px', fontSize: 13, marginBottom: 16 },
 
   btnRow: { display: 'flex', justifyContent: 'space-between', marginTop: 24, gap: 12 },
-  primaryBtn: { padding: '13px 28px', background: 'linear-gradient(135deg, #0D9488, #EC4899)', color: '#fff', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 800, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" },
+  primaryBtn: { padding: '13px 28px', background: 'linear-gradient(135deg, #0D9488, #14B8A8)', color: '#fff', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 800, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" },
   outlineBtn: { padding: '13px 22px', border: '1.5px solid var(--border)', borderRadius: 12, background: 'none', color: 'var(--text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" },
 };

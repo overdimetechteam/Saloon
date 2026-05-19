@@ -3,8 +3,8 @@ import api from '../../api/axios';
 import { useBreakpoint } from '../../hooks/useMobile';
 
 const STATUS_META = {
-  pending:  { label: 'Pending',   color: '#D97706', bg: '#FFFBEB', border: 'rgba(217,119,6,.2)'  },
-  active:   { label: 'Active',    color: '#059669', bg: '#ECFDF5', border: 'rgba(5,150,105,.2)'  },
+  pending:  { label: 'Pending',   color: '#D4AF37', bg: '#FBF3D0', border: 'rgba(212,175,55,.2)'  },
+  active:   { label: 'Active',    color: '#0D9488', bg: '#F0FDFA', border: 'rgba(13,148,136,.2)'  },
   inactive: { label: 'Inactive',  color: '#DC2626', bg: '#FEF2F2', border: 'rgba(220,38,38,.2)'  },
   suspended:{ label: 'Suspended', color: '#0D9488', bg: '#F0FDFA', border: 'rgba(13,148,136,.2)' },
 };
@@ -77,8 +77,8 @@ export default function AdminSalons() {
 
   const STAT_TABS = [
     { key: 'all',       label: 'Total',     val: salons.length,            color: '#0D9488', bg: 'rgba(13,148,136,.08)',  border: 'rgba(13,148,136,.18)' },
-    { key: 'pending',   label: 'Pending',   val: counts.pending   || 0,    color: '#D97706', bg: 'rgba(217,119,6,.08)',   border: 'rgba(217,119,6,.18)'  },
-    { key: 'active',    label: 'Active',    val: counts.active    || 0,    color: '#059669', bg: 'rgba(5,150,105,.08)',   border: 'rgba(5,150,105,.18)'  },
+    { key: 'pending',   label: 'Pending',   val: counts.pending   || 0,    color: '#D4AF37', bg: 'rgba(212,175,55,.08)',   border: 'rgba(212,175,55,.18)'  },
+    { key: 'active',    label: 'Active',    val: counts.active    || 0,    color: '#0D9488', bg: 'rgba(13,148,136,.08)',  border: 'rgba(13,148,136,.18)'  },
     { key: 'suspended', label: 'Suspended', val: counts.suspended || 0,    color: '#0D9488', bg: 'rgba(13,148,136,.08)', border: 'rgba(13,148,136,.18)' },
     { key: 'inactive',  label: 'Inactive',  val: counts.inactive  || 0,    color: '#DC2626', bg: 'rgba(220,38,38,.08)',  border: 'rgba(220,38,38,.18)'  },
   ];
@@ -217,7 +217,7 @@ const s = {
   eyebrow: { fontSize: 10, fontWeight: 700, color: 'var(--brand-label)', letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: 6 },
   title: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 30, fontWeight: 700, color: 'var(--text)', margin: '0 0 4px', letterSpacing: '-0.01em' },
   sub: { color: 'var(--text-muted)', fontSize: 13, margin: 0 },
-  alertOk:  { background: '#ECFDF5', border: '1px solid #6EE7B7', color: '#059669', borderRadius: 12, padding: '11px 16px', fontSize: 13, marginBottom: 18 },
+  alertOk:  { background: '#F0FDFA', border: '1px solid #99F6E4', color: '#0D9488', borderRadius: 12, padding: '11px 16px', fontSize: 13, marginBottom: 18 },
   alertErr: { background: '#FEF2F2', border: '1px solid #FCA5A5', color: '#DC2626', borderRadius: 12, padding: '11px 16px', fontSize: 13, marginBottom: 18 },
   statsRow: { display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 14, marginBottom: 26 },
   statCard: {
@@ -241,10 +241,10 @@ const s = {
   contact:    { fontSize: 12, color: 'var(--text-muted)' },
   badge:      { display: 'inline-block', padding: '3px 12px', borderRadius: 20, fontSize: 11, fontWeight: 700 },
   actions:    { display: 'flex', gap: 6, flexWrap: 'wrap' },
-  approveBtn: { padding: '6px 14px', background: '#ECFDF5', color: '#059669', border: '1px solid rgba(5,150,105,.25)', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: "'DM Sans', sans-serif" },
+  approveBtn: { padding: '6px 14px', background: '#F0FDFA', color: '#0D9488', border: '1px solid rgba(13,148,136,.25)', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: "'DM Sans', sans-serif" },
   rejectBtn:  { padding: '6px 14px', background: '#FEF2F2', color: '#DC2626', border: '1px solid rgba(220,38,38,.25)', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: "'DM Sans', sans-serif" },
   suspendBtn: { padding: '6px 14px', background: '#F0FDFA', color: '#0D9488', border: '1px solid rgba(13,148,136,.25)', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: "'DM Sans', sans-serif" },
-  enableBtn:  { padding: '6px 14px', background: '#ECFDF5', color: '#059669', border: '1px solid rgba(5,150,105,.25)', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: "'DM Sans', sans-serif" },
+  enableBtn:  { padding: '6px 14px', background: '#F0FDFA', color: '#0D9488', border: '1px solid rgba(13,148,136,.25)', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: "'DM Sans', sans-serif" },
   removeBtn:  { padding: '6px 14px', background: '#FEF2F2', color: '#DC2626', border: '1px solid rgba(220,38,38,.25)', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: "'DM Sans', sans-serif" },
   noAction:   { color: 'var(--text-muted)', fontSize: 14 },
   empty:      { padding: '50px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 14 },

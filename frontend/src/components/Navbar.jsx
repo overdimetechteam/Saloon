@@ -22,7 +22,7 @@ const NAV_LINKS = {
 
 export default function Navbar() {
   const { profile, logout } = useAuth();
-  const { isDark, toggle }  = useTheme();
+  const { isDark, toggle, navPalette } = useTheme();
   const navigate            = useNavigate();
   const location            = useLocation();
   const { isMobile, isTablet } = useBreakpoint();
@@ -38,25 +38,33 @@ export default function Navbar() {
   const navLinks = profile ? (NAV_LINKS[profile.role] || []) : [];
 
   const isExplore = location.pathname === '/salons';
+  const isCosmetics = location.pathname.includes('cosmetics');
   const navSearch = searchParams.get('q') || '';
   const showNavSearch = isExplore && !isMobile && !isTablet;
+
+  const cosmAccent  = '#C96B51';
+  const cosmAccent2 = '#D4AF37';
+  const accentColor  = isCosmetics ? cosmAccent  : (navPalette?.main  || '#0D9488');
+  const accentColor2 = isCosmetics ? cosmAccent2 : (navPalette?.light || '#14B8A8');
+  const accentShadow = isCosmetics ? 'rgba(201,107,81,' : (navPalette ? `rgba(${navPalette.rgb},` : 'rgba(13,148,136,');
+  const toggleColor  = isCosmetics ? cosmAccent  : (navPalette ? (isDark ? navPalette.textLight : navPalette.main) : (isDark ? '#5EEAD4' : '#0D9488'));
 
   return (
     <>
     <header style={{ ...s.header, padding: isMobile ? '0 16px' : '0 40px' }}>
 
       <Link to={dashTo || '/salons'} style={s.brand}>
-        <div style={s.brandMark}>✦</div>
+        <div style={{ ...s.brandMark, background: `linear-gradient(145deg, ${accentColor} 0%, ${accentColor2} 100%)`, boxShadow: `0 4px 16px ${accentShadow}.4), inset 0 1px 0 rgba(255,255,255,.2)` }}>✦</div>
         <div style={s.brandText}>
           <div style={{ ...s.brandName, fontSize: isMobile ? 18 : 20 }}>Saloon</div>
-          {!isMobile && <div style={s.brandTagline}>Beauty & Wellness</div>}
+          {!isMobile && <div style={{ ...s.brandTagline, color: accentColor }}>Beauty & Wellness</div>}
         </div>
       </Link>
 
       {/* Centered search — desktop explore page only */}
       {showNavSearch && (
-        <div style={s.navSearch}>
-          <span style={{ color: '#0D9488', fontSize: 13, flexShrink: 0 }}>✦</span>
+        <div style={s.navSearch} className="search-bar-wrap">
+          <span className="search-icon" style={{ color: accentColor, fontSize: 13, flexShrink: 0 }}>✦</span>
           <input
             style={s.navSearchInput}
             placeholder="Search salons…"
@@ -83,11 +91,11 @@ export default function Navbar() {
               </>
             )}
             <button onClick={toggle} className="theme-toggle" title={isDark ? 'Light mode' : 'Dark mode'}
-              style={{ color: isDark ? '#5EEAD4' : '#0D9488' }}>
+              style={{ color: toggleColor }}>
               {isDark ? '☀' : '☾'}
             </button>
             <Link to={dashTo} style={s.avatarWrap} title="Go to dashboard">
-              <div style={s.avatar}>{initials}</div>
+              <div style={{ ...s.avatar, background: `linear-gradient(145deg, ${accentColor} 0%, ${accentColor2} 100%)`, boxShadow: `0 2px 10px ${accentShadow}.35)` }}>{initials}</div>
               <div style={s.onlineDot} />
             </Link>
             {!isMobile && (
@@ -104,11 +112,11 @@ export default function Navbar() {
             {!isMobile && <Link to="/salons" style={s.ghostLink}>Browse Salons</Link>}
             <Link to="/login" style={s.ghostLink}>Sign In</Link>
             <button onClick={toggle} className="theme-toggle" title={isDark ? 'Light mode' : 'Dark mode'}
-              style={{ color: isDark ? '#5EEAD4' : '#0D9488' }}>
+              style={{ color: toggleColor }}>
               {isDark ? '☀' : '☾'}
             </button>
             {!isMobile && (
-              <Link to="/register/user" style={s.primaryBtn} className="btn-cta">Get Started</Link>
+              <Link to="/register/user" style={{ ...s.primaryBtn, background: `linear-gradient(135deg, ${accentColor} 0%, ${accentColor2} 50%, ${accentColor} 100%)`, boxShadow: `0 4px 14px ${accentShadow}.35), inset 0 1px 0 rgba(255,255,255,.15)` }} className="btn-cta">Get Started</Link>
             )}
             {isMobile && (
               <button onClick={() => setMenuOpen(o => !o)} style={s.hamburger} aria-label="Toggle menu">
@@ -212,7 +220,7 @@ const s = {
     fontSize: 12, fontWeight: 700, boxShadow: '0 2px 10px rgba(13,148,136,.35)',
   },
   onlineDot: {
-    width: 9, height: 9, borderRadius: '50%', background: '#34D399',
+    width: 9, height: 9, borderRadius: '50%', background: '#14B8A8',
     border: '2px solid var(--surface)',
     position: 'absolute', bottom: 0, right: 0,
   },

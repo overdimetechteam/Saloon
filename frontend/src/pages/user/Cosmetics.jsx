@@ -6,10 +6,10 @@ import { useBreakpoint } from '../../hooks/useMobile';
 const CATS = ['All', 'Hair Care', 'Skin Care', 'Nail Care', 'Other'];
 
 const CAT_COLORS = {
-  'Hair Care': '#8B5CF6',
-  'Skin Care': '#10B981',
+  'Hair Care': '#C96B51',
+  'Skin Care': '#D4AF37',
   'Nail Care': '#0D9488',
-  'Other':     '#F59E0B',
+  'Other':     '#B8932A',
 };
 
 const CAT_ICONS = {
@@ -60,6 +60,7 @@ export default function Cosmetics() {
           <div style={{ position: 'relative', maxWidth: 420 }}>
             <span style={s.searchIcon}>🔍</span>
             <input
+              className="search-bar"
               style={s.searchInput}
               placeholder="Search products, brands or salons…"
               value={search}
@@ -74,7 +75,7 @@ export default function Cosmetics() {
         {/* Category filter */}
         <div style={s.catRow}>
           {CATS.map(cat => {
-            const color = cat === 'All' ? '#0D9488' : (CAT_COLORS[cat] || '#0D9488');
+            const color = cat === 'All' ? '#C96B51' : (CAT_COLORS[cat] || '#C96B51');
             const isActive = cat === activeCat;
             return (
               <button
@@ -133,7 +134,7 @@ export default function Cosmetics() {
 
                 <div style={{ ...s.grid, gridTemplateColumns: isMobile ? '1fr 1fr' : isTablet ? 'repeat(3, 1fr)' : 'repeat(auto-fill, minmax(200px, 1fr))' }}>
                   {salonProducts.map(p => {
-                    const color = CAT_COLORS[p.category] || '#0D9488';
+                    const color = CAT_COLORS[p.category] || '#C96B51';
                     return (
                       <div key={p.id} style={s.card} className="lift-sm fade-up">
                         <div style={{ ...s.cardTop, background: `${color}18` }}>
@@ -149,7 +150,7 @@ export default function Cosmetics() {
                             <span style={{ ...s.price, color }}>LKR {Number(p.selling_price).toLocaleString()}</span>
                             <span style={s.unit}>/ {p.unit_of_measure}</span>
                           </div>
-                          <div style={{ ...s.stockRow, color: p.current_stock > 5 ? '#059669' : p.current_stock > 0 ? '#D97706' : '#DC2626' }}>
+                          <div style={{ ...s.stockRow, color: p.current_stock > 5 ? '#0D9488' : p.current_stock > 0 ? '#D4AF37' : '#DC2626' }}>
                             {p.current_stock > 5 ? '● In Stock' : p.current_stock > 0 ? `● Only ${p.current_stock} left` : '● Out of Stock'}
                           </div>
                         </div>
@@ -170,12 +171,12 @@ const s = {
   page: { background: 'var(--bg)', minHeight: '100vh' },
 
   hero: {
-    background: 'linear-gradient(135deg, #1a0533 0%, #3B0764 35%, #0D9488 70%, #EC4899 100%)',
+    background: 'linear-gradient(145deg, #1A0D09 0%, #4A1F12 35%, #C96B51 70%, #D4AF37 100%)',
     position: 'relative', overflow: 'hidden',
   },
-  heroGlow1: { position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at top left, rgba(236,72,153,.3) 0%, transparent 60%)', pointerEvents: 'none' },
-  heroGlow2: { position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at bottom right, rgba(245,158,11,.2) 0%, transparent 50%)', pointerEvents: 'none' },
-  eyebrow: { fontSize: 10, fontWeight: 700, color: 'rgba(255,209,226,.8)', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 10 },
+  heroGlow1: { position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at top left, rgba(201,107,81,.3) 0%, transparent 60%)', pointerEvents: 'none' },
+  heroGlow2: { position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at bottom right, rgba(212,175,55,.2) 0%, transparent 50%)', pointerEvents: 'none' },
+  eyebrow: { fontSize: 10, fontWeight: 700, color: 'rgba(255,220,200,.8)', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 10 },
   heroTitle: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontWeight: 700, color: '#fff', margin: '0 0 12px', lineHeight: 1.1, letterSpacing: '-0.01em' },
   heroSub: { color: 'rgba(255,255,255,.65)', fontSize: 15, margin: '0 0 28px', lineHeight: 1.65 },
   searchIcon: { position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', fontSize: 15, pointerEvents: 'none' },
@@ -202,7 +203,7 @@ const s = {
   countText: { fontSize: 13, color: 'var(--text-muted)', fontWeight: 500 },
 
   loaderWrap: { display: 'flex', justifyContent: 'center', padding: '80px 0' },
-  loaderSpinner: { width: 36, height: 36, borderRadius: '50%', border: '3px solid rgba(236,72,153,.15)', borderTopColor: '#EC4899', animation: 'spinSlow .7s linear infinite' },
+  loaderSpinner: { width: 36, height: 36, borderRadius: '50%', border: '3px solid rgba(201,107,81,.15)', borderTopColor: '#C96B51', animation: 'spinSlow .7s linear infinite' },
 
   emptyWrap: { textAlign: 'center', padding: '80px 20px' },
   emptyIcon: { fontSize: 48, marginBottom: 16 },
@@ -219,14 +220,14 @@ const s = {
   },
   salonAvatar: {
     width: 44, height: 44, borderRadius: 12, flexShrink: 0,
-    background: 'linear-gradient(135deg, #EC4899 0%, #F59E0B 100%)',
+    background: 'linear-gradient(135deg, #C96B51 0%, #D4AF37 100%)',
     color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
     fontFamily: "'Cormorant Garamond', Georgia, serif",
     fontSize: 20, fontWeight: 700,
   },
   salonName: { fontWeight: 700, fontSize: 16, color: 'var(--text)', marginBottom: 2, fontFamily: "'Cormorant Garamond', Georgia, serif" },
   salonCount: { fontSize: 12, color: 'var(--text-muted)' },
-  salonLink: { padding: '7px 16px', fontSize: 12, fontWeight: 700, color: '#EC4899', background: 'rgba(236,72,153,.08)', borderRadius: 8, border: '1px solid rgba(236,72,153,.2)', textDecoration: 'none', marginLeft: 'auto', flexShrink: 0 },
+  salonLink: { padding: '7px 16px', fontSize: 12, fontWeight: 700, color: '#C96B51', background: 'rgba(201,107,81,.08)', borderRadius: 8, border: '1px solid rgba(201,107,81,.2)', textDecoration: 'none', marginLeft: 'auto', flexShrink: 0 },
 
   grid: { display: 'grid', gap: 16 },
   card: {

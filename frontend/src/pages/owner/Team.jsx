@@ -3,7 +3,7 @@ import api from '../../api/axios';
 import { useOwner } from '../../context/OwnerContext';
 import { useBreakpoint } from '../../hooks/useMobile';
 
-const COLORS = ['#0D9488','#0D9488','#2563EB','#059669','#D97706','#DC2626'];
+const COLORS = ['#0D9488','#14B8A8','#D4AF37','#0B7A70','#D4AF37','#0D9488'];
 const ALL_DAYS = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday'];
 const DAY_LABELS = { monday:'Mon', tuesday:'Tue', wednesday:'Wed', thursday:'Thu', friday:'Fri', saturday:'Sat', sunday:'Sun' };
 
@@ -253,7 +253,7 @@ export default function OwnerTeam() {
                     <span style={s.hvRowSub}>{member.home_visit_available ? 'Available for home visits' : 'Not assigned to home visits'}</span>
                   </div>
                   <button
-                    style={{ ...s.hvToggle, background: member.home_visit_available ? 'linear-gradient(135deg, #0D9488, #059669)' : 'var(--surface)', border: member.home_visit_available ? 'none' : '1.5px solid var(--border)' }}
+                    style={{ ...s.hvToggle, background: member.home_visit_available ? 'linear-gradient(135deg, #0D9488, #0B7A70)' : 'var(--surface)', border: member.home_visit_available ? 'none' : '1.5px solid var(--border)' }}
                     onClick={() => toggleStaffHV(member)}
                     aria-pressed={member.home_visit_available}
                   >
@@ -295,10 +295,10 @@ const s = {
   },
   toast: {
     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-    background: '#ECFDF5', border: '1px solid #6EE7B7', color: '#059669',
+    background: '#F0FDFA', border: '1px solid #99F6E4', color: '#0D9488',
     borderRadius: 12, padding: '11px 18px', fontSize: 13, marginBottom: 22,
   },
-  toastClose: { background: 'none', border: 'none', cursor: 'pointer', color: '#059669', fontSize: 14 },
+  toastClose: { background: 'none', border: 'none', cursor: 'pointer', color: '#0D9488', fontSize: 14 },
 
   formCard: {
     background: 'var(--surface)', borderRadius: 20, padding: 28,

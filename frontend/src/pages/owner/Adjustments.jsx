@@ -5,10 +5,10 @@ import { useOwner } from '../../context/OwnerContext';
 const REASONS = ['damaged', 'wastage', 'theft', 'stocktake', 'promotional'];
 const REASON_META = {
   damaged:    { icon: '💔', color: '#DC2626' },
-  wastage:    { icon: '🗑️', color: '#9333EA' },
+  wastage:    { icon: '🗑️', color: '#D4AF37' },
   theft:      { icon: '🔒', color: '#DC2626' },
-  stocktake:  { icon: '📋', color: '#2563EB' },
-  promotional:{ icon: '🎁', color: '#16A34A' },
+  stocktake:  { icon: '📋', color: '#0D9488' },
+  promotional:{ icon: '🎁', color: '#0B7A70' },
 };
 
 export default function OwnerAdjustments() {
@@ -71,7 +71,7 @@ export default function OwnerAdjustments() {
             <label style={s.label}>Quantity Change *</label>
             <input style={s.input} type="number" placeholder="Use negative to deduct (e.g. -5)" value={form.quantity_change} onChange={f('quantity_change')} required />
             {form.quantity_change && selectedProduct && (
-              <div style={{ ...s.stockInfo, color: Number(form.quantity_change) < 0 ? '#DC2626' : '#059669' }}>
+              <div style={{ ...s.stockInfo, color: Number(form.quantity_change) < 0 ? '#DC2626' : '#0D9488' }}>
                 New stock will be: <strong>{selectedProduct.current_stock + Number(form.quantity_change)} {selectedProduct.unit_of_measure}</strong>
               </div>
             )}
@@ -113,7 +113,7 @@ export default function OwnerAdjustments() {
                       <div style={s.histProduct}>{a.product_name}</div>
                       <div style={s.histReason}>{a.reason}</div>
                     </div>
-                    <span style={{ ...s.histChange, color: positive ? '#059669' : '#DC2626' }}>
+                    <span style={{ ...s.histChange, color: positive ? '#0D9488' : '#DC2626' }}>
                       {positive ? '+' : ''}{a.quantity_change}
                     </span>
                   </div>
@@ -137,7 +137,7 @@ const s = {
   eyebrow: { fontSize: 10, fontWeight: 700, color: 'var(--brand-label)', letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: 6 },
   title: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 30, fontWeight: 700, color: 'var(--text)', margin: '0 0 4px', letterSpacing: '-0.01em' },
   sub: { color: 'var(--text-muted)', fontSize: 13, margin: 0 },
-  alertOk: { background: '#ECFDF5', border: '1px solid #6EE7B7', color: '#059669', borderRadius: 12, padding: '11px 16px', fontSize: 13, marginBottom: 18 },
+  alertOk: { background: '#F0FDFA', border: '1px solid #99F6E4', color: '#0D9488', borderRadius: 12, padding: '11px 16px', fontSize: 13, marginBottom: 18 },
   alertErr: { background: '#FEF2F2', border: '1px solid #FCA5A5', color: '#DC2626', borderRadius: 12, padding: '11px 16px', fontSize: 13, marginBottom: 18 },
   layout: { display: 'grid', gridTemplateColumns: '1fr 360px', gap: 24, alignItems: 'flex-start' },
   formCard: {

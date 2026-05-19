@@ -7,10 +7,10 @@ import { useCart } from '../context/CartContext';
 const CATS = ['All', 'Hair Care', 'Skin Care', 'Nail Care', 'Other'];
 
 const CAT_COLORS = {
-  'Hair Care': '#8B5CF6',
-  'Skin Care': '#10B981',
+  'Hair Care': '#C96B51',
+  'Skin Care': '#D4AF37',
   'Nail Care': '#0D9488',
-  'Other':     '#F59E0B',
+  'Other':     '#B8932A',
 };
 
 const CAT_ICONS = {
@@ -21,8 +21,8 @@ const CAT_ICONS = {
 };
 
 const STATUS_META = {
-  active:        { label: 'In Stock',       color: '#059669', bg: 'rgba(5,150,105,.12)'  },
-  low_stock:     { label: 'Low Stock',       color: '#D97706', bg: 'rgba(217,119,6,.12)'  },
+  active:        { label: 'In Stock',       color: '#0D9488', bg: 'rgba(13,148,136,.12)'  },
+  low_stock:     { label: 'Low Stock',       color: '#D4AF37', bg: 'rgba(212,175,55,.12)'  },
   out_of_stock:  { label: 'Out of Stock',    color: '#DC2626', bg: 'rgba(220,38,38,.12)'  },
   expiring_soon: { label: 'Expiring Soon',   color: '#0D9488', bg: 'rgba(13,148,136,.12)' },
 };
@@ -90,6 +90,7 @@ export default function SalonCosmetics() {
           <div style={{ position: 'relative', maxWidth: 420 }}>
             <span style={s.searchIcon}>🔍</span>
             <input
+              className="search-bar"
               style={s.searchInput}
               placeholder="Search products, brands, SKUs…"
               value={search}
@@ -104,7 +105,7 @@ export default function SalonCosmetics() {
         {/* Category filter */}
         <div style={s.catRow}>
           {CATS.map(cat => {
-            const color = cat === 'All' ? '#EC4899' : (CAT_COLORS[cat] || '#EC4899');
+            const color = cat === 'All' ? '#C96B51' : (CAT_COLORS[cat] || '#C96B51');
             const isActive = cat === activeCat;
             return (
               <button
@@ -149,7 +150,7 @@ export default function SalonCosmetics() {
           <>
           <div style={{ ...s.grid, gridTemplateColumns: isMobile ? '1fr' : isTablet ? 'repeat(2,1fr)' : 'repeat(auto-fill, minmax(240px, 1fr))' }}>
             {filtered.map(p => {
-              const color  = CAT_COLORS[p.category] || '#EC4899';
+              const color  = CAT_COLORS[p.category] || '#C96B51';
               const meta   = STATUS_META[p.status] || STATUS_META.active;
               const isOut  = p.status === 'out_of_stock';
               const wasAdded = addedKey === p.id;
@@ -197,7 +198,7 @@ export default function SalonCosmetics() {
                       <button
                         style={{
                           ...s.addCartBtn,
-                          background: isOut ? '#E5E7EB' : wasAdded ? '#059669' : color,
+                          background: isOut ? '#E5E7EB' : wasAdded ? '#0D9488' : color,
                           color: isOut ? '#9CA3AF' : '#fff',
                           cursor: isOut ? 'not-allowed' : 'pointer',
                         }}
@@ -235,13 +236,13 @@ const s = {
   page: { background: 'var(--bg)', minHeight: '100vh' },
 
   hero: {
-    background: 'linear-gradient(135deg, #1a0533 0%, #3B0764 35%, #0D9488 70%, #EC4899 100%)',
+    background: 'linear-gradient(145deg, #1A0D09 0%, #4A1F12 35%, #C96B51 70%, #D4AF37 100%)',
     position: 'relative', overflow: 'hidden',
   },
-  heroGlow1: { position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at top left, rgba(236,72,153,.3) 0%, transparent 60%)', pointerEvents: 'none' },
-  heroGlow2: { position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at bottom right, rgba(245,158,11,.2) 0%, transparent 50%)', pointerEvents: 'none' },
+  heroGlow1: { position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at top left, rgba(201,107,81,.3) 0%, transparent 60%)', pointerEvents: 'none' },
+  heroGlow2: { position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at bottom right, rgba(212,175,55,.2) 0%, transparent 50%)', pointerEvents: 'none' },
   backLink: { display: 'inline-block', fontSize: 12, color: 'rgba(255,255,255,.65)', marginBottom: 14, textDecoration: 'none', fontWeight: 600, letterSpacing: '0.03em' },
-  eyebrow: { fontSize: 10, fontWeight: 700, color: 'rgba(255,209,226,.8)', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 10 },
+  eyebrow: { fontSize: 10, fontWeight: 700, color: 'rgba(255,220,200,.8)', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 10 },
   heroTitle: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontWeight: 700, color: '#fff', margin: '0 0 12px', lineHeight: 1.1, letterSpacing: '-0.01em' },
   heroItalic: { fontStyle: 'italic', color: '#FCD34D' },
   heroSub: { color: 'rgba(255,255,255,.65)', fontSize: 15, margin: '0 0 28px', lineHeight: 1.65 },
@@ -265,7 +266,7 @@ const s = {
   countText: { fontSize: 13, color: 'var(--text-muted)', fontWeight: 500 },
 
   loaderWrap: { display: 'flex', justifyContent: 'center', padding: '80px 0' },
-  loaderSpinner: { width: 36, height: 36, borderRadius: '50%', border: '3px solid rgba(236,72,153,.15)', borderTopColor: '#EC4899', animation: 'spinSlow .7s linear infinite' },
+  loaderSpinner: { width: 36, height: 36, borderRadius: '50%', border: '3px solid rgba(201,107,81,.15)', borderTopColor: '#C96B51', animation: 'spinSlow .7s linear infinite' },
 
   emptyWrap: { textAlign: 'center', padding: '80px 20px' },
   emptyIcon: { fontSize: 48, marginBottom: 16 },
@@ -305,10 +306,10 @@ const s = {
   floatCart: {
     position: 'fixed', bottom: 28, right: 28,
     padding: '14px 24px', borderRadius: 40,
-    background: 'linear-gradient(135deg, #0D9488, #EC4899)',
+    background: 'linear-gradient(135deg, #C96B51, #D4AF37)',
     color: '#fff', border: 'none', fontSize: 14, fontWeight: 800,
     cursor: 'pointer', zIndex: 500,
-    boxShadow: '0 8px 28px rgba(13,148,136,.45)',
+    boxShadow: '0 8px 28px rgba(201,107,81,.45)',
     fontFamily: "'DM Sans', sans-serif",
   },
 };

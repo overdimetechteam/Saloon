@@ -148,7 +148,7 @@ const s = {
     fontWeight: 700, fontSize: 13, boxShadow: '0 6px 18px rgba(13,148,136,.35)',
     fontFamily: "'DM Sans', sans-serif", flexShrink: 0,
   },
-  alertOk: { background: '#ECFDF5', border: '1px solid #6EE7B7', color: '#059669', borderRadius: 12, padding: '11px 16px', fontSize: 13, marginBottom: 18 },
+  alertOk: { background: '#F0FDFA', border: '1px solid #99F6E4', color: '#0D9488', borderRadius: 12, padding: '11px 16px', fontSize: 13, marginBottom: 18 },
   alertErr: { background: '#FEF2F2', border: '1px solid #FCA5A5', color: '#DC2626', borderRadius: 12, padding: '11px 16px', fontSize: 13, marginBottom: 18 },
   formCard: {
     background: 'var(--surface)', borderRadius: 20, padding: 26,
@@ -165,8 +165,8 @@ const s = {
   },
   itemsHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 14, marginBottom: 8 },
   addItemBtn: {
-    padding: '6px 14px', background: 'rgba(37,99,235,.1)', color: '#2563EB',
-    border: '1px solid rgba(37,99,235,.2)', borderRadius: 8, cursor: 'pointer',
+    padding: '6px 14px', background: 'rgba(13,148,136,.1)', color: '#0D9488',
+    border: '1px solid rgba(13,148,136,.2)', borderRadius: 8, cursor: 'pointer',
     fontSize: 12, fontWeight: 700, fontFamily: "'DM Sans', sans-serif",
   },
   itemsTable: { border: '1px solid var(--border)', borderRadius: 12, overflow: 'hidden', marginBottom: 18 },
@@ -199,8 +199,8 @@ const s = {
   refNum: { fontWeight: 800, fontSize: 15, color: '#0D9488', fontFamily: 'monospace', letterSpacing: '0.04em' },
   supplier: { fontSize: 14, color: 'var(--text-muted)' },
   grnRight: { display: 'flex', alignItems: 'center', gap: 12 },
-  confirmed: { padding: '3px 12px', borderRadius: 20, fontSize: 11, fontWeight: 700, background: '#ECFDF5', color: '#059669', border: '1px solid rgba(5,150,105,.2)' },
-  draft: { padding: '3px 12px', borderRadius: 20, fontSize: 11, fontWeight: 700, background: '#FFFBEB', color: '#D97706', border: '1px solid rgba(217,119,6,.2)' },
+  confirmed: { padding: '3px 12px', borderRadius: 20, fontSize: 11, fontWeight: 700, background: '#F0FDFA', color: '#0D9488', border: '1px solid rgba(13,148,136,.2)' },
+  draft: { padding: '3px 12px', borderRadius: 20, fontSize: 11, fontWeight: 700, background: '#FBF3D0', color: '#92400E', border: '1px solid rgba(212,175,55,.3)' },
   grnDate: { fontSize: 12, color: 'var(--text-muted)' },
   grnItems: { padding: '12px 22px', display: 'flex', flexDirection: 'column', gap: 6 },
   grnItem: { display: 'flex', alignItems: 'center', gap: 12, padding: '7px 0', borderBottom: '1px solid var(--border)' },
@@ -210,9 +210,9 @@ const s = {
   grnFooter: { padding: '13px 22px', background: 'var(--surface2)', borderTop: '1px solid var(--border)' },
   confirmBtn: {
     padding: '9px 22px',
-    background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+    background: 'linear-gradient(135deg, #0D9488 0%, #0B7A70 100%)',
     color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer',
-    fontWeight: 700, fontSize: 13, boxShadow: '0 4px 12px rgba(5,150,105,.3)',
+    fontWeight: 700, fontSize: 13, boxShadow: '0 4px 12px rgba(13,148,136,.3)',
     fontFamily: "'DM Sans', sans-serif",
   },
   empty: {

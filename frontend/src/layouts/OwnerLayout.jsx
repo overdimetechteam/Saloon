@@ -24,7 +24,7 @@ const NAV = [
 ];
 
 const PLAN_LABELS = { free_trial: 'Free Trial', starter: 'Starter', professional: 'Professional', premium: 'Premium' };
-const PLAN_COLORS = { free_trial: '#6B7280', starter: '#3B82F6', professional: '#0D9488', premium: '#D97706' };
+const PLAN_COLORS = { free_trial: '#6B7280', starter: '#14B8A8', professional: '#0D9488', premium: '#D4AF37' };
 const PLAN_ICONS  = { free_trial: '🆓', starter: '🚀', professional: '💎', premium: '👑' };
 
 const GROUPS = [
@@ -193,8 +193,8 @@ export default function OwnerLayout() {
           <div style={s.statusPill}>
             <span style={{
               ...s.statusDot,
-              background: salon.status === 'active' ? '#34D399' : '#FBBF24',
-              boxShadow: salon.status === 'active' ? '0 0 8px rgba(52,211,153,.5)' : '0 0 8px rgba(251,191,36,.5)',
+              background: salon.status === 'active' ? '#14B8A8' : '#D4AF37',
+              boxShadow: salon.status === 'active' ? '0 0 8px rgba(13,148,136,.5)' : '0 0 8px rgba(212,175,55,.5)',
             }} />
 
             <span style={s.statusText}>
@@ -289,7 +289,7 @@ const s = {
     position: 'fixed', top: 0, left: 0, height: '100vh',
     zIndex: 100, flexShrink: 0,
     transition: 'width .28s cubic-bezier(.4,0,.2,1)',
-    overflow: 'hidden',
+    overflow: 'visible',
     borderRight: '1px solid rgba(13,148,136,.1)',
   },
   brandArea: {
@@ -329,7 +329,7 @@ const s = {
     boxShadow: '0 2px 6px rgba(13,148,136,.5)',
   },
   notifDropdown: {
-    position: 'absolute', top: 38, right: 0,
+    position: 'absolute', top: 38, left: 0,
     width: 300, background: '#12121C',
     border: '1px solid rgba(13,148,136,.25)',
     borderRadius: 16, boxShadow: '0 20px 48px rgba(0,0,0,.55)',

@@ -314,8 +314,8 @@ const s = {
   sub: { fontSize: 14, color: 'var(--text-muted)', margin: 0 },
   uploadBtn: { padding: '11px 24px', background: 'linear-gradient(135deg, #0D9488 0%, #14B8A8 50%, #0D9488 100%)', color: '#fff', border: 'none', borderRadius: 12, cursor: 'pointer', fontWeight: 700, fontSize: 14, boxShadow: '0 6px 18px rgba(13,148,136,.35)', flexShrink: 0 },
 
-  toast: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#ECFDF5', border: '1px solid #6EE7B7', color: '#059669', borderRadius: 12, padding: '11px 18px', fontSize: 13, marginBottom: 22 },
-  toastClose: { background: 'none', border: 'none', cursor: 'pointer', color: '#059669', fontSize: 14 },
+  toast: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#F0FDFA', border: '1px solid #99F6E4', color: '#0D9488', borderRadius: 12, padding: '11px 18px', fontSize: 13, marginBottom: 22 },
+  toastClose: { background: 'none', border: 'none', cursor: 'pointer', color: '#0D9488', fontSize: 14 },
 
   /* Logo section */
   logoCard: { background: 'var(--surface)', borderRadius: 20, border: '1.5px solid rgba(13,148,136,.15)', marginBottom: 28, overflow: 'hidden', boxShadow: '0 4px 20px rgba(13,148,136,.07)' },
@@ -331,7 +331,7 @@ const s = {
   logoNewBadge: { position: 'absolute', top: 6, right: 6, background: '#0D9488', color: '#fff', fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 6, letterSpacing: '0.06em' },
   logoPendingNote: { fontSize: 12, color: '#0D9488', fontWeight: 600 },
   logoPickBtn: { padding: '10px 20px', background: 'linear-gradient(135deg, #0D9488, #0D9488)', color: '#fff', border: 'none', borderRadius: 11, cursor: 'pointer', fontWeight: 700, fontSize: 13, boxShadow: '0 4px 12px rgba(13,148,136,.3)', alignSelf: 'flex-start' },
-  logoUploadBtn: { padding: '10px 22px', background: 'linear-gradient(135deg, #0D9488, #059669)', color: '#fff', border: 'none', borderRadius: 11, cursor: 'pointer', fontWeight: 700, fontSize: 13, boxShadow: '0 4px 12px rgba(13,148,136,.3)' },
+  logoUploadBtn: { padding: '10px 22px', background: 'linear-gradient(135deg, #0D9488, #0B7A70)', color: '#fff', border: 'none', borderRadius: 11, cursor: 'pointer', fontWeight: 700, fontSize: 13, boxShadow: '0 4px 12px rgba(13,148,136,.3)' },
   logoCancelBtn: { padding: '10px 18px', background: 'var(--surface2)', border: '1.5px solid var(--border)', borderRadius: 11, cursor: 'pointer', fontSize: 13, fontWeight: 500, color: 'var(--text-muted)' },
   logoRemoveBtn: { padding: '8px 16px', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 10, cursor: 'pointer', fontSize: 12, fontWeight: 600, color: '#DC2626', alignSelf: 'flex-start' },
   logoHint: { fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.5 },

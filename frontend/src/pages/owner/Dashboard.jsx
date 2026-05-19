@@ -27,6 +27,12 @@ function toApiHours(localHours) {
 
 const COSMETICS_PLANS = ['starter', 'professional', 'premium'];
 
+const PALETTE_OPTIONS = [
+  { key: 'teal',   label: 'Teal',   main: '#0D9488', light: '#14B8A8', dark: '#0B7A70', rgb: '13,148,136'  },
+  { key: 'purple', label: 'Purple', main: '#613ba3', light: '#7c52b8', dark: '#4a2a8a', rgb: '97,59,163'   },
+  { key: 'olive',  label: 'Olive',  main: '#707a2d', light: '#8a9438', dark: '#556120', rgb: '112,122,45'  },
+];
+
 export default function OwnerDashboard() {
   const { salon, setSalon, loading: salonLoading } = useOwner();
   const { isMobile, isTablet } = useBreakpoint();
@@ -37,6 +43,7 @@ export default function OwnerDashboard() {
   const [salonServices, setSalonServices] = useState([]);
   const [cosmetics, setCosmetics] = useState(false);
   const [cosmeticsSaving, setCosmeticsSaving] = useState(false);
+  const [paletteSaving, setPaletteSaving] = useState(false);
   const [hours, setHours] = useState({});
   const [hoursOpen, setHoursOpen] = useState(false);
   const [hoursSaving, setHoursSaving] = useState(false);
@@ -94,6 +101,17 @@ export default function OwnerDashboard() {
     }
   };
 
+  const savePalette = async (key) => {
+    if (!salon || paletteSaving || salon.color_palette === key) return;
+    setPaletteSaving(key);
+    try {
+      const r = await api.patch(`/salons/${salon.id}/`, { color_palette: key });
+      setSalon(r.data);
+    } catch {} finally {
+      setPaletteSaving(false);
+    }
+  };
+
   const setHourField = (day, field, val) =>
     setHours(h => ({ ...h, [day]: { ...h[day], [field]: val } }));
 
@@ -147,8 +165,8 @@ export default function OwnerDashboard() {
   const statCards = [
     {
       label: 'Pending Bookings', value: stats.pending,
-      grad: 'linear-gradient(135deg, rgba(236,72,153,.14) 0%, rgba(236,72,153,.07) 100%)',
-      color: '#EC4899', border: 'rgba(236,72,153,.28)', icon: '⏳',
+      grad: 'linear-gradient(135deg, rgba(212,175,55,.14) 0%, rgba(212,175,55,.07) 100%)',
+      color: '#D4AF37', border: 'rgba(212,175,55,.28)', icon: '⏳',
       to: '/owner/bookings',
     },
     {
@@ -179,7 +197,7 @@ export default function OwnerDashboard() {
           <div style={s.eyebrow}>Dashboard</div>
           <h2 style={{ ...s.title, fontSize: isMobile ? 24 : isTablet ? 26 : 30 }}>{salon.name}</h2>
           <div style={s.statusRow}>
-            <span style={{ ...s.statusDot, background: salon.status === 'active' ? '#34D399' : '#FBBF24', boxShadow: salon.status === 'active' ? '0 0 0 4px rgba(52,211,153,.2)' : '0 0 0 4px rgba(251,191,36,.2)' }} />
+            <span style={{ ...s.statusDot, background: salon.status === 'active' ? '#14B8A8' : '#D4AF37', boxShadow: salon.status === 'active' ? '0 0 0 4px rgba(13,148,136,.2)' : '0 0 0 4px rgba(212,175,55,.2)' }} />
             <span style={s.statusText}>
               {salon.status === 'active' ? 'Live & Accepting Bookings' : salon.status === 'pending' ? 'Pending Admin Approval' : 'Currently Inactive'}
             </span>
@@ -288,7 +306,7 @@ export default function OwnerDashboard() {
           </div>
         </div>
         <button
-          style={{ ...s.hvToggle, background: homeVisit ? 'linear-gradient(135deg, #0D9488, #059669)' : 'var(--surface2)', border: homeVisit ? 'none' : '1.5px solid var(--border)' }}
+          style={{ ...s.hvToggle, background: homeVisit ? 'linear-gradient(135deg, #0D9488, #0B7A70)' : 'var(--surface2)', border: homeVisit ? 'none' : '1.5px solid var(--border)' }}
           onClick={toggleHomeVisit}
           disabled={homeVisitSaving}
           aria-pressed={homeVisit}
@@ -316,7 +334,7 @@ export default function OwnerDashboard() {
                   </div>
                 </div>
                 <button
-                  style={{ ...s.hvSvcToggle, background: ss.home_visit_available ? 'linear-gradient(135deg, #0D9488, #059669)' : 'var(--surface2)', border: ss.home_visit_available ? 'none' : '1.5px solid var(--border)' }}
+                  style={{ ...s.hvSvcToggle, background: ss.home_visit_available ? 'linear-gradient(135deg, #0D9488, #0B7A70)' : 'var(--surface2)', border: ss.home_visit_available ? 'none' : '1.5px solid var(--border)' }}
                   onClick={() => toggleSvcHV(ss)}
                   aria-pressed={ss.home_visit_available}
                 >
@@ -331,7 +349,7 @@ export default function OwnerDashboard() {
       {/* ── Cosmetics Toggle ── */}
       <div style={{ ...s.hvCard, marginTop: 12 }} className="fade-up d6">
         <div style={s.hvLeft}>
-          <div style={{ ...s.hvIconWrap, background: cosmetics ? 'rgba(236,72,153,.12)' : 'var(--surface2)', color: cosmetics ? '#EC4899' : 'var(--text-muted)' }}>
+          <div style={{ ...s.hvIconWrap, background: cosmetics ? 'rgba(201,107,81,.12)' : 'var(--surface2)', color: cosmetics ? '#C96B51' : 'var(--text-muted)' }}>
             ✿
           </div>
           <div>
@@ -347,7 +365,7 @@ export default function OwnerDashboard() {
         </div>
         {(!salon.subscription_plan || COSMETICS_PLANS.includes(salon.subscription_plan)) ? (
           <button
-            style={{ ...s.hvToggle, background: cosmetics ? 'linear-gradient(135deg, #EC4899, #14B8A8)' : 'var(--surface2)', border: cosmetics ? 'none' : '1.5px solid var(--border)' }}
+            style={{ ...s.hvToggle, background: cosmetics ? 'linear-gradient(135deg, #C96B51, #D4AF37)' : 'var(--surface2)', border: cosmetics ? 'none' : '1.5px solid var(--border)' }}
             onClick={toggleCosmetics}
             disabled={cosmeticsSaving}
             aria-pressed={cosmetics}
@@ -362,6 +380,50 @@ export default function OwnerDashboard() {
             Upgrade Plan →
           </button>
         )}
+      </div>
+
+      {/* ── Colour Palette Picker ── */}
+      <div style={{ ...s.hvCard, marginTop: 12, flexWrap: 'wrap' }} className="fade-up d6">
+        <div style={s.hvLeft}>
+          <div style={{ ...s.hvIconWrap, background: 'rgba(13,148,136,.1)', color: '#0D9488' }}>🎨</div>
+          <div>
+            <div style={s.hvTitle}>Salon Colour Palette</div>
+            <div style={s.hvSub}>Choose a colour theme for your salon's public page</div>
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 10, flexShrink: 0, flexWrap: 'wrap' }}>
+          {PALETTE_OPTIONS.map(p => {
+            const isActive = (salon.color_palette || 'teal') === p.key;
+            const isSaving = paletteSaving === p.key;
+            return (
+              <button
+                key={p.key}
+                onClick={() => savePalette(p.key)}
+                disabled={!!paletteSaving}
+                title={p.label}
+                style={{
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
+                  padding: '8px 14px', borderRadius: 12, cursor: paletteSaving ? 'wait' : 'pointer',
+                  border: isActive ? `2px solid ${p.main}` : '2px solid var(--border)',
+                  background: isActive ? `rgba(${p.rgb},.1)` : 'var(--surface2)',
+                  boxShadow: isActive ? `0 4px 14px rgba(${p.rgb},.22)` : 'none',
+                  transition: 'all .2s ease',
+                  minWidth: 68,
+                }}
+              >
+                <div style={{ display: 'flex', gap: 3 }}>
+                  {[p.main, p.light, p.dark].map((c, i) => (
+                    <div key={i} style={{ width: 14, height: 14, borderRadius: 4, background: c }} />
+                  ))}
+                </div>
+                <span style={{ fontSize: 11, fontWeight: 700, color: isActive ? p.main : 'var(--text-muted)', letterSpacing: '0.04em' }}>
+                  {isSaving ? '…' : p.label}
+                </span>
+                {isActive && <div style={{ width: 5, height: 5, borderRadius: '50%', background: p.main }} />}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* ── Operating Hours Editor ── */}
@@ -417,7 +479,7 @@ export default function OwnerDashboard() {
               <button style={s.saveHoursBtn} onClick={saveHours} disabled={hoursSaving}>
                 {hoursSaving ? 'Saving…' : '✓ Save Hours'}
               </button>
-              {hoursMsg === 'saved' && <span style={{ fontSize: 13, color: '#059669', fontWeight: 600 }}>✓ Saved successfully</span>}
+              {hoursMsg === 'saved' && <span style={{ fontSize: 13, color: '#0D9488', fontWeight: 600 }}>✓ Saved successfully</span>}
               {hoursMsg === 'error' && <span style={{ fontSize: 13, color: '#DC2626', fontWeight: 600 }}>✕ Failed to save</span>}
             </div>
           </div>

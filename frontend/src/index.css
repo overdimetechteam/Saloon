@@ -78,6 +78,25 @@ a { color: inherit; text-decoration: none; }
 }
 [data-theme="dark"] ::placeholder { color: var(--text-light); opacity: 1; }
 
+/* ── Search bars — white background in dark mode ── */
+[data-theme="dark"] .search-bar-wrap {
+  background: #ffffff !important;
+  border-color: #D5D5E0 !important;
+  box-shadow: 0 2px 12px rgba(0,0,0,.18) !important;
+}
+[data-theme="dark"] .search-bar-wrap input {
+  color: #1A1A24 !important;
+  background: transparent !important;
+}
+[data-theme="dark"] .search-bar-wrap input::placeholder { color: #8585A0 !important; opacity: 1; }
+[data-theme="dark"] .search-bar-wrap .search-icon { color: #0D9488 !important; }
+[data-theme="dark"] .search-bar {
+  background: #ffffff !important;
+  color: #1A1A24 !important;
+  border-color: #D5D5E0 !important;
+}
+[data-theme="dark"] .search-bar::placeholder { color: #8585A0 !important; opacity: 1; }
+
 /* ── Keyframes ── */
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(22px); }

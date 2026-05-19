@@ -56,7 +56,7 @@ export default function RegisterClient() {
           <div style={{ position: 'relative', zIndex: 2 }}>
             <div style={{ fontSize: 22, color: '#99F6E4', marginBottom: 6 }}>✦</div>
             <div style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: isMobile ? 28 : 34, fontWeight: 700, color: '#fff', lineHeight: 1, letterSpacing: '-0.02em' }}>Join Saloon</div>
-            <div style={{ fontSize: 10, color: 'rgba(196,181,253,.75)', letterSpacing: '0.2em', textTransform: 'uppercase', marginTop: 6 }}>Beauty & Wellness</div>
+            <div style={{ fontSize: 10, color: 'rgba(153,246,228,.75)', letterSpacing: '0.2em', textTransform: 'uppercase', marginTop: 6 }}>Beauty & Wellness</div>
           </div>
         </div>
       )}
@@ -121,7 +121,7 @@ const s = {
   leftInner: { position: 'relative', zIndex: 2, color: '#fff' },
   leftMark: { fontSize: 32, fontWeight: 900, color: '#0D9488', marginBottom: 12, filter: 'drop-shadow(0 0 12px rgba(13,148,136,.5))' },
   leftTitle: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 44, fontWeight: 700, color: '#fff', lineHeight: 1, letterSpacing: '-0.02em', marginBottom: 6 },
-  leftTagline: { fontSize: 11, color: 'rgba(196,181,253,.75)', letterSpacing: '0.22em', textTransform: 'uppercase', fontWeight: 500 },
+  leftTagline: { fontSize: 11, color: 'rgba(153,246,228,.75)', letterSpacing: '0.22em', textTransform: 'uppercase', fontWeight: 500 },
   leftDivider: { width: 48, height: 2, marginTop: 32, marginBottom: 28, background: 'linear-gradient(90deg, #0D9488, transparent)', borderRadius: 2 },
   leftQuote: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 19, fontStyle: 'italic', lineHeight: 1.7, color: 'rgba(255,255,255,.75)', margin: 0 },
   leftFeatures: { marginTop: 36, display: 'flex', flexDirection: 'column', gap: 12 },

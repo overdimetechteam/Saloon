@@ -308,13 +308,13 @@ const s = {
   },
   pendingAlert: {
     display: 'inline-flex', alignItems: 'center', gap: 7,
-    fontSize: 12, color: '#D97706', fontWeight: 500,
-    background: 'rgba(217,119,6,.09)',
-    border: '1px solid rgba(217,119,6,.25)',
+    fontSize: 12, color: '#D4AF37', fontWeight: 500,
+    background: 'rgba(212,175,55,.09)',
+    border: '1px solid rgba(212,175,55,.25)',
     borderRadius: 20, padding: '4px 12px',
   },
   pendingDot: {
-    width: 7, height: 7, borderRadius: '50%', background: '#D97706', flexShrink: 0,
+    width: 7, height: 7, borderRadius: '50%', background: '#D4AF37', flexShrink: 0,
     animation: 'pulseRing 2s ease infinite',
   },
   walkInBtn: {
@@ -362,7 +362,7 @@ const s = {
     display: 'flex', alignItems: 'center', overflow: 'hidden',
     transition: 'transform .2s ease, box-shadow .2s ease',
   },
-  cardPending: { border: '1px solid rgba(217,119,6,.3)', boxShadow: '0 4px 16px rgba(217,119,6,.08)' },
+  cardPending: { border: '1px solid rgba(212,175,55,.3)', boxShadow: '0 4px 16px rgba(212,175,55,.08)' },
   colorTab: { width: 4, alignSelf: 'stretch', flexShrink: 0 },
   clientSection: { display: 'flex', alignItems: 'center', gap: 14, flex: 1, padding: '16px 18px' },
   avatar: {
@@ -377,7 +377,7 @@ const s = {
   },
   walkInBadge: {
     fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20,
-    background: '#DBEAFE', color: '#1D4ED8', border: '1px solid #BFDBFE',
+    background: '#F0FDFA', color: '#0D9488', border: '1px solid #99F6E4',
   },
   clientDt: { fontSize: 12, color: 'var(--text-muted)', marginBottom: 2, display: 'flex', alignItems: 'center', gap: 4 },
   svcs: { fontSize: 11, color: 'var(--text-muted)' },

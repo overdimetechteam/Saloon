@@ -5,15 +5,15 @@ import { useCart } from '../context/CartContext';
 import { useBreakpoint } from '../hooks/useMobile';
 
 const CAT_COLORS = {
-  'Hair Care': '#8B5CF6',
-  'Skin Care': '#10B981',
+  'Hair Care': '#C96B51',
+  'Skin Care': '#D4AF37',
   'Nail Care': '#0D9488',
-  'Other': '#F59E0B',
+  'Other':     '#B8932A',
 };
 
 const STATUS_META = {
-  active:        { label: 'In Stock',     color: '#059669', bg: 'rgba(5,150,105,.12)' },
-  low_stock:     { label: 'Low Stock',    color: '#D97706', bg: 'rgba(217,119,6,.12)'  },
+  active:        { label: 'In Stock',     color: '#0D9488', bg: 'rgba(13,148,136,.12)' },
+  low_stock:     { label: 'Low Stock',    color: '#D4AF37', bg: 'rgba(212,175,55,.12)'  },
   out_of_stock:  { label: 'Out of Stock', color: '#DC2626', bg: 'rgba(220,38,38,.12)'  },
   expiring_soon: { label: 'Expiring Soon',color: '#0D9488', bg: 'rgba(13,148,136,.12)' },
 };
@@ -81,7 +81,7 @@ export default function ProductDetail() {
     </div>
   );
 
-  const color = CAT_COLORS[product.category] || '#EC4899';
+  const color = CAT_COLORS[product.category] || '#C96B51';
   const meta = STATUS_META[product.status] || STATUS_META.active;
   const images = product.images || [];
   const isOutOfStock = product.status === 'out_of_stock';
@@ -195,7 +195,7 @@ export default function ProductDetail() {
             <button
               style={{
                 ...s.addBtn,
-                background: isOutOfStock ? '#D1D5DB' : (added ? '#059669' : `linear-gradient(135deg, ${color}, #EC4899)`),
+                background: isOutOfStock ? '#D1D5DB' : (added ? '#0D9488' : `linear-gradient(135deg, ${color}, #D4AF37)`),
                 cursor: isOutOfStock ? 'not-allowed' : 'pointer',
               }}
               disabled={isOutOfStock}

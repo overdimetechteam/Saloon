@@ -2,7 +2,7 @@
 import { Link } from 'react-router-dom';
 import api from '../../api/axios';
 
-const PALETTE = ['#0D9488','#0D9488','#2563EB','#059669','#D97706','#DC2626'];
+const PALETTE = ['#0D9488','#14B8A8','#D4AF37','#0B7A70','#D4AF37','#0D9488'];
 
 export default function UserFavourites() {
   const [salons, setSalons] = useState([]);

@@ -201,7 +201,7 @@ export default function RegisterSalon() {
                   </button>
                 </div>
                 {cosmeticsEnabled && (
-                  <div style={{ marginTop: 10, padding: '10px 14px', borderRadius: 10, background: 'rgba(236,72,153,.07)', border: '1px solid rgba(236,72,153,.2)', fontSize: 13, color: '#9D174D' }}>
+                  <div style={{ marginTop: 10, padding: '10px 14px', borderRadius: 10, background: 'rgba(13,148,136,.07)', border: '1px solid rgba(13,148,136,.2)', fontSize: 13, color: '#0D9488' }}>
                     ✿ Clients will be able to browse your cosmetics products from your salon page.
                   </div>
                 )}

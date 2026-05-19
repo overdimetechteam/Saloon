@@ -1,12 +1,13 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 
-const ThemeContext = createContext({ isDark: false, toggle: () => {} });
+const ThemeContext = createContext({ isDark: false, toggle: () => {}, navPalette: null, setNavPalette: () => {} });
 
 export function ThemeProvider({ children }) {
   const [isDark, setIsDark] = useState(() => {
     const saved = localStorage.getItem('theme');
     return saved ? saved === 'dark' : true; // dark by default
   });
+  const [navPalette, setNavPalette] = useState(null);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
@@ -14,7 +15,7 @@ export function ThemeProvider({ children }) {
   }, [isDark]);
 
   return (
-    <ThemeContext.Provider value={{ isDark, toggle: () => setIsDark(v => !v) }}>
+    <ThemeContext.Provider value={{ isDark, toggle: () => setIsDark(v => !v), navPalette, setNavPalette }}>
       {children}
     </ThemeContext.Provider>
   );

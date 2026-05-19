@@ -2,7 +2,7 @@
 import api from '../../api/axios';
 
 const CATEGORIES = ['Hair', 'Nails', 'Skin', 'Makeup'];
-const CAT_COLORS = { Hair: '#8B5CF6', Nails: '#0D9488', Skin: '#10B981', Makeup: '#F59E0B' };
+const CAT_COLORS = { Hair: '#0D9488', Nails: '#D4AF37', Skin: '#0B7A70', Makeup: '#C96B51' };
 const EMPTY_FORM = { name: '', category: 'Hair', description: '', default_duration_minutes: 60, default_price: '' };
 
 export default function AdminServices() {
@@ -163,7 +163,7 @@ const s = {
     fontWeight: 700, fontSize: 13, boxShadow: '0 6px 18px rgba(13,148,136,.35)',
     fontFamily: "'DM Sans', sans-serif",
   },
-  alertOk: { background: '#ECFDF5', border: '1px solid #6EE7B7', color: '#059669', borderRadius: 12, padding: '11px 16px', fontSize: 13, marginBottom: 18 },
+  alertOk: { background: '#F0FDFA', border: '1px solid #99F6E4', color: '#0D9488', borderRadius: 12, padding: '11px 16px', fontSize: 13, marginBottom: 18 },
   alertErr: { background: '#FEF2F2', border: '1px solid #FCA5A5', color: '#DC2626', borderRadius: 12, padding: '11px 16px', fontSize: 13, marginBottom: 18 },
   formCard: {
     background: 'var(--surface)', borderRadius: 20, padding: 26,
@@ -204,8 +204,8 @@ const s = {
   svcName: { fontWeight: 700, fontSize: 15, color: 'var(--text)', lineHeight: 1.3 },
   cardActions: { display: 'flex', gap: 6, flexShrink: 0, marginLeft: 8 },
   editBtn: {
-    padding: '4px 10px', background: 'rgba(37,99,235,.1)', color: '#2563EB',
-    border: '1px solid rgba(37,99,235,.2)', borderRadius: 7, cursor: 'pointer', fontSize: 12, fontWeight: 700,
+    padding: '4px 10px', background: 'rgba(13,148,136,.1)', color: '#0D9488',
+    border: '1px solid rgba(13,148,136,.2)', borderRadius: 7, cursor: 'pointer', fontSize: 12, fontWeight: 700,
   },
   delBtn: {
     padding: '4px 10px', background: '#FEF2F2', color: '#DC2626',

@@ -5,11 +5,11 @@ import api from '../../api/axios';
 import { useOwner } from '../../context/OwnerContext';
 
 const CATS = ['Hair Care', 'Skin Care', 'Nail Care', 'Other'];
-const CAT_COLORS = { 'Hair Care': '#8B5CF6', 'Skin Care': '#10B981', 'Nail Care': '#0D9488', 'Other': '#6B7280' };
+const CAT_COLORS = { 'Hair Care': '#0D9488', 'Skin Care': '#D4AF37', 'Nail Care': '#0B7A70', 'Other': '#14B8A8' };
 
 const STATUS_META = {
-  active:        { label: 'Active',        color: '#059669', bg: 'rgba(5,150,105,.12)'  },
-  low_stock:     { label: 'Low Stock',      color: '#D97706', bg: 'rgba(217,119,6,.12)'  },
+  active:        { label: 'Active',        color: '#0D9488', bg: 'rgba(13,148,136,.12)' },
+  low_stock:     { label: 'Low Stock',      color: '#D4AF37', bg: 'rgba(212,175,55,.12)' },
   out_of_stock:  { label: 'Out of Stock',   color: '#DC2626', bg: 'rgba(220,38,38,.12)'  },
   expiring_soon: { label: 'Expiring Soon',  color: '#0D9488', bg: 'rgba(13,148,136,.12)' },
 };
@@ -348,10 +348,10 @@ export default function OwnerInventory() {
       {summary && (
         <div style={s.summRow} className="fade-up">
           <SummaryCard label="Total SKUs"     value={summary.total_skus}  color="#0D9488" icon="▦" />
-          <SummaryCard label="Active"         value={summary.active}      color="#059669" icon="●" />
-          <SummaryCard label="Low Stock"      value={summary.low_stock}   color="#D97706" icon="⚠" />
+          <SummaryCard label="Active"         value={summary.active}      color="#0D9488" icon="●" />
+          <SummaryCard label="Low Stock"      value={summary.low_stock}   color="#D4AF37" icon="⚠" />
           <SummaryCard label="Out of Stock"   value={summary.out_of_stock}  color="#DC2626" icon="✕" />
-          <SummaryCard label="Expiring Soon"  value={summary.expiring_soon} color="#8B5CF6" icon="⏳" />
+          <SummaryCard label="Expiring Soon"  value={summary.expiring_soon} color="#D4AF37" icon="⏳" />
           <div style={{ ...s.summCard, borderTop: '3px solid #0D9488', gridColumn: 'span 1' }}>
             <div style={{ fontSize: 22, marginBottom: 6 }}>💰</div>
             <div style={{ fontSize: 16, fontWeight: 800, color: '#0D9488', lineHeight: 1 }}>
@@ -367,6 +367,7 @@ export default function OwnerInventory() {
         <div style={{ position: 'relative', flex: 1, minWidth: 200 }}>
           <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 14, color: 'var(--text-muted)', pointerEvents: 'none' }}>🔍</span>
           <input
+            className="search-bar"
             style={{ ...s.filterInput, paddingLeft: 36 }}
             placeholder="Search by name, brand, SKU…"
             value={search}
@@ -402,7 +403,7 @@ export default function OwnerInventory() {
                 const catColor = CAT_COLORS[p.category] || '#0D9488';
                 const meta = STATUS_META[p.status] || STATUS_META.active;
                 return (
-                  <tr key={p.id} style={{ background: p.status === 'out_of_stock' ? 'rgba(220,38,38,.03)' : p.status === 'low_stock' ? 'rgba(217,119,6,.03)' : '' }}>
+                  <tr key={p.id} style={{ background: p.status === 'out_of_stock' ? 'rgba(220,38,38,.03)' : p.status === 'low_stock' ? 'rgba(212,175,55,.03)' : '' }}>
                     <td style={s.td}>
                       <div style={s.productName}>{p.name}</div>
                       {p.subcategory && <div style={s.productSub}>{p.subcategory}</div>}

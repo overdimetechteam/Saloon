@@ -43,7 +43,7 @@ export default function PendingSalons() {
         <div style={s.empty} className="scale-in">
           <div style={s.emptyOrb}>✅</div>
           <h3 style={s.emptyTitle}>All caught up!</h3>
-          <p style={{ color: '#059669', fontWeight: 600, margin: '0 0 6px' }}>No pending salons.</p>
+          <p style={{ color: '#0D9488', fontWeight: 600, margin: '0 0 6px' }}>No pending salons.</p>
           <p style={{ color: 'var(--text-muted)', fontSize: 13, margin: 0 }}>New registrations will appear here for review.</p>
         </div>
       )}
@@ -107,12 +107,12 @@ const s = {
   sub: { color: 'var(--text-muted)', fontSize: 13, margin: 0 },
   countBadge: {
     display: 'flex', flexDirection: 'column', alignItems: 'center',
-    background: 'rgba(217,119,6,.1)', border: '1px solid rgba(217,119,6,.25)',
+    background: 'rgba(212,175,55,.1)', border: '1px solid rgba(212,175,55,.25)',
     borderRadius: 16, padding: '14px 22px',
   },
-  countNum: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 34, fontWeight: 700, color: '#D97706', lineHeight: 1 },
+  countNum: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 34, fontWeight: 700, color: '#D4AF37', lineHeight: 1 },
   countLabel: { fontSize: 11, color: 'var(--text-muted)', marginTop: 4, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' },
-  alertOk: { background: '#ECFDF5', border: '1px solid #6EE7B7', color: '#059669', borderRadius: 12, padding: '11px 16px', fontSize: 13, marginBottom: 18 },
+  alertOk: { background: '#F0FDFA', border: '1px solid #99F6E4', color: '#0D9488', borderRadius: 12, padding: '11px 16px', fontSize: 13, marginBottom: 18 },
   alertErr: { background: '#FEF2F2', border: '1px solid #FCA5A5', color: '#DC2626', borderRadius: 12, padding: '11px 16px', fontSize: 13, marginBottom: 18 },
   empty: {
     textAlign: 'center', padding: '72px 40px',
@@ -144,8 +144,8 @@ const s = {
   salonName: { fontWeight: 800, fontSize: 17, color: 'var(--text)' },
   regNum: { fontSize: 12, color: 'var(--text-muted)', fontFamily: 'monospace', marginTop: 3 },
   pendingBadge: {
-    background: '#FFFBEB', color: '#D97706',
-    border: '1px solid rgba(217,119,6,.25)',
+    background: '#FBF3D0', color: '#D4AF37',
+    border: '1px solid rgba(212,175,55,.25)',
     borderRadius: 20, fontSize: 11, fontWeight: 700, padding: '5px 14px',
   },
   infoGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 0 },
@@ -155,9 +155,9 @@ const s = {
   cardFoot: { display: 'flex', gap: 12, padding: '16px 26px', background: 'var(--surface2)' },
   approveBtn: {
     padding: '11px 28px',
-    background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+    background: 'linear-gradient(135deg, #0D9488 0%, #0B7A70 100%)',
     color: '#fff', border: 'none', borderRadius: 11, cursor: 'pointer',
-    fontWeight: 700, fontSize: 14, boxShadow: '0 4px 14px rgba(5,150,105,.3)',
+    fontWeight: 700, fontSize: 14, boxShadow: '0 4px 14px rgba(13,148,136,.3)',
     fontFamily: "'DM Sans', sans-serif",
   },
   rejectBtn: {

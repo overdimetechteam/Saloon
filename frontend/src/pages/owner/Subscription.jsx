@@ -6,6 +6,13 @@ import { useOwner } from '../../context/OwnerContext';
 /* ─── Plan config (mirrors backend PLANS) ─────────────────────────────── */
 const PLAN_ORDER = ['free_trial', 'starter', 'professional', 'premium'];
 
+const PLAN_COLORS = {
+  free_trial:   '#6B7280',
+  starter:      '#14B8A8',
+  professional: '#0D9488',
+  premium:      '#D4AF37',
+};
+
 const PLAN_META = {
   free_trial:   { icon: '🆓', badge: null },
   starter:      { icon: '🚀', badge: null },
@@ -71,13 +78,13 @@ function PaymentModal({ plan, planKey, onClose, onSuccess }) {
   return createPortal(
     <div style={pm.overlay} onClick={e => e.target === e.currentTarget && onClose()}>
       <div style={pm.modal}>
-        <div style={{ ...pm.header, background: `linear-gradient(135deg, ${plan.color}22, ${plan.color}08)`, borderBottom: `1px solid ${plan.color}30` }}>
+        <div style={{ ...pm.header, background: `linear-gradient(135deg, ${PLAN_COLORS[planKey]}22, ${PLAN_COLORS[planKey]}08)`, borderBottom: `1px solid ${PLAN_COLORS[planKey]}30` }}>
           <div>
-            <div style={{ fontSize: 11, fontWeight: 700, color: plan.color, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 4 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: PLAN_COLORS[planKey], textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 4 }}>
               Subscribe
             </div>
             <div style={pm.title}>{PLAN_META[planKey]?.icon} {plan.name}</div>
-            <div style={{ fontSize: 22, fontWeight: 900, color: plan.color, marginTop: 4 }}>
+            <div style={{ fontSize: 22, fontWeight: 900, color: 'var(--text)', marginTop: 4 }}>
               LKR {plan.price.toLocaleString()}
               <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-muted)' }}> / month</span>
             </div>
@@ -114,11 +121,11 @@ function PaymentModal({ plan, planKey, onClose, onSuccess }) {
             </div>
             <div style={{ ...pm.summaryRow, borderTop: '1.5px solid var(--border)', paddingTop: 10, marginTop: 4 }}>
               <span style={{ fontWeight: 700 }}>Total</span>
-              <span style={{ fontWeight: 900, fontSize: 17, color: plan.color }}>LKR {plan.price.toLocaleString()}</span>
+              <span style={{ fontWeight: 900, fontSize: 17, color: 'var(--text)' }}>LKR {plan.price.toLocaleString()}</span>
             </div>
           </div>
 
-          <button type="submit" style={{ ...pm.payBtn, background: `linear-gradient(135deg, ${plan.color}, ${plan.color}cc)` }} disabled={loading}>
+          <button type="submit" style={{ ...pm.payBtn, background: `linear-gradient(135deg, ${PLAN_COLORS[planKey]}, ${PLAN_COLORS[planKey]}cc)` }} disabled={loading}>
             {loading ? 'Processing…' : `Pay LKR ${plan.price.toLocaleString()} & Subscribe`}
           </button>
           <p style={pm.disclaimer}>🔒 Secure test payment. No real charges apply.</p>
@@ -242,7 +249,7 @@ export default function OwnerSubscription() {
 
   const { subscription: sub, plans } = data;
   const currentPlan = plans[sub.plan] || {};
-  const planColor = sub.plan === 'free_trial' ? '#6B7280' : currentPlan.color || '#0D9488';
+  const planColor = PLAN_COLORS[sub.plan] || '#6B7280';
 
   return (
     <div style={s.page}>
@@ -267,7 +274,7 @@ export default function OwnerSubscription() {
       </div>
 
       {msg && (
-        <div style={{ ...s.alert, background: msg.includes('cancel') ? '#FEF2F2' : '#ECFDF5', borderColor: msg.includes('cancel') ? '#FCA5A5' : '#6EE7B7', color: msg.includes('cancel') ? '#DC2626' : '#059669' }}>
+        <div style={{ ...s.alert, background: msg.includes('cancel') ? '#FEF2F2' : '#F0FDFA', borderColor: msg.includes('cancel') ? '#FCA5A5' : '#99F6E4', color: msg.includes('cancel') ? '#DC2626' : '#0D9488' }}>
           {msg}
         </div>
       )}
@@ -279,7 +286,7 @@ export default function OwnerSubscription() {
           <div>
             <div style={s.bannerPlan}>
               {currentPlan.name || 'Free Trial'}
-              <span style={{ ...s.planStatusBadge, background: sub.is_active ? '#ECFDF5' : '#FEF2F2', color: sub.is_active ? '#059669' : '#DC2626', border: `1px solid ${sub.is_active ? '#6EE7B7' : '#FCA5A5'}` }}>
+              <span style={{ ...s.planStatusBadge, background: sub.is_active ? '#F0FDFA' : '#FEF2F2', color: sub.is_active ? '#0D9488' : '#DC2626', border: `1px solid ${sub.is_active ? '#99F6E4' : '#FCA5A5'}` }}>
                 {sub.is_active ? '● Active' : '● ' + sub.status}
               </span>
             </div>
@@ -303,7 +310,7 @@ export default function OwnerSubscription() {
             if (!plan) return null;
             const isCurrent = sub.plan === key;
             const meta = PLAN_META[key];
-            const color = plan.color;
+            const color = PLAN_COLORS[key];
             const isDowngrade = PLAN_ORDER.indexOf(key) < PLAN_ORDER.indexOf(sub.plan);
 
             return (
@@ -316,8 +323,8 @@ export default function OwnerSubscription() {
                 <div style={s.planTagline}>{plan.tagline}</div>
                 <div style={s.planPrice}>
                   {plan.price === 0
-                    ? <span style={{ color }}>Free</span>
-                    : <><span style={{ color }}>LKR {plan.price.toLocaleString()}</span><span style={s.planPer}>/mo</span></>
+                    ? <span style={{ color: 'var(--text)' }}>Free</span>
+                    : <><span style={{ color: 'var(--text)' }}>LKR {plan.price.toLocaleString()}</span><span style={s.planPer}>/mo</span></>
                   }
                 </div>
 
@@ -361,7 +368,7 @@ export default function OwnerSubscription() {
                 <tr>
                   <th style={s.featureTh}>Feature</th>
                   {PLAN_ORDER.map(key => (
-                    <th key={key} style={{ ...s.planTh, color: plans[key]?.color, borderBottom: `2px solid ${plans[key]?.color}` }}>
+                    <th key={key} style={{ ...s.planTh, color: PLAN_COLORS[key], borderBottom: `2px solid ${PLAN_COLORS[key]}` }}>
                       {PLAN_META[key]?.icon} {plans[key]?.name}
                       {sub.plan === key && <div style={s.currentDot}>Current</div>}
                     </th>
@@ -372,7 +379,7 @@ export default function OwnerSubscription() {
                 <tr>
                   <td style={s.featureTd}>Price</td>
                   {PLAN_ORDER.map(key => (
-                    <td key={key} style={{ ...s.planTd, fontWeight: 800, color: plans[key]?.color }}>
+                    <td key={key} style={{ ...s.planTd, fontWeight: 800, color: 'var(--text)' }}>
                       {plans[key]?.price === 0 ? 'Free' : `LKR ${plans[key]?.price?.toLocaleString()}/mo`}
                     </td>
                   ))}
@@ -384,7 +391,7 @@ export default function OwnerSubscription() {
                       const val = plans[key]?.features?.[row.key];
                       const text = row.fmt(val);
                       return (
-                        <td key={key} style={{ ...s.planTd, color: text === '—' ? '#D1D5DB' : text === '✓' ? '#059669' : 'var(--text)', fontWeight: text === '✓' ? 800 : 400 }}>
+                        <td key={key} style={{ ...s.planTd, color: text === '—' ? '#D1D5DB' : text === '✓' ? '#0D9488' : 'var(--text)', fontWeight: text === '✓' ? 800 : 400 }}>
                           {text}
                         </td>
                       );
@@ -396,9 +403,9 @@ export default function OwnerSubscription() {
                   {PLAN_ORDER.map(key => (
                     <td key={key} style={s.planTd}>
                       {sub.plan === key ? (
-                        <span style={{ fontSize: 12, fontWeight: 700, color: plans[key]?.color }}>✓ Current</span>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: PLAN_COLORS[key] }}>✓ Current</span>
                       ) : key !== 'free_trial' ? (
-                        <button style={{ ...s.tableUpgradeBtn, color: plans[key]?.color, border: `1.5px solid ${plans[key]?.color}40` }}
+                        <button style={{ ...s.tableUpgradeBtn, color: PLAN_COLORS[key], border: `1.5px solid ${PLAN_COLORS[key]}40` }}
                           onClick={() => setPayModal({ key, plan: plans[key] })}>
                           Select
                         </button>
@@ -422,7 +429,7 @@ export default function OwnerSubscription() {
               <div style={{ fontSize: 14, color: 'var(--text-muted)', marginBottom: 20 }}>
                 No payment information on file. Upgrade to a paid plan to access premium features.
               </div>
-              <button style={{ ...s.planBtn, display: 'inline-block', width: 'auto', padding: '12px 28px', background: 'linear-gradient(135deg, #0D9488, #EC4899)' }}
+              <button style={{ ...s.planBtn, display: 'inline-block', width: 'auto', padding: '12px 28px', background: 'linear-gradient(135deg, #0D9488, #14B8A8)' }}
                 onClick={() => setTab('plans')}>
                 View Plans
               </button>
@@ -432,7 +439,7 @@ export default function OwnerSubscription() {
               <div style={s.billingTitle}>Billing Details</div>
               <div style={s.billingGrid}>
                 <BillingRow label="Plan" value={currentPlan.name} />
-                <BillingRow label="Status" value={sub.is_active ? 'Active' : sub.status} highlight={sub.is_active ? '#059669' : '#DC2626'} />
+                <BillingRow label="Status" value={sub.is_active ? 'Active' : sub.status} highlight={sub.is_active ? '#0D9488' : '#DC2626'} />
                 <BillingRow label="Amount" value={`LKR ${Number(sub.amount_paid).toLocaleString()} / month`} />
                 <BillingRow label="Expires" value={sub.expires_at ? new Date(sub.expires_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '—'} />
                 <BillingRow label="Days Remaining" value={`${sub.days_remaining} days`} />
@@ -443,7 +450,7 @@ export default function OwnerSubscription() {
               </div>
               {sub.is_active && sub.plan !== 'free_trial' && (
                 <div style={{ marginTop: 24, paddingTop: 20, borderTop: '1px solid var(--border)', display: 'flex', gap: 12 }}>
-                  <button style={{ ...s.planBtn, background: 'linear-gradient(135deg, #0D9488, #EC4899)', display: 'inline-block', width: 'auto', padding: '11px 24px' }}
+                  <button style={{ ...s.planBtn, background: 'linear-gradient(135deg, #0D9488, #14B8A8)', display: 'inline-block', width: 'auto', padding: '11px 24px' }}
                     onClick={() => setTab('plans')}>
                     Change Plan
                   </button>
@@ -527,7 +534,7 @@ const s = {
   compareTable:  { width: '100%', borderCollapse: 'collapse' },
   featureTh:     { padding: '14px 20px', textAlign: 'left', fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', background: 'var(--surface2)', borderBottom: '2px solid var(--border)' },
   planTh:        { padding: '14px 16px', textAlign: 'center', fontSize: 13, fontWeight: 800, background: 'var(--surface2)', borderBottom: '2px solid var(--border)' },
-  currentDot:    { fontSize: 10, fontWeight: 700, color: '#059669', marginTop: 3 },
+  currentDot:    { fontSize: 10, fontWeight: 700, color: '#0D9488', marginTop: 3 },
   featureTd:     { padding: '10px 20px', fontSize: 13, color: 'var(--text)', borderBottom: '1px solid var(--border)', fontWeight: 500 },
   planTd:        { padding: '10px 16px', textAlign: 'center', fontSize: 13, borderBottom: '1px solid var(--border)' },
   tableUpgradeBtn: { padding: '5px 14px', borderRadius: 8, background: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: "'DM Sans', sans-serif" },

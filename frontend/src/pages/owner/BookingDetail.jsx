@@ -215,7 +215,7 @@ export default function OwnerBookingDetail() {
               {booking.discount_amount > 0 && (
                 <div style={s.infoBox}>
                   <div style={s.infoLbl}>Discount Applied</div>
-                  <div style={{ ...s.infoVal, color: '#059669' }}>− LKR {Number(booking.discount_amount).toFixed(2)}</div>
+                  <div style={{ ...s.infoVal, color: '#0D9488' }}>− LKR {Number(booking.discount_amount).toFixed(2)}</div>
                 </div>
               )}
             </div>
@@ -299,8 +299,8 @@ export default function OwnerBookingDetail() {
             <div style={s.histCard}>
               <div style={s.secTitle}>Alternative Slot History</div>
               {booking.alternative_slots.map(sl => (
-                <div key={sl.id} style={{ ...s.histSlot, ...(sl.is_selected ? { borderColor: '#059669', background: '#ECFDF5' } : {}) }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: sl.is_selected ? '#059669' : 'var(--text)' }}>
+                <div key={sl.id} style={{ ...s.histSlot, ...(sl.is_selected ? { borderColor: '#0D9488', background: '#F0FDFA' } : {}) }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: sl.is_selected ? '#0D9488' : 'var(--text)' }}>
                     Round {sl.round_number}{sl.is_selected ? ' ✓ Selected' : ''}
                   </div>
                   <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 3 }}>{new Date(sl.proposed_datetime).toLocaleString()}</div>
@@ -325,11 +325,11 @@ const s = {
   card: { background: 'var(--surface)', borderRadius: 22, padding: 28, boxShadow: '0 8px 32px rgba(13,148,136,.08)', border: '1px solid var(--border)' },
   cardHead: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24, paddingBottom: 20, borderBottom: '1px solid var(--border)' },
   clientName: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 22, fontWeight: 700, color: 'var(--text)', margin: 0, letterSpacing: '-0.01em' },
-  walkInBadge: { fontSize: 10, fontWeight: 700, padding: '3px 9px', borderRadius: 20, background: '#DBEAFE', color: '#1D4ED8', border: '1px solid #BFDBFE', flexShrink: 0 },
+  walkInBadge: { fontSize: 10, fontWeight: 700, padding: '3px 9px', borderRadius: 20, background: '#F0FDFA', color: '#0D9488', border: '1px solid #99F6E4', flexShrink: 0 },
   bookingId: { color: 'var(--text-muted)', fontSize: 12, margin: '4px 0 0', lineHeight: 1.6 },
   badge: { display: 'inline-flex', borderRadius: 20, fontWeight: 700, flexShrink: 0, fontSize: 13, padding: '6px 16px' },
   alertErr: { background: '#FEF2F2', border: '1px solid #FCA5A5', color: '#DC2626', borderRadius: 12, padding: '11px 14px', fontSize: 13, marginBottom: 18 },
-  alertOk:  { background: '#ECFDF5', border: '1px solid #6EE7B7', color: '#059669', borderRadius: 12, padding: '11px 14px', fontSize: 13, marginBottom: 18 },
+  alertOk:  { background: '#F0FDFA', border: '1px solid #99F6E4', color: '#0D9488', borderRadius: 12, padding: '11px 14px', fontSize: 13, marginBottom: 18 },
   infoGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 22 },
   infoBox:  { background: 'var(--surface2)', borderRadius: 12, padding: '13px 16px', border: '1px solid var(--border)' },
   infoLbl:  { fontSize: 9, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 },
@@ -342,7 +342,7 @@ const s = {
   actionsCard: { background: 'var(--surface)', borderRadius: 22, padding: 26, boxShadow: '0 4px 20px rgba(13,148,136,.07)', border: '1px solid var(--border)' },
   confirmSection: { marginBottom: 20 },
   actTitle: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 17, fontWeight: 700, color: 'var(--text)', marginBottom: 6, letterSpacing: '-0.01em' },
-  confirmBtn: { padding: '11px 26px', background: 'linear-gradient(135deg, #059669 0%, #047857 100%)', color: '#fff', border: 'none', borderRadius: 12, cursor: 'pointer', fontWeight: 700, fontSize: 14, boxShadow: '0 4px 14px rgba(5,150,105,.3)', fontFamily: "'DM Sans', sans-serif" },
+  confirmBtn: { padding: '11px 26px', background: 'linear-gradient(135deg, #0D9488 0%, #0B7A70 100%)', color: '#fff', border: 'none', borderRadius: 12, cursor: 'pointer', fontWeight: 700, fontSize: 14, boxShadow: '0 4px 14px rgba(13,148,136,.3)', fontFamily: "'DM Sans', sans-serif" },
   divider:  { height: 1, background: 'var(--border)', margin: '20px 0' },
   rejectSection: {},
   rejectBtn: { padding: '11px 24px', background: '#FEF2F2', color: '#DC2626', border: '1px solid #FECACA', borderRadius: 12, cursor: 'pointer', fontWeight: 700, fontSize: 14, fontFamily: "'DM Sans', sans-serif", marginTop: 4 },
