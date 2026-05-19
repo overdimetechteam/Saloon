@@ -8,6 +8,7 @@ class Service(models.Model):
         ('Nails', 'Nails'),
         ('Skin', 'Skin'),
         ('Makeup', 'Makeup'),
+        ('Bridal', 'Bridal & Party'),
     ]
 
     name = models.CharField(max_length=255)

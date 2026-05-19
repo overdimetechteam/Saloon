@@ -615,3 +615,95 @@ class SalonImageDetailView(APIView):
         image.image.delete(save=False)
         image.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class QuickSearchView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        import math
+        from services.models import SalonService
+
+        service_id = request.query_params.get('service_id')
+        time_str   = request.query_params.get('time')       # HH:MM (24h)
+        user_lat   = request.query_params.get('lat')
+        user_lng   = request.query_params.get('lng')
+        radius_km  = request.query_params.get('radius', 10)
+        gender     = request.query_params.get('gender', 'any')  # any / male / female
+
+        salons = Salon.objects.filter(status='active', is_suspended=False)
+
+        # — service filter —
+        if service_id:
+            salon_ids = SalonService.objects.filter(
+                service_id=service_id, is_active=True
+            ).values_list('salon_id', flat=True)
+            salons = salons.filter(id__in=salon_ids)
+
+        # — gender filter —
+        if gender == 'male':
+            salons = salons.filter(gender_focus__in=['male', 'unisex'])
+        elif gender == 'female':
+            salons = salons.filter(gender_focus__in=['female', 'unisex'])
+
+        # — operating hours filter —
+        if time_str:
+            try:
+                search_minutes = int(time_str[:2]) * 60 + int(time_str[3:5])
+                day_name = datetime.now().strftime('%A').lower()
+                filtered = []
+                for salon in salons:
+                    hours = salon.operating_hours.get(day_name, {})
+                    if not hours.get('open') or not hours.get('close'):
+                        filtered.append(salon)
+                        continue
+                    open_m  = int(hours['open'][:2])  * 60 + int(hours['open'][3:5])
+                    close_m = int(hours['close'][:2]) * 60 + int(hours['close'][3:5])
+                    if open_m <= search_minutes < close_m:
+                        filtered.append(salon)
+                salons = filtered
+            except (ValueError, AttributeError):
+                pass
+
+        # — radius filter (Haversine) —
+        if user_lat and user_lng:
+            try:
+                lat1 = math.radians(float(user_lat))
+                lng1 = math.radians(float(user_lng))
+                R    = 6371.0
+                km   = float(radius_km)
+                nearby = []
+                for salon in salons:
+                    if salon.latitude is None or salon.longitude is None:
+                        continue
+                    lat2 = math.radians(salon.latitude)
+                    lng2 = math.radians(salon.longitude)
+                    dlat = lat2 - lat1
+                    dlng = lng2 - lng1
+                    a = math.sin(dlat/2)**2 + math.cos(lat1)*math.cos(lat2)*math.sin(dlng/2)**2
+                    dist = R * 2 * math.asin(math.sqrt(a))
+                    if dist <= km:
+                        nearby.append(salon)
+                salons = nearby
+            except (ValueError, TypeError):
+                pass
+
+        # — serialise —
+        if hasattr(salons, 'select_related'):
+            salons = salons.select_related('calendar')
+        serializer = SalonSerializer(salons, many=True, context={'request': request})
+        return Response(serializer.data)
+
+
+class AllServicesView(APIView):
+    """Return all unique services (global + private) offered by active salons."""
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        from services.models import Service, SalonService
+        from services.serializers import ServiceSerializer
+        service_ids = SalonService.objects.filter(
+            is_active=True, salon__status='active', salon__is_suspended=False
+        ).values_list('service_id', flat=True).distinct()
+        services = Service.objects.filter(id__in=service_ids, is_active=True)
+        return Response(ServiceSerializer(services, many=True).data)

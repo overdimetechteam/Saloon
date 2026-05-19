@@ -44,6 +44,8 @@ export default function OwnerDashboard() {
   const [cosmetics, setCosmetics] = useState(false);
   const [cosmeticsSaving, setCosmeticsSaving] = useState(false);
   const [paletteSaving, setPaletteSaving] = useState(false);
+  const [genderFocus, setGenderFocus] = useState('unisex');
+  const [genderSaving, setGenderSaving] = useState(false);
   const [hours, setHours] = useState({});
   const [hoursOpen, setHoursOpen] = useState(false);
   const [hoursSaving, setHoursSaving] = useState(false);
@@ -53,6 +55,7 @@ export default function OwnerDashboard() {
     if (salon) {
       setHomeVisit(!!salon.home_visit_enabled);
       setCosmetics(!!salon.cosmetics_enabled);
+      setGenderFocus(salon.gender_focus || 'unisex');
       setHours(buildLocalHours(salon.operating_hours));
     }
   }, [salon]);
@@ -98,6 +101,20 @@ export default function OwnerDashboard() {
       setCosmetics(!next);
     } finally {
       setCosmeticsSaving(false);
+    }
+  };
+
+  const saveGenderFocus = async (val) => {
+    if (!salon || genderSaving || val === genderFocus) return;
+    setGenderFocus(val);
+    setGenderSaving(true);
+    try {
+      const r = await api.patch(`/salons/${salon.id}/`, { gender_focus: val });
+      setSalon(r.data);
+    } catch {
+      setGenderFocus(genderFocus);
+    } finally {
+      setGenderSaving(false);
     }
   };
 
@@ -379,6 +396,53 @@ export default function OwnerDashboard() {
           >
             Upgrade Plan →
           </button>
+        )}
+      </div>
+
+      {/* ── Salon Type / Gender Focus ── */}
+      <div style={{ ...s.hvCard, marginTop: 12, flexDirection: 'column', alignItems: 'stretch', gap: 14 }} className="fade-up d6">
+        <div style={s.hvLeft}>
+          <div style={{ ...s.hvIconWrap, background: 'rgba(13,148,136,.1)', color: '#0D9488' }}>◈</div>
+          <div>
+            <div style={s.hvTitle}>Salon Type</div>
+            <div style={s.hvSub}>Who is your salon for? This appears in search results and filters.</div>
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          {[
+            { val: 'male',   icon: '♂', label: 'Barbershop',     grad: 'linear-gradient(135deg,#0D9488,#0B7A70)' },
+            { val: 'female', icon: '♀', label: 'Ladies Salon',   grad: 'linear-gradient(135deg,#C96B51,#D4AF37)' },
+            { val: 'unisex', icon: '⚤', label: 'Unisex / Both',  grad: 'linear-gradient(135deg,#0D9488,#D4AF37)' },
+          ].map(opt => {
+            const active = genderFocus === opt.val;
+            return (
+              <button
+                key={opt.val}
+                onClick={() => saveGenderFocus(opt.val)}
+                disabled={genderSaving}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  padding: '9px 16px', borderRadius: 12, border: 'none',
+                  cursor: 'pointer', fontFamily: "'DM Sans', sans-serif",
+                  fontWeight: 700, fontSize: 13,
+                  background: active ? opt.grad : 'var(--surface2)',
+                  color: active ? '#fff' : 'var(--text-muted)',
+                  boxShadow: active ? '0 4px 14px rgba(13,148,136,.25)' : 'none',
+                  transition: 'all .18s ease',
+                  opacity: genderSaving ? 0.7 : 1,
+                }}
+              >
+                <span style={{ fontSize: 16 }}>{opt.icon}</span>
+                {opt.label}
+                {active && <span style={{ fontSize: 11 }}>✓</span>}
+              </button>
+            );
+          })}
+        </div>
+        {genderFocus !== 'male' && (
+          <div style={{ fontSize: 12, color: '#0D9488', background: '#F0FDFA', borderRadius: 8, padding: '7px 12px', border: '1px solid #99F6E4' }}>
+            ✦ Bridal & Party services are available for your salon type.
+          </div>
         )}
       </div>
 

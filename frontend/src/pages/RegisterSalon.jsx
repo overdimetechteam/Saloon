@@ -4,8 +4,32 @@ import api from '../api/axios';
 import { useBreakpoint } from '../hooks/useMobile';
 
 const DAYS       = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday'];
-const CATEGORIES = ['Hair', 'Nails', 'Skin', 'Makeup'];
+const BASE_CATS  = ['Hair', 'Nails', 'Skin', 'Makeup'];
 const EMPTY_SVC  = { name: '', category: 'Hair', price: '', duration: '', show_price: true };
+
+const GENDER_OPTIONS = [
+  {
+    val: 'male',
+    icon: '♂',
+    label: 'Barbershop',
+    sub: 'For men — haircuts, beard trims & grooming',
+    grad: 'linear-gradient(135deg, #0D9488 0%, #0B7A70 100%)',
+  },
+  {
+    val: 'female',
+    icon: '♀',
+    label: 'Ladies Salon',
+    sub: 'For women — hair, nails, skin, makeup & bridal',
+    grad: 'linear-gradient(135deg, #C96B51 0%, #D4AF37 100%)',
+  },
+  {
+    val: 'unisex',
+    icon: '⚤',
+    label: 'Unisex / Both',
+    sub: 'Open to everyone — full service range',
+    grad: 'linear-gradient(135deg, #0D9488 0%, #D4AF37 100%)',
+  },
+];
 
 export default function RegisterSalon() {
   const { isMobile } = useBreakpoint();
@@ -17,6 +41,7 @@ export default function RegisterSalon() {
     full_name: '', phone: '', password: '',
     operating_hours: Object.fromEntries(DAYS.map(d => [d, { open: '09:00', close: '17:00', closed: false }])),
   });
+  const [genderFocus, setGenderFocus] = useState('unisex');
   const [services, setServices] = useState([{ ...EMPTY_SVC }]);
   const [offer, setOffer] = useState({ title: '', description: '', discount_type: 'percentage', discount_value: '', start_date: '', end_date: '', note: '', is_active: true });
   const [hasOffer, setHasOffer]   = useState(false);
@@ -39,7 +64,7 @@ export default function RegisterSalon() {
   const handle = async e => {
     e.preventDefault(); setError(''); setLoading(true);
     try {
-      const payload = { ...form, cosmetics_enabled: cosmeticsEnabled };
+      const payload = { ...form, cosmetics_enabled: cosmeticsEnabled, gender_focus: genderFocus };
       const hours = {};
       DAYS.forEach(d => { if (!form.operating_hours[d].closed) hours[d] = { open: form.operating_hours[d].open, close: form.operating_hours[d].close }; });
       payload.operating_hours = hours;
@@ -117,6 +142,41 @@ export default function RegisterSalon() {
                 <div style={s.field}>
                   <label style={s.label}>Salon Email</label>
                   <input style={s.input} type="email" value={form.email} onChange={f('email')} required />
+                </div>
+              </div>
+
+              {/* Gender Focus */}
+              <div style={s.field}>
+                <label style={s.label}>Salon Type</label>
+                <p style={s.hint}>Who is your salon primarily for? This helps clients find you.</p>
+                <div style={s.genderGrid}>
+                  {GENDER_OPTIONS.map(opt => (
+                    <div
+                      key={opt.val}
+                      onClick={() => setGenderFocus(opt.val)}
+                      style={{
+                        ...s.genderCard,
+                        border: genderFocus === opt.val
+                          ? '2px solid #0D9488'
+                          : '2px solid var(--border)',
+                        background: genderFocus === opt.val
+                          ? 'rgba(13,148,136,.06)'
+                          : 'var(--surface2)',
+                      }}
+                    >
+                      <div style={{
+                        ...s.genderIcon,
+                        background: genderFocus === opt.val ? opt.grad : 'var(--border)',
+                      }}>
+                        {opt.icon}
+                      </div>
+                      <div style={s.genderLabel}>{opt.label}</div>
+                      <div style={s.genderSub}>{opt.sub}</div>
+                      {genderFocus === opt.val && (
+                        <div style={s.genderCheck}>✓</div>
+                      )}
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -221,7 +281,9 @@ export default function RegisterSalon() {
                       <div style={s.field}>
                         <label style={s.label}>Category</label>
                         <select style={s.input} value={svc.category} onChange={e => updateService(i, 'category', e.target.value)}>
-                          {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                          {[...BASE_CATS, ...(genderFocus !== 'male' ? ['Bridal'] : [])].map(c => (
+                            <option key={c} value={c}>{c === 'Bridal' ? 'Bridal & Party' : c}</option>
+                          ))}
                         </select>
                       </div>
                     </div>
@@ -357,4 +419,26 @@ const s = {
   successSub:   { color: 'var(--text-muted)', fontSize: 15, textAlign: 'center', lineHeight: 1.7, marginBottom: 28 },
   footer:       { marginTop: 20, textAlign: 'center', fontSize: 14, color: 'var(--text-muted)' },
   footerLink:   { color: '#0D9488', fontWeight: 600 },
+
+  genderGrid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginTop: 4 },
+  genderCard: {
+    display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center',
+    gap: 8, padding: '16px 10px', borderRadius: 14,
+    cursor: 'pointer', transition: 'all .18s ease', position: 'relative',
+  },
+  genderIcon: {
+    width: 44, height: 44, borderRadius: '50%',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    fontSize: 20, color: '#fff', fontWeight: 700,
+    transition: 'background .18s ease',
+  },
+  genderLabel: { fontSize: 13, fontWeight: 700, color: 'var(--text)' },
+  genderSub:   { fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.4 },
+  genderCheck: {
+    position: 'absolute', top: 8, right: 8,
+    width: 18, height: 18, borderRadius: '50%',
+    background: '#0D9488', color: '#fff',
+    fontSize: 10, fontWeight: 800,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+  },
 };

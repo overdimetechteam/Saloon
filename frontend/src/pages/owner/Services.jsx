@@ -3,8 +3,9 @@ import api from '../../api/axios';
 import { useOwner } from '../../context/OwnerContext';
 import { useBreakpoint } from '../../hooks/useMobile';
 
-const CAT_COLORS = { Hair: '#0D9488', Nails: '#D4AF37', Skin: '#0B7A70', Makeup: '#C96B51', Other: '#0D9488' };
-const CATEGORIES = ['Hair', 'Nails', 'Skin', 'Makeup'];
+const CAT_COLORS = { Hair: '#0D9488', Nails: '#D4AF37', Skin: '#0B7A70', Makeup: '#C96B51', Bridal: '#BE123C', Other: '#0D9488' };
+const BASE_CATS  = ['Hair', 'Nails', 'Skin', 'Makeup'];
+const BRIDAL_CAT = 'Bridal';
 
 function EditModal({ ss, onSave, onClose }) {
   const [price, setPrice]           = useState(ss.custom_price ?? ss.effective_price ?? '');
@@ -197,7 +198,9 @@ export default function OwnerServices() {
             </label>
             <label style={s.fLabel}>Category
               <select style={s.fInput} value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}>
-                {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                {[...BASE_CATS, ...(salon?.gender_focus !== 'male' ? [BRIDAL_CAT] : [])].map(c => (
+                  <option key={c} value={c}>{c === 'Bridal' ? 'Bridal & Party' : c}</option>
+                ))}
               </select>
             </label>
             <label style={s.fLabel}>Price (LKR)

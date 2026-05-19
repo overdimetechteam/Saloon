@@ -54,6 +54,13 @@ class SalonSerializer(serializers.ModelSerializer):
     subscription_plan = serializers.SerializerMethodField()
     subscription_status = serializers.SerializerMethodField()
     subscription_days_remaining = serializers.SerializerMethodField()
+    service_names = serializers.SerializerMethodField()
+
+    def get_service_names(self, obj):
+        return list(
+            obj.salon_services.filter(is_active=True)
+               .values_list('service__name', flat=True)[:8]
+        )
 
     def get_logo_url(self, obj):
         request = self.context.get('request')
@@ -89,11 +96,15 @@ class SalonSerializer(serializers.ModelSerializer):
             'id', 'name', 'business_reg_number',
             'address_street', 'address_city', 'address_district', 'address_postal',
             'contact_number', 'email', 'operating_hours',
-            'status', 'is_suspended', 'home_visit_enabled', 'cosmetics_enabled', 'color_palette', 'owner', 'owner_email', 'created_at', 'calendar',
+            'status', 'is_suspended', 'home_visit_enabled', 'cosmetics_enabled', 'color_palette',
+            'gender_focus', 'latitude', 'longitude',
+            'owner', 'owner_email', 'created_at', 'calendar',
             'logo_url', 'subscription_plan', 'subscription_status', 'subscription_days_remaining',
+            'service_names',
         ]
         read_only_fields = ['status', 'owner', 'created_at', 'logo_url',
-                            'subscription_plan', 'subscription_status', 'subscription_days_remaining']
+                            'subscription_plan', 'subscription_status', 'subscription_days_remaining',
+                            'service_names']
 
 
 class OfferSerializer(serializers.ModelSerializer):
@@ -121,8 +132,16 @@ class SalonRegisterSerializer(serializers.ModelSerializer):
             'name', 'business_reg_number',
             'address_street', 'address_city', 'address_district', 'address_postal',
             'contact_number', 'email', 'operating_hours',
-            'full_name', 'phone', 'password', 'cosmetics_enabled',
+            'full_name', 'phone', 'password', 'cosmetics_enabled', 'gender_focus',
         ]
+
+    def validate(self, attrs):
+        request = self.context.get('request')
+        if not (request and request.user.is_authenticated and request.user.role == 'salon_owner'):
+            email = attrs.get('owner', {}).get('email')
+            if email and CustomUser.objects.filter(email=email).exists():
+                raise serializers.ValidationError({'email': 'An account with this email already exists.'})
+        return attrs
 
     def create(self, validated_data):
         owner_data = validated_data.pop('owner', {})

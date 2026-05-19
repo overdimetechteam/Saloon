@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { useBreakpoint } from '../hooks/useMobile';
+import QuickSearchModal from '../components/QuickSearchModal';
 
 const PALETTE = [
   ['#0D9488', '#14B8A8'],
@@ -85,6 +86,7 @@ export default function SalonList() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [sort, setSort]                 = useState('default');
   const [loading, setLoading]           = useState(true);
+  const [quickSearch, setQS]            = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -181,7 +183,7 @@ export default function SalonList() {
 
       {/* ── Sticky filter + sort strip ── */}
       <div style={{ ...s.filterStrip, padding: hPad }}>
-        <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', alignItems: 'center' }}>
           {[
             { key: 'all',      label: 'All',      count: null         },
             { key: 'active',   label: '● Open',   count: openCount    },
@@ -200,7 +202,30 @@ export default function SalonList() {
               )}
             </button>
           ))}
+
+          {/* divider */}
+          <div style={{ width: 1, height: 18, background: 'var(--border)', margin: '0 2px' }} />
+
+          {/* Book Now! */}
+          <button
+            onClick={() => setQS(true)}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              padding: '5px 13px', borderRadius: 20, fontSize: 12, fontWeight: 700,
+              border: 'none',
+              background: 'linear-gradient(135deg, #0D9488 0%, #14B8A8 100%)',
+              color: '#fff', cursor: 'pointer',
+              fontFamily: "'DM Sans', sans-serif",
+              boxShadow: '0 2px 10px rgba(13,148,136,.35)',
+              transition: 'all .15s ease',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            <span style={{ fontSize: 11 }}>✦</span>
+            {isMobile ? 'Search' : 'Book Now!'}
+          </button>
         </div>
+
         <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
           {!isMobile && <span style={s.sortLabel}>SORT</span>}
           {[
@@ -281,6 +306,8 @@ export default function SalonList() {
           <SalonCard key={salon.id} salon={salon} i={i + (hasFavs ? favGroup.length : 0)} isFav={false} />
         ))}
       </div>
+
+      {quickSearch && <QuickSearchModal onClose={() => setQS(false)} />}
     </div>
   );
 }
