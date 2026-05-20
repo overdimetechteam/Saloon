@@ -4,6 +4,7 @@ import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { useBreakpoint } from '../hooks/useMobile';
 import QuickSearchModal from '../components/QuickSearchModal';
+import NearbyPanel from '../components/NearbyPanel';
 
 const PALETTE = [
   ['#0D9488', '#14B8A8'],
@@ -14,7 +15,7 @@ const PALETTE = [
   ['#0D9488', '#5EEAD4'],
 ];
 
-function SalonCard({ salon, i, isFav }) {
+function SalonCard({ salon, i, isFav, distanceKm }) {
   const [c1, c2] = PALETTE[i % PALETTE.length];
   const isOpen   = salon.status === 'active';
   return (
@@ -61,6 +62,16 @@ function SalonCard({ salon, i, isFav }) {
         <div style={s.salonLoc}>
           <span style={{ color: c1, fontSize: 11 }}>◎</span>
           {salon.address_city}{salon.address_district ? `, ${salon.address_district}` : ''}
+          {distanceKm != null && (
+            <span style={{
+              marginLeft: 6, fontSize: 11, fontWeight: 700,
+              color: c1, background: `${c1}15`,
+              borderRadius: 20, padding: '2px 8px',
+              border: `1px solid ${c1}33`,
+            }}>
+              {distanceKm < 1 ? `${Math.round(distanceKm * 1000)}m` : `${distanceKm.toFixed(1)} km`}
+            </span>
+          )}
         </div>
         {salon.contact_number && (
           <span style={s.phone}>📞 {salon.contact_number}</span>
@@ -87,6 +98,8 @@ export default function SalonList() {
   const [sort, setSort]                 = useState('default');
   const [loading, setLoading]           = useState(true);
   const [quickSearch, setQS]            = useState(false);
+  const [nearbyResults, setNearbyResults] = useState(null); // null = inactive, [] = active
+  const [nearbyMeta, setNearbyMeta]       = useState(null); // { radius, pos }
 
   useEffect(() => {
     setLoading(true);
@@ -111,13 +124,18 @@ export default function SalonList() {
     return 0;
   });
 
-  const filtered = salons.filter(sl => statusFilter === 'all' || sl.status === statusFilter);
-  const favGroup   = isClient ? applySort(filtered.filter(sl => favIds.has(sl.id)))  : [];
-  const otherGroup = isClient ? applySort(filtered.filter(sl => !favIds.has(sl.id))) : applySort(filtered);
+  const isNearbyMode = nearbyResults !== null;
+  const baseList     = isNearbyMode ? nearbyResults : salons;
+  const filtered     = baseList.filter(sl => statusFilter === 'all' || sl.status === statusFilter);
+
+  // In nearby mode results are already sorted by distance; respect manual sort on top
+  const sortedFiltered = isNearbyMode && sort === 'default' ? filtered : applySort(filtered);
+  const favGroup   = isClient ? sortedFiltered.filter(sl => favIds.has(sl.id))  : [];
+  const otherGroup = isClient ? sortedFiltered.filter(sl => !favIds.has(sl.id)) : sortedFiltered;
   const hasFavs    = favGroup.length > 0;
 
-  const openCount   = salons.filter(sl => sl.status === 'active').length;
-  const closedCount = salons.length - openCount;
+  const openCount   = baseList.filter(sl => sl.status === 'active').length;
+  const closedCount = baseList.length - openCount;
   const isNarrow    = isMobile || isTablet;
   const displayedCount = favGroup.length + otherGroup.length;
   const gridCols    = isMobile ? '1fr' : isTablet ? 'repeat(2,1fr)' : 'repeat(3,1fr)';
@@ -178,6 +196,30 @@ export default function SalonList() {
               <button style={s.clearBtn} onClick={() => setSearchParams({})}>✕</button>
             )}
           </div>
+        </div>
+      )}
+
+      {/* ── Nearby / Location search panel ── */}
+      <NearbyPanel
+        isMobile={isMobile}
+        onResults={(results, pos, r, d, t) => {
+          setNearbyResults(results);
+          setNearbyMeta({ pos, radius: r, date: d, time: t });
+          setStatusFilter('all');
+          setSort('default');
+        }}
+        onClear={() => { setNearbyResults(null); setNearbyMeta(null); }}
+      />
+
+      {/* ── Nearby active banner ── */}
+      {isNearbyMode && (
+        <div style={{ ...s.nearbyBanner, padding: isMobile ? '7px 14px' : '7px 40px' }}>
+          <span style={{ fontSize: 13, color: '#0D9488', fontWeight: 600 }}>
+            ◎ {nearbyResults.length} salon{nearbyResults.length !== 1 ? 's' : ''} available within {nearbyMeta?.radius} km
+            {nearbyMeta?.date && ` · ${new Date(nearbyMeta.date + 'T00:00').toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}`}
+            {nearbyMeta?.time && ` from ${nearbyMeta.time}`}
+            {' · sorted by distance'}
+          </span>
         </div>
       )}
 
@@ -244,9 +286,11 @@ export default function SalonList() {
         </div>
       </div>
 
-      {search && !loading && (
+      {(search || isNearbyMode) && !loading && (
         <p style={{ ...s.resultsNote, padding: isMobile ? '8px 14px 0' : '10px 40px 0' }}>
-          {displayedCount} result{displayedCount !== 1 ? 's' : ''} for &ldquo;{search}&rdquo;
+          {search
+            ? <>{displayedCount} result{displayedCount !== 1 ? 's' : ''} for &ldquo;{search}&rdquo;</>
+            : null}
         </p>
       )}
 
@@ -275,7 +319,11 @@ export default function SalonList() {
             </div>
             <h3 style={s.emptyTitle}>No salons found</h3>
             <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 0 }}>
-              {search ? `Nothing matched "${search}". Try a different term.` : 'No salons available yet.'}
+              {search
+                ? `Nothing matched "${search}". Try a different term.`
+                : isNearbyMode
+                  ? `No salons with available slots found within ${nearbyMeta?.radius} km. Try a different date, time, or larger radius.`
+                  : 'No salons available yet.'}
             </p>
           </div>
         )}
@@ -290,7 +338,7 @@ export default function SalonList() {
         )}
 
         {!loading && favGroup.map((salon, i) => (
-          <SalonCard key={salon.id} salon={salon} i={i} isFav={true} />
+          <SalonCard key={salon.id} salon={salon} i={i} isFav={true} distanceKm={salon.distance_km} />
         ))}
 
         {/* ── Divider between sections ── */}
@@ -303,7 +351,7 @@ export default function SalonList() {
         )}
 
         {!loading && otherGroup.map((salon, i) => (
-          <SalonCard key={salon.id} salon={salon} i={i + (hasFavs ? favGroup.length : 0)} isFav={false} />
+          <SalonCard key={salon.id} salon={salon} i={i + (hasFavs ? favGroup.length : 0)} isFav={false} distanceKm={salon.distance_km} />
         ))}
       </div>
 
@@ -399,6 +447,9 @@ const s = {
   chipBadgeOn: { background: 'rgba(13,148,136,.12)', color: '#0D9488' },
   sortLabel:   { fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.14em' },
 
+  nearbyBanner: {
+    background: 'rgba(13,148,136,.06)', borderBottom: '1px solid rgba(13,148,136,.15)',
+  },
   resultsNote: { fontSize: 13, color: 'var(--text-muted)', fontStyle: 'italic', margin: 0 },
 
   /* ── Grid ── */

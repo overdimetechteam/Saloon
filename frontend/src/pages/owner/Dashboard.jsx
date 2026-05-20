@@ -50,6 +50,9 @@ export default function OwnerDashboard() {
   const [hoursOpen, setHoursOpen] = useState(false);
   const [hoursSaving, setHoursSaving] = useState(false);
   const [hoursMsg, setHoursMsg] = useState('');
+  const [locSaving, setLocSaving] = useState(false);
+  const [locMsg, setLocMsg] = useState('');
+  const [locGpsState, setLocGpsState] = useState('idle'); // idle|loading|done|denied
 
   useEffect(() => {
     if (salon) {
