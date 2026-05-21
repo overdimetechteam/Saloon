@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { Navigate } from 'react-router-dom';
 import api from '../api/axios';
 
 const AuthContext = createContext(null);
@@ -58,4 +59,15 @@ export function AuthProvider({ children }) {
 
 export function useAuth() {
   return useContext(AuthContext);
+}
+
+export function RequireEmployee({ children }) {
+  const { profile } = useContext(AuthContext);
+  if (!profile) {
+    return <Navigate to="/employee/login" replace />;
+  }
+  if (profile.role !== 'employee') {
+    return <Navigate to="/login" replace />;
+  }
+  return children;
 }

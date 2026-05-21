@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import api from '../../api/axios';
 import { useOwner } from '../../context/OwnerContext';
 import { useBreakpoint } from '../../hooks/useMobile';
@@ -7,7 +7,17 @@ const COLORS = ['#0D9488','#14B8A8','#D4AF37','#0B7A70','#D4AF37','#0D9488'];
 const ALL_DAYS = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday'];
 const DAY_LABELS = { monday:'Mon', tuesday:'Tue', wednesday:'Wed', thursday:'Thu', friday:'Fri', saturday:'Sat', sunday:'Sun' };
 
-const emptyForm = () => ({ full_name: '', role: '', phone: '', specialties: [], working_days: [] });
+const ROLE_OPTIONS = [
+  { value: 'stylist',      label: 'Stylist' },
+  { value: 'barber',       label: 'Barber' },
+  { value: 'colorist',     label: 'Colorist' },
+  { value: 'receptionist', label: 'Receptionist' },
+  { value: 'manager',      label: 'Manager' },
+  { value: 'other',        label: 'Other' },
+];
+const ROLE_LABEL = Object.fromEntries(ROLE_OPTIONS.map(r => [r.value, r.label]));
+
+const emptyForm = () => ({ full_name: '', role: 'stylist', phone: '', specialties: [], working_days: [] });
 
 export default function OwnerTeam() {
   const { salon } = useOwner();
@@ -26,25 +36,24 @@ export default function OwnerTeam() {
     if (!salon) return;
     setLoading(true);
     Promise.all([
-      api.get(`/salons/${salon.id}/staff/`),
+      api.get(`/salons/${salon.id}/staff-members/`),
       api.get(`/salons/${salon.id}/services/`),
     ])
-      .then(([staffRes, svcRes]) => { setStaff(staffRes.data); setSalonServices(svcRes.data); })
+      .then(([staffRes, svcRes]) => {
+        setStaff(staffRes.data.filter(m => m.is_active));
+        setSalonServices(svcRes.data);
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   };
 
   useEffect(() => { load(); }, [salon]);
 
-  const openAdd = () => {
-    setEditing(null); setForm(emptyForm()); setError(''); setShowForm(true);
-  };
-
   const openEdit = member => {
     setEditing(member);
     setForm({
       full_name: member.full_name,
-      role: member.role || '',
+      role: member.role || 'other',
       phone: member.phone || '',
       specialties: member.specialty_ids || [],
       working_days: member.working_days || [],
@@ -73,20 +82,14 @@ export default function OwnerTeam() {
     if (!form.full_name.trim()) return setError('Name is required');
     setSaving(true);
     try {
-      const payload = {
+      await api.patch(`/salons/${salon.id}/staff-members/${editing.id}/`, {
         full_name: form.full_name,
         role: form.role,
         phone: form.phone,
         working_days: form.working_days,
         specialties: form.specialties,
-      };
-      if (editing) {
-        await api.patch(`/salons/${salon.id}/staff/${editing.id}/`, payload);
-        setMsg('Team member updated.');
-      } else {
-        await api.post(`/salons/${salon.id}/staff/`, payload);
-        setMsg('Team member added.');
-      }
+      });
+      setMsg('Team member updated.');
       closeForm(); load();
     } catch (err) {
       setError(err.response?.data?.detail || JSON.stringify(err.response?.data) || 'Error saving');
@@ -96,16 +99,16 @@ export default function OwnerTeam() {
   const remove = async member => {
     if (!window.confirm(`Remove ${member.full_name} from the team?`)) return;
     try {
-      await api.delete(`/salons/${salon.id}/staff/${member.id}/`);
+      await api.delete(`/salons/${salon.id}/staff-members/${member.id}/`);
       setMsg(`${member.full_name} removed.`); load();
     } catch { setMsg('Error removing member.'); }
   };
 
-  const toggleStaffHV = async (member) => {
+  const toggleStaffHV = async member => {
     const next = !member.home_visit_available;
     setStaff(prev => prev.map(m => m.id === member.id ? { ...m, home_visit_available: next } : m));
     try {
-      await api.patch(`/salons/${salon.id}/staff/${member.id}/`, { home_visit_available: next });
+      await api.patch(`/salons/${salon.id}/staff-members/${member.id}/`, { home_visit_available: next });
     } catch {
       setStaff(prev => prev.map(m => m.id === member.id ? { ...m, home_visit_available: !next } : m));
     }
@@ -115,13 +118,12 @@ export default function OwnerTeam() {
 
   return (
     <div style={s.page}>
-      <div style={{ ...s.header, flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? 14 : undefined }} className="fade-up">
+      <div style={{ ...s.header, flexDirection: isMobile ? 'column' : 'row' }} className="fade-up">
         <div>
           <div style={s.eyebrow}>Staff</div>
           <h1 style={s.title}>Team</h1>
-          <p style={s.sub}>Manage professionals at {salon.name}</p>
+          <p style={s.sub}>Professionals at {salon.name} — add members via Staff Profiles</p>
         </div>
-        <button style={{ ...s.addBtn, alignSelf: isMobile ? 'stretch' : 'auto' }} onClick={openAdd}>+ Add Member</button>
       </div>
 
       {msg && (
@@ -133,7 +135,7 @@ export default function OwnerTeam() {
 
       {showForm && (
         <div style={s.formCard} className="scale-in">
-          <div style={s.formTitle}>{editing ? 'Edit Team Member' : 'Add Team Member'}</div>
+          <div style={s.formTitle}>Edit Team Member</div>
           {error && <div style={s.alert}>{error}</div>}
           <form onSubmit={save}>
             <div style={{ ...s.formGrid, gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr' }}>
@@ -145,9 +147,12 @@ export default function OwnerTeam() {
               </div>
               <div style={s.field}>
                 <label style={s.label}>Role</label>
-                <input style={s.input} value={form.role}
-                  onChange={e => setForm(f => ({ ...f, role: e.target.value }))}
-                  placeholder="e.g. Hair Stylist" />
+                <select style={s.input} value={form.role}
+                  onChange={e => setForm(f => ({ ...f, role: e.target.value }))}>
+                  {ROLE_OPTIONS.map(r => (
+                    <option key={r.value} value={r.value}>{r.label}</option>
+                  ))}
+                </select>
               </div>
               <div style={s.field}>
                 <label style={s.label}>Phone</label>
@@ -165,8 +170,7 @@ export default function OwnerTeam() {
                   return (
                     <button type="button" key={day}
                       style={{ ...s.dayChip, ...(on ? s.dayChipOn : {}) }}
-                      onClick={() => toggleDay(day)}
-                    >
+                      onClick={() => toggleDay(day)}>
                       {DAY_LABELS[day]}
                     </button>
                   );
@@ -195,7 +199,7 @@ export default function OwnerTeam() {
             <div style={s.formActions}>
               <button type="button" style={s.cancelBtn} onClick={closeForm}>Cancel</button>
               <button type="submit" style={{ ...s.saveBtn, opacity: saving ? 0.7 : 1 }} disabled={saving}>
-                {saving ? 'Saving…' : editing ? 'Save Changes' : 'Add Member'}
+                {saving ? 'Saving…' : 'Save Changes'}
               </button>
             </div>
           </form>
@@ -208,8 +212,9 @@ export default function OwnerTeam() {
         <div style={s.empty} className="scale-in">
           <div style={s.emptyIcon}>✦</div>
           <h3 style={s.emptyTitle}>No team members yet</h3>
-          <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 20 }}>Add professionals so clients can choose them when booking.</p>
-          <button style={s.emptyBtn} onClick={openAdd}>+ Add First Member</button>
+          <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>
+            Add staff members in <strong>Staff Profiles</strong> — they'll appear here automatically.
+          </p>
         </div>
       ) : (
         <div style={s.grid} className="fade-up">
@@ -218,13 +223,16 @@ export default function OwnerTeam() {
             return (
               <div key={member.id} style={s.card}>
                 <div style={s.cardTop}>
-                  <div style={{ ...s.avatar, background: `linear-gradient(135deg, ${color} 0%, ${color}CC 100%)`, boxShadow: `0 4px 14px ${color}40` }}>
-                    {member.full_name[0].toUpperCase()}
+                  <div style={{ ...s.avatar, background: `linear-gradient(135deg, ${color} 0%, ${color}CC 100%)`, boxShadow: `0 4px 14px ${color}40`, overflow: 'hidden', padding: 0 }}>
+                    {member.photo_url
+                      ? <img src={member.photo_url} alt={member.full_name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 16 }} />
+                      : <span style={{ fontSize: 22, fontWeight: 700, color: '#fff' }}>{member.full_name[0].toUpperCase()}</span>
+                    }
                   </div>
                   <div style={s.cardMeta}>
                     <div style={s.name}>{member.full_name}</div>
                     <div style={{ ...s.roleTag, color, background: color + '14', borderColor: color + '33' }}>
-                      {member.role || 'Stylist'}
+                      {ROLE_LABEL[member.role] || member.role || 'Staff'}
                     </div>
                   </div>
                 </div>
@@ -286,20 +294,12 @@ const s = {
     fontSize: 30, fontWeight: 700, color: 'var(--text)', margin: '0 0 4px', letterSpacing: '-0.01em',
   },
   sub: { fontSize: 14, color: 'var(--text-muted)', margin: 0 },
-  addBtn: {
-    padding: '11px 24px',
-    background: 'linear-gradient(135deg, #0D9488 0%, #14B8A8 50%, #0D9488 100%)',
-    color: '#fff', border: 'none', borderRadius: 12, cursor: 'pointer',
-    fontWeight: 700, fontSize: 14, boxShadow: '0 6px 18px rgba(13,148,136,.35)',
-    flexShrink: 0,
-  },
   toast: {
     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
     background: '#F0FDFA', border: '1px solid #99F6E4', color: '#0D9488',
     borderRadius: 12, padding: '11px 18px', fontSize: 13, marginBottom: 22,
   },
   toastClose: { background: 'none', border: 'none', cursor: 'pointer', color: '#0D9488', fontSize: 14 },
-
   formCard: {
     background: 'var(--surface)', borderRadius: 20, padding: 28,
     border: '1px solid var(--border)', marginBottom: 28,
@@ -365,7 +365,6 @@ const s = {
     fontSize: 14, fontWeight: 700, boxShadow: '0 4px 14px rgba(13,148,136,.3)',
     fontFamily: "'DM Sans', sans-serif",
   },
-
   grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 18 },
   card: {
     background: 'var(--surface)', borderRadius: 20, padding: 22,
@@ -378,7 +377,6 @@ const s = {
     width: 52, height: 52, borderRadius: 16, flexShrink: 0,
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     fontFamily: "'Cormorant Garamond', Georgia, serif",
-    fontSize: 22, fontWeight: 700, color: '#fff',
   },
   cardMeta: { flex: 1, minWidth: 0 },
   name: {
@@ -388,6 +386,7 @@ const s = {
   roleTag: {
     display: 'inline-block', fontSize: 11, fontWeight: 600,
     padding: '3px 10px', borderRadius: 20, border: '1px solid',
+    textTransform: 'capitalize',
   },
   daysRow: { display: 'flex', flexWrap: 'wrap', gap: 5 },
   dayBadge: {
@@ -447,17 +446,11 @@ const s = {
     fontSize: 30, marginBottom: 18,
     display: 'inline-flex', width: 72, height: 72, borderRadius: 20,
     alignItems: 'center', justifyContent: 'center',
-    background: 'linear-gradient(135deg, #0D9488 0%, #0D9488 100%)',
+    background: 'linear-gradient(135deg, #0D9488 0%, #14B8A8 100%)',
     color: '#fff', boxShadow: '0 8px 24px rgba(13,148,136,.35)',
   },
   emptyTitle: {
     fontFamily: "'Cormorant Garamond', Georgia, serif",
     fontSize: 24, fontWeight: 700, color: 'var(--text)', margin: '0 0 10px',
-  },
-  emptyBtn: {
-    padding: '11px 28px',
-    background: 'linear-gradient(135deg, #0D9488 0%, #14B8A8 50%, #0D9488 100%)',
-    color: '#fff', border: 'none', borderRadius: 12, cursor: 'pointer',
-    fontWeight: 700, fontSize: 14, boxShadow: '0 6px 18px rgba(13,148,136,.35)',
   },
 };

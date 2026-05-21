@@ -54,6 +54,7 @@ export default function SalonDetail() {
   const [favLoading, setFavLoading] = useState(false);
   const [offers, setOffers]         = useState([]);
   const [salonImages, setSalonImages] = useState([]);
+  const [teamMembers, setTeamMembers] = useState([]);
   const [lightboxIdx, setLightboxIdx] = useState(null);
   const [activeServiceCat, setActiveServiceCat] = useState(null);
   const [reviewRating, setReviewRating] = useState(0);
@@ -76,6 +77,7 @@ export default function SalonDetail() {
     api.get(`/salons/${id}/reviews/summary/`).then(r => setSummary(r.data)).catch(() => {});
     api.get(`/salons/${id}/offers/`).then(r => setOffers(r.data)).catch(() => {});
     api.get(`/salons/${id}/images/`).then(r => setSalonImages(r.data)).catch(() => {});
+    api.get(`/salons/${id}/team/`).then(r => setTeamMembers(r.data)).catch(() => {});
     if (profile?.role === 'client') {
       api.get(`/salons/${id}/favourite/`).then(r => setIsFav(r.data.is_favourited)).catch(() => {});
     }
@@ -480,18 +482,36 @@ export default function SalonDetail() {
         <section ref={teamRef} style={s.sec} className="fade-up d2">
           <div style={s.eyebrowSm}>Meet the Experts</div>
           <h2 style={s.secTitle}>Our Team</h2>
-          <div style={{ ...s.teamGrid, gridTemplateColumns: isMobile ? 'repeat(2,1fr)' : isTablet ? 'repeat(2,1fr)' : 'repeat(auto-fill,minmax(200px,1fr))' }}>
-            {mockTeam.map((m, i) => (
-              <div key={i} style={{ ...s.teamCard, borderTop: `3px solid ${m.color}` }} className="lift-sm">
-                <div style={{ ...s.teamAvatar, background: m.bg, color: m.color, boxShadow: `0 4px 14px ${m.color}28` }}>
-                  {m.name.split(' ').map(w => w[0]).join('')}
+          {teamMembers.length > 0 ? (
+            <div style={{ ...s.teamGrid, gridTemplateColumns: isMobile ? 'repeat(2,1fr)' : isTablet ? 'repeat(2,1fr)' : 'repeat(auto-fill,minmax(200px,1fr))' }}>
+              {teamMembers.map(m => (
+                <div key={m.id} style={{ ...s.teamCard, borderTop: `3px solid ${pal.main}` }} className="lift-sm">
+                  <div style={{ ...s.teamAvatar, background: `rgba(${R},.12)`, color: pal.main, boxShadow: `0 4px 14px ${pal.main}28`, overflow: 'hidden', padding: 0 }}>
+                    {m.photo_url
+                      ? <img src={m.photo_url} alt={m.full_name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+                      : <span style={{ fontSize: 24, fontWeight: 700 }}>{m.full_name.split(' ').map(w => w[0]).join('')}</span>
+                    }
+                  </div>
+                  <div style={s.teamName}>{m.full_name}</div>
+                  <div style={{ ...s.teamRole, color: pal.main, textTransform: 'capitalize' }}>{m.role}</div>
+                  {m.bio && <div style={s.teamSpec}>{m.bio}</div>}
                 </div>
-                <div style={s.teamName}>{m.name}</div>
-                <div style={{ ...s.teamRole, color: m.color }}>{m.role}</div>
-                <div style={s.teamSpec}>{m.specialty}</div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div style={{ ...s.teamGrid, gridTemplateColumns: isMobile ? 'repeat(2,1fr)' : isTablet ? 'repeat(2,1fr)' : 'repeat(auto-fill,minmax(200px,1fr))' }}>
+              {mockTeam.map((m, i) => (
+                <div key={i} style={{ ...s.teamCard, borderTop: `3px solid ${m.color}` }} className="lift-sm">
+                  <div style={{ ...s.teamAvatar, background: m.bg, color: m.color, boxShadow: `0 4px 14px ${m.color}28` }}>
+                    {m.name.split(' ').map(w => w[0]).join('')}
+                  </div>
+                  <div style={s.teamName}>{m.name}</div>
+                  <div style={{ ...s.teamRole, color: m.color }}>{m.role}</div>
+                  <div style={s.teamSpec}>{m.specialty}</div>
+                </div>
+              ))}
+            </div>
+          )}
         </section>
 
         {/* Reviews */}

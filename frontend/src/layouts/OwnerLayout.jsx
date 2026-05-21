@@ -11,6 +11,7 @@ const NAV = [
   { to: '/owner/bookings',              icon: '◉', label: 'Bookings',      group: 'main'  },
   { to: '/owner/services',              icon: '◇', label: 'Services',      group: 'main'  },
   { to: '/owner/team',                  icon: '✦', label: 'Team',          group: 'main'  },
+  { to: '/owner/staff',                 icon: '◈', label: 'Staff Profiles', group: 'main'  },
   { to: '/owner/promotions',            icon: '⬡', label: 'Promotions',    group: 'main'  },
   { to: '/owner/offers',               icon: '◑', label: 'Offers',         group: 'main'  },
   { to: '/owner/gallery',               icon: '◫', label: 'Gallery',       group: 'main'  },

@@ -32,6 +32,11 @@ import OwnerSales from './pages/owner/Sales';
 import OwnerAdjustments from './pages/owner/Adjustments';
 import OwnerReports from './pages/owner/Reports';
 import OwnerTeam from './pages/owner/Team';
+import OwnerStaffManager from './pages/owner/StaffManager';
+import SalonPortalSelect from './pages/SalonPortalSelect';
+import EmployeeLogin from './pages/EmployeeLogin';
+import EmployeeProfileEditor from './pages/EmployeeProfileEditor';
+import { RequireEmployee } from './context/AuthContext';
 import OwnerGallery from './pages/owner/Gallery';
 import OwnerPromotions from './pages/owner/Promotions';
 import OwnerAnalytics  from './pages/owner/Analytics';
@@ -83,6 +88,13 @@ export default function App() {
           <Route path="/register/user" element={<RegisterClient />} />
           <Route path="/register/owner" element={<RegisterSalon />} />
 
+          {/* Salon portal select + employee login */}
+          <Route path="/salon-portal" element={<SalonPortalSelect />} />
+          <Route path="/employee/login" element={<EmployeeLogin />} />
+          <Route path="/employee/profile" element={
+            <RequireEmployee><EmployeeProfileEditor /></RequireEmployee>
+          } />
+
           {/* Admin portal — /admin/* */}
           <Route path="/admin" element={<RequireRole roles={['system_admin']} />}>
             <Route element={<AdminLayout />}>
@@ -102,6 +114,7 @@ export default function App() {
               <Route path="bookings/:id" element={<OwnerBookingDetail />} />
               <Route path="services" element={<OwnerServices />} />
               <Route path="team" element={<OwnerTeam />} />
+              <Route path="staff" element={<OwnerStaffManager />} />
               <Route path="gallery" element={<OwnerGallery />} />
               <Route path="promotions" element={<OwnerPromotions />} />
               <Route path="analytics"  element={<OwnerAnalytics />} />

@@ -2,10 +2,59 @@
 import { Link } from 'react-router-dom';
 import api from '../api/axios';
 import { useBreakpoint } from '../hooks/useMobile';
+import MapLocationPicker from '../components/MapLocationPicker';
 
 const DAYS       = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday'];
 const BASE_CATS  = ['Hair', 'Nails', 'Skin', 'Makeup'];
 const EMPTY_SVC  = { name: '', category: 'Hair', price: '', duration: '', show_price: true };
+
+const SERVICES_BY_CATEGORY = {
+  Hair: [
+    'Haircut (Women)','Haircut (Men)','Haircut (Kids)','Haircut & Blow Dry',
+    'Fringe / Bangs Trim','Beard Trim','Haircut & Beard Combo','Head Shave',
+    'Shape Up / Line Up','Low Fade','Mid Fade','High Fade','Undercut','Buzz Cut',
+    'Full Hair Color','Root Touch Up','Full Highlights','Partial Highlights',
+    'Balayage','Ombre','Hair Bleaching','Toning','Gray Coverage',
+    'Deep Conditioning Treatment','Keratin Treatment','Protein Treatment',
+    'Scalp Treatment','Hair Botox Treatment','Olaplex Treatment',
+    'Blow Dry & Style','Hair Straightening (Flat Iron)','Curling & Waves',
+    'Updo / Formal Style','Bridal Hair','Box Braids','French Braid','Cornrows',
+    'Perm (Wavy / Curly)','Digital Perm','Hair Relaxer','Head & Scalp Massage',
+  ],
+  Nails: [
+    'Basic Manicure','Spa Manicure','French Manicure','Gel Manicure','Acrylic Manicure',
+    'Dip Powder Manicure','Paraffin Manicure','Nail Art (Simple)','Nail Art (Complex)',
+    'Nail Extensions (Gel Tips)','Gel / Acrylic Removal','Nail Repair (Per Nail)',
+    'Polish Change (Hands)','Nail Strengthening Treatment','Basic Pedicure','Spa Pedicure',
+    'Gel Pedicure','French Pedicure','Paraffin Pedicure','Callus Removal',
+    'Foot Scrub & Massage','Polish Change (Toes)','Nail Art (Toes)',
+  ],
+  Skin: [
+    'Basic Facial','Deep Cleansing Facial','Hydrating Facial','Anti-Aging Facial',
+    'Brightening Facial','Acne Treatment Facial','Gold Facial','Charcoal Facial',
+    'Fruit Facial','Bridal Glow Facial','Chemical Peel (Light)','Microdermabrasion',
+    'LED Light Therapy','Blackhead Extraction','Eyebrow Threading','Eyebrow Waxing',
+    'Eyebrow Tinting','Eyebrow Lamination','Eyelash Tinting','Eyelash Lift & Perm',
+    'Eyelash Extensions (Classic)','Eyelash Extensions (Volume)','Upper Lip Threading',
+    'Full Face Threading','Hot Towel Shave','Beard Shaping & Styling',"Men's Facial",
+    'Face Scrub (Men)','Swedish Massage','Deep Tissue Massage','Aromatherapy Massage',
+    'Hot Stone Massage','Shoulder & Neck Massage','Full Body Scrub','Body Wrap',
+    'Foot Reflexology','Underarm Waxing','Full Leg Waxing','Half Leg Waxing',
+    'Full Arm Waxing','Bikini Wax','Brazilian Wax','Back Waxing','Chest Waxing',
+  ],
+  Makeup: [
+    'Day Makeup','Evening / Party Makeup','Bridal Makeup (Trial)',
+    'Bridal Makeup (Wedding Day)','Engagement Makeup','Photoshoot / Editorial Makeup',
+    'Airbrush Makeup','Contouring & Highlighting','Makeup Lesson','Strip Lash Application',
+    'Microblading','Lip Blush','Semi-Permanent Eyeliner',
+  ],
+  Bridal: [
+    'Bridal Hair','Bridal Glow Facial','Bridal Makeup (Trial)','Bridal Makeup (Wedding Day)',
+    'Engagement Makeup','Updo / Formal Style','Airbrush Makeup','Eyelash Extensions (Classic)',
+    'Eyelash Extensions (Volume)','Eyelash Lift & Perm','Eyebrow Lamination',
+    'Contouring & Highlighting','Strip Lash Application',
+  ],
+};
 
 const GENDER_OPTIONS = [
   {
@@ -42,6 +91,9 @@ export default function RegisterSalon() {
     operating_hours: Object.fromEntries(DAYS.map(d => [d, { open: '09:00', close: '17:00', closed: false }])),
   });
   const [genderFocus, setGenderFocus] = useState('unisex');
+  const [salonPos, setSalonPos] = useState(null);       // { lat, lng }
+  const [salonPosLabel, setSalonPosLabel] = useState('');
+  const [showLocMap, setShowLocMap] = useState(false);
   const [services, setServices] = useState([{ ...EMPTY_SVC }]);
   const [offer, setOffer] = useState({ title: '', description: '', discount_type: 'percentage', discount_value: '', start_date: '', end_date: '', note: '', is_active: true });
   const [hasOffer, setHasOffer]   = useState(false);
@@ -64,7 +116,7 @@ export default function RegisterSalon() {
   const handle = async e => {
     e.preventDefault(); setError(''); setLoading(true);
     try {
-      const payload = { ...form, cosmetics_enabled: cosmeticsEnabled, gender_focus: genderFocus };
+      const payload = { ...form, cosmetics_enabled: cosmeticsEnabled, gender_focus: genderFocus, ...(salonPos ? { latitude: salonPos.lat, longitude: salonPos.lng } : {}) };
       const hours = {};
       DAYS.forEach(d => { if (!form.operating_hours[d].closed) hours[d] = { open: form.operating_hours[d].open, close: form.operating_hours[d].close }; });
       payload.operating_hours = hours;
@@ -83,6 +135,21 @@ export default function RegisterSalon() {
       setError(typeof data === 'string' ? data : JSON.stringify(data));
     } finally { setLoading(false); }
   };
+
+  if (showLocMap) return (
+    <MapLocationPicker
+      initialPos={salonPos}
+      showRadius={false}
+      title="Pin Your Salon Location"
+      applyLabel="Set Location"
+      onClose={() => setShowLocMap(false)}
+      onApply={(pos, _rad, label) => {
+        setSalonPos(pos);
+        setSalonPosLabel(label);
+        setShowLocMap(false);
+      }}
+    />
+  );
 
   if (success) return (
     <div style={s.page}>
@@ -204,6 +271,31 @@ export default function RegisterSalon() {
                 <label style={s.label}>Postal Code</label>
                 <input style={s.input} value={form.address_postal} onChange={f('address_postal')} required />
               </div>
+
+              {/* Map pin for salon location */}
+              <div style={s.field}>
+                <label style={s.label}>Salon Location on Map <span style={s.optTag}>optional but recommended</span></label>
+                <p style={s.hint}>Pin your salon's exact location so clients can find you using radius search.</p>
+                {salonPos ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', borderRadius: 11, background: '#F0FDFA', border: '1px solid #99F6E4' }}>
+                    <span style={{ fontSize: 18 }}>📍</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 11, color: '#0D9488', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Pinned</div>
+                      <div style={{ fontSize: 13, color: '#0D9488', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {salonPosLabel || `${salonPos.lat.toFixed(5)}, ${salonPos.lng.toFixed(5)}`}
+                      </div>
+                    </div>
+                    <button type="button" onClick={() => setShowLocMap(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: '#0D9488', fontWeight: 600, textDecoration: 'underline', flexShrink: 0 }}>
+                      Change
+                    </button>
+                  </div>
+                ) : (
+                  <button type="button" onClick={() => setShowLocMap(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 18px', background: 'var(--surface2)', border: '1.5px dashed rgba(13,148,136,.4)', borderRadius: 11, cursor: 'pointer', fontSize: 13, fontWeight: 600, color: '#0D9488', fontFamily: "'DM Sans', sans-serif" }}>
+                    📍 Pin Salon on Map
+                  </button>
+                )}
+              </div>
+
               <h4 style={{ ...s.sectionTitle, marginTop: 28 }}>Owner Account</h4>
               <div style={s.field}>
                 <label style={s.label}>Your Full Name</label>
@@ -275,14 +367,23 @@ export default function RegisterSalon() {
                   <div key={i} style={s.svcRow}>
                     <div style={{ ...s.row2, flex: 1 }}>
                       <div style={s.field}>
-                        <label style={s.label}>Service Name</label>
-                        <input style={s.input} placeholder="e.g. Hair Colour" value={svc.name} onChange={e => updateService(i, 'name', e.target.value)} />
-                      </div>
-                      <div style={s.field}>
                         <label style={s.label}>Category</label>
-                        <select style={s.input} value={svc.category} onChange={e => updateService(i, 'category', e.target.value)}>
+                        <select
+                          style={s.input}
+                          value={svc.category}
+                          onChange={e => setServices(p => p.map((sv, idx) => idx === i ? { ...sv, category: e.target.value, name: '' } : sv))}
+                        >
                           {[...BASE_CATS, ...(genderFocus !== 'male' ? ['Bridal'] : [])].map(c => (
                             <option key={c} value={c}>{c === 'Bridal' ? 'Bridal & Party' : c}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div style={s.field}>
+                        <label style={s.label}>Service Name</label>
+                        <select style={s.input} value={svc.name} onChange={e => updateService(i, 'name', e.target.value)}>
+                          <option value="">— Select a service —</option>
+                          {(SERVICES_BY_CATEGORY[svc.category] || []).map(name => (
+                            <option key={name} value={name}>{name}</option>
                           ))}
                         </select>
                       </div>

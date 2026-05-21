@@ -16,7 +16,8 @@ export default function Login() {
     try {
       const user = await login(form.email, form.password);
       if (user.role === 'system_admin') navigate('/admin/salons');
-      else if (user.role === 'salon_owner') navigate('/owner/dashboard');
+      else if (user.role === 'salon_owner') navigate('/salon-portal');
+      else if (user.role === 'employee') navigate('/employee/profile');
       else navigate('/user/dashboard');
     } catch (err) {
       setError(err.response?.data?.detail || 'Invalid email or password');

@@ -32,4 +32,12 @@ api.interceptors.response.use(
   }
 );
 
+export function uploadProfilePhoto(file) {
+  const form = new FormData();
+  form.append('photo', file);
+  return api.patch('/employee/profile/', form, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+}
+
 export default api;

@@ -1,0 +1,27 @@
+databases:
+  - name: saloon-db
+    plan: free
+
+services:
+  - type: web
+    name: saloon-backend
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate && python manage.py seed_services
+    startCommand: gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120
+    plan: free
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: config.settings
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: ".onrender.com"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: saloon-db
+          property: connectionString
+      - key: CORS_ALLOWED_ORIGINS
+        value: "https://your-frontend-url.onrender.com"

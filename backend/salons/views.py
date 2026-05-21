@@ -1,3 +1,4 @@
+import urllib.parse
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -626,6 +627,7 @@ class QuickSearchView(APIView):
 
         service_id = request.query_params.get('service_id')
         time_str   = request.query_params.get('time')       # HH:MM (24h)
+        date_str   = request.query_params.get('date')       # YYYY-MM-DD
         user_lat   = request.query_params.get('lat')
         user_lng   = request.query_params.get('lng')
         radius_km  = request.query_params.get('radius', 10)
@@ -646,8 +648,59 @@ class QuickSearchView(APIView):
         elif gender == 'female':
             salons = salons.filter(gender_focus__in=['female', 'unisex'])
 
-        # — operating hours filter —
-        if time_str:
+        # — date + time availability filter —
+        if date_str and time_str:
+            try:
+                from bookings.models import Booking as _Booking
+                slot_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+                day_name  = slot_date.strftime('%A').lower()
+                req_h, req_m = int(time_str[:2]), int(time_str[3:5])
+                req_minutes  = req_h * 60 + req_m
+                taken_statuses = ['pending', 'confirmed', 'rescheduled', 'awaiting_client']
+                available = []
+                for salon in salons:
+                    # blocked date check
+                    try:
+                        cal = salon.calendar
+                    except SalonCalendar.DoesNotExist:
+                        cal = SalonCalendar.objects.create(salon=salon)
+                    if date_str in (cal.blocked_dates or []):
+                        continue
+                    # operating hours for that day
+                    day_hours = salon.operating_hours.get(day_name, {})
+                    open_str  = day_hours.get('open')
+                    close_str = day_hours.get('close')
+                    if not open_str or not close_str:
+                        continue  # closed that day
+                    open_m  = int(open_str[:2]) * 60 + int(open_str[3:5])
+                    close_m = int(close_str[:2]) * 60 + int(close_str[3:5])
+                    if req_minutes < open_m or req_minutes >= close_m:
+                        continue  # requested time outside opening hours
+                    # slot availability: at least one free slot from req_minutes onward
+                    duration = cal.slot_duration_minutes or 30
+                    taken_times = set(
+                        _Booking.objects.filter(
+                            salon=salon,
+                            requested_datetime__date=slot_date,
+                            status__in=taken_statuses,
+                        ).values_list('requested_datetime', flat=True)
+                    )
+                    has_free = False
+                    cur_m = req_minutes
+                    while cur_m < close_m:
+                        slot_dt = datetime.strptime(f"{date_str} {cur_m//60:02d}:{cur_m%60:02d}", '%Y-%m-%d %H:%M')
+                        aware   = timezone.make_aware(slot_dt) if timezone.is_naive(slot_dt) else slot_dt
+                        if not any(abs((t - aware).total_seconds()) < 60 for t in taken_times):
+                            has_free = True
+                            break
+                        cur_m += duration
+                    if has_free:
+                        available.append(salon)
+                salons = available
+            except (ValueError, AttributeError):
+                pass
+        elif time_str:
+            # time-only filter (legacy: uses today's day name)
             try:
                 search_minutes = int(time_str[:2]) * 60 + int(time_str[3:5])
                 day_name = datetime.now().strftime('%A').lower()
@@ -666,33 +719,62 @@ class QuickSearchView(APIView):
                 pass
 
         # — radius filter (Haversine) —
+        distances = {}
         if user_lat and user_lng:
             try:
+                import urllib.request, json as _json
                 lat1 = math.radians(float(user_lat))
                 lng1 = math.radians(float(user_lng))
                 R    = 6371.0
-                km   = float(radius_km)
+                km   = min(float(radius_km), 50.0)
                 nearby = []
                 for salon in salons:
-                    if salon.latitude is None or salon.longitude is None:
+                    slat, slng = salon.latitude, salon.longitude
+                    # Auto-geocode from address if coordinates not stored yet
+                    if slat is None or slng is None:
+                        addr_parts = [
+                            salon.address_street, salon.address_city,
+                            salon.address_district, salon.address_postal,
+                        ]
+                        addr = ', '.join(p for p in addr_parts if p)
+                        try:
+                            geo_url = (
+                                'https://nominatim.openstreetmap.org/search'
+                                f'?format=json&limit=1&q={urllib.parse.quote(addr)}'
+                            )
+                            req = urllib.request.Request(geo_url, headers={'User-Agent': 'SalonApp/1.0'})
+                            with urllib.request.urlopen(req, timeout=4) as resp:
+                                geo = _json.loads(resp.read())
+                            if geo:
+                                slat = float(geo[0]['lat'])
+                                slng = float(geo[0]['lon'])
+                                # Cache to DB so future requests skip geocoding
+                                Salon.objects.filter(pk=salon.pk).update(latitude=slat, longitude=slng)
+                        except Exception:
+                            pass
+                    if slat is None or slng is None:
                         continue
-                    lat2 = math.radians(salon.latitude)
-                    lng2 = math.radians(salon.longitude)
+                    lat2 = math.radians(slat)
+                    lng2 = math.radians(slng)
                     dlat = lat2 - lat1
                     dlng = lng2 - lng1
                     a = math.sin(dlat/2)**2 + math.cos(lat1)*math.cos(lat2)*math.sin(dlng/2)**2
-                    dist = R * 2 * math.asin(math.sqrt(a))
+                    dist = round(R * 2 * math.asin(math.sqrt(a)), 2)
                     if dist <= km:
+                        distances[salon.id] = dist
                         nearby.append(salon)
-                salons = nearby
+                salons = sorted(nearby, key=lambda s: distances[s.id])
             except (ValueError, TypeError):
                 pass
 
         # — serialise —
         if hasattr(salons, 'select_related'):
             salons = salons.select_related('calendar')
-        serializer = SalonSerializer(salons, many=True, context={'request': request})
-        return Response(serializer.data)
+        data = SalonSerializer(salons, many=True, context={'request': request}).data
+        if distances:
+            for item in data:
+                item['distance_km'] = distances.get(item['id'])
+        return Response(data)
 
 
 class AllServicesView(APIView):

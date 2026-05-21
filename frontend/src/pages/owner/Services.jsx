@@ -104,6 +104,17 @@ export default function OwnerServices() {
   const attachedIds = new Set(attached.map(ss => ss.service));
   const available   = all.filter(s => !attachedIds.has(s.id));
 
+  const availableByCategory = available.reduce((acc, s) => {
+    const cat = s.category || 'Other';
+    if (!acc[cat]) acc[cat] = [];
+    acc[cat].push(s);
+    return acc;
+  }, {});
+  const CAT_ORDER = ['Hair', 'Nails', 'Skin', 'Makeup', 'Bridal', 'Other'];
+  const sortedAvailableCats = CAT_ORDER.filter(c => availableByCategory[c]);
+  const remainingCats = Object.keys(availableByCategory).filter(c => !CAT_ORDER.includes(c));
+  const orderedAvailableCats = [...sortedAvailableCats, ...remainingCats];
+
   const flash = text => { setMsg(text); setTimeout(() => setMsg(''), 3000); };
 
   const attach = async () => {
@@ -176,7 +187,13 @@ export default function OwnerServices() {
           <div style={{ ...s.addRow, width: isMobile ? '100%' : 'auto' }}>
             <select style={{ ...s.select, flex: isMobile ? 1 : 'none' }} value={toAdd} onChange={e => setToAdd(e.target.value)}>
               <option value="">— Attach from catalogue —</option>
-              {available.map(sv => <option key={sv.id} value={sv.id}>{sv.name} ({sv.category})</option>)}
+              {orderedAvailableCats.map(cat => (
+                <optgroup key={cat} label={cat === 'Bridal' ? 'Bridal & Party' : cat}>
+                  {availableByCategory[cat].map(sv => (
+                    <option key={sv.id} value={sv.id}>{sv.name}</option>
+                  ))}
+                </optgroup>
+              ))}
             </select>
             <button style={{ ...s.addBtn, opacity: !toAdd ? 0.6 : 1 }} onClick={attach} disabled={!toAdd}>
               Attach

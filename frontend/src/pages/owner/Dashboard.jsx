@@ -4,6 +4,7 @@ import api from '../../api/axios';
 import { useOwner } from '../../context/OwnerContext';
 import { STATUS_META } from '../../styles/theme';
 import { useBreakpoint } from '../../hooks/useMobile';
+import MapLocationPicker from '../../components/MapLocationPicker';
 
 const DAYS = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday'];
 
@@ -50,6 +51,9 @@ export default function OwnerDashboard() {
   const [hoursOpen, setHoursOpen] = useState(false);
   const [hoursSaving, setHoursSaving] = useState(false);
   const [hoursMsg, setHoursMsg] = useState('');
+  const [locSaving, setLocSaving] = useState(false);
+  const [locMsg, setLocMsg] = useState('');
+  const [showLocMap, setShowLocMap] = useState(false);
 
   useEffect(() => {
     if (salon) {
@@ -115,6 +119,23 @@ export default function OwnerDashboard() {
       setGenderFocus(genderFocus);
     } finally {
       setGenderSaving(false);
+    }
+  };
+
+  const saveLocation = async (pos, label) => {
+    if (!salon || locSaving) return;
+    setLocSaving(true);
+    setLocMsg('');
+    try {
+      const r = await api.patch(`/salons/${salon.id}/`, { latitude: pos.lat, longitude: pos.lng });
+      setSalon(r.data);
+      setLocMsg(label || `${pos.lat.toFixed(5)}, ${pos.lng.toFixed(5)}`);
+      setTimeout(() => setLocMsg(''), 4000);
+    } catch {
+      setLocMsg('error');
+      setTimeout(() => setLocMsg(''), 3000);
+    } finally {
+      setLocSaving(false);
     }
   };
 
@@ -445,6 +466,63 @@ export default function OwnerDashboard() {
           </div>
         )}
       </div>
+
+      {/* ── Salon Location ── */}
+      <div style={{ ...s.hvCard, marginTop: 12, flexDirection: 'column', alignItems: 'stretch', gap: 12 }} className="fade-up d6">
+        <div style={s.hvLeft}>
+          <div style={{ ...s.hvIconWrap, background: 'rgba(13,148,136,.1)', color: '#0D9488' }}>📍</div>
+          <div>
+            <div style={s.hvTitle}>Salon Location</div>
+            <div style={s.hvSub}>
+              {salon.latitude
+                ? 'Location pinned — clients can find you in radius search'
+                : 'Pin your exact location so clients can filter salons by distance'}
+            </div>
+          </div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+          {salon.latitude && (
+            <div style={{ fontSize: 12, color: '#0D9488', background: '#F0FDFA', borderRadius: 8, padding: '6px 12px', border: '1px solid #99F6E4', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {locMsg && locMsg !== 'error' ? `✓ Saved: ${locMsg}` : `◎ ${salon.latitude.toFixed(5)}, ${salon.longitude.toFixed(5)}`}
+            </div>
+          )}
+          {locMsg === 'error' && (
+            <span style={{ fontSize: 12, color: '#DC2626' }}>Failed to save</span>
+          )}
+          <button
+            onClick={() => setShowLocMap(true)}
+            disabled={locSaving}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              padding: '9px 18px', borderRadius: 10, border: 'none',
+              cursor: locSaving ? 'wait' : 'pointer',
+              background: 'linear-gradient(135deg, #0D9488, #14B8A8)',
+              color: '#fff', fontWeight: 700, fontSize: 13,
+              fontFamily: "'DM Sans', sans-serif",
+              boxShadow: '0 4px 14px rgba(13,148,136,.3)',
+              opacity: locSaving ? 0.7 : 1,
+              flexShrink: 0,
+            }}
+          >
+            {locSaving ? 'Saving…' : salon.latitude ? '📍 Update Location' : '📍 Pin My Location'}
+          </button>
+        </div>
+      </div>
+
+      {/* Map picker modal */}
+      {showLocMap && (
+        <MapLocationPicker
+          initialPos={salon.latitude ? { lat: salon.latitude, lng: salon.longitude } : null}
+          showRadius={false}
+          title="Pin Your Salon Location"
+          applyLabel="Save Location"
+          onClose={() => setShowLocMap(false)}
+          onApply={(pos, _rad, label) => {
+            setShowLocMap(false);
+            saveLocation(pos, label);
+          }}
+        />
+      )}
 
       {/* ── Colour Palette Picker ── */}
       <div style={{ ...s.hvCard, marginTop: 12, flexWrap: 'wrap' }} className="fade-up d6">

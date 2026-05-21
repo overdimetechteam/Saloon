@@ -133,6 +133,7 @@ class SalonRegisterSerializer(serializers.ModelSerializer):
             'address_street', 'address_city', 'address_district', 'address_postal',
             'contact_number', 'email', 'operating_hours',
             'full_name', 'phone', 'password', 'cosmetics_enabled', 'gender_focus',
+            'latitude', 'longitude',
         ]
 
     def validate(self, attrs):

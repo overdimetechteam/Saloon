@@ -111,14 +111,15 @@ export default function SalonList() {
     return 0;
   });
 
-  const filtered = salons.filter(sl => statusFilter === 'all' || sl.status === statusFilter);
-  const favGroup   = isClient ? applySort(filtered.filter(sl => favIds.has(sl.id)))  : [];
-  const otherGroup = isClient ? applySort(filtered.filter(sl => !favIds.has(sl.id))) : applySort(filtered);
-  const hasFavs    = favGroup.length > 0;
+  const filtered       = salons.filter(sl => statusFilter === 'all' || sl.status === statusFilter);
+  const sortedFiltered = applySort(filtered);
+  const favGroup       = isClient ? sortedFiltered.filter(sl => favIds.has(sl.id))  : [];
+  const otherGroup     = isClient ? sortedFiltered.filter(sl => !favIds.has(sl.id)) : sortedFiltered;
+  const hasFavs        = favGroup.length > 0;
 
-  const openCount   = salons.filter(sl => sl.status === 'active').length;
-  const closedCount = salons.length - openCount;
-  const isNarrow    = isMobile || isTablet;
+  const openCount      = salons.filter(sl => sl.status === 'active').length;
+  const closedCount    = salons.length - openCount;
+  const isNarrow       = isMobile || isTablet;
   const displayedCount = favGroup.length + otherGroup.length;
   const gridCols    = isMobile ? '1fr' : isTablet ? 'repeat(2,1fr)' : 'repeat(3,1fr)';
   const hPad        = isMobile ? '10px 14px' : isTablet ? '11px 20px' : '12px 40px';
