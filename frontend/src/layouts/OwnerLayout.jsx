@@ -1,5 +1,6 @@
 ﻿import { useState, useEffect, useRef } from 'react';
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useOwner } from '../context/OwnerContext';
 import { useTheme } from '../context/ThemeContext';
@@ -263,9 +264,14 @@ export default function OwnerLayout() {
         padding: isMobile ? '16px 16px 80px' : isTablet ? '20px 20px 80px' : '36px 40px',
         marginTop: isMobile ? 56 : 0,
       }}>
-        <div className="fade-in">
+        <motion.div
+          key={location.pathname}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1, transition: { duration: 0.2, ease: 'easeOut' } }}
+          style={{ minHeight: '100%' }}
+        >
           <Outlet />
-        </div>
+        </motion.div>
       </main>
 
       {/* Mobile bottom tab bar — main workspace items */}

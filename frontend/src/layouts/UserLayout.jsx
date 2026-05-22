@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { NavLink, Outlet, useNavigate, Link, useLocation } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useIsMobile } from '../hooks/useMobile';
@@ -283,9 +284,14 @@ export default function UserLayout() {
         maxWidth: 1320, margin: '0 auto', width: '100%',
         boxSizing: 'border-box',
       }}>
-        <div key={location.pathname} className="page-enter">
+        <motion.div
+          key={location.pathname}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1, transition: { duration: 0.22, ease: 'easeOut' } }}
+          style={{ minHeight: '100%' }}
+        >
           <Outlet />
-        </div>
+        </motion.div>
       </main>
 
       {/* Mobile bottom tab bar */}

@@ -61,11 +61,15 @@ export default function SalonDetail() {
   const [reviewText, setReviewText] = useState('');
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
   const [reviewMsg, setReviewMsg] = useState('');
+  const [selectedMember, setSelectedMember] = useState(null);
 
-  const servicesRef = useRef(null);
-  const teamRef     = useRef(null);
-  const reviewsRef  = useRef(null);
-  const infoRef     = useRef(null);
+  const servicesRef  = useRef(null);
+  const teamRef      = useRef(null);
+  const reviewsRef   = useRef(null);
+  const infoRef      = useRef(null);
+  const svcScrollRef   = useRef(null);
+  const teamScrollRef  = useRef(null);
+  const photoScrollRef = useRef(null);
 
   useEffect(() => {
     api.get(`/salons/${id}/`).then(r => setSalon(r.data)).catch(() => {});
@@ -132,6 +136,43 @@ export default function SalonDetail() {
     return () => window.removeEventListener('keydown', handler);
   }, [lightboxIdx, salonImages.length]);
 
+  useEffect(() => {
+    if (!selectedMember) return;
+    const handler = e => { if (e.key === 'Escape') setSelectedMember(null); };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [selectedMember]);
+
+  useEffect(() => {
+    if (!salon) return;
+    const prevTitle = document.title;
+    document.title = `${salon.name} — Luxe Salons`;
+
+    const setMeta = (key, val, attr = 'name') => {
+      let el = document.querySelector(`meta[${attr}="${key}"]`);
+      if (!el) { el = document.createElement('meta'); el.setAttribute(attr, key); document.head.appendChild(el); }
+      el.setAttribute('content', val);
+    };
+
+    const desc = salon.description
+      ? salon.description.slice(0, 155)
+      : `Book at ${salon.name} — a premium salon in ${salon.address_city}. Hair, nails, skin & more.`;
+    const heroImg = salonImages[0]?.image_url || salon.logo_url || '';
+
+    setMeta('description', desc);
+    setMeta('keywords', `salon, ${salon.name}, beauty, ${salon.address_city}, hair, nails, skin, spa, booking`);
+    setMeta('og:title',       `${salon.name} | Luxe Salons`, 'property');
+    setMeta('og:description', desc, 'property');
+    setMeta('og:image',       heroImg, 'property');
+    setMeta('og:type',        'business.business', 'property');
+    setMeta('twitter:card',        'summary_large_image');
+    setMeta('twitter:title',       `${salon.name} | Luxe`);
+    setMeta('twitter:description', desc);
+    if (heroImg) setMeta('twitter:image', heroImg);
+
+    return () => { document.title = prevTitle; };
+  }, [salon, salonImages]);
+
   if (!salon) return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh', background: 'var(--bg)' }}>
       <div style={{ width: 38, height: 38, borderRadius: '50%', border: '3px solid rgba(13,148,136,.15)', borderTopColor: '#0D9488', animation: 'spinSlow .7s linear infinite' }} />
@@ -144,6 +185,7 @@ export default function SalonDetail() {
   const mockTeam = getMockTeam(pal);
   const mockPhotos = getMockPhotos(pal);
   const mockPalette = getMockPalette(pal);
+  const coverPhoto = salonImages.length > 0 ? salonImages[0].image_url : null;
 
   const grouped = services.reduce((acc, ss) => {
     const cat = ss.service_category || 'Other';
@@ -163,7 +205,13 @@ export default function SalonDetail() {
     <div style={{ background: 'var(--bg)', minHeight: '100vh' }}>
 
       {/* HERO */}
-      <div style={{ ...s.hero, padding: isMobile ? '36px 20px 30px' : '52px 48px 44px', background: `linear-gradient(145deg, #0D0D16 0%, ${pal.darkBg} 40%, ${pal.dark} 75%, ${pal.main} 100%)` }}>
+      <div style={{
+        ...s.hero,
+        padding: isMobile ? '36px 20px 30px' : '52px 48px 44px',
+        background: coverPhoto
+          ? `linear-gradient(160deg, rgba(13,13,22,.93) 0%, rgba(13,13,22,.80) 35%, rgba(11,56,50,.72) 68%, rgba(13,148,136,.55) 100%), url(${coverPhoto}) center/cover no-repeat`
+          : `linear-gradient(145deg, #0D0D16 0%, ${pal.darkBg} 40%, ${pal.dark} 75%, ${pal.main} 100%)`,
+      }}>
         <div style={s.heroBg} />
         <div style={{ ...s.heroInner, flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? 20 : 24 }}>
           <div style={{ ...s.heroLeft, gap: isMobile ? 16 : 22 }}>
@@ -267,22 +315,32 @@ export default function SalonDetail() {
 
       {/* PHOTOS */}
       <div style={s.photoStrip}>
-        <div style={s.photoScroll}>
-          {salonImages.length > 0
-            ? salonImages.map((img, i) => (  // real photos
-                <div key={img.id} style={{ ...s.photoCard, cursor: 'pointer' }} className="lift-sm fade-up"
-                  onClick={() => setLightboxIdx(i)}>
-                  <img src={img.image_url} alt={img.caption || `Photo ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit', display: 'block' }} />
-                  {img.caption && <div style={s.photoLabel}>{img.caption}</div>}
-                  <div style={s.photoClickHint}>⊕</div>
-                </div>
-              ))
-            : mockPhotos.map((p, i) => (
-                <div key={i} style={{ ...s.photoCard, background: p.grad }} className="lift-sm fade-up">
-                  <div style={s.photoLabel}>{p.label}</div>
-                </div>
-              ))
-          }
+        <div style={{ position: 'relative', maxWidth: 1148, margin: '0 auto', padding: '0 40px' }}>
+          {!isMobile && (
+            <button style={{ ...s.carouselArrow, left: 4, boxShadow: '0 4px 18px rgba(0,0,0,.14)' }}
+              onClick={() => photoScrollRef.current?.scrollBy({ left: -(isMobile ? 214 : 354), behavior: 'smooth' })}>‹</button>
+          )}
+          <div ref={photoScrollRef} style={{ ...s.photoScroll, maxWidth: 'none', margin: 0, padding: '0 0 4px' }}>
+            {salonImages.length > 0
+              ? salonImages.map((img, i) => (
+                  <div key={img.id} style={{ ...s.photoCard, width: isMobile ? 200 : 340, height: isMobile ? 140 : 240, cursor: 'pointer' }} className="lift-sm fade-up"
+                    onClick={() => setLightboxIdx(i)}>
+                    <img src={img.image_url} alt={img.caption || `Photo ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit', display: 'block' }} />
+                    {img.caption && <div style={s.photoLabel}>{img.caption}</div>}
+                    <div style={s.photoClickHint}>⊕</div>
+                  </div>
+                ))
+              : mockPhotos.map((p, i) => (
+                  <div key={i} style={{ ...s.photoCard, width: isMobile ? 200 : 340, height: isMobile ? 140 : 240, background: p.grad }} className="lift-sm fade-up">
+                    <div style={s.photoLabel}>{p.label}</div>
+                  </div>
+                ))
+            }
+          </div>
+          {!isMobile && (
+            <button style={{ ...s.carouselArrow, right: 4, boxShadow: '0 4px 18px rgba(0,0,0,.14)' }}
+              onClick={() => photoScrollRef.current?.scrollBy({ left: isMobile ? 214 : 354, behavior: 'smooth' })}>›</button>
+          )}
         </div>
       </div>
 
@@ -333,6 +391,42 @@ export default function SalonDetail() {
         document.body
       )}
 
+      {/* EMPLOYEE MODAL */}
+      {selectedMember && createPortal(
+        <div style={lb.overlay} onClick={() => setSelectedMember(null)}>
+          <div style={tm.modal} onClick={e => e.stopPropagation()}>
+            <button style={tm.closeBtn} onClick={() => setSelectedMember(null)}>✕</button>
+            <div style={{
+              ...tm.avatar,
+              background: selectedMember._bg || `rgba(${R},.15)`,
+              color: selectedMember._color || pal.main,
+              boxShadow: `0 8px 28px ${selectedMember._color || pal.main}44`,
+              overflow: 'hidden', padding: 0,
+            }}>
+              {selectedMember.photo_url
+                ? <img src={selectedMember.photo_url} alt={selectedMember.full_name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+                : <span style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 38, fontWeight: 700 }}>
+                    {selectedMember.full_name.split(' ').map(w => w[0]).join('')}
+                  </span>
+              }
+            </div>
+            <h3 style={tm.name}>{selectedMember.full_name}</h3>
+            <div style={{ ...tm.role, color: selectedMember._color || pal.main }}>{selectedMember.role}</div>
+            {selectedMember.bio && <p style={tm.bio}>{selectedMember.bio}</p>}
+            {isClient && (
+              <Link
+                to={`/user/book/${id}`}
+                style={{ ...s.heroBookBtn, background: selectedMember._color || pal.main, boxShadow: `0 6px 20px ${selectedMember._color || pal.main}40`, marginTop: 24, fontSize: 14, padding: '12px 28px' }}
+                onClick={() => setSelectedMember(null)}
+              >
+                ✦ Book Now
+              </Link>
+            )}
+          </div>
+        </div>,
+        document.body
+      )}
+
       {/* BODY */}
       <div style={{ ...s.body, padding: isMobile ? '20px 16px 48px' : isTablet ? '28px 20px' : '44px 48px' }}>
 
@@ -367,32 +461,42 @@ export default function SalonDetail() {
                   );
                 })}
               </div>
-              <div style={{ ...s.svcGrid, gridTemplateColumns: isMobile ? '1fr' : isTablet ? 'repeat(2,1fr)' : 'repeat(auto-fill,minmax(230px,1fr))' }}>
-                {(grouped[activeCat] || []).map(ss => {
-                  const inner = (
-                    <div style={{ ...s.svcCard, cursor: isClient ? 'pointer' : 'default' }}>
-                      <div style={s.svcName}>{ss.service_name}</div>
-                      {ss.description ? (
-                        <div style={s.svcDesc}>{ss.description}</div>
-                      ) : null}
-                      <div style={s.svcMeta}>
-                        <span style={s.svcDur}>⏱ {ss.effective_duration} min</span>
-                        <span style={{ ...s.svcPrice, background: activeCatColor, color: '#fff', padding: '3px 10px', borderRadius: 8 }}>
-                          {ss.is_price_starting_from && <span style={s.svcStarting}>Starting From </span>}
-                          LKR {ss.effective_price}
-                        </span>
+              <div style={s.carouselWrap}>
+                {!isMobile && (
+                  <button style={{ ...s.carouselArrow, left: -20 }}
+                    onClick={() => svcScrollRef.current?.scrollBy({ left: -290, behavior: 'smooth' })}>‹</button>
+                )}
+                <div ref={svcScrollRef} style={s.svcScroll}>
+                  {(grouped[activeCat] || []).map(ss => {
+                    const inner = (
+                      <div style={{ ...s.svcCard, width: isMobile ? 230 : 268, flexShrink: 0, cursor: isClient ? 'pointer' : 'default' }}>
+                        <div style={s.svcName}>{ss.service_name}</div>
+                        {ss.description ? (
+                          <div style={s.svcDesc}>{ss.description}</div>
+                        ) : null}
+                        <div style={s.svcMeta}>
+                          <span style={s.svcDur}>⏱ {ss.effective_duration} min</span>
+                          <span style={{ ...s.svcPrice, background: `${activeCatColor}18`, color: activeCatColor, border: `1px solid ${activeCatColor}38`, padding: '3px 10px', borderRadius: 8 }}>
+                            {ss.is_price_starting_from && <span style={s.svcStarting}>Starting From </span>}
+                            LKR {ss.effective_price}
+                          </span>
+                        </div>
+                        {isClient && <div style={{ ...s.svcBookHint, color: pal.main }}>Tap to book →</div>}
                       </div>
-                      {isClient && <div style={{ ...s.svcBookHint, color: pal.main }}>Tap to book →</div>}
-                    </div>
-                  );
-                  return isClient ? (
-                    <Link key={ss.id} to={`/user/book/${id}?services=${ss.id}`} style={{ textDecoration: 'none', display: 'block' }} className="lift-sm">
-                      {inner}
-                    </Link>
-                  ) : (
-                    <div key={ss.id} className="lift-sm">{inner}</div>
-                  );
-                })}
+                    );
+                    return isClient ? (
+                      <Link key={ss.id} to={`/user/book/${id}?services=${ss.id}`} style={{ textDecoration: 'none', display: 'block', flexShrink: 0 }} className="lift-sm">
+                        {inner}
+                      </Link>
+                    ) : (
+                      <div key={ss.id} style={{ flexShrink: 0 }} className="lift-sm">{inner}</div>
+                    );
+                  })}
+                </div>
+                {!isMobile && (
+                  <button style={{ ...s.carouselArrow, right: -20 }}
+                    onClick={() => svcScrollRef.current?.scrollBy({ left: 290, behavior: 'smooth' })}>›</button>
+                )}
               </div>
             </>
           )}
@@ -482,36 +586,50 @@ export default function SalonDetail() {
         <section ref={teamRef} style={s.sec} className="fade-up d2">
           <div style={s.eyebrowSm}>Meet the Experts</div>
           <h2 style={s.secTitle}>Our Team</h2>
-          {teamMembers.length > 0 ? (
-            <div style={{ ...s.teamGrid, gridTemplateColumns: isMobile ? 'repeat(2,1fr)' : isTablet ? 'repeat(2,1fr)' : 'repeat(auto-fill,minmax(200px,1fr))' }}>
-              {teamMembers.map(m => (
-                <div key={m.id} style={{ ...s.teamCard, borderTop: `3px solid ${pal.main}` }} className="lift-sm">
-                  <div style={{ ...s.teamAvatar, background: `rgba(${R},.12)`, color: pal.main, boxShadow: `0 4px 14px ${pal.main}28`, overflow: 'hidden', padding: 0 }}>
-                    {m.photo_url
-                      ? <img src={m.photo_url} alt={m.full_name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
-                      : <span style={{ fontSize: 24, fontWeight: 700 }}>{m.full_name.split(' ').map(w => w[0]).join('')}</span>
-                    }
+          <div style={s.carouselWrap}>
+            {!isMobile && (
+              <button style={{ ...s.carouselArrow, left: -20 }}
+                onClick={() => teamScrollRef.current?.scrollBy({ left: -220, behavior: 'smooth' })}>‹</button>
+            )}
+            {teamMembers.length > 0 ? (
+              <div ref={teamScrollRef} style={s.teamScroll}>
+                {teamMembers.map(m => (
+                  <div key={m.id} style={{ ...s.teamCard, borderTop: `3px solid ${pal.main}`, cursor: 'pointer' }} className="lift-sm"
+                    onClick={() => setSelectedMember(m)}>
+                    <div style={{ ...s.teamAvatar, background: `rgba(${R},.12)`, color: pal.main, boxShadow: `0 4px 14px ${pal.main}28`, overflow: 'hidden', padding: 0 }}>
+                      {m.photo_url
+                        ? <img src={m.photo_url} alt={m.full_name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+                        : <span style={{ fontSize: 24, fontWeight: 700 }}>{m.full_name.split(' ').map(w => w[0]).join('')}</span>
+                      }
+                    </div>
+                    <div style={s.teamName}>{m.full_name}</div>
+                    <div style={{ ...s.teamRole, color: pal.main, textTransform: 'capitalize' }}>{m.role}</div>
+                    {m.bio && <div style={s.teamSpec}>{m.bio}</div>}
+                    <div style={{ fontSize: 11, color: pal.main, marginTop: 'auto', paddingTop: 10, fontWeight: 600 }}>View Profile →</div>
                   </div>
-                  <div style={s.teamName}>{m.full_name}</div>
-                  <div style={{ ...s.teamRole, color: pal.main, textTransform: 'capitalize' }}>{m.role}</div>
-                  {m.bio && <div style={s.teamSpec}>{m.bio}</div>}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div style={{ ...s.teamGrid, gridTemplateColumns: isMobile ? 'repeat(2,1fr)' : isTablet ? 'repeat(2,1fr)' : 'repeat(auto-fill,minmax(200px,1fr))' }}>
-              {mockTeam.map((m, i) => (
-                <div key={i} style={{ ...s.teamCard, borderTop: `3px solid ${m.color}` }} className="lift-sm">
-                  <div style={{ ...s.teamAvatar, background: m.bg, color: m.color, boxShadow: `0 4px 14px ${m.color}28` }}>
-                    {m.name.split(' ').map(w => w[0]).join('')}
+                ))}
+              </div>
+            ) : (
+              <div ref={teamScrollRef} style={s.teamScroll}>
+                {mockTeam.map((m, i) => (
+                  <div key={i} style={{ ...s.teamCard, borderTop: `3px solid ${m.color}`, cursor: 'pointer' }} className="lift-sm"
+                    onClick={() => setSelectedMember({ full_name: m.name, role: m.role, bio: m.specialty, photo_url: null, _color: m.color, _bg: m.bg })}>
+                    <div style={{ ...s.teamAvatar, background: m.bg, color: m.color, boxShadow: `0 4px 14px ${m.color}28` }}>
+                      {m.name.split(' ').map(w => w[0]).join('')}
+                    </div>
+                    <div style={s.teamName}>{m.name}</div>
+                    <div style={{ ...s.teamRole, color: m.color }}>{m.role}</div>
+                    <div style={s.teamSpec}>{m.specialty}</div>
+                    <div style={{ fontSize: 11, color: m.color, marginTop: 'auto', paddingTop: 10, fontWeight: 600 }}>View Profile →</div>
                   </div>
-                  <div style={s.teamName}>{m.name}</div>
-                  <div style={{ ...s.teamRole, color: m.color }}>{m.role}</div>
-                  <div style={s.teamSpec}>{m.specialty}</div>
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            )}
+            {!isMobile && (
+              <button style={{ ...s.carouselArrow, right: -20 }}
+                onClick={() => teamScrollRef.current?.scrollBy({ left: 220, behavior: 'smooth' })}>›</button>
+            )}
+          </div>
         </section>
 
         {/* Reviews */}
@@ -779,10 +897,25 @@ const s = {
     flexShrink: 0,
   },
   svcGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))', gap: 14 },
+  carouselWrap: { position: 'relative' },
+  carouselArrow: {
+    position: 'absolute', top: '50%', transform: 'translateY(-50%)',
+    zIndex: 10, width: 38, height: 38, borderRadius: '50%',
+    background: 'var(--surface)', border: '1.5px solid var(--border)',
+    boxShadow: '0 4px 16px rgba(0,0,0,.1)',
+    color: 'var(--text)', cursor: 'pointer',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    fontSize: 22, lineHeight: 1, fontWeight: 300,
+    transition: 'box-shadow .18s ease, border-color .18s ease',
+  },
+  svcScroll: {
+    display: 'flex', gap: 14, overflowX: 'auto', paddingBottom: 14, paddingTop: 4,
+    scrollbarWidth: 'none', msOverflowStyle: 'none',
+  },
   svcCard: {
     background: 'var(--surface)', borderRadius: 14, padding: '18px 18px 14px',
     border: '1px solid var(--border)', boxShadow: '0 2px 8px rgba(0,0,0,.05)',
-    display: 'flex', flexDirection: 'column', gap: 8,
+    display: 'flex', flexDirection: 'column', gap: 8, height: '100%',
   },
   svcName:    { fontWeight: 700, fontSize: 14, color: 'var(--text)' },
   svcMeta:    { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
@@ -793,10 +926,15 @@ const s = {
   svcBookHint: { fontSize: 11, fontWeight: 600, color: '#0D9488', marginTop: 8, letterSpacing: '0.02em' },
 
   teamGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 16 },
+  teamScroll: {
+    display: 'flex', gap: 16, overflowX: 'auto', paddingBottom: 14, paddingTop: 4,
+    scrollbarWidth: 'none', msOverflowStyle: 'none',
+  },
   teamCard: {
     background: 'var(--surface)', borderRadius: 16, padding: '26px 20px 22px',
     border: '1px solid var(--border)', boxShadow: '0 2px 8px rgba(0,0,0,.05)',
     display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center',
+    minWidth: 185, maxWidth: 220, flexShrink: 0,
   },
   teamAvatar: {
     width: 58, height: 58, borderRadius: '50%',
@@ -1000,5 +1138,40 @@ const lb = {
   },
   thumbActive: {
     opacity: 1, borderColor: '#fff',
+  },
+};
+
+const tm = {
+  modal: {
+    background: 'var(--surface)', borderRadius: 26, padding: '44px 36px 36px',
+    maxWidth: 400, width: '90vw', position: 'relative',
+    boxShadow: '0 40px 100px rgba(0,0,0,.55)',
+    display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center',
+    animation: 'scaleIn .28s cubic-bezier(.34,1.56,.64,1) both',
+  },
+  closeBtn: {
+    position: 'absolute', top: 14, right: 14,
+    width: 36, height: 36, borderRadius: '50%',
+    background: 'var(--surface2)', border: '1px solid var(--border)',
+    color: 'var(--text-muted)', cursor: 'pointer',
+    fontSize: 15, fontWeight: 700, zIndex: 1,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+  },
+  avatar: {
+    width: 100, height: 100, borderRadius: '50%',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    marginBottom: 20,
+  },
+  name: {
+    fontFamily: "'Cormorant Garamond', Georgia, serif",
+    fontSize: 28, fontWeight: 700, color: 'var(--text)', margin: '0 0 6px', letterSpacing: '-0.01em',
+  },
+  role: {
+    fontSize: 13, fontWeight: 700, marginBottom: 18,
+    textTransform: 'capitalize', letterSpacing: '0.04em',
+  },
+  bio: {
+    fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.8,
+    margin: 0, maxWidth: 300,
   },
 };

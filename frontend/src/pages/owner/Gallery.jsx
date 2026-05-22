@@ -136,6 +136,21 @@ export default function OwnerGallery() {
     } catch { load(); }
   };
 
+  const setCoverPhoto = async (img) => {
+    if (images[0]?.id === img.id) return;
+    const reordered = [img, ...images.filter(i => i.id !== img.id)];
+    setImages(reordered);
+    try {
+      await Promise.all(reordered.map((image, i) =>
+        api.patch(`/salons/${salon.id}/images/${image.id}/`, { sort_order: i })
+      ));
+      setMsg('Cover photo updated — first image is now the hero background.');
+    } catch {
+      load();
+      setMsg('Error updating cover photo.');
+    }
+  };
+
   if (!salon) return <div style={{ color: 'var(--text-muted)', padding: 40 }}>Loading salon…</div>;
 
   const currentLogo = logoPreview || salon.logo_url;
@@ -258,7 +273,7 @@ export default function OwnerGallery() {
       {/* ── GALLERY PHOTOS ── */}
       <div style={s.gallerySectionHead}>
         <div style={s.gallerySectionTitle}>Gallery Photos</div>
-        <div style={s.gallerySectionSub}>Reorder using arrows · click captions to edit</div>
+        <div style={s.gallerySectionSub}>First image is used as hero cover photo · reorder using arrows · click captions to edit</div>
       </div>
 
       {loading ? (
@@ -281,6 +296,13 @@ export default function OwnerGallery() {
               <div style={s.imgWrap}>
                 <img src={img.image_url} alt={img.caption || 'Salon photo'} style={s.img} />
                 <div style={s.imgOverlay}>
+                  {idx === 0 ? (
+                    <div style={s.coverBadge}>✦ Cover</div>
+                  ) : (
+                    <button style={s.setCoverBtn} onClick={() => setCoverPhoto(img)} title="Set as hero cover photo">
+                      Set Cover
+                    </button>
+                  )}
                   <button style={{ ...s.orderBtn, opacity: idx === 0 ? 0.4 : 1 }} onClick={() => moveImage(img, 'up')} disabled={idx === 0} title="Move left">←</button>
                   <button style={{ ...s.orderBtn, opacity: idx === images.length - 1 ? 0.4 : 1 }} onClick={() => moveImage(img, 'down')} disabled={idx === images.length - 1} title="Move right">→</button>
                 </div>
@@ -357,8 +379,10 @@ const s = {
   card: { background: 'var(--surface)', borderRadius: 18, overflow: 'hidden', border: '1px solid var(--border)', boxShadow: '0 4px 16px rgba(13,148,136,.06)' },
   imgWrap: { position: 'relative', aspectRatio: '4/3', overflow: 'hidden', background: 'var(--surface2)' },
   img: { width: '100%', height: '100%', objectFit: 'cover', display: 'block' },
-  imgOverlay: { position: 'absolute', bottom: 8, right: 8, display: 'flex', gap: 6 },
+  imgOverlay: { position: 'absolute', bottom: 8, right: 8, display: 'flex', gap: 6, alignItems: 'center' },
   orderBtn: { width: 30, height: 30, borderRadius: 8, background: 'rgba(0,0,0,.65)', backdropFilter: 'blur(4px)', color: '#fff', border: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  coverBadge: { background: 'rgba(13,148,136,.9)', backdropFilter: 'blur(6px)', color: '#fff', fontSize: 10, fontWeight: 800, padding: '4px 10px', borderRadius: 8, letterSpacing: '0.06em', border: '1px solid rgba(255,255,255,.2)' },
+  setCoverBtn: { padding: '4px 10px', background: 'rgba(0,0,0,.65)', backdropFilter: 'blur(4px)', color: '#fff', border: '1px solid rgba(255,255,255,.2)', cursor: 'pointer', borderRadius: 8, fontSize: 10, fontWeight: 700, whiteSpace: 'nowrap' },
   cardBody: { padding: '12px 14px' },
   captionInput: { width: '100%', padding: '7px 10px', border: '1.5px solid var(--border)', borderRadius: 8, fontSize: 12, background: 'var(--input-bg)', color: 'var(--text)', fontFamily: "'DM Sans', sans-serif", outline: 'none', boxSizing: 'border-box', marginBottom: 10 },
   cardActions: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },

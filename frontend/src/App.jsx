@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { AuthProvider } from './context/AuthContext';
 import { OwnerProvider } from './context/OwnerContext';
 import { CartProvider } from './context/CartContext';
@@ -52,10 +53,17 @@ import UserCosmetics from './pages/user/Cosmetics';
 import Checkout from './pages/user/Checkout';
 
 function PublicLayout() {
+  const location = useLocation();
   return (
     <>
       <Navbar />
-      <Outlet />
+      <motion.div
+        key={location.pathname}
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0, transition: { duration: 0.32, ease: [0.0, 0.0, 0.2, 1] } }}
+      >
+        <Outlet />
+      </motion.div>
     </>
   );
 }
