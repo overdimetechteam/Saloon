@@ -209,7 +209,7 @@ export default function SalonDetail() {
         ...s.hero,
         padding: isMobile ? '36px 20px 30px' : '52px 48px 44px',
         background: coverPhoto
-          ? `linear-gradient(160deg, rgba(13,13,22,.93) 0%, rgba(13,13,22,.80) 35%, rgba(11,56,50,.72) 68%, rgba(13,148,136,.55) 100%), url(${coverPhoto}) center/cover no-repeat`
+          ? `linear-gradient(160deg, rgba(13,13,22,.78) 0%, rgba(13,13,22,.58) 35%, rgba(11,56,50,.38) 68%, rgba(13,148,136,.15) 100%), url(${coverPhoto}) center/cover no-repeat`
           : `linear-gradient(145deg, #0D0D16 0%, ${pal.darkBg} 40%, ${pal.dark} 75%, ${pal.main} 100%)`,
       }}>
         <div style={s.heroBg} />
