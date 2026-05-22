@@ -51,6 +51,7 @@ class SalonSerializer(serializers.ModelSerializer):
     calendar = SalonCalendarSerializer(read_only=True)
     owner_email = serializers.EmailField(source='owner.email', read_only=True)
     logo_url = serializers.SerializerMethodField()
+    cover_image_url = serializers.SerializerMethodField()
     subscription_plan = serializers.SerializerMethodField()
     subscription_status = serializers.SerializerMethodField()
     subscription_days_remaining = serializers.SerializerMethodField()
@@ -68,6 +69,14 @@ class SalonSerializer(serializers.ModelSerializer):
             if request:
                 return request.build_absolute_uri(obj.logo.url)
             return obj.logo.url
+        return None
+
+    def get_cover_image_url(self, obj):
+        request = self.context.get('request')
+        if obj.cover_image:
+            if request:
+                return request.build_absolute_uri(obj.cover_image.url)
+            return obj.cover_image.url
         return None
 
     def _get_sub(self, obj):
@@ -99,10 +108,10 @@ class SalonSerializer(serializers.ModelSerializer):
             'status', 'is_suspended', 'home_visit_enabled', 'cosmetics_enabled', 'color_palette',
             'gender_focus', 'latitude', 'longitude',
             'owner', 'owner_email', 'created_at', 'calendar',
-            'logo_url', 'subscription_plan', 'subscription_status', 'subscription_days_remaining',
+            'logo_url', 'cover_image_url', 'subscription_plan', 'subscription_status', 'subscription_days_remaining',
             'service_names',
         ]
-        read_only_fields = ['status', 'owner', 'created_at', 'logo_url',
+        read_only_fields = ['status', 'owner', 'created_at', 'logo_url', 'cover_image_url',
                             'subscription_plan', 'subscription_status', 'subscription_days_remaining',
                             'service_names']
 

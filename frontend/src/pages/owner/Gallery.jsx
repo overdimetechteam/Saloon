@@ -18,8 +18,12 @@ export default function OwnerGallery() {
   const [logoUploading, setLogoUploading] = useState(false);
   const [logoFile, setLogoFile] = useState(null);
   const [logoPreview, setLogoPreview] = useState(null);
+  const [coverUploading, setCoverUploading] = useState(false);
+  const [coverFile, setCoverFile] = useState(null);
+  const [coverPreview, setCoverPreview] = useState(null);
   const fileRef = useRef(null);
   const logoFileRef = useRef(null);
+  const coverFileRef = useRef(null);
 
   const load = () => {
     if (!salon) return;
@@ -72,6 +76,48 @@ export default function OwnerGallery() {
     setLogoFile(null);
     if (logoPreview) { URL.revokeObjectURL(logoPreview); setLogoPreview(null); }
     if (logoFileRef.current) logoFileRef.current.value = '';
+  };
+
+  /* ── Cover image handlers ── */
+  const pickCover = e => {
+    const f = e.target.files[0];
+    if (!f) return;
+    setCoverFile(f);
+    setCoverPreview(URL.createObjectURL(f));
+  };
+
+  const uploadCover = async () => {
+    if (!coverFile) return;
+    setCoverUploading(true);
+    const fd = new FormData();
+    fd.append('cover_image', coverFile);
+    try {
+      const r = await api.post(`/salons/${salon.id}/cover/`, fd, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      setSalon(r.data);
+      setCoverFile(null);
+      if (coverPreview) { URL.revokeObjectURL(coverPreview); setCoverPreview(null); }
+      if (coverFileRef.current) coverFileRef.current.value = '';
+      setMsg('Cover image updated successfully.');
+    } catch {
+      setMsg('Error uploading cover image.');
+    } finally { setCoverUploading(false); }
+  };
+
+  const removeCover = async () => {
+    if (!window.confirm('Remove the hero cover image?')) return;
+    try {
+      await api.delete(`/salons/${salon.id}/cover/`);
+      setSalon(prev => ({ ...prev, cover_image_url: null }));
+      setMsg('Cover image removed.');
+    } catch { setMsg('Error removing cover image.'); }
+  };
+
+  const cancelCoverChange = () => {
+    setCoverFile(null);
+    if (coverPreview) { URL.revokeObjectURL(coverPreview); setCoverPreview(null); }
+    if (coverFileRef.current) coverFileRef.current.value = '';
   };
 
   /* ── Photo handlers ── */
@@ -134,21 +180,6 @@ export default function OwnerGallery() {
         api.patch(`/salons/${salon.id}/images/${updated[swapIdx].id}/`, { sort_order: swapIdx }),
       ]);
     } catch { load(); }
-  };
-
-  const setCoverPhoto = async (img) => {
-    if (images[0]?.id === img.id) return;
-    const reordered = [img, ...images.filter(i => i.id !== img.id)];
-    setImages(reordered);
-    try {
-      await Promise.all(reordered.map((image, i) =>
-        api.patch(`/salons/${salon.id}/images/${image.id}/`, { sort_order: i })
-      ));
-      setMsg('Cover photo updated — first image is now the hero background.');
-    } catch {
-      load();
-      setMsg('Error updating cover photo.');
-    }
   };
 
   if (!salon) return <div style={{ color: 'var(--text-muted)', padding: 40 }}>Loading salon…</div>;
@@ -235,7 +266,60 @@ export default function OwnerGallery() {
 
       {/* Hidden file inputs */}
       <input ref={logoFileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={pickLogo} />
+      <input ref={coverFileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={pickCover} />
       <input ref={fileRef} type="file" accept="image/*,video/*" style={{ display: 'none' }} onChange={pickFile} />
+
+      {/* ── COVER IMAGE SECTION ── */}
+      <div style={s.logoCard} className="fade-up">
+        <div style={s.logoSectionHead}>
+          <div>
+            <div style={s.logoSectionTitle}>Hero Cover Image</div>
+            <div style={s.logoSectionSub}>Displayed as the full-width background in the salon's hero section</div>
+          </div>
+        </div>
+        <div style={{ ...s.logoBody, flexDirection: isMobile ? 'column' : 'row' }}>
+          <div style={{ ...s.logoDisplayWrap, width: isMobile ? '100%' : 220, height: 110, borderRadius: 14 }}>
+            {(coverPreview || salon.cover_image_url) ? (
+              <img src={coverPreview || salon.cover_image_url} alt="Cover" style={s.logoImg} />
+            ) : (
+              <div style={s.logoPlaceholder}>
+                <span style={{ fontSize: 26, color: '#0D9488' }}>◈</span>
+                <span style={s.logoPlaceholderText}>No cover image</span>
+              </div>
+            )}
+            {coverPreview && <div style={s.logoNewBadge}>New</div>}
+          </div>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 12, justifyContent: 'center' }}>
+            {coverFile ? (
+              <>
+                <div style={s.logoPendingNote}>Cover selected — click Upload to apply</div>
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <button style={s.logoCancelBtn} onClick={cancelCoverChange}>Cancel</button>
+                  <button
+                    style={{ ...s.logoUploadBtn, opacity: coverUploading ? 0.7 : 1 }}
+                    onClick={uploadCover}
+                    disabled={coverUploading}
+                  >
+                    {coverUploading ? 'Uploading…' : 'Upload Cover'}
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <button style={s.logoPickBtn} onClick={() => coverFileRef.current?.click()}>
+                  {salon.cover_image_url ? '↺ Replace Cover' : '+ Upload Cover Image'}
+                </button>
+                {salon.cover_image_url && (
+                  <button style={s.logoRemoveBtn} onClick={removeCover}>Remove Cover</button>
+                )}
+                <div style={s.logoHint}>
+                  Recommended: wide landscape image (JPG or PNG), at least 1400×500px
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
 
       {/* ── PHOTO UPLOAD PANEL ── */}
       {file && (
@@ -273,7 +357,7 @@ export default function OwnerGallery() {
       {/* ── GALLERY PHOTOS ── */}
       <div style={s.gallerySectionHead}>
         <div style={s.gallerySectionTitle}>Gallery Photos</div>
-        <div style={s.gallerySectionSub}>First image is used as hero cover photo · reorder using arrows · click captions to edit</div>
+        <div style={s.gallerySectionSub}>Reorder using arrows · click captions to edit</div>
       </div>
 
       {loading ? (
@@ -296,13 +380,6 @@ export default function OwnerGallery() {
               <div style={s.imgWrap}>
                 <img src={img.image_url} alt={img.caption || 'Salon photo'} style={s.img} />
                 <div style={s.imgOverlay}>
-                  {idx === 0 ? (
-                    <div style={s.coverBadge}>✦ Cover</div>
-                  ) : (
-                    <button style={s.setCoverBtn} onClick={() => setCoverPhoto(img)} title="Set as hero cover photo">
-                      Set Cover
-                    </button>
-                  )}
                   <button style={{ ...s.orderBtn, opacity: idx === 0 ? 0.4 : 1 }} onClick={() => moveImage(img, 'up')} disabled={idx === 0} title="Move left">←</button>
                   <button style={{ ...s.orderBtn, opacity: idx === images.length - 1 ? 0.4 : 1 }} onClick={() => moveImage(img, 'down')} disabled={idx === images.length - 1} title="Move right">→</button>
                 </div>
@@ -381,8 +458,6 @@ const s = {
   img: { width: '100%', height: '100%', objectFit: 'cover', display: 'block' },
   imgOverlay: { position: 'absolute', bottom: 8, right: 8, display: 'flex', gap: 6, alignItems: 'center' },
   orderBtn: { width: 30, height: 30, borderRadius: 8, background: 'rgba(0,0,0,.65)', backdropFilter: 'blur(4px)', color: '#fff', border: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  coverBadge: { background: 'rgba(13,148,136,.9)', backdropFilter: 'blur(6px)', color: '#fff', fontSize: 10, fontWeight: 800, padding: '4px 10px', borderRadius: 8, letterSpacing: '0.06em', border: '1px solid rgba(255,255,255,.2)' },
-  setCoverBtn: { padding: '4px 10px', background: 'rgba(0,0,0,.65)', backdropFilter: 'blur(4px)', color: '#fff', border: '1px solid rgba(255,255,255,.2)', cursor: 'pointer', borderRadius: 8, fontSize: 10, fontWeight: 700, whiteSpace: 'nowrap' },
   cardBody: { padding: '12px 14px' },
   captionInput: { width: '100%', padding: '7px 10px', border: '1.5px solid var(--border)', borderRadius: 8, fontSize: 12, background: 'var(--input-bg)', color: 'var(--text)', fontFamily: "'DM Sans', sans-serif", outline: 'none', boxSizing: 'border-box', marginBottom: 10 },
   cardActions: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },

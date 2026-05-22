@@ -185,7 +185,7 @@ export default function SalonDetail() {
   const mockTeam = getMockTeam(pal);
   const mockPhotos = getMockPhotos(pal);
   const mockPalette = getMockPalette(pal);
-  const coverPhoto = salonImages.length > 0 ? salonImages[0].image_url : null;
+  const coverPhoto = salon?.cover_image_url || null;
 
   const grouped = services.reduce((acc, ss) => {
     const cat = ss.service_category || 'Other';

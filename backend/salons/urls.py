@@ -11,7 +11,7 @@ from .views import (
     SalonAnalyticsView,
     SalonOffersView, AllActiveOffersView, OwnerOffersView, OwnerOfferDetailView,
     SalonImageListCreateView, SalonImageDetailView,
-    SalonLogoView,
+    SalonLogoView, SalonCoverView,
     QuickSearchView, AllServicesView,
 )
 
@@ -44,6 +44,7 @@ urlpatterns = [
     path('salons/<int:pk>/images/', SalonImageListCreateView.as_view(), name='salon-images'),
     path('salons/<int:pk>/images/<int:image_pk>/', SalonImageDetailView.as_view(), name='salon-image-detail'),
     path('salons/<int:pk>/logo/', SalonLogoView.as_view(), name='salon-logo'),
+    path('salons/<int:pk>/cover/', SalonCoverView.as_view(), name='salon-cover'),
     path('salons/quick-search/', QuickSearchView.as_view(), name='salon-quick-search'),
     path('services/all/', AllServicesView.as_view(), name='all-services'),
 ]

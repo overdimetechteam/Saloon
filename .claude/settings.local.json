@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find \"c:/Users/ASUS\" -name \"django\" -type d 2>/dev/null | head -10; find \"c:/Users/ASUS/Documents/WORK/Salon App\" -name \"*.exe\" -path \"*/python*\" 2>/dev/null | head -5)",
+      "Read(//c/Users/ASUS/**)",
+      "Read(//c/Users/ASUS/Documents/WORK/Salon App/**)"
+    ]
+  }
+}

@@ -216,6 +216,32 @@ class SalonLogoView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+class SalonCoverView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        salon = get_object_or_404(Salon, pk=pk)
+        if request.user.role != 'salon_owner' or salon.owner_id != request.user.id:
+            return Response({'detail': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
+        cover_file = request.FILES.get('cover_image')
+        if not cover_file:
+            return Response({'detail': 'No cover image provided'}, status=status.HTTP_400_BAD_REQUEST)
+        if salon.cover_image:
+            salon.cover_image.delete(save=False)
+        salon.cover_image = cover_file
+        salon.save()
+        return Response(SalonSerializer(salon, context={'request': request}).data)
+
+    def delete(self, request, pk):
+        salon = get_object_or_404(Salon, pk=pk)
+        if request.user.role != 'salon_owner' or salon.owner_id != request.user.id:
+            return Response({'detail': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
+        if salon.cover_image:
+            salon.cover_image.delete(save=False)
+            salon.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
 class SalonStaffListCreateView(APIView):
     def get_permissions(self):
         if self.request.method == 'GET':
