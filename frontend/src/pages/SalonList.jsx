@@ -1,5 +1,6 @@
 ﻿import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { useBreakpoint } from '../hooks/useMobile';
@@ -14,17 +15,21 @@ const PALETTE = [
   ['#0D9488', '#5EEAD4'],
 ];
 
-function SalonCard({ salon, i, isFav }) {
+function SalonCard({ salon, i, isFav, col, numCols }) {
   const [c1, c2] = PALETTE[i % PALETTE.length];
   const isOpen   = salon.status === 'active';
+  const xInit    = numCols === 1 ? 0 : col === 0 ? -60 : col === numCols - 1 ? 60 : 0;
+
   return (
+    <motion.div
+      initial={{ opacity: 0, x: xInit }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.52, ease: [0.16, 1, 0.3, 1] }}
+      style={{ display: 'flex', flexDirection: 'column' }}
+    >
     <Link
       to={`/salons/${salon.id}`}
-      style={{
-        ...s.card,
-        ...(isFav ? s.cardFav : {}),
-      }}
-      className={`fade-up d${Math.min(i + 1, 5)}`}
+      style={{ ...s.card, ...(isFav ? s.cardFav : {}), flex: 1 }}
     >
       <div style={{ ...s.banner, background: `linear-gradient(135deg, ${c1}1F 0%, ${c2}0D 100%)` }}>
         <div style={{ ...s.orb, background: `radial-gradient(circle, ${c1}33 0%, transparent 70%)` }} />
@@ -72,6 +77,7 @@ function SalonCard({ salon, i, isFav }) {
         <span style={{ fontSize: 16 }}>→</span>
       </div>
     </Link>
+    </motion.div>
   );
 }
 
@@ -104,6 +110,7 @@ export default function SalonList() {
   }, [profile]);
 
   const isClient = profile?.role === 'client';
+  const numCols  = isMobile ? 1 : isTablet ? 2 : 3;
 
   const applySort = arr => [...arr].sort((a, b) => {
     if (sort === 'az') return a.name.localeCompare(b.name);
@@ -291,7 +298,7 @@ export default function SalonList() {
         )}
 
         {!loading && favGroup.map((salon, i) => (
-          <SalonCard key={salon.id} salon={salon} i={i} isFav={true} />
+          <SalonCard key={salon.id} salon={salon} i={i} isFav={true} col={i % numCols} numCols={numCols} />
         ))}
 
         {/* ── Divider between sections ── */}
@@ -304,7 +311,7 @@ export default function SalonList() {
         )}
 
         {!loading && otherGroup.map((salon, i) => (
-          <SalonCard key={salon.id} salon={salon} i={i + (hasFavs ? favGroup.length : 0)} isFav={false} />
+          <SalonCard key={salon.id} salon={salon} i={i + (hasFavs ? favGroup.length : 0)} isFav={false} col={i % numCols} numCols={numCols} />
         ))}
       </div>
 

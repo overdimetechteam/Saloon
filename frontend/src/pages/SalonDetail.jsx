@@ -315,7 +315,7 @@ export default function SalonDetail() {
 
       {/* PHOTOS */}
       <div style={s.photoStrip}>
-        <div style={{ position: 'relative', maxWidth: 1148, margin: '0 auto', padding: '0 40px' }}>
+        <div style={{ position: 'relative', padding: '0 48px' }}>
           {!isMobile && (
             <button style={{ ...s.carouselArrow, left: 4, boxShadow: '0 4px 18px rgba(0,0,0,.14)' }}
               onClick={() => photoScrollRef.current?.scrollBy({ left: -(isMobile ? 214 : 354), behavior: 'smooth' })}>‹</button>
