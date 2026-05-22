@@ -196,6 +196,7 @@ export default function SalonDetail() {
 
   const fullAddress = `${salon.address_street}, ${salon.address_city} ${salon.address_postal}`;
   const isClient = profile?.role === 'client';
+  const showBookBtn = profile?.role !== 'salon_owner';
 
   const cats = Object.keys(grouped);
   const activeCat = activeServiceCat && cats.includes(activeServiceCat) ? activeServiceCat : cats[0];
@@ -273,7 +274,7 @@ export default function SalonDetail() {
                 {isFav ? '♥' : '♡'}
               </button>
             )}
-            {isClient && (
+            {showBookBtn && (
               <Link to={`/user/book/${id}`} style={{ ...s.heroBookBtn, background: pal.main, boxShadow: `0 6px 20px rgba(${R},.45)` }} className="lift-sm">
                 ✦ Book Now
               </Link>
@@ -307,7 +308,7 @@ export default function SalonDetail() {
             ))}
           </div>
           <div style={{ display: 'flex', gap: 8, flexShrink: 0, marginLeft: 8 }}>
-            {isClient && <Link to={`/user/book/${id}`} style={{ ...s.tabBookBtn, background: pal.main, boxShadow: `0 4px 14px rgba(${R},.3)` }}>✦ Book Now</Link>}
+            {showBookBtn && <Link to={`/user/book/${id}`} style={{ ...s.tabBookBtn, background: pal.main, boxShadow: `0 4px 14px rgba(${R},.3)` }}>✦ Book Now</Link>}
             {salon.cosmetics_enabled && <Link to={`/salons/${id}/cosmetics`} style={s.tabCosmeticsBtn}>✿ Cosmetics</Link>}
           </div>
         </div>
@@ -413,7 +414,7 @@ export default function SalonDetail() {
             <h3 style={tm.name}>{selectedMember.full_name}</h3>
             <div style={{ ...tm.role, color: selectedMember._color || pal.main }}>{selectedMember.role}</div>
             {selectedMember.bio && <p style={tm.bio}>{selectedMember.bio}</p>}
-            {isClient && (
+            {showBookBtn && (
               <Link
                 to={`/user/book/${id}`}
                 style={{ ...s.heroBookBtn, background: selectedMember._color || pal.main, boxShadow: `0 6px 20px ${selectedMember._color || pal.main}40`, marginTop: 24, fontSize: 14, padding: '12px 28px' }}

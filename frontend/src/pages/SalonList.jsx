@@ -92,15 +92,19 @@ export default function SalonList() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [sort, setSort]                 = useState('default');
   const [loading, setLoading]           = useState(true);
+  const [fetchError, setFetchError]     = useState(false);
   const [quickSearch, setQS]            = useState(false);
 
-  useEffect(() => {
+  const fetchSalons = () => {
     setLoading(true);
+    setFetchError(false);
     api.get(`/salons/?name=${search}`)
-      .then(r => setSalons(r.data))
-      .catch(() => {})
+      .then(r => { setSalons(r.data); setFetchError(false); })
+      .catch(() => setFetchError(true))
       .finally(() => setLoading(false));
-  }, [search]);
+  };
+
+  useEffect(() => { fetchSalons(); }, [search]);
 
   useEffect(() => {
     if (profile?.role !== 'client') return;
@@ -171,20 +175,34 @@ export default function SalonList() {
         </div>
       )}
 
-      {/* ── Mobile / tablet search — shown to signed-in users only ── */}
-      {profile && isNarrow && (
-        <div style={s.topSearch}>
-          <div style={s.topSearchBox} className="search-bar-wrap">
-            <span className="search-icon" style={{ color: '#0D9488', fontSize: 14, flexShrink: 0 }}>✦</span>
-            <input
-              style={s.searchInput}
-              placeholder="Search salons…"
-              value={search}
-              onChange={e => setSearchParams(e.target.value ? { q: e.target.value } : {})}
-            />
-            {search && (
-              <button style={s.clearBtn} onClick={() => setSearchParams({})}>✕</button>
-            )}
+      {/* ── Signed-in banner ── */}
+      {profile && (
+        <div style={{ ...s.signedInBanner, padding: isMobile ? '28px 16px 24px' : isTablet ? '32px 24px 28px' : '40px 40px 36px' }}
+          className="anim-gradient">
+          <div style={s.glow1} />
+          <div style={s.glow2} />
+          <div style={{ position: 'relative', zIndex: 2, maxWidth: 680, margin: '0 auto', textAlign: 'center' }} className="fade-up">
+            <div style={s.eyebrow}>
+              <span style={{ color: '#D4AF37', fontSize: 10 }}>✦</span>
+              {salons.length > 0 ? `${salons.length} salons available` : 'Discover · Book · Glow'}
+            </div>
+            <h2 style={{ ...s.heroTitle, fontSize: isMobile ? 24 : isTablet ? 30 : 36, marginBottom: 20 }}>
+              Welcome back,{' '}
+              <em style={s.heroItalic}>{profile.full_name?.split(' ')[0] || 'there'}</em>
+            </h2>
+            <div style={{ ...s.heroSearch, maxWidth: isMobile ? '100%' : 500, margin: '0 auto' }} className="search-bar-wrap">
+              <span className="search-icon" style={{ color: '#0D9488', fontSize: 15, flexShrink: 0 }}>✦</span>
+              <input
+                className="hero-search"
+                style={s.heroSearchInput}
+                placeholder="Search by salon name…"
+                value={search}
+                onChange={e => setSearchParams(e.target.value ? { q: e.target.value } : {})}
+              />
+              {search && (
+                <button style={s.clearBtn} onClick={() => setSearchParams({})}>✕</button>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -269,7 +287,23 @@ export default function SalonList() {
           <div key={i} style={s.skeleton} className="shimmer" />
         ))}
 
-        {!loading && displayedCount === 0 && (
+        {!loading && fetchError && (
+          <div style={{ ...s.empty, gridColumn: '1 / -1', borderColor: 'rgba(220,38,38,.2)' }} className="scale-in">
+            <div style={{ fontSize: 32, marginBottom: 16 }}>⚡</div>
+            <h3 style={s.emptyTitle}>Connection error</h3>
+            <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 20 }}>
+              Could not reach the server. Check your connection and try again.
+            </p>
+            <button
+              onClick={fetchSalons}
+              style={{ padding: '10px 24px', background: 'linear-gradient(135deg, #0D9488, #14B8A8)', color: '#fff', border: 'none', borderRadius: 12, cursor: 'pointer', fontWeight: 700, fontSize: 14, boxShadow: '0 4px 14px rgba(13,148,136,.3)', fontFamily: "'DM Sans', sans-serif" }}
+            >
+              Retry
+            </button>
+          </div>
+        )}
+
+        {!loading && !fetchError && displayedCount === 0 && (
           <div style={{ ...s.empty, gridColumn: '1 / -1' }} className="scale-in">
             <div className="empty-icon-wrap">
               <svg width="36" height="36" viewBox="0 0 38 38" fill="none">
@@ -325,6 +359,11 @@ const s = {
 
   /* ── Hero (guests only) ── */
   hero: {
+    background: 'linear-gradient(145deg, #0D0D16, #1A1A24, #0B3832, #0D9488)',
+    textAlign: 'center', position: 'relative', overflow: 'hidden',
+  },
+  /* ── Compact banner (signed-in users) ── */
+  signedInBanner: {
     background: 'linear-gradient(145deg, #0D0D16, #1A1A24, #0B3832, #0D9488)',
     textAlign: 'center', position: 'relative', overflow: 'hidden',
   },
