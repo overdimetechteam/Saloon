@@ -745,51 +745,33 @@ class QuickSearchView(APIView):
                 pass
 
         # — radius filter (Haversine) —
+        # Salons WITH coordinates that fall within the radius are sorted by distance.
+        # Salons WITHOUT coordinates are appended at the end (location unknown).
         distances = {}
         if user_lat and user_lng:
             try:
-                import urllib.request, json as _json
                 lat1 = math.radians(float(user_lat))
                 lng1 = math.radians(float(user_lng))
                 R    = 6371.0
                 km   = min(float(radius_km), 50.0)
-                nearby = []
+                within_radius = []
+                no_coords     = []
                 for salon in salons:
                     slat, slng = salon.latitude, salon.longitude
-                    # Auto-geocode from address if coordinates not stored yet
                     if slat is None or slng is None:
-                        addr_parts = [
-                            salon.address_street, salon.address_city,
-                            salon.address_district, salon.address_postal,
-                        ]
-                        addr = ', '.join(p for p in addr_parts if p)
-                        try:
-                            geo_url = (
-                                'https://nominatim.openstreetmap.org/search'
-                                f'?format=json&limit=1&q={urllib.parse.quote(addr)}'
-                            )
-                            req = urllib.request.Request(geo_url, headers={'User-Agent': 'SalonApp/1.0'})
-                            with urllib.request.urlopen(req, timeout=4) as resp:
-                                geo = _json.loads(resp.read())
-                            if geo:
-                                slat = float(geo[0]['lat'])
-                                slng = float(geo[0]['lon'])
-                                # Cache to DB so future requests skip geocoding
-                                Salon.objects.filter(pk=salon.pk).update(latitude=slat, longitude=slng)
-                        except Exception:
-                            pass
-                    if slat is None or slng is None:
+                        no_coords.append(salon)
                         continue
                     lat2 = math.radians(slat)
                     lng2 = math.radians(slng)
                     dlat = lat2 - lat1
                     dlng = lng2 - lng1
-                    a = math.sin(dlat/2)**2 + math.cos(lat1)*math.cos(lat2)*math.sin(dlng/2)**2
+                    a    = math.sin(dlat/2)**2 + math.cos(lat1)*math.cos(lat2)*math.sin(dlng/2)**2
                     dist = round(R * 2 * math.asin(math.sqrt(a)), 2)
                     if dist <= km:
                         distances[salon.id] = dist
-                        nearby.append(salon)
-                salons = sorted(nearby, key=lambda s: distances[s.id])
+                        within_radius.append(salon)
+                # closest first, then salons whose location is not set
+                salons = sorted(within_radius, key=lambda s: distances[s.id]) + no_coords
             except (ValueError, TypeError):
                 pass
 

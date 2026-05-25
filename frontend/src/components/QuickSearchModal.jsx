@@ -166,7 +166,15 @@ export default function QuickSearchModal({ onClose }) {
           )}
           {results.map(salon => (
             <div key={salon.id} style={m.resultCard} onClick={() => { navigate(`/salons/${salon.id}`); onClose(); }}>
-              <div style={m.cardName}>{salon.name}</div>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
+                <div style={m.cardName}>{salon.name}</div>
+                {salon.distance_km != null
+                  ? <span style={m.distBadge}>📍 {salon.distance_km} km</span>
+                  : userPos
+                    ? <span style={{ ...m.distBadge, background: 'var(--surface2)', color: 'var(--text-muted)', border: '1px solid var(--border)' }}>📍 Unknown</span>
+                    : null
+                }
+              </div>
               <div style={m.cardSub}>
                 {salon.address_city}{salon.address_district ? `, ${salon.address_district}` : ''}
                 {salon.gender_focus !== 'unisex' && (
@@ -393,7 +401,8 @@ const m = {
   footer:   { display: 'flex', justifyContent: 'flex-end', gap: 10, padding: '14px 24px', borderTop: '1px solid var(--border)' },
   backBtn:  { padding: '10px 20px', background: 'transparent', border: '1px solid var(--border)', borderRadius: 10, cursor: 'pointer', fontSize: 14, color: 'var(--text-muted)' },
   nextBtn:  { padding: '10px 28px', background: 'linear-gradient(135deg,#0D9488,#14B8A8)', color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontSize: 14, fontWeight: 700, boxShadow: '0 4px 14px rgba(13,148,136,.35)', transition: 'opacity .15s ease' },
-  resultCard: { padding: '14px 16px', borderRadius: 12, border: '1.5px solid var(--border)', marginBottom: 10, cursor: 'pointer', background: 'var(--surface)' },
+  resultCard: { padding: '14px 16px', borderRadius: 12, border: '1.5px solid var(--border)', marginBottom: 10, cursor: 'pointer', background: 'var(--surface)', transition: 'border-color .15s' },
+  distBadge:  { fontSize: 11, fontWeight: 700, color: '#0D9488', background: '#F0FDFA', border: '1px solid #99F6E4', borderRadius: 20, padding: '3px 10px', whiteSpace: 'nowrap', flexShrink: 0 },
   cardName:   { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 17, fontWeight: 700, color: 'var(--text)' },
   cardSub:    { fontSize: 13, color: 'var(--text-muted)', marginTop: 3, display: 'flex', alignItems: 'center', gap: 8 },
   cardTags:   { display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 },
