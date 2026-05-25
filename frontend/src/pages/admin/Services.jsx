@@ -12,6 +12,8 @@ export default function AdminServices() {
   const [error, setError] = useState('');
   const [msg, setMsg] = useState('');
   const [showForm, setShowForm] = useState(false);
+  const [search, setSearch] = useState('');
+  const [catFilter, setCatFilter] = useState('all');
 
   const load = () => api.get('/services/').then(r => setServices(r.data)).catch(() => {});
   useEffect(() => { load(); }, []);
@@ -47,7 +49,13 @@ export default function AdminServices() {
 
   const cancelEdit = () => { setEditing(null); setForm(EMPTY_FORM); setShowForm(false); setError(''); };
 
-  const grouped = services.reduce((acc, sv) => {
+  const filteredServices = services.filter(sv => {
+    const matchSearch = !search.trim() || sv.name.toLowerCase().includes(search.trim().toLowerCase());
+    const matchCat = catFilter === 'all' || sv.category === catFilter;
+    return matchSearch && matchCat;
+  });
+
+  const grouped = filteredServices.reduce((acc, sv) => {
     const cat = sv.category || 'Other';
     if (!acc[cat]) acc[cat] = [];
     acc[cat].push(sv); return acc;
@@ -68,6 +76,36 @@ export default function AdminServices() {
 
       {msg   && <div style={s.alertOk}>{msg}</div>}
       {error && <div style={s.alertErr}>{error}</div>}
+
+      {/* Search + category filter */}
+      {!showForm && (
+        <div style={{ display: 'flex', gap: 10, marginBottom: 22, flexWrap: 'wrap', alignItems: 'center' }}>
+          <div style={{ flex: 1, minWidth: 200, display: 'flex', alignItems: 'center', gap: 10, padding: '9px 16px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 11, boxShadow: '0 2px 6px rgba(0,0,0,.04)' }}>
+            <span style={{ color: '#0D9488', fontSize: 13 }}>✦</span>
+            <input
+              style={{ flex: 1, border: 'none', outline: 'none', fontSize: 13, background: 'transparent', color: 'var(--text)', fontFamily: "'DM Sans', sans-serif" }}
+              placeholder="Search services by name…"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
+            {search && <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: 12 }} onClick={() => setSearch('')}>✕</button>}
+          </div>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {['all', ...CATEGORIES].map(cat => {
+              const color = cat === 'all' ? '#0D9488' : (CAT_COLORS[cat] || '#0D9488');
+              const active = catFilter === cat;
+              return (
+                <button key={cat} onClick={() => setCatFilter(cat)} style={{ padding: '7px 14px', borderRadius: 20, cursor: 'pointer', fontSize: 12, fontWeight: 600, border: `1px solid ${active ? color + '60' : 'var(--border)'}`, background: active ? color + '14' : 'var(--surface)', color: active ? color : 'var(--text-muted)', transition: 'all .15s ease' }}>
+                  {cat === 'all' ? 'All' : cat}
+                </button>
+              );
+            })}
+          </div>
+          {(search || catFilter !== 'all') && (
+            <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{filteredServices.length} result{filteredServices.length !== 1 ? 's' : ''}</span>
+          )}
+        </div>
+      )}
 
       {showForm && (
         <div style={s.formCard} className="fade-up">
@@ -140,11 +178,13 @@ export default function AdminServices() {
         );
       })}
 
-      {services.length === 0 && !showForm && (
+      {!showForm && filteredServices.length === 0 && (
         <div style={s.empty} className="scale-in">
-          <div style={s.emptyOrb}>✂</div>
-          <h3 style={s.emptyTitle}>No services yet</h3>
-          <p style={{ color: 'var(--text-muted)', fontSize: 14, margin: 0 }}>Create the global service catalogue above.</p>
+          <div style={s.emptyOrb}>{services.length === 0 ? '✂' : '🔍'}</div>
+          <h3 style={s.emptyTitle}>{services.length === 0 ? 'No services yet' : 'No results found'}</h3>
+          <p style={{ color: 'var(--text-muted)', fontSize: 14, margin: 0 }}>
+            {services.length === 0 ? 'Create the global service catalogue above.' : 'Try a different search term or category.'}
+          </p>
         </div>
       )}
     </div>

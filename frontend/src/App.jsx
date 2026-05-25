@@ -44,6 +44,7 @@ import OwnerAnalytics  from './pages/owner/Analytics';
 import OwnerOffers        from './pages/owner/Offers';
 import OwnerSubscription  from './pages/owner/Subscription';
 
+import ResetPassword from './pages/ResetPassword';
 import UserDashboard from './pages/user/Dashboard';
 import UserBookingList from './pages/user/BookingList';
 import UserBookingDetail from './pages/user/BookingDetail';
@@ -95,6 +96,7 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register/user" element={<RegisterClient />} />
           <Route path="/register/owner" element={<RegisterSalon />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
 
           {/* Salon portal select + employee login */}
           <Route path="/salon-portal" element={<SalonPortalSelect />} />

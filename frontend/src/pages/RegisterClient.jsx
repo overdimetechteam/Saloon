@@ -8,6 +8,7 @@ export default function RegisterClient() {
   const navigate = useNavigate();
   const { isMobile, isTablet } = useBreakpoint();
   const [form, setForm]     = useState({ email: '', full_name: '', phone: '', password: '' });
+  const [showPw, setShowPw] = useState(false);
   const [error, setError]   = useState('');
   const [loading, setLoading] = useState(false);
   const f = k => e => setForm({ ...form, [k]: e.target.value });
@@ -92,7 +93,12 @@ export default function RegisterClient() {
             </div>
             <div style={s.field}>
               <label style={s.label}>Password</label>
-              <input style={s.input} type="password" placeholder="Min. 6 characters" value={form.password} onChange={f('password')} required />
+              <div style={{ position: 'relative' }}>
+                <input style={{ ...s.input, paddingRight: 44 }} type={showPw ? 'text' : 'password'} placeholder="Min. 6 characters" value={form.password} onChange={f('password')} required />
+                <button type="button" onClick={() => setShowPw(v => !v)} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, color: 'var(--text-muted)', padding: '2px 4px' }}>
+                  {showPw ? '🙈' : '👁'}
+                </button>
+              </div>
             </div>
             <button style={{ ...s.btn, opacity: loading ? 0.75 : 1 }} type="submit" disabled={loading}>
               {loading ? 'Creating account…' : 'Create Account'}

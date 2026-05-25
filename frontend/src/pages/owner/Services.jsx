@@ -16,6 +16,8 @@ function EditModal({ ss, onSave, onClose }) {
   const [err, setErr]               = useState('');
 
   const save = async () => {
+    if (Number(price) < 1) { setErr('Price must be at least LKR 1.'); return; }
+    if (Number(duration) < 1) { setErr('Duration must be at least 1 minute.'); return; }
     setLoading(true); setErr('');
     try {
       await onSave(ss.id, {
@@ -37,7 +39,7 @@ function EditModal({ ss, onSave, onClose }) {
         {err && <div style={m.err}>{err}</div>}
 
         <label style={m.label}>Custom Price (LKR)
-          <input style={m.input} type="number" min="0" value={price} onChange={e => setPrice(e.target.value)} />
+          <input style={m.input} type="number" min="1" value={price} onChange={e => setPrice(e.target.value)} />
         </label>
 
         {/* Starting From toggle */}

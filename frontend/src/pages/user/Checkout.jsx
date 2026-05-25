@@ -1,5 +1,5 @@
 ﻿import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api/axios';
@@ -386,9 +386,50 @@ function Field({ label, value, onChange, placeholder, type = 'text' }) {
   );
 }
 
+function LoginGate({ next, title, message }) {
+  return (
+    <div style={gate.wrap}>
+      <div style={gate.card}>
+        <div style={gate.lock}>🔒</div>
+        <h2 style={gate.heading}>{title}</h2>
+        <p style={gate.body}>{message}</p>
+        <Link to={`/login?next=${encodeURIComponent(next)}`} style={gate.btn}>Log in</Link>
+        <div style={gate.sub}>
+          Don&apos;t have an account?{' '}
+          <Link to="/register/user" style={gate.subLink}>Create one</Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const gate = {
+  wrap: { minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 20px' },
+  card: {
+    background: 'var(--surface)', borderRadius: 24, padding: '48px 40px',
+    maxWidth: 420, width: '100%', textAlign: 'center',
+    boxShadow: '0 8px 40px rgba(13,148,136,.1)', border: '1px solid var(--border)',
+  },
+  lock: { fontSize: 40, marginBottom: 16, display: 'block' },
+  heading: {
+    fontFamily: "'Cormorant Garamond', Georgia, serif",
+    fontSize: 28, fontWeight: 700, color: 'var(--text)', margin: '0 0 10px', letterSpacing: '-0.02em',
+  },
+  body: { fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.7, marginBottom: 28 },
+  btn: {
+    display: 'block', padding: '13px 0',
+    background: 'linear-gradient(135deg, #0D9488 0%, #14B8A8 50%, #0D9488 100%)',
+    color: '#fff', borderRadius: 12, fontWeight: 700, fontSize: 15,
+    textDecoration: 'none', marginBottom: 16,
+    boxShadow: '0 6px 20px rgba(13,148,136,.35)',
+  },
+  sub: { fontSize: 13, color: 'var(--text-muted)' },
+  subLink: { color: '#0D9488', fontWeight: 600, textDecoration: 'none' },
+};
+
 export default function Checkout() {
   const { items, removeItem, updateQty, updateVariant, clearCart, subtotal } = useCart();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [step, setStep] = useState(0);
 
   const salonId = items[0]?.salonId || null;
@@ -412,6 +453,20 @@ export default function Checkout() {
 
   const goNext = () => setStep(s => Math.min(s + 1, 3));
   const goBack = () => setStep(s => Math.max(s - 1, 0));
+
+  if (!profile) {
+    return (
+      <div style={c.page}>
+        <div style={c.inner}>
+          <LoginGate
+            next="/user/checkout"
+            title="Sign in to Checkout"
+            message="To complete your purchase, please log in to your account."
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={c.page}>

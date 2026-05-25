@@ -69,7 +69,19 @@ export default function OwnerOffers() {
     else { setMsg(text); setTimeout(() => setMsg(''), 3000); }
   };
 
+  const validateOffer = data => {
+    if (!data.title.trim()) return 'Title is required.';
+    if (!data.discount_value || Number(data.discount_value) <= 0) return 'Discount value must be greater than 0.';
+    if (data.discount_type === 'percentage' && Number(data.discount_value) > 100) return 'Percentage discount cannot exceed 100%.';
+    if (!data.start_date) return 'Start date is required.';
+    if (!data.end_date) return 'End date is required.';
+    if (data.end_date < data.start_date) return 'End date must be on or after the start date.';
+    return null;
+  };
+
   const handleCreate = async data => {
+    const err = validateOffer(data);
+    if (err) { flash(err, true); return; }
     setSave(true);
     try {
       await api.post('/owner/offers/', data);
@@ -79,6 +91,8 @@ export default function OwnerOffers() {
   };
 
   const handleEdit = async data => {
+    const err = validateOffer(data);
+    if (err) { flash(err, true); return; }
     setSave(true);
     try {
       await api.patch(`/owner/offers/${editId}/`, data);

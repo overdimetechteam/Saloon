@@ -7,27 +7,24 @@ import { useTheme } from '../context/ThemeContext';
 import { useBreakpoint } from '../hooks/useMobile';
 import { SALON_PALETTES } from '../styles/theme';
 
-const getMockPhotos = pal => [
-  { grad: `linear-gradient(135deg, ${pal.main} 0%, ${pal.light} 100%)`, label: 'Styling Area' },
-  { grad: `linear-gradient(135deg, ${pal.darkBg} 0%, ${pal.main} 100%)`, label: 'Interior'    },
-  { grad: `linear-gradient(135deg, ${pal.main} 0%, #D4AF37 100%)`, label: 'Nail Station'      },
-  { grad: `linear-gradient(135deg, #D4AF37 0%, ${pal.main} 100%)`, label: 'Skin Room'         },
-  { grad: `linear-gradient(135deg, ${pal.dark} 0%, #D4AF37 100%)`, label: 'Lounge'            },
-];
-
-const getMockTeam = pal => [
-  { name: 'Sophie Laurent', role: 'Senior Stylist',   specialty: 'Color & Cuts',     color: pal.main,  bg: `rgba(${pal.rgb},.12)` },
-  { name: 'James Kai',      role: 'Nail Technician',  specialty: 'Gel & Acrylics',   color: '#D4AF37', bg: 'rgba(212,175,55,.12)'  },
-  { name: 'Aria Chen',      role: 'Skin Therapist',   specialty: 'Facials & Peels',  color: pal.dark,  bg: `rgba(${pal.rgb},.08)` },
-  { name: 'Luca Moretti',   role: 'Hair Artist',      specialty: 'Balayage & Perms', color: pal.main,  bg: `rgba(${pal.rgb},.12)` },
-];
-
 const getMockPalette = pal => [
   `linear-gradient(135deg, ${pal.main} 0%, ${pal.light} 100%)`,
   `linear-gradient(135deg, ${pal.main} 0%, #D4AF37 100%)`,
   `linear-gradient(135deg, #D4AF37 0%, #B8932A 100%)`,
   `linear-gradient(135deg, ${pal.darkBg} 0%, ${pal.main} 100%)`,
 ];
+
+function isOpenNow(operatingHours) {
+  if (!operatingHours || !Object.keys(operatingHours).length) return false;
+  const days = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
+  const today = days[new Date().getDay()];
+  const h = operatingHours[today];
+  if (!h) return false;
+  const now = new Date().getHours() * 60 + new Date().getMinutes();
+  const [oh, om] = h.open.split(':').map(Number);
+  const [ch, cm] = h.close.split(':').map(Number);
+  return now >= oh * 60 + om && now < ch * 60 + cm;
+}
 
 function Stars({ rating, size = 14 }) {
   return (
@@ -62,6 +59,7 @@ export default function SalonDetail() {
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
   const [reviewMsg, setReviewMsg] = useState('');
   const [selectedMember, setSelectedMember] = useState(null);
+  const [showAllReviews, setShowAllReviews] = useState(false);
 
   const servicesRef  = useRef(null);
   const teamRef      = useRef(null);
@@ -192,9 +190,8 @@ export default function SalonDetail() {
   const pal = SALON_PALETTES[salon.color_palette || 'teal'];
   const R = pal.rgb;
   const catColors = { Hair: pal.main, Nails: '#D4AF37', Skin: pal.dark, Makeup: '#C96B51', Cosmetics: '#C96B51', Other: pal.main };
-  const mockTeam = getMockTeam(pal);
-  const mockPhotos = getMockPhotos(pal);
   const mockPalette = getMockPalette(pal);
+  const openNow = salon.status === 'active' && isOpenNow(salon.operating_hours);
   const coverPhoto = salon?.cover_image_url || null;
 
   const grouped = services.reduce((acc, ss) => {
@@ -241,9 +238,9 @@ export default function SalonDetail() {
                 <span style={s.ratingNum}>{summary ? summary.average_rating.toFixed(1) : '—'}</span>
                 <span style={s.ratingCt}>({summary ? summary.total_reviews : 0} review{summary?.total_reviews !== 1 ? 's' : ''})</span>
                 <span style={s.dot}>·</span>
-                <span style={{ ...s.openBadge, background: `rgba(${R},.15)` }}>
-                  <span style={{ color: pal.light, marginRight: 4 }}>●</span>
-                  {salon.status === 'active' ? 'Open Now' : 'Closed'}
+                <span style={{ ...s.openBadge, background: openNow ? `rgba(${R},.15)` : 'rgba(107,114,128,.1)', color: openNow ? '#F0FFFE' : 'rgba(255,255,255,.6)' }}>
+                  <span style={{ color: openNow ? pal.light : '#9CA3AF', marginRight: 4 }}>●</span>
+                  {openNow ? 'Open Now' : 'Closed'}
                 </span>
               </div>
 
@@ -354,11 +351,12 @@ export default function SalonDetail() {
                     <div style={s.photoClickHint}>⊕</div>
                   </div>
                 ))
-              : mockPhotos.map((p, i) => (
-                  <div key={i} style={{ ...s.photoCard, width: isMobile ? 200 : 340, height: isMobile ? 140 : 240, background: p.grad }} className="lift-sm fade-up">
-                    <div style={s.photoLabel}>{p.label}</div>
-                  </div>
-                ))
+              : (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 8px', color: 'var(--text-muted)', fontSize: 13, fontStyle: 'italic' }}>
+                  <span style={{ fontSize: 22, opacity: 0.35 }}>🖼</span>
+                  No gallery photos uploaded yet.
+                </div>
+              )
             }
           </div>
           {!isMobile && (
@@ -436,16 +434,10 @@ export default function SalonDetail() {
             </div>
             <h3 style={tm.name}>{selectedMember.full_name}</h3>
             <div style={{ ...tm.role, color: selectedMember._color || pal.main }}>{selectedMember.role}</div>
-            {selectedMember.bio && <p style={tm.bio}>{selectedMember.bio}</p>}
-            {showBookBtn && (
-              <Link
-                to={`/user/book/${id}`}
-                style={{ ...s.heroBookBtn, background: selectedMember._color || pal.main, boxShadow: `0 6px 20px ${selectedMember._color || pal.main}40`, marginTop: 24, fontSize: 14, padding: '12px 28px' }}
-                onClick={() => setSelectedMember(null)}
-              >
-                ✦ Book Now
-              </Link>
-            )}
+            {selectedMember.bio
+              ? <p style={tm.bio}>{selectedMember.bio}</p>
+              : <p style={{ ...tm.bio, color: 'var(--text-muted)', fontStyle: 'italic' }}>No description provided.</p>
+            }
           </div>
         </div>,
         document.body
@@ -571,10 +563,10 @@ export default function SalonDetail() {
                 </p>
                 <div style={{ ...s.aboutStats, gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)' }}>
                   {[
-                    { val: '500+', label: 'Happy Clients',    color: pal.main  },
-                    { val: '4+',  label: 'Years Experience',  color: '#D4AF37' },
-                    { val: '15+', label: 'Expert Staff',      color: pal.main  },
-                    { val: '4.8', label: 'Average Rating',    color: '#D4AF37' },
+                    { val: summary ? `${summary.total_reviews}` : '0',   label: 'Client Reviews',  color: pal.main  },
+                    { val: salon.created_at ? `${Math.max(1, new Date().getFullYear() - new Date(salon.created_at).getFullYear())}+` : '—', label: 'Years in Business', color: '#D4AF37' },
+                    { val: teamMembers.length > 0 ? `${teamMembers.length}` : '—', label: 'Team Members',   color: pal.main  },
+                    { val: summary && summary.total_reviews > 0 ? summary.average_rating.toFixed(1) : '—', label: 'Average Rating', color: '#D4AF37' },
                   ].map(stat => (
                     <div key={stat.label} style={{ textAlign: 'center', padding: '14px 8px', background: `${stat.color}0D`, borderRadius: 14, border: `1px solid ${stat.color}28` }}>
                       <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 28, fontWeight: 800, color: stat.color, marginBottom: 4 }}>{stat.val}</div>
@@ -634,19 +626,8 @@ export default function SalonDetail() {
                 ))}
               </div>
             ) : (
-              <div ref={teamScrollRef} style={s.teamScroll}>
-                {mockTeam.map((m, i) => (
-                  <div key={i} style={{ ...s.teamCard, borderTop: `3px solid ${m.color}`, cursor: 'pointer' }} className="lift-sm"
-                    onClick={() => setSelectedMember({ full_name: m.name, role: m.role, bio: m.specialty, photo_url: null, _color: m.color, _bg: m.bg })}>
-                    <div style={{ ...s.teamAvatar, background: m.bg, color: m.color, boxShadow: `0 4px 14px ${m.color}28` }}>
-                      {m.name.split(' ').map(w => w[0]).join('')}
-                    </div>
-                    <div style={s.teamName}>{m.name}</div>
-                    <div style={{ ...s.teamRole, color: m.color }}>{m.role}</div>
-                    <div style={s.teamSpec}>{m.specialty}</div>
-                    <div style={{ fontSize: 11, color: m.color, marginTop: 'auto', paddingTop: 10, fontWeight: 600 }}>View Profile →</div>
-                  </div>
-                ))}
+              <div style={{ padding: '32px 0', color: 'var(--text-muted)', fontSize: 14, fontStyle: 'italic' }}>
+                No team profiles added yet.
               </div>
             )}
             {!isMobile && (
@@ -679,7 +660,7 @@ export default function SalonDetail() {
             </div>
           ) : (
             <div style={{ ...s.reviewGrid, gridTemplateColumns: isMobile ? '1fr' : isTablet ? 'repeat(2,1fr)' : 'repeat(auto-fill,minmax(290px,1fr))' }}>
-              {reviews.slice(0, 5).map((r, i) => (
+              {(showAllReviews ? reviews : reviews.slice(0, 5)).map((r, i) => (
                 <div key={r.id} style={s.reviewCard} className={`lift-sm fade-up d${i + 1}`}>
                   <div style={s.reviewTop}>
                     <div style={{ ...s.reviewAvatar, background: pal.main }}>{(r.client_name || 'A')[0].toUpperCase()}</div>
@@ -692,6 +673,17 @@ export default function SalonDetail() {
                   {r.comment && <p style={s.reviewText}>"{r.comment}"</p>}
                 </div>
               ))}
+            </div>
+          )}
+
+          {reviews.length > 5 && (
+            <div style={{ textAlign: 'center', marginTop: 20 }}>
+              <button
+                style={{ padding: '9px 22px', background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600, color: 'var(--text-muted)', fontFamily: "'DM Sans', sans-serif" }}
+                onClick={() => setShowAllReviews(v => !v)}
+              >
+                {showAllReviews ? 'Show less' : `Show all ${reviews.length} reviews`}
+              </button>
             </div>
           )}
 
@@ -751,8 +743,11 @@ export default function SalonDetail() {
             <div style={s.otherScroll}>
               {otherSalons.map((os, i) => (
                 <Link key={os.id} to={`/salons/${os.id}`} style={s.otherCard} className="lift-sm">
-                  <div style={{ ...s.otherAvatar, background: mockPalette[i % mockPalette.length] }}>
-                    {os.name[0]}
+                  <div style={{ ...s.otherAvatar, background: mockPalette[i % mockPalette.length], overflow: 'hidden', padding: 0 }}>
+                    {os.logo_url
+                      ? <img src={os.logo_url} alt={os.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                      : <span style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 24, fontWeight: 700, color: '#fff' }}>{os.name[0]}</span>
+                    }
                   </div>
                   <div style={s.otherName}>{os.name}</div>
                   <div style={s.otherCity}>{os.address_city}</div>

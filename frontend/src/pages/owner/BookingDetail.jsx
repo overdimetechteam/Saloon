@@ -169,7 +169,7 @@ export default function OwnerBookingDetail() {
 
   const meta    = STATUS_META[booking.status] || { label: booking.status, color: '#888', bg: '#f0f0f0' };
   const canAct  = ['pending', 'rescheduled'].includes(booking.status);
-  const canAssign = ['pending', 'confirmed', 'rescheduled'].includes(booking.status);
+  const canAssign = ['pending', 'confirmed', 'rescheduled', 'awaiting_client'].includes(booking.status);
   const opHours = salon?.operating_hours || {};
 
   return (
@@ -194,13 +194,26 @@ export default function OwnerBookingDetail() {
               <span style={{ ...s.badge, color: meta.color, background: meta.bg, border: `1px solid ${meta.color}22` }}>{meta.label}</span>
             </div>
 
+            {booking.status === 'pending' && booking.negotiation_round > 0 && (
+              <div style={s.clientMoreNotice}>
+                <span style={{ fontSize: 18 }}>↻</span>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 3 }}>Client requesting more available dates</div>
+                  <div style={{ fontSize: 12, lineHeight: 1.5 }}>
+                    The client couldn't find a suitable time from round {booking.negotiation_round} and has sent this back to you. Please propose 3 new alternative dates below.
+                    {booking.negotiation_round >= 4 && <span style={{ fontWeight: 700 }}> This is your last chance — round 5 is the final round.</span>}
+                  </div>
+                </div>
+              </div>
+            )}
+
             {error && <div style={s.alertErr}>{error}</div>}
             {msg   && <div style={s.alertOk}>{msg}</div>}
 
             <div style={{ ...s.infoGrid, gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr' }}>
               <div style={s.infoBox}>
                 <div style={s.infoLbl}>Date & Time</div>
-                <div style={s.infoVal}>{new Date(booking.requested_datetime).toLocaleString()}</div>
+                <div style={s.infoVal}>{new Date(booking.requested_datetime.slice(0, 19)).toLocaleString()}</div>
               </div>
               <div style={s.infoBox}>
                 <div style={s.infoLbl}>Negotiation Round</div>
@@ -252,16 +265,24 @@ export default function OwnerBookingDetail() {
             <div style={s.actionsCard}>
               <div style={s.confirmSection}>
                 <h4 style={s.actTitle}>Confirm Booking</h4>
-                <p style={{ color: 'var(--text-muted)', fontSize: 13, marginBottom: 16, lineHeight: 1.6 }}>Approve this booking at the requested time.</p>
+                <p style={{ color: 'var(--text-muted)', fontSize: 13, marginBottom: 16, lineHeight: 1.6 }}>
+                  {booking.negotiation_round > 0
+                    ? 'Accept the client\'s original requested time and confirm the booking.'
+                    : 'Approve this booking at the requested time.'}
+                </p>
                 <button style={s.confirmBtn} onClick={confirm}>✓ Confirm Booking</button>
               </div>
 
               <div style={s.divider} />
 
               <div style={s.rejectSection}>
-                <h4 style={s.actTitle}>Reject & Propose Alternatives</h4>
+                <h4 style={s.actTitle}>
+                  {booking.negotiation_round > 0 ? `Propose New Alternatives (Round ${booking.negotiation_round + 1})` : 'Reject & Propose Alternatives'}
+                </h4>
                 <p style={{ color: 'var(--text-muted)', fontSize: 13, marginBottom: 18, lineHeight: 1.6 }}>
-                  Select 3 alternative dates and times for the client to choose from.
+                  {booking.negotiation_round > 0
+                    ? `Select 3 new dates for the client — this will be round ${booking.negotiation_round + 1} of 5.${booking.negotiation_round >= 4 ? ' This is the final round; the client will be required to pick one.' : ''}`
+                    : 'Select 3 alternative dates and times for the client to choose from.'}
                   {Object.keys(opHours).length > 0 && ' Closed days are greyed out.'}
                 </p>
                 <MultiSlotPicker
@@ -303,7 +324,7 @@ export default function OwnerBookingDetail() {
                   <div style={{ fontSize: 12, fontWeight: 600, color: sl.is_selected ? '#0D9488' : 'var(--text)' }}>
                     Round {sl.round_number}{sl.is_selected ? ' ✓ Selected' : ''}
                   </div>
-                  <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 3 }}>{new Date(sl.proposed_datetime).toLocaleString()}</div>
+                  <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 3 }}>{new Date(sl.proposed_datetime.slice(0, 19)).toLocaleString()}</div>
                 </div>
               ))}
             </div>
@@ -330,6 +351,11 @@ const s = {
   badge: { display: 'inline-flex', borderRadius: 20, fontWeight: 700, flexShrink: 0, fontSize: 13, padding: '6px 16px' },
   alertErr: { background: '#FEF2F2', border: '1px solid #FCA5A5', color: '#DC2626', borderRadius: 12, padding: '11px 14px', fontSize: 13, marginBottom: 18 },
   alertOk:  { background: '#F0FDFA', border: '1px solid #99F6E4', color: '#0D9488', borderRadius: 12, padding: '11px 14px', fontSize: 13, marginBottom: 18 },
+  clientMoreNotice: {
+    display: 'flex', gap: 14, alignItems: 'flex-start',
+    background: 'rgba(212,175,55,.08)', border: '1px solid rgba(212,175,55,.35)',
+    color: '#B8932A', borderRadius: 14, padding: '14px 18px', marginBottom: 20, lineHeight: 1.5,
+  },
   infoGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 22 },
   infoBox:  { background: 'var(--surface2)', borderRadius: 12, padding: '13px 16px', border: '1px solid var(--border)' },
   infoLbl:  { fontSize: 9, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 },

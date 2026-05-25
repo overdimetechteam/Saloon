@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import api from '../../api/axios';
 import { useBreakpoint } from '../../hooks/useMobile';
 import { useTheme } from '../../context/ThemeContext';
+import { useAuth } from '../../context/AuthContext';
 import { SALON_PALETTES } from '../../styles/theme';
 import MiniCalendar from '../../components/MiniCalendar';
 
@@ -27,6 +28,7 @@ export default function BookSalon() {
   const navigate = useNavigate();
   const { isMobile } = useBreakpoint();
   const { setNavPalette } = useTheme();
+  const { profile } = useAuth();
   const [searchParams] = useSearchParams();
   const preIds = (searchParams.get('services') || '').split(',').map(Number).filter(Boolean);
   const [salon, setSalon] = useState(null);
@@ -67,6 +69,13 @@ export default function BookSalon() {
 
   useEffect(() => {
     if (!date) return;
+    const dayName = new Date(date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+    if (staffId !== null) {
+      const staff = staffList.find(m => m.id === staffId);
+      if (staff && staff.working_days?.length && !staff.working_days.includes(dayName)) {
+        setStaffId(null);
+      }
+    }
     setSlotsLoading(true); setSlot('');
     const staffParam = staffId !== null ? `&staff_id=${staffId}` : '';
     api.get(`/salons/${salonId}/calendar/available-slots/?date=${date}${staffParam}`)
@@ -145,11 +154,31 @@ export default function BookSalon() {
     <div style={s.loader}><div style={s.loaderSpinner} /></div>
   );
 
+  if (!profile) return (
+    <div>
+      <Link to={`/salons/${salonId}`} style={{ ...s.back, color: '#0D9488' }}>← Back to Salon</Link>
+      <div style={bookGate.wrap}>
+        <div style={bookGate.card}>
+          <div style={bookGate.lock}>🔒</div>
+          <h2 style={bookGate.heading}>Sign in to Book</h2>
+          <p style={bookGate.body}>To complete your appointment booking, please log in to your account.</p>
+          <Link to={`/login?next=${encodeURIComponent(`/user/book/${salonId}`)}`} style={bookGate.btn}>Log in</Link>
+          <div style={bookGate.sub}>
+            Don&apos;t have an account?{' '}
+            <Link to="/register/user" style={bookGate.subLink}>Create one</Link>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   const pal = SALON_PALETTES[salon.color_palette || 'teal'];
   const R = pal.rgb;
 
   const displayServices = homeVisit ? services.filter(ss => ss.home_visit_available) : services;
-  const displayStaff = homeVisit ? staffList.filter(m => m.home_visit_available) : staffList;
+  const selectedDayName = date ? new Date(date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase() : null;
+  const displayStaff = (homeVisit ? staffList.filter(m => m.home_visit_available) : staffList)
+    .filter(m => !selectedDayName || !m.working_days?.length || m.working_days.includes(selectedDayName));
   const selectedServices = services.filter(ss => selected.includes(ss.id));
   const total = selectedServices.reduce((sum, ss) => sum + Number(ss.effective_price), 0);
   const discount = promoResult?.valid ? Number(promoResult.discount_amount) : 0;
@@ -290,7 +319,7 @@ export default function BookSalon() {
 
           <div style={conf.ctaRow} className="fade-up d5">
             <button style={conf.primaryCTA} className="btn-cta"
-              onClick={() => navigate(bookingId ? `/user/bookings/${bookingId}` : '/user/bookings')}>
+              onClick={() => navigate(bookingId != null ? `/user/bookings/${bookingId}` : '/user/bookings')}>
               View My Booking
             </button>
             <button style={conf.ghostCTA} onClick={() => navigate('/salons')}>
@@ -917,4 +946,28 @@ const conf = {
   ctaRow:      { display: 'flex', flexDirection: 'column', gap: 12, width: '100%', maxWidth: 380 },
   primaryCTA:  { width: '100%', padding: '15px', background: 'linear-gradient(135deg, #0D9488 0%, #14B8A8 50%, #0D9488 100%)', color: '#fff', border: 'none', borderRadius: 14, fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", boxShadow: '0 8px 28px rgba(13,148,136,.45), inset 0 1px 0 rgba(255,255,255,.18)', transition: 'transform .18s ease, box-shadow .18s ease', letterSpacing: '0.01em' },
   ghostCTA:    { width: '100%', padding: '14px', background: 'rgba(255,255,255,.06)', color: 'rgba(153,246,228,.8)', border: '1px solid rgba(255,255,255,.1)', borderRadius: 14, fontSize: 14, fontWeight: 500, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", transition: 'background .18s ease, border-color .18s ease', letterSpacing: '0.01em' },
+};
+
+const bookGate = {
+  wrap: { minHeight: '50vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 20px' },
+  card: {
+    background: 'var(--surface)', borderRadius: 24, padding: '48px 40px',
+    maxWidth: 420, width: '100%', textAlign: 'center',
+    boxShadow: '0 8px 40px rgba(13,148,136,.1)', border: '1px solid var(--border)',
+  },
+  lock: { fontSize: 40, marginBottom: 16, display: 'block' },
+  heading: {
+    fontFamily: "'Cormorant Garamond', Georgia, serif",
+    fontSize: 28, fontWeight: 700, color: 'var(--text)', margin: '0 0 10px', letterSpacing: '-0.02em',
+  },
+  body: { fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.7, marginBottom: 28 },
+  btn: {
+    display: 'block', padding: '13px 0',
+    background: 'linear-gradient(135deg, #0D9488 0%, #14B8A8 50%, #0D9488 100%)',
+    color: '#fff', borderRadius: 12, fontWeight: 700, fontSize: 15,
+    textDecoration: 'none', marginBottom: 16,
+    boxShadow: '0 6px 20px rgba(13,148,136,.35)',
+  },
+  sub: { fontSize: 13, color: 'var(--text-muted)' },
+  subLink: { color: '#0D9488', fontWeight: 600, textDecoration: 'none' },
 };

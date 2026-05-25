@@ -153,8 +153,17 @@ export default function OwnerDashboard() {
   const setHourField = (day, field, val) =>
     setHours(h => ({ ...h, [day]: { ...h[day], [field]: val } }));
 
+  const toMin = t => { const [h, m] = (t || '00:00').split(':').map(Number); return h * 60 + m; };
+
   const saveHours = async () => {
     if (hoursSaving) return;
+    for (const day of DAYS) {
+      const h = hours[day];
+      if (!h?.closed && toMin(h?.open) >= toMin(h?.close)) {
+        setHoursMsg(`error:${day}`);
+        return;
+      }
+    }
     setHoursSaving(true);
     setHoursMsg('');
     try {
@@ -623,6 +632,7 @@ export default function OwnerDashboard() {
               </button>
               {hoursMsg === 'saved' && <span style={{ fontSize: 13, color: '#0D9488', fontWeight: 600 }}>✓ Saved successfully</span>}
               {hoursMsg === 'error' && <span style={{ fontSize: 13, color: '#DC2626', fontWeight: 600 }}>✕ Failed to save</span>}
+              {hoursMsg.startsWith('error:') && <span style={{ fontSize: 13, color: '#DC2626', fontWeight: 600 }}>✕ {hoursMsg.split(':')[1].charAt(0).toUpperCase() + hoursMsg.split(':')[1].slice(1)}: closing time must be after opening time</span>}
             </div>
           </div>
         )}

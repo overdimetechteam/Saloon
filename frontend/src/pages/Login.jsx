@@ -1,27 +1,54 @@
-﻿import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+﻿import { useState, useEffect } from 'react';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useBreakpoint } from '../hooks/useMobile';
+import api from '../api/axios';
 
 export default function Login() {
-  const { login } = useAuth();
+  const { login, profile } = useAuth();
   const navigate  = useNavigate();
+  const [searchParams] = useSearchParams();
+  const nextPath = searchParams.get('next') || null;
   const { isMobile, isTablet } = useBreakpoint();
-  const [form, setForm]     = useState({ email: '', password: '' });
-  const [error, setError]   = useState('');
-  const [loading, setLoading] = useState(false);
+  const [form, setForm]         = useState({ email: '', password: '' });
+  const [showPw, setShowPw]     = useState(false);
+  const [error, setError]       = useState('');
+  const [loading, setLoading]   = useState(false);
+  const [forgotOpen, setForgotOpen] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotMsg, setForgotMsg] = useState('');
+
+  const roleRedirect = (role) => {
+    if (role === 'system_admin') return '/admin/salons';
+    if (role === 'salon_owner') return '/salon-portal';
+    if (role === 'employee') return '/employee/profile';
+    return nextPath || '/user/dashboard';
+  };
+
+  useEffect(() => {
+    if (!profile) return;
+    navigate(roleRedirect(profile.role), { replace: true });
+  }, [profile]);
 
   const handle = async e => {
     e.preventDefault(); setError(''); setLoading(true);
     try {
       const user = await login(form.email, form.password);
-      if (user.role === 'system_admin') navigate('/admin/salons');
-      else if (user.role === 'salon_owner') navigate('/salon-portal');
-      else if (user.role === 'employee') navigate('/employee/profile');
-      else navigate('/user/dashboard');
+      navigate(roleRedirect(user.role));
     } catch (err) {
       setError(err.response?.data?.detail || 'Invalid email or password');
     } finally { setLoading(false); }
+  };
+
+  const sendForgot = async e => {
+    e.preventDefault(); setForgotLoading(true); setForgotMsg('');
+    try {
+      await api.post('/auth/forgot-password/', { email: forgotEmail.trim() });
+      setForgotMsg('If that email is registered, a reset link has been sent.');
+    } catch {
+      setForgotMsg('If that email is registered, a reset link has been sent.');
+    } finally { setForgotLoading(false); }
   };
 
   return (
@@ -87,15 +114,25 @@ export default function Login() {
               />
             </div>
             <div style={s.field}>
-              <label style={s.label}>Password</label>
-              <input
-                style={s.input}
-                type="password"
-                placeholder="••••••••"
-                value={form.password}
-                onChange={e => setForm({ ...form, password: e.target.value })}
-                required
-              />
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 7 }}>
+                <label style={s.label}>Password</label>
+                <button type="button" onClick={() => setForgotOpen(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: '#0D9488', fontWeight: 600, padding: 0 }}>
+                  Forgot password?
+                </button>
+              </div>
+              <div style={{ position: 'relative' }}>
+                <input
+                  style={{ ...s.input, paddingRight: 44 }}
+                  type={showPw ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  value={form.password}
+                  onChange={e => setForm({ ...form, password: e.target.value })}
+                  required
+                />
+                <button type="button" onClick={() => setShowPw(v => !v)} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, color: 'var(--text-muted)', padding: '2px 4px' }}>
+                  {showPw ? '🙈' : '👁'}
+                </button>
+              </div>
             </div>
             <button
               style={{ ...s.btn, opacity: loading ? 0.75 : 1 }}
@@ -110,6 +147,37 @@ export default function Login() {
             <p>New client? <Link to="/register/user" style={s.footerLink}>Create account</Link></p>
             <p style={{ marginTop: 8 }}>Own a salon? <Link to="/register/owner" style={s.footerLink}>Apply here</Link></p>
           </div>
+
+          {/* Forgot Password Modal */}
+          {forgotOpen && (
+            <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} onClick={() => { setForgotOpen(false); setForgotMsg(''); setForgotEmail(''); }}>
+              <div style={{ background: 'var(--surface)', borderRadius: 20, padding: '32px 28px', maxWidth: 400, width: '100%', boxShadow: '0 24px 60px rgba(0,0,0,.3)', border: '1px solid var(--border)', animation: 'scaleIn .22s ease both' }} onClick={e => e.stopPropagation()}>
+                <h3 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 22, fontWeight: 700, color: 'var(--text)', marginBottom: 8, letterSpacing: '-0.01em' }}>Reset Password</h3>
+                <p style={{ fontSize: 14, color: 'var(--text-muted)', marginBottom: 20, lineHeight: 1.6 }}>Enter the email address associated with your account and we'll send you a reset link.</p>
+                {forgotMsg ? (
+                  <div style={{ background: '#F0FDFA', border: '1px solid #99F6E4', color: '#0D9488', borderRadius: 12, padding: '12px 16px', fontSize: 13, marginBottom: 16 }}>{forgotMsg}</div>
+                ) : (
+                  <form onSubmit={sendForgot} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                    <input
+                      style={{ ...s.input, marginBottom: 0 }}
+                      type="email"
+                      placeholder="you@example.com"
+                      value={forgotEmail}
+                      onChange={e => setForgotEmail(e.target.value)}
+                      required
+                      autoFocus
+                    />
+                    <button style={{ ...s.btn, opacity: forgotLoading || !forgotEmail.trim() ? 0.7 : 1 }} type="submit" disabled={forgotLoading || !forgotEmail.trim()}>
+                      {forgotLoading ? 'Sending…' : 'Send Reset Link'}
+                    </button>
+                  </form>
+                )}
+                <button onClick={() => { setForgotOpen(false); setForgotMsg(''); setForgotEmail(''); }} style={{ marginTop: 14, width: '100%', padding: '10px', background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: 10, cursor: 'pointer', fontSize: 13, color: 'var(--text-muted)', fontFamily: "'DM Sans', sans-serif" }}>
+                  Close
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

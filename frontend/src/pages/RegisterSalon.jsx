@@ -168,7 +168,29 @@ export default function RegisterSalon() {
   const STEP_LABELS = ['Salon Details', 'Location & Owner', 'Operating Hours', 'Services & Offers'];
   const TOTAL_STEPS = 4;
 
-  const advance = e => { e.preventDefault(); setStep(p => p + 1); };
+  const toMinutes = t => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+
+  const advance = e => {
+    e.preventDefault();
+    setError('');
+    if (step === 1) {
+      const phone = form.contact_number.trim();
+      if (phone && !/^\+?[\d\s\-()]{7,15}$/.test(phone)) {
+        setError('Contact number appears invalid. Use digits, spaces, dashes, and optionally a leading +.');
+        return;
+      }
+    }
+    if (step === 3) {
+      for (const day of DAYS) {
+        const h = form.operating_hours[day];
+        if (!h.closed && toMinutes(h.open) >= toMinutes(h.close)) {
+          setError(`${day.charAt(0).toUpperCase() + day.slice(1)}: closing time must be after opening time.`);
+          return;
+        }
+      }
+    }
+    setStep(p => p + 1);
+  };;
 
   return (
     <div style={{ ...s.page, padding: isMobile ? '24px 12px 48px' : '48px 20px' }}>

@@ -11,12 +11,21 @@ export default function UserBookingList() {
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
+  const [cancelId, setCancelId] = useState(null);
   const navigate  = useNavigate();
   const { isMobile, isTablet } = useBreakpoint();
 
-  useEffect(() => {
-    api.get('/bookings/').then(r => setBookings(r.data)).catch(() => {}).finally(() => setLoading(false));
-  }, []);
+  const reload = () => api.get('/bookings/').then(r => setBookings(r.data)).catch(() => {}).finally(() => setLoading(false));
+
+  const cancelBooking = async id => {
+    try {
+      await api.post(`/bookings/${id}/cancel/`);
+      setCancelId(null);
+      reload();
+    } catch {}
+  };
+
+  useEffect(() => { reload(); }, []);
 
   const rebook = async (bookingId) => {
     try {
@@ -105,7 +114,7 @@ export default function UserBookingList() {
       <div style={s.list}>
         {shown.map((b, i) => {
           const meta = STATUS_META[b.status] || { label: b.status, color: '#888', bg: '#f0f0f0', border: '#ddd' };
-          const dt = new Date(b.requested_datetime);
+          const dt = new Date(b.requested_datetime.slice(0, 19));
           return (
             <div
               key={b.id}
@@ -154,19 +163,39 @@ export default function UserBookingList() {
                     {b.status === 'completed' && (
                       <button style={s.rebookBtn} onClick={() => rebook(b.id)}>↩ Book Again</button>
                     )}
+                    {!['cancelled','completed','flagged'].includes(b.status) && (
+                      cancelId === b.id ? (
+                        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                          <button style={{ ...s.cancelBtn, background: '#DC2626', color: '#fff', border: 'none', fontSize: 11, padding: '4px 10px' }} onClick={() => cancelBooking(b.id)}>Confirm</button>
+                          <button style={{ ...s.cancelBtn, fontSize: 11, padding: '4px 10px' }} onClick={() => setCancelId(null)}>No</button>
+                        </div>
+                      ) : (
+                        <button style={s.cancelBtn} onClick={() => setCancelId(b.id)}>✕ Cancel</button>
+                      )
+                    )}
                     <Link to={`/user/bookings/${b.id}`} style={s.detailBtn}>Details →</Link>
                   </div>
                 )}
               </div>
 
               {isMobile && (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px 14px', borderTop: '1px solid var(--border)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px 14px', borderTop: '1px solid var(--border)', flexWrap: 'wrap', gap: 8 }}>
                   <span style={{ ...s.badge, color: meta.color, background: meta.bg, border: `1px solid ${meta.color}30` }}>
                     {meta.label}
                   </span>
-                  <div style={{ display: 'flex', gap: 8 }}>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                     {b.status === 'completed' && (
                       <button style={s.rebookBtn} onClick={() => rebook(b.id)}>↩ Book Again</button>
+                    )}
+                    {!['cancelled','completed','flagged'].includes(b.status) && (
+                      cancelId === b.id ? (
+                        <>
+                          <button style={{ ...s.cancelBtn, background: '#DC2626', color: '#fff', border: 'none', fontSize: 11, padding: '5px 10px' }} onClick={() => cancelBooking(b.id)}>Confirm Cancel</button>
+                          <button style={{ ...s.cancelBtn, fontSize: 11, padding: '5px 10px' }} onClick={() => setCancelId(null)}>No</button>
+                        </>
+                      ) : (
+                        <button style={s.cancelBtn} onClick={() => setCancelId(b.id)}>✕ Cancel</button>
+                      )
                     )}
                     <Link to={`/user/bookings/${b.id}`} style={s.detailBtn}>Details →</Link>
                   </div>
@@ -302,5 +331,10 @@ const s = {
     fontSize: 13, color: '#0D9488', fontWeight: 700,
     padding: '6px 14px', background: 'rgba(13,148,136,.08)', borderRadius: 8,
     transition: 'background .15s ease',
+  },
+  cancelBtn: {
+    fontSize: 12, color: '#DC2626', fontWeight: 600,
+    padding: '5px 12px', background: '#FEF2F2', border: '1px solid #FECACA',
+    borderRadius: 8, cursor: 'pointer', transition: 'background .15s ease',
   },
 };

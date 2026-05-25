@@ -5,6 +5,7 @@ export default function PendingSalons() {
   const [salons, setSalons] = useState([]);
   const [msg, setMsg] = useState('');
   const [error, setError] = useState('');
+  const [confirmReject, setConfirmReject] = useState(null);
 
   const load = () => api.get('/admin/salons/pending/').then(r => setSalons(r.data)).catch(() => {});
   useEffect(() => { load(); }, []);
@@ -18,7 +19,7 @@ export default function PendingSalons() {
   const reject = async id => {
     try {
       await api.post(`/salons/${id}/reject/`);
-      load(); setMsg('Salon rejected.'); setTimeout(() => setMsg(''), 3000);
+      load(); setConfirmReject(null); setMsg('Salon rejected.'); setTimeout(() => setMsg(''), 3000);
     } catch { setError('Failed to reject.'); }
   };
 
@@ -89,13 +90,23 @@ export default function PendingSalons() {
               <button style={s.approveBtn} onClick={() => approve(salon.id)}>
                 ✓ Approve Salon
               </button>
-              <button style={s.rejectBtn} onClick={() => reject(salon.id)}>
-                ✕ Reject
-              </button>
+              {confirmReject === salon.id ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 13, color: '#DC2626', fontWeight: 600 }}>Confirm reject?</span>
+                  <button style={{ ...s.rejectBtn, background: '#DC2626', color: '#fff', border: 'none' }} onClick={() => reject(salon.id)}>Yes, Reject</button>
+                  <button style={{ padding: '8px 14px', background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: 9, cursor: 'pointer', fontSize: 13, color: 'var(--text-muted)' }} onClick={() => setConfirmReject(null)}>Cancel</button>
+                </div>
+              ) : (
+                <button style={s.rejectBtn} onClick={() => setConfirmReject(salon.id)}>
+                  ✕ Reject
+                </button>
+              )}
             </div>
           </div>
         ))}
       </div>
+
+      {/* Reject Confirmation Overlay (keyboard-accessible) */}
     </div>
   );
 }

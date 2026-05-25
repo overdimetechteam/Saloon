@@ -35,6 +35,7 @@ export default function UserBookingDetail() {
   const [reviewRating, setReviewRating] = useState(0);
   const [reviewComment, setReviewComment] = useState('');
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
+  const [requestingMore, setRequestingMore] = useState(false);
 
   const load = () => api.get(`/bookings/${id}/`).then(r => setBooking(r.data)).catch(() => {});
   useEffect(() => { load(); }, [id]);
@@ -48,6 +49,16 @@ export default function UserBookingDetail() {
   const selectSlot = async slotId => {
     try { await api.post(`/bookings/${id}/select-slot/`, { slot_id: slotId }); setMsg('Slot confirmed! The salon will finalise shortly.'); load(); }
     catch (err) { setError(err.response?.data?.detail || 'Error'); }
+  };
+
+  const requestMoreSlots = async () => {
+    setRequestingMore(true); setError('');
+    try {
+      await api.post(`/bookings/${id}/request-more-slots/`);
+      setMsg('Request sent! The salon will propose new available dates shortly.');
+      load();
+    } catch (err) { setError(err.response?.data?.detail || 'Error requesting more slots'); }
+    finally { setRequestingMore(false); }
   };
 
   const submitReview = async () => {
@@ -70,7 +81,7 @@ export default function UserBookingDetail() {
   const meta = STATUS_META[booking.status] || { label: booking.status, color: '#888', bg: '#f0f0f0' };
   const currentRound = booking.negotiation_round;
   const currentSlots = (booking.alternative_slots || []).filter(sl => sl.round_number === currentRound && !sl.is_selected);
-  const dt = new Date(booking.requested_datetime);
+  const dt = new Date(booking.requested_datetime.slice(0, 19));
 
   return (
     <div style={s.page}>
@@ -144,13 +155,20 @@ export default function UserBookingDetail() {
             <div style={s.altHeader}>
               <div style={s.altIconWrap}>⚡</div>
               <div>
-                <div style={s.altTitle}>Alternative Slots Available</div>
-                <div style={s.altSub}>The salon couldn't confirm your original time. Please choose one below.</div>
+                <div style={s.altTitle}>
+                  Alternative Slots — Round {booking.negotiation_round}
+                  {booking.negotiation_round >= 5 && <span style={{ color: '#DC2626', marginLeft: 8 }}>Final Round</span>}
+                </div>
+                <div style={s.altSub}>
+                  {booking.negotiation_round >= 5
+                    ? 'This is the final negotiation round. You must select one of the dates below.'
+                    : 'The salon couldn\'t confirm your original time. Please choose one, or request different dates.'}
+                </div>
               </div>
             </div>
             <div style={s.slotList}>
               {currentSlots.map((sl, i) => {
-                const slDt = new Date(sl.proposed_datetime);
+                const slDt = new Date(sl.proposed_datetime.slice(0, 19));
                 return (
                   <div key={sl.id} style={s.slotCard} className={`fade-up d${i + 1}`}>
                     <div>
@@ -168,6 +186,28 @@ export default function UserBookingDetail() {
                 );
               })}
             </div>
+
+            {booking.negotiation_round < 5 && (
+              <div style={s.requestMoreWrap}>
+                <div style={s.requestMoreText}>None of these times work for you?</div>
+                <button
+                  style={{ ...s.requestMoreBtn, opacity: requestingMore ? 0.65 : 1 }}
+                  onClick={requestMoreSlots}
+                  disabled={requestingMore}
+                >
+                  {requestingMore ? 'Sending request…' : '↻ Request different dates'}
+                </button>
+                <div style={s.requestMoreHint}>
+                  Round {booking.negotiation_round} of 5 — {5 - booking.negotiation_round} request{5 - booking.negotiation_round !== 1 ? 's' : ''} remaining
+                </div>
+              </div>
+            )}
+
+            {booking.negotiation_round >= 5 && (
+              <div style={s.finalRoundBanner}>
+                You have reached the maximum negotiation rounds. Please select one of the dates above to confirm your booking.
+              </div>
+            )}
           </div>
         )}
 
@@ -386,5 +426,28 @@ const s = {
     border: '1px solid #FECACA', borderRadius: 10,
     cursor: 'pointer', fontWeight: 600, fontSize: 13,
     transition: 'background .15s ease',
+  },
+
+  requestMoreWrap: {
+    marginTop: 18, paddingTop: 16, borderTop: '1px dashed rgba(212,175,55,.35)',
+    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
+  },
+  requestMoreText: { fontSize: 13, color: 'var(--text-muted)', fontWeight: 500 },
+  requestMoreBtn: {
+    padding: '10px 22px',
+    background: 'transparent', color: '#D4AF37',
+    border: '1.5px solid rgba(212,175,55,.5)', borderRadius: 10,
+    cursor: 'pointer', fontWeight: 700, fontSize: 13,
+    transition: 'background .15s ease, border-color .15s ease',
+    fontFamily: "'DM Sans', sans-serif",
+  },
+  requestMoreHint: {
+    fontSize: 11, color: 'var(--text-muted)', fontStyle: 'italic',
+  },
+  finalRoundBanner: {
+    marginTop: 16, padding: '13px 16px',
+    background: '#FEF2F2', border: '1px solid #FECACA',
+    color: '#DC2626', borderRadius: 12, fontSize: 13, fontWeight: 500, lineHeight: 1.6,
+    textAlign: 'center',
   },
 };

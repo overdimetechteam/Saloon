@@ -204,11 +204,11 @@ class BookingRejectView(APIView):
                 return Response({'detail': f'Proposed slot {dt} is already taken'}, status=status.HTTP_409_CONFLICT)
             slot_datetimes.append(dt)
 
-        booking.negotiation_round += 1
         if booking.negotiation_round >= 5:
-            booking.status = 'flagged'
-        else:
-            booking.status = 'awaiting_client'
+            return Response({'detail': 'Maximum negotiation rounds reached. Cannot propose more alternatives.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        booking.negotiation_round += 1
+        booking.status = 'awaiting_client'
         booking.save()
 
         round_num = booking.negotiation_round
@@ -258,6 +258,31 @@ class BookingSelectSlotView(APIView):
         return Response(BookingSerializer(booking).data)
 
 
+class BookingRequestMoreSlotsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        booking = get_object_or_404(Booking, pk=pk)
+        if booking.client_id != request.user.id:
+            return Response({'detail': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
+        if booking.status != 'awaiting_client':
+            return Response({'detail': 'Booking is not awaiting client selection'}, status=status.HTTP_400_BAD_REQUEST)
+        if booking.negotiation_round >= 5:
+            return Response({'detail': 'Maximum negotiation rounds reached. Please select one of the available dates.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        booking.status = 'pending'
+        booking.save()
+
+        send_notification(
+            booking.salon.owner,
+            f"{booking.client.full_name or booking.client.email} couldn't find a suitable time and is requesting more available dates for booking #{booking.pk} (round {booking.negotiation_round}).",
+            notif_type='booking_confirmed',
+            booking_id=booking.pk,
+        )
+        logger.info(f"Booking #{booking.pk} — client requested more slots (round {booking.negotiation_round})")
+        return Response(BookingSerializer(booking).data)
+
+
 class BookingCancelView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -298,7 +323,7 @@ class BookingAssignStaffView(APIView):
         booking = get_object_or_404(Booking, pk=pk)
         if request.user.role != 'salon_owner' or booking.salon.owner_id != request.user.id:
             return Response({'detail': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
-        if booking.status not in ('confirmed', 'pending', 'rescheduled'):
+        if booking.status not in ('confirmed', 'pending', 'rescheduled', 'awaiting_client'):
             return Response({'detail': 'Cannot assign staff to this booking'}, status=status.HTTP_400_BAD_REQUEST)
 
         staff_id = request.data.get('staff_id')

@@ -95,7 +95,7 @@ export default function OwnerBookingList() {
       <div style={s.list}>
         {shown.map((b, i) => {
           const meta = STATUS_META[b.status] || { label: b.status, color: '#888', bg: '#f0f0f0' };
-          const dt = new Date(b.requested_datetime);
+          const dt = new Date(b.requested_datetime.slice(0, 19));
           const isPending = b.status === 'pending';
           return (
             <div
