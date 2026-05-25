@@ -70,6 +70,8 @@ export default function SalonDetail() {
   const svcScrollRef   = useRef(null);
   const teamScrollRef  = useRef(null);
   const photoScrollRef = useRef(null);
+  const heroRef        = useRef(null);
+  const [heroVisible, setHeroVisible] = useState(true);
 
   useEffect(() => {
     api.get(`/salons/${id}/`).then(r => setSalon(r.data)).catch(() => {});
@@ -86,6 +88,14 @@ export default function SalonDetail() {
       api.get(`/salons/${id}/favourite/`).then(r => setIsFav(r.data.is_favourited)).catch(() => {});
     }
   }, [id, profile]);
+
+  useEffect(() => {
+    const el = heroRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(([entry]) => setHeroVisible(entry.isIntersecting), { threshold: 0.1 });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [salon]);
 
   const toggleFav = async () => {
     if (!profile || profile.role !== 'client') return;
@@ -206,7 +216,7 @@ export default function SalonDetail() {
     <div style={{ background: 'var(--bg)', minHeight: '100vh' }}>
 
       {/* HERO */}
-      <div style={{
+      <div ref={heroRef} style={{
         ...s.hero,
         padding: isMobile ? '36px 20px 30px' : '52px 48px 44px',
         background: coverPhoto
@@ -308,7 +318,20 @@ export default function SalonDetail() {
             ))}
           </div>
           <div style={{ display: 'flex', gap: 8, flexShrink: 0, marginLeft: 8 }}>
-            {showBookBtn && <Link to={`/user/book/${id}`} style={{ ...s.tabBookBtn, background: pal.main, boxShadow: `0 4px 14px rgba(${R},.3)` }}>✦ Book Now</Link>}
+            {showBookBtn && (
+              <Link
+                to={`/user/book/${id}`}
+                style={{
+                  ...s.tabBookBtn,
+                  background: pal.main,
+                  boxShadow: `0 4px 14px rgba(${R},.3)`,
+                  opacity: heroVisible ? 0 : 1,
+                  transform: heroVisible ? 'translateY(-6px) scale(0.92)' : 'translateY(0) scale(1)',
+                  pointerEvents: heroVisible ? 'none' : 'auto',
+                  transition: 'opacity .25s ease, transform .25s ease',
+                }}
+              >✦ Book Now</Link>
+            )}
             {salon.cosmetics_enabled && <Link to={`/salons/${id}/cosmetics`} style={s.tabCosmeticsBtn}>✿ Cosmetics</Link>}
           </div>
         </div>

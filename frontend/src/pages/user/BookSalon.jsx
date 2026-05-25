@@ -156,10 +156,16 @@ export default function BookSalon() {
   const finalTotal = Math.max(0, total - discount);
   const selectedStaffName = staffId === null ? 'Any Available' : staffList.find(m => m.id === staffId)?.full_name || '';
 
-  const stepDone = [selected.length > 0, !!date && !!slot, true];
+  const hvAddressFilled = !homeVisit || (hvStreet.trim() && hvCity.trim() && hvDistrict.trim() && hvPostal.trim());
+  const stepDone = [selected.length > 0 && hvAddressFilled, !!date && !!slot, true];
   const canAdvance = stepDone[step];
 
-  const goNext = () => { if (canAdvance && step < 2) setStep(st => st + 1); };
+  const goNext = () => {
+    if (step === 0 && selected.length === 0) { setError('Please select at least one service.'); return; }
+    if (step === 0 && homeVisit && !hvAddressFilled) { setError('Please fill in all address fields for the home visit before continuing.'); return; }
+    setError('');
+    if (canAdvance && step < 2) setStep(st => st + 1);
+  };
   const goPrev = () => { if (step > 0) setStep(st => st - 1); };
 
   /* ── Luxury booking confirmation overlay ── */
@@ -386,34 +392,36 @@ export default function BookSalon() {
                   🏠 Showing only services available for home visits
                 </div>
               )}
-              <div style={s.serviceGrid}>
-                {displayServices.map(ss => {
-                  const on = selected.includes(ss.id);
-                  return (
-                    <label key={ss.id} style={{ ...s.serviceCard, ...(on ? { ...s.serviceCardOn, border: `2px solid ${pal.main}`, background: `linear-gradient(135deg, rgba(${R},.05) 0%, rgba(${R},.02) 100%)`, boxShadow: `0 3px 12px rgba(${R},.12)` } : {}) }}>
-                      <input type="checkbox" checked={on} onChange={() => toggleService(ss.id)} style={{ display: 'none' }} />
-                      <div style={s.svcCheck}>
-                        <div style={{ ...s.checkBox, ...(on ? { ...s.checkBoxOn, background: pal.main, borderColor: 'transparent' } : {}) }}>{on && '✓'}</div>
-                      </div>
-                      <div style={s.svcInfo}>
-                        <div style={s.svcName}>{ss.service_name}</div>
-                        {ss.description ? (
-                          <div style={s.svcDesc}>{ss.description}</div>
-                        ) : null}
-                        <div style={s.svcMeta}>⏱ {ss.effective_duration} min</div>
-                      </div>
-                      <div style={{ ...s.svcPrice, color: on ? pal.main : 'var(--text-sub)', textAlign: 'right' }}>
-                        {ss.is_price_starting_from && <div style={s.svcStartingFrom}>Starting From</div>}
-                        LKR {ss.effective_price}
-                      </div>
-                    </label>
-                  );
-                })}
-                {displayServices.length === 0 && (
-                  <p style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: 13 }}>
-                    {homeVisit ? 'No services have been enabled for home visits at this salon.' : 'No services available at this salon.'}
-                  </p>
-                )}
+              <div style={s.serviceScrollBox}>
+                <div style={s.serviceGrid}>
+                  {displayServices.map(ss => {
+                    const on = selected.includes(ss.id);
+                    return (
+                      <label key={ss.id} style={{ ...s.serviceCard, ...(on ? { ...s.serviceCardOn, border: `2px solid ${pal.main}`, background: `linear-gradient(135deg, rgba(${R},.05) 0%, rgba(${R},.02) 100%)`, boxShadow: `0 3px 12px rgba(${R},.12)` } : {}) }}>
+                        <input type="checkbox" checked={on} onChange={() => toggleService(ss.id)} style={{ display: 'none' }} />
+                        <div style={s.svcCheck}>
+                          <div style={{ ...s.checkBox, ...(on ? { ...s.checkBoxOn, background: pal.main, borderColor: 'transparent' } : {}) }}>{on && '✓'}</div>
+                        </div>
+                        <div style={s.svcInfo}>
+                          <div style={s.svcName}>{ss.service_name}</div>
+                          {ss.description ? (
+                            <div style={s.svcDesc}>{ss.description}</div>
+                          ) : null}
+                          <div style={s.svcMeta}>⏱ {ss.effective_duration} min</div>
+                        </div>
+                        <div style={{ ...s.svcPrice, color: on ? pal.main : 'var(--text-sub)', textAlign: 'right' }}>
+                          {ss.is_price_starting_from && <div style={s.svcStartingFrom}>Starting From</div>}
+                          LKR {ss.effective_price}
+                        </div>
+                      </label>
+                    );
+                  })}
+                  {displayServices.length === 0 && (
+                    <p style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: 13 }}>
+                      {homeVisit ? 'No services have been enabled for home visits at this salon.' : 'No services available at this salon.'}
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
           )}
@@ -425,7 +433,7 @@ export default function BookSalon() {
                 <div style={{ ...s.stepIcon, background: pal.main, boxShadow: `0 6px 16px rgba(${R},.35)` }}>◷</div>
                 <div>
                   <div style={s.stepTitle}>Choose Date & Time</div>
-                  <div style={s.stepSub}>Pick your preferred slot — selecting a time auto-advances</div>
+                  <div style={s.stepSub}>Pick a date, then select an available time slot</div>
                 </div>
               </div>
 
@@ -513,7 +521,7 @@ export default function BookSalon() {
                             key={sl.datetime}
                             type="button"
                             disabled={!sl.available}
-                            onClick={() => { setSlot(sl.datetime); setStep(2); }}
+                            onClick={() => setSlot(sl.datetime)}
                             style={{ ...s.slotBtn, ...(isOn ? { ...s.slotOn, background: pal.main, boxShadow: `0 5px 14px rgba(${R},.38)` } : {}), ...(!sl.available ? s.slotOff : {}) }}
                           >
                             {time}
@@ -737,9 +745,17 @@ const s = {
   stepSub:   { fontSize: 13, color: 'var(--text-muted)', marginTop: 3 },
   alert:     { background: '#FEF2F2', border: '1px solid #FCA5A5', color: '#DC2626', borderRadius: 12, padding: '11px 16px', fontSize: 13, marginBottom: 18 },
 
-  serviceGrid: { display: 'flex', flexDirection: 'column', gap: 10 },
-  serviceCard: { display: 'flex', alignItems: 'center', gap: 14, padding: '14px 18px', border: '2px solid var(--border)', borderRadius: 14, cursor: 'pointer', background: 'var(--surface)', transition: 'all .18s ease' },
-  serviceCardOn: { border: '2px solid #0D9488', background: 'linear-gradient(135deg, rgba(13,148,136,.05) 0%, rgba(13,148,136,.02) 100%)', boxShadow: '0 3px 12px rgba(13,148,136,.12)' },
+  serviceScrollBox: {
+    maxHeight: 380,           /* ~5 service cards */
+    overflowY: 'auto',
+    borderRadius: 14,
+    border: '1px solid var(--border)',
+    scrollbarWidth: 'thin',
+    scrollbarColor: 'rgba(13,148,136,.3) transparent',
+  },
+  serviceGrid: { display: 'flex', flexDirection: 'column', gap: 0 },
+  serviceCard: { display: 'flex', alignItems: 'center', gap: 14, padding: '14px 18px', border: 'none', borderBottom: '1px solid var(--border)', borderLeft: '3px solid transparent', cursor: 'pointer', background: 'var(--surface)', transition: 'all .18s ease' },
+  serviceCardOn: { borderLeft: '3px solid #0D9488', background: 'linear-gradient(135deg, rgba(13,148,136,.05) 0%, rgba(13,148,136,.02) 100%)' },
   svcCheck: { flexShrink: 0 },
   checkBox:   { width: 22, height: 22, borderRadius: 6, border: '2px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff', transition: 'all .2s ease' },
   checkBoxOn: { background: 'linear-gradient(135deg, #0D9488, #0D9488)', borderColor: 'transparent' },
