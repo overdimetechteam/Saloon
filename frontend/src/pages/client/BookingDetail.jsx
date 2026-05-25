@@ -42,7 +42,7 @@ export default function ClientBookingDetail() {
       <h2>Booking #{booking.id}</h2>
       {error && <p style={{ color: 'red' }}>{error}</p>}
       <p><strong>Salon:</strong> {booking.salon_name}</p>
-      <p><strong>Date/Time:</strong> {new Date(booking.requested_datetime).toLocaleString()}</p>
+      <p><strong>Date/Time:</strong> {new Date(booking.requested_datetime.slice(0, 19)).toLocaleString()}</p>
       <p><strong>Status:</strong> {booking.status}</p>
       <p><strong>Services:</strong> {booking.booking_services?.map(bs => bs.service_name).join(', ')}</p>
       {booking.notes && <p><strong>Notes:</strong> {booking.notes}</p>}
@@ -52,7 +52,7 @@ export default function ClientBookingDetail() {
           <h4>The salon has proposed alternative slots. Please pick one:</h4>
           {currentSlots.map(sl => (
             <div key={sl.id} style={s.slotRow}>
-              <span>{new Date(sl.proposed_datetime).toLocaleString()}</span>
+              <span>{new Date(sl.proposed_datetime.slice(0, 19)).toLocaleString()}</span>
               <button style={s.btn} onClick={() => selectSlot(sl.id)}>Select</button>
             </div>
           ))}

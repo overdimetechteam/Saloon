@@ -188,7 +188,7 @@ export default function OwnerDashboard() {
     ]).then(([pending, confirmed, low, all]) => {
       const today = new Date().toDateString();
       const todayBookings = all.data.filter(
-        b => new Date(b.requested_datetime).toDateString() === today && ['pending','confirmed'].includes(b.status)
+        b => new Date(b.requested_datetime.slice(0, 19)).toDateString() === today && ['pending','confirmed'].includes(b.status)
       );
       setStats({ pending: pending.data.length, confirmed: confirmed.data.length, lowStock: low.data.length, todayBookings });
     }).catch(() => {});
@@ -314,7 +314,7 @@ export default function OwnerDashboard() {
                       </td>
                       <td style={s.td}>
                         <span style={s.timeChip}>
-                          {new Date(b.requested_datetime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          {new Date(b.requested_datetime.slice(0, 19)).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
                       </td>
                       <td style={s.td}>

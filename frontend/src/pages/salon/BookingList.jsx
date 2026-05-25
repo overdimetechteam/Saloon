@@ -56,7 +56,7 @@ export default function SalonBookingList() {
             <strong>{b.client_email}</strong>
             <span style={{ ...s.badge, background: STATUS_COLORS[b.status] || '#888' }}>{b.status}</span>
           </div>
-          <p>{new Date(b.requested_datetime).toLocaleString()}</p>
+          <p>{new Date(b.requested_datetime.slice(0, 19)).toLocaleString()}</p>
           <Link to={`/salon/bookings/${b.id}`}>Manage →</Link>
         </div>
       ))}

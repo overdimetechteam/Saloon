@@ -213,7 +213,7 @@ export default function OwnerBookingDetail() {
             <div style={{ ...s.infoGrid, gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr' }}>
               <div style={s.infoBox}>
                 <div style={s.infoLbl}>Date & Time</div>
-                <div style={s.infoVal}>{new Date(booking.requested_datetime.slice(0, 19)).toLocaleString()}</div>
+                <div style={s.infoVal}>{(() => { const d = new Date(booking.requested_datetime.slice(0, 19)); return `${d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })} at ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`; })()}</div>
               </div>
               <div style={s.infoBox}>
                 <div style={s.infoLbl}>Negotiation Round</div>
@@ -324,7 +324,7 @@ export default function OwnerBookingDetail() {
                   <div style={{ fontSize: 12, fontWeight: 600, color: sl.is_selected ? '#0D9488' : 'var(--text)' }}>
                     Round {sl.round_number}{sl.is_selected ? ' ✓ Selected' : ''}
                   </div>
-                  <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 3 }}>{new Date(sl.proposed_datetime.slice(0, 19)).toLocaleString()}</div>
+                  <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 3 }}>{(() => { const d = new Date(sl.proposed_datetime.slice(0, 19)); return `${d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })} at ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`; })()}</div>
                 </div>
               ))}
             </div>

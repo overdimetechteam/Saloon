@@ -44,7 +44,7 @@ export default function SalonBookingDetail() {
       <h2>Booking #{booking.id}</h2>
       {error && <p style={{ color: 'red' }}>{error}</p>}
       <p><strong>Client:</strong> {booking.client_email}</p>
-      <p><strong>Date/Time:</strong> {new Date(booking.requested_datetime).toLocaleString()}</p>
+      <p><strong>Date/Time:</strong> {new Date(booking.requested_datetime.slice(0, 19)).toLocaleString()}</p>
       <p><strong>Status:</strong> {booking.status}</p>
       <p><strong>Services:</strong> {booking.booking_services?.map(bs => bs.service_name).join(', ')}</p>
       {booking.notes && <p><strong>Notes:</strong> {booking.notes}</p>}

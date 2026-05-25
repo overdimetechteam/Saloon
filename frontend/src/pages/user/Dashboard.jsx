@@ -240,7 +240,7 @@ export default function UserDashboard() {
         <div style={{ ...s.grid, gridTemplateColumns: isMobile ? '1fr' : isTablet ? 'repeat(2, 1fr)' : 'repeat(auto-fill, minmax(260px, 1fr))' }}>
           {bookings.map((b, i) => {
             const meta = STATUS_META[b.status] || { label: b.status, color: '#888', bg: '#f0f0f0' };
-            const dt   = new Date(b.requested_datetime);
+            const dt   = new Date(b.requested_datetime.slice(0, 19));
             return (
               <div key={b.id} style={s.card} className={`lift lift-purple card-glow fade-up d${Math.min(i + 1, 5)}`}>
                 <div style={{ ...s.cardAccent, background: `linear-gradient(90deg, ${meta.color}, ${meta.color}66)` }} />

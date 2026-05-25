@@ -29,7 +29,7 @@ export default function ClientDashboard() {
             <strong>{b.salon_name}</strong>
             <span style={{ ...s.badge, background: STATUS_COLORS[b.status] }}>{b.status}</span>
           </div>
-          <p>{new Date(b.requested_datetime).toLocaleString()}</p>
+          <p>{new Date(b.requested_datetime.slice(0, 19)).toLocaleString()}</p>
           <Link to={`/client/bookings/${b.id}`}>View</Link>
         </div>
       ))}

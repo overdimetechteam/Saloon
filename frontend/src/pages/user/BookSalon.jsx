@@ -61,8 +61,8 @@ export default function BookSalon() {
     api.get(`/salons/${salonId}/`).then(r => setSalon(r.data)).catch(() => {});
     api.get(`/salons/${salonId}/services/`).then(r => setServices(r.data)).catch(() => {});
     setStaffLoading(true);
-    api.get(`/salons/${salonId}/staff/`)
-      .then(r => setStaffList(r.data))
+    api.get(`/salons/${salonId}/team/`)
+      .then(r => setStaffList(r.data.filter(m => !['manager', 'receptionist'].includes(m.role))))
       .catch(() => setStaffList([]))
       .finally(() => setStaffLoading(false));
   }, [salonId]);
@@ -183,7 +183,8 @@ export default function BookSalon() {
   const total = selectedServices.reduce((sum, ss) => sum + Number(ss.effective_price), 0);
   const discount = promoResult?.valid ? Number(promoResult.discount_amount) : 0;
   const finalTotal = Math.max(0, total - discount);
-  const selectedStaffName = staffId === null ? 'Any Available' : staffList.find(m => m.id === staffId)?.full_name || '';
+  const selectedStaffMember = staffId === null ? null : staffList.find(m => m.id === staffId);
+  const selectedStaffName = staffId === null ? 'Any Available' : selectedStaffMember ? `${selectedStaffMember.full_name} · ${selectedStaffMember.role?.charAt(0).toUpperCase()}${selectedStaffMember.role?.slice(1) || ''}` : '';
 
   const hvAddressFilled = !homeVisit || (hvStreet.trim() && hvCity.trim() && hvDistrict.trim() && hvPostal.trim());
   const stepDone = [selected.length > 0 && hvAddressFilled, !!date && !!slot, true];
@@ -292,7 +293,7 @@ export default function BookSalon() {
                 </div>
                 <div>
                   <div style={conf.detailLabel}>Professional</div>
-                  <div style={conf.detailVal}>{staffList.find(m => m.id === staffId)?.full_name}</div>
+                  <div style={conf.detailVal}>{(() => { const m = staffList.find(x => x.id === staffId); return m ? `${m.full_name} · ${m.role?.charAt(0).toUpperCase()}${m.role?.slice(1) || ''}` : ''; })()}</div>
                 </div>
               </div>
             )}
@@ -479,16 +480,17 @@ export default function BookSalon() {
                       ✦ Any Available
                     </button>
                     {displayStaff.map((m, i) => {
-                      const color = STAFF_COLORS[i % STAFF_COLORS.length];
+                      const roleLabel = m.role ? m.role.charAt(0).toUpperCase() + m.role.slice(1) : '';
                       return (
                         <button
                           key={m.id}
                           type="button"
                           style={{ ...s.proChip, ...(staffId === m.id ? { ...s.proChipOn, background: `rgba(${R},.08)`, color: pal.main, borderColor: `${pal.main}50` } : {}) }}
                           onClick={() => setStaffId(m.id)}
-                          title={m.role || 'Stylist'}
+                          title={m.full_name}
                         >
                           {m.full_name.split(' ')[0]}
+                          {roleLabel && <span style={{ fontSize: 10, opacity: 0.7, marginLeft: 4 }}>· {roleLabel}</span>}
                         </button>
                       );
                     })}

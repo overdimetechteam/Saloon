@@ -18,7 +18,7 @@ class StaffMemberPublicSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = StaffMember
-        fields = ['id', 'full_name', 'role', 'bio', 'photo_url']
+        fields = ['id', 'full_name', 'role', 'bio', 'photo_url', 'working_days', 'home_visit_available']
 
 
 class StaffMemberOwnerSerializer(serializers.ModelSerializer):
