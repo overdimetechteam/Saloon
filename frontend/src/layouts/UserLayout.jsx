@@ -22,6 +22,11 @@ const TYPE_ICON = {
 
 function NotificationBell() {
   const navigate = useNavigate();
+  const { navPalette } = useTheme();
+  const C  = navPalette?.main      || '#0D9488';
+  const R  = navPalette?.rgb       || '13,148,136';
+  const TL = navPalette?.textLight || '#5EEAD4';
+  const nb = makeNb(C, R, TL);
   const [open, setOpen]     = useState(false);
   const [notifs, setNotifs] = useState([]);
   const [unread, setUnread] = useState(0);
@@ -77,15 +82,15 @@ function NotificationBell() {
             {notifs.map(n => (
               <div
                 key={n.id}
-                style={{ ...nb.item, background: n.is_read ? 'transparent' : 'rgba(13,148,136,.05)' }}
+                style={{ ...nb.item, background: n.is_read ? 'transparent' : `rgba(${R},.05)` }}
                 onClick={() => handleNotifClick(n)}
               >
                 <div style={{
                   ...nb.typeIcon,
-                  color: n.notif_type === 'booking_confirmed' ? '#0D9488'
+                  color: n.notif_type === 'booking_confirmed' ? C
                        : n.notif_type === 'booking_cancelled' ? '#DC2626'
                        : '#D4AF37',
-                  background: n.notif_type === 'booking_confirmed' ? '#F0FDFA'
+                  background: n.notif_type === 'booking_confirmed' ? `rgba(${R},.1)`
                             : n.notif_type === 'booking_cancelled' ? '#FEF2F2'
                             : '#FBF3D0',
                 }}>
@@ -107,7 +112,7 @@ function NotificationBell() {
   );
 }
 
-const nb = {
+function makeNb(C, R, TL) { return {
   bell: {
     position: 'relative', background: 'none', border: 'none', cursor: 'pointer',
     fontSize: 18, padding: '5px 7px', borderRadius: 10, lineHeight: 1,
@@ -115,17 +120,17 @@ const nb = {
   },
   badge: {
     position: 'absolute', top: -2, right: -2,
-    background: 'linear-gradient(135deg, #0D9488, #14B8A8)', color: '#fff',
+    background: C, color: '#fff',
     fontSize: 9, fontWeight: 800, borderRadius: 20,
     padding: '1px 4px', minWidth: 14, textAlign: 'center',
     border: '1.5px solid var(--surface)',
-    boxShadow: '0 2px 6px rgba(13,148,136,.45)',
+    boxShadow: `0 2px 6px rgba(${R},.45)`,
   },
   dropdown: {
     position: 'absolute', top: 'calc(100% + 12px)', right: 0,
     width: 330, background: 'var(--surface)',
     border: '1px solid var(--border)', borderRadius: 18,
-    boxShadow: '0 20px 56px rgba(13,148,136,.12), 0 4px 16px rgba(0,0,0,.08)',
+    boxShadow: `0 20px 56px rgba(${R},.12), 0 4px 16px rgba(0,0,0,.08)`,
     zIndex: 500, overflow: 'hidden',
   },
   dropHeader: {
@@ -137,8 +142,8 @@ const nb = {
     fontSize: 15, fontWeight: 700, color: 'var(--text)',
   },
   markAll: {
-    fontSize: 11, color: '#0D9488', background: '#F0FDFA',
-    border: '1px solid #99F6E4', cursor: 'pointer', fontWeight: 600,
+    fontSize: 11, color: C, background: `rgba(${R},.08)`,
+    border: `1px solid ${TL}`, cursor: 'pointer', fontWeight: 600,
     padding: '3px 10px', borderRadius: 20,
   },
   list: { maxHeight: 380, overflowY: 'auto' },
@@ -162,14 +167,18 @@ const nb = {
   itemTime: { fontSize: 11, color: 'var(--text-muted)' },
   dot: {
     width: 7, height: 7, borderRadius: '50%',
-    background: '#0D9488', flexShrink: 0, marginTop: 7,
-    boxShadow: '0 0 6px rgba(13,148,136,.5)',
+    background: C, flexShrink: 0, marginTop: 7,
+    boxShadow: `0 0 6px rgba(${R},.5)`,
   },
-};
+}; }
 
 export default function UserLayout() {
   const { profile, logout } = useAuth();
-  const { isDark, toggle }  = useTheme();
+  const { isDark, toggle, navPalette } = useTheme();
+  const C      = navPalette?.main      || '#0D9488';
+  const R      = navPalette?.rgb       || '13,148,136';
+  const Clight = navPalette?.light     || '#14B8A8';
+  const TL     = navPalette?.textLight || '#5EEAD4';
   const navigate  = useNavigate();
   const location  = useLocation();
   const isMobile  = useIsMobile();
@@ -194,7 +203,7 @@ export default function UserLayout() {
         backdropFilter: scrolled ? 'blur(24px) saturate(1.5)' : 'none',
         WebkitBackdropFilter: scrolled ? 'blur(24px) saturate(1.5)' : 'none',
         borderBottom: '1px solid var(--border)',
-        boxShadow: scrolled ? '0 4px 28px rgba(13,148,136,.07)' : 'none',
+        boxShadow: scrolled ? `0 4px 28px rgba(${R},.07)` : 'none',
         transition: 'background .3s ease, box-shadow .3s ease',
       }}>
         <div style={{
@@ -207,14 +216,14 @@ export default function UserLayout() {
           <Link to="/salons" style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0, textDecoration: 'none' }}>
             <div style={{
               width: 36, height: 36, borderRadius: 10, flexShrink: 0,
-              background: 'linear-gradient(145deg, #0D9488 0%, #14B8A8 100%)',
+              background: `linear-gradient(145deg, ${C} 0%, ${Clight} 100%)`,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               color: '#fff', fontSize: 15, fontWeight: 900,
-              boxShadow: '0 4px 16px rgba(13,148,136,.4), inset 0 1px 0 rgba(255,255,255,.2)',
+              boxShadow: `0 4px 16px rgba(${R},.4), inset 0 1px 0 rgba(255,255,255,.2)`,
             }}>✦</div>
             <div>
               <div style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontWeight: 700, fontSize: isMobile ? 18 : 20, color: 'var(--text)', lineHeight: 1, letterSpacing: '-0.01em' }}>Saloon</div>
-              {!isMobile && <div style={{ fontSize: 9, color: 'var(--brand-label)', letterSpacing: '0.18em', textTransform: 'uppercase', marginTop: 3, fontWeight: 500 }}>Beauty & Wellness</div>}
+              {!isMobile && <div style={{ fontSize: 9, color: TL, letterSpacing: '0.18em', textTransform: 'uppercase', marginTop: 3, fontWeight: 500 }}>Beauty & Wellness</div>}
             </div>
           </Link>
 
@@ -228,9 +237,9 @@ export default function UserLayout() {
                   style={({ isActive }) => ({
                     padding: '6px 16px', borderRadius: 9, fontSize: 14,
                     fontWeight: isActive ? 600 : 500,
-                    color: isActive ? '#0D9488' : 'var(--text-muted)',
+                    color: isActive ? C : 'var(--text-muted)',
                     background: isActive
-                      ? (isDark ? 'rgba(13,148,136,.18)' : '#F0FDFA')
+                      ? (isDark ? `rgba(${R},.18)` : `rgba(${R},.07)`)
                       : 'transparent',
                     transition: 'all .18s ease',
                   })}
@@ -245,18 +254,18 @@ export default function UserLayout() {
           <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 8 : 10, marginLeft: 'auto' }}>
             <NotificationBell />
             <button onClick={toggle} className="theme-toggle" title={isDark ? 'Light mode' : 'Dark mode'}
-              style={{ color: isDark ? '#5EEAD4' : '#0D9488' }}>
+              style={{ color: isDark ? TL : C }}>
               {isDark ? '☀' : '☾'}
             </button>
             <div style={{ position: 'relative' }}>
               <div style={{
                 width: 34, height: 34, borderRadius: '50%',
-                background: 'linear-gradient(145deg, #0D9488 0%, #14B8A8 100%)',
+                background: `linear-gradient(145deg, ${C} 0%, ${Clight} 100%)`,
                 color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 12, fontWeight: 700, boxShadow: '0 2px 10px rgba(13,148,136,.35)',
+                fontSize: 12, fontWeight: 700, boxShadow: `0 2px 10px rgba(${R},.35)`,
               }}>{initials}</div>
               <div style={{
-                width: 8, height: 8, borderRadius: '50%', background: '#14B8A8',
+                width: 8, height: 8, borderRadius: '50%', background: Clight,
                 border: '2px solid var(--surface)',
                 position: 'absolute', bottom: 0, right: 0,
               }} />

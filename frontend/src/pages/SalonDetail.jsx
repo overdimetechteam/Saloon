@@ -189,6 +189,7 @@ export default function SalonDetail() {
 
   const pal = SALON_PALETTES[salon.color_palette || 'teal'];
   const R = pal.rgb;
+  const s = makeS(pal);
   const catColors = { Hair: pal.main, Nails: '#D4AF37', Skin: pal.dark, Makeup: '#C96B51', Cosmetics: '#C96B51', Other: pal.main };
   const mockPalette = getMockPalette(pal);
   const openNow = salon.status === 'active' && isOpenNow(salon.operating_hours);
@@ -217,7 +218,7 @@ export default function SalonDetail() {
         ...s.hero,
         padding: isMobile ? '36px 20px 30px' : '52px 48px 44px',
         background: coverPhoto
-          ? `linear-gradient(160deg, rgba(13,13,22,.78) 0%, rgba(13,13,22,.58) 35%, rgba(11,56,50,.38) 68%, rgba(13,148,136,.15) 100%), url(${coverPhoto}) center/cover no-repeat`
+          ? `linear-gradient(160deg, rgba(13,13,22,.78) 0%, rgba(13,13,22,.58) 35%, rgba(11,56,50,.38) 68%, rgba(${R},.15) 100%), url(${coverPhoto}) center/cover no-repeat`
           : `linear-gradient(145deg, #0D0D16 0%, ${pal.darkBg} 40%, ${pal.dark} 75%, ${pal.main} 100%)`,
       }}>
         <div style={s.heroBg} />
@@ -752,7 +753,7 @@ export default function SalonDetail() {
                   <div style={s.otherName}>{os.name}</div>
                   <div style={s.otherCity}>{os.address_city}</div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: 'var(--text-muted)', fontWeight: 500 }}>
-                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: os.status === 'active' ? '#14B8A8' : '#D4AF37', display: 'inline-block' }} />
+                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: os.status === 'active' ? pal.light : '#D4AF37', display: 'inline-block' }} />
                     {os.status === 'active' ? 'Open' : 'Closed'}
                   </div>
                 </Link>
@@ -779,9 +780,11 @@ export default function SalonDetail() {
   );
 }
 
-const s = {
+function makeS(pal) {
+  const C = pal.main, R = pal.rgb, Cdark = pal.dark, Clight = pal.light, TL = pal.textLight;
+  return {
   hero: {
-    background: 'linear-gradient(145deg, #0D0D16 0%, #0B3832 40%, #0B7A70 75%, #0D9488 100%)',
+    background: `linear-gradient(145deg, #0D0D16 0%, ${pal.darkBg} 40%, ${Cdark} 75%, ${C} 100%)`,
     padding: '52px 48px 44px', position: 'relative', overflow: 'hidden',
   },
   heroBg: {
@@ -803,7 +806,7 @@ const s = {
     fontFamily: "'Cormorant Garamond', Georgia, serif",
     fontSize: 34, fontWeight: 700, boxShadow: '0 8px 24px rgba(0,0,0,.2)',
   },
-  eyebrow: { fontSize: 10, color: 'rgba(153,246,228,.75)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 8, fontWeight: 700 },
+  eyebrow: { fontSize: 10, color: TL, letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 8, fontWeight: 700 },
   salonName: {
     fontFamily: "'Cormorant Garamond', Georgia, serif",
     fontSize: 42, fontWeight: 700, color: '#fff', margin: '0 0 12px', lineHeight: 1.1, letterSpacing: '-0.01em',
@@ -812,21 +815,21 @@ const s = {
   ratingNum: { fontSize: 16, fontWeight: 800, color: '#D4AF37', fontFamily: "'DM Sans', sans-serif" },
   ratingCt:  { fontSize: 13, color: 'rgba(255,255,255,.6)' },
   dot:       { color: 'rgba(255,255,255,.3)', fontSize: 18 },
-  openBadge: { fontSize: 12, color: '#F0FFFE', background: 'rgba(13,148,136,.15)', borderRadius: 20, padding: '3px 10px', fontWeight: 600 },
+  openBadge: { fontSize: 12, color: '#F0FFFE', background: `rgba(${R},.15)`, borderRadius: 20, padding: '3px 10px', fontWeight: 600 },
   addrRow:   { display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10, flexWrap: 'wrap' },
   addrText:  { fontSize: 14, color: 'rgba(255,255,255,.75)' },
   locationBtn: {
-    fontSize: 12, fontWeight: 600, color: '#5EEAD4',
-    background: 'rgba(13,148,136,.22)', borderRadius: 8, padding: '5px 12px',
-    border: '1px solid rgba(13,148,136,.35)', flexShrink: 0,
+    fontSize: 12, fontWeight: 600, color: TL,
+    background: `rgba(${R},.22)`, borderRadius: 8, padding: '5px 12px',
+    border: `1px solid rgba(${R},.35)`, flexShrink: 0,
   },
   contactRow: { display: 'flex', gap: 10, flexWrap: 'wrap' },
   contactTag: { fontSize: 12, color: 'rgba(255,255,255,.65)', background: 'rgba(255,255,255,.08)', borderRadius: 8, padding: '4px 10px' },
   heroBookBtn: {
     padding: '14px 32px', flexShrink: 0,
-    background: 'linear-gradient(135deg, #0D9488 0%, #0D9488 100%)',
+    background: C,
     color: '#fff', borderRadius: 14, fontWeight: 700, fontSize: 16,
-    textDecoration: 'none', boxShadow: '0 6px 20px rgba(13,148,136,.45)',
+    textDecoration: 'none', boxShadow: `0 6px 20px rgba(${R},.45)`,
     display: 'inline-flex', alignItems: 'center', gap: 8,
     fontFamily: "'DM Sans', sans-serif",
   },
@@ -858,10 +861,10 @@ const s = {
   },
   tabBookBtn: {
     padding: '8px 18px',
-    background: 'linear-gradient(135deg, #0D9488 0%, #0D9488 100%)',
+    background: C,
     color: '#fff', borderRadius: 10, fontWeight: 700, fontSize: 13,
     textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6,
-    boxShadow: '0 4px 14px rgba(13,148,136,.3)',
+    boxShadow: `0 4px 14px rgba(${R},.3)`,
     fontFamily: "'DM Sans', sans-serif",
   },
   tabCosmeticsBtn: {
@@ -899,7 +902,7 @@ const s = {
 
   sec: { marginBottom: 60 },
   secHead: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 24, flexWrap: 'wrap', gap: 12 },
-  eyebrowSm: { fontSize: 10, fontWeight: 700, color: 'var(--brand-label)', letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: 6 },
+  eyebrowSm: { fontSize: 10, fontWeight: 700, color: TL, letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: 6 },
   secTitle: {
     fontFamily: "'Cormorant Garamond', Georgia, serif",
     fontSize: 'clamp(20px, 3.5vw, 28px)', fontWeight: 700, color: 'var(--text)', marginBottom: 24, letterSpacing: '-0.01em',
@@ -942,7 +945,7 @@ const s = {
   svcPrice:   { fontWeight: 700, fontSize: 13, fontFamily: "'DM Sans', sans-serif" },
   svcDesc:    { fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.6, margin: '4px 0 6px', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' },
   svcStarting: { fontSize: 10, fontWeight: 700, opacity: 0.8, letterSpacing: '0.04em' },
-  svcBookHint: { fontSize: 11, fontWeight: 600, color: '#0D9488', marginTop: 8, letterSpacing: '0.02em' },
+  svcBookHint: { fontSize: 11, fontWeight: 600, color: C, marginTop: 8, letterSpacing: '0.02em' },
 
   teamGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 16 },
   teamScroll: {
@@ -973,7 +976,7 @@ const s = {
   reviewTop:  { display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 },
   reviewAvatar: {
     width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
-    background: 'linear-gradient(135deg, #0D9488 0%, #0D9488 100%)',
+    background: C,
     color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
     fontFamily: "'Cormorant Garamond', Georgia, serif",
     fontSize: 17, fontWeight: 700,
@@ -1017,9 +1020,9 @@ const s = {
   },
   otherCity: { fontSize: 12, color: 'var(--text-muted)' },
   seeAllBtn: {
-    padding: '8px 18px', fontSize: 13, fontWeight: 600, color: '#0D9488',
-    background: 'rgba(13,148,136,.1)', borderRadius: 9,
-    border: '1px solid rgba(13,148,136,.2)', textDecoration: 'none', flexShrink: 0,
+    padding: '8px 18px', fontSize: 13, fontWeight: 600, color: C,
+    background: `rgba(${R},.1)`, borderRadius: 9,
+    border: `1px solid rgba(${R},.2)`, textDecoration: 'none', flexShrink: 0,
     fontFamily: "'DM Sans', sans-serif",
   },
 
@@ -1064,17 +1067,17 @@ const s = {
   reviewMsg: { fontSize: 13, fontWeight: 600, marginBottom: 12 },
   reviewSubmitBtn: {
     padding: '10px 24px',
-    background: 'linear-gradient(135deg, #0D9488 0%, #0D9488 100%)',
+    background: C,
     color: '#fff', borderRadius: 12, fontWeight: 700, fontSize: 13,
     border: 'none', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif",
-    boxShadow: '0 4px 14px rgba(13,148,136,.3)',
+    boxShadow: `0 4px 14px rgba(${R},.3)`,
     transition: 'opacity .2s ease',
   },
 
   cta: {
-    background: 'linear-gradient(135deg, #0D0D16 0%, #0B3832 50%, #0D9488 100%)',
+    background: `linear-gradient(135deg, #0D0D16 0%, ${pal.darkBg} 50%, ${C} 100%)`,
     borderRadius: 24, padding: '52px 40px', textAlign: 'center',
-    boxShadow: '0 10px 40px rgba(13,148,136,.35)', position: 'relative', overflow: 'hidden',
+    boxShadow: `0 10px 40px rgba(${R},.35)`, position: 'relative', overflow: 'hidden',
   },
   ctaGlow: {
     position: 'absolute', inset: 0,
@@ -1089,13 +1092,13 @@ const s = {
   ctaBtn: {
     display: 'inline-flex', alignItems: 'center', gap: 8,
     padding: '14px 38px',
-    background: 'linear-gradient(135deg, #0D9488 0%, #0D9488 100%)',
+    background: C,
     color: '#fff', borderRadius: 14, fontWeight: 700, fontSize: 16,
-    textDecoration: 'none', boxShadow: '0 6px 20px rgba(13,148,136,.45)',
+    textDecoration: 'none', boxShadow: `0 6px 20px rgba(${R},.45)`,
     position: 'relative', zIndex: 1,
     fontFamily: "'DM Sans', sans-serif",
   },
-};
+}; }
 
 const lb = {
   overlay: {

@@ -4,7 +4,7 @@ const DAY_JS   = ['sunday','monday','tuesday','wednesday','thursday','friday','s
 const CAL_HEADS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 const MONTH_FMT = { month: 'long', year: 'numeric' };
 
-export default function MiniCalendar({ value, onChange, operatingHours, minDate, selectedDates, onToggle }) {
+export default function MiniCalendar({ value, onChange, operatingHours, minDate, selectedDates, onToggle, accent = '#0D9488' }) {
   const multiMode = Array.isArray(selectedDates);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -83,11 +83,15 @@ export default function MiniCalendar({ value, onChange, operatingHours, minDate,
             else onChange(dateStr);
           };
 
+          const hex = accent.replace('#','');
+          const r = parseInt(hex.slice(0,2),16), g = parseInt(hex.slice(2,4),16), b = parseInt(hex.slice(4,6),16);
+          const rgb = `${r},${g},${b}`;
+
           let st = { ...c.cell };
-          if      (isSel)     st = { ...st, ...c.cellSel };
+          if      (isSel)     st = { ...st, background: `linear-gradient(135deg, ${accent} 0%, ${accent} 100%)`, borderColor: 'transparent', boxShadow: `0 3px 10px rgba(${rgb},.4)`, transform: 'scale(1.04)' };
           else if (disabled)  st = { ...st, ...c.cellDis };
-          else if (isToday)   st = { ...st, ...c.cellToday };
-          else                st = { ...st, ...c.cellAvail };
+          else if (isToday)   st = { ...st, background: `rgba(${rgb},.08)`, borderColor: accent, boxShadow: `0 0 0 2px rgba(${rgb},.15)` };
+          else                st = { ...st, background: `rgba(${rgb},.08)`, borderColor: `rgba(${rgb},.18)` };
 
           const slotNumber = multiMode && selIdx !== -1 ? selIdx + 1 : null;
 
@@ -100,7 +104,7 @@ export default function MiniCalendar({ value, onChange, operatingHours, minDate,
               {isClosed && !isPast && <span style={c.closedDot} />}
               {isSel && !multiMode && <span style={c.check}>✓</span>}
               {isSel && multiMode && <span style={c.check}>{slotNumber}</span>}
-              {isToday && !isSel && <span style={c.todayDot} />}
+              {isToday && !isSel && <span style={{ ...c.todayDot, background: accent }} />}
             </button>
           );
         })}
@@ -118,13 +122,10 @@ const c = {
   weekHead:   { textAlign: 'center', fontSize: 9, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.06em', padding: '2px 0' },
   grid:       { display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 3 },
   cell:       { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 34, borderRadius: 8, border: '1.5px solid transparent', cursor: 'pointer', transition: 'all .12s ease', position: 'relative', gap: 1 },
-  cellAvail:  { background: 'rgba(13,148,136,.08)', borderColor: 'rgba(13,148,136,.18)' },
-  cellSel:    { background: 'linear-gradient(135deg, #0D9488 0%, #0D9488 100%)', borderColor: 'transparent', boxShadow: '0 3px 10px rgba(13,148,136,.4)', transform: 'scale(1.04)' },
   cellDis:    { background: 'var(--surface)', borderColor: 'transparent', cursor: 'not-allowed', opacity: 0.35 },
-  cellToday:  { background: 'rgba(13,148,136,.08)', borderColor: '#0D9488', boxShadow: '0 0 0 2px rgba(13,148,136,.15)' },
   outsideCell:{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 34, fontSize: 11, color: 'var(--text-light)', opacity: 0.25 },
   dayNum:     { fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, lineHeight: 1 },
   closedDot:  { width: 3, height: 3, borderRadius: '50%', background: '#DC2626', flexShrink: 0 },
   check:      { fontSize: 8, color: 'rgba(255,255,255,.9)', fontWeight: 700 },
-  todayDot:   { width: 3, height: 3, borderRadius: '50%', background: '#0D9488', flexShrink: 0 },
+  todayDot:   { width: 3, height: 3, borderRadius: '50%', flexShrink: 0 },
 };
