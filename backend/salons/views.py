@@ -297,6 +297,8 @@ class AvailableStaffView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
+        from staff.models import StaffMember as SM
+        from staff.serializers import StaffMemberPublicSerializer
         salon = get_object_or_404(Salon, pk=pk)
         if request.user.role == 'salon_owner' and salon.owner_id != request.user.id:
             return Response({'detail': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
@@ -310,9 +312,9 @@ class AvailableStaffView(APIView):
             return Response({'detail': 'Invalid date format, use YYYY-MM-DD'}, status=status.HTTP_400_BAD_REQUEST)
 
         day_name = slot_date.strftime('%A').lower()
-        all_staff = salon.staff.filter(is_active=True)
+        all_staff = SM.objects.filter(salon=salon, is_active=True)
         available = [m for m in all_staff if day_name in (m.working_days or [])]
-        return Response(SalonStaffSerializer(available, many=True).data)
+        return Response(StaffMemberPublicSerializer(available, many=True, context={'request': request}).data)
 
 
 class FavouriteSalonView(APIView):
@@ -539,9 +541,11 @@ class AvailableSlotsView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request, pk):
+        from staff.models import StaffMember
         salon = get_object_or_404(Salon, pk=pk, status='active', is_suspended=False)
-        date_str = request.query_params.get('date')
-        staff_id = request.query_params.get('staff_id')
+        date_str  = request.query_params.get('date')
+        staff_id  = request.query_params.get('staff_id')
+        new_duration = int(request.query_params.get('duration', 0))
 
         if not date_str:
             return Response({'detail': 'date parameter required'}, status=status.HTTP_400_BAD_REQUEST)
@@ -558,42 +562,83 @@ class AvailableSlotsView(APIView):
         if date_str in (calendar.blocked_dates or []):
             return Response({'slots': [], 'blocked': True})
 
-        duration = calendar.slot_duration_minutes
-        day_name = slot_date.strftime('%A').lower()
-        hours = salon.operating_hours.get(day_name, {})
-        open_time = hours.get('open', '09:00')
+        slot_dur = calendar.slot_duration_minutes
+        if new_duration <= 0:
+            new_duration = slot_dur
+
+        day_name   = slot_date.strftime('%A').lower()
+        hours      = salon.operating_hours.get(day_name, {})
+        open_time  = hours.get('open', '09:00')
         close_time = hours.get('close', '17:00')
 
-        open_dt = datetime.strptime(f"{date_str} {open_time}", '%Y-%m-%d %H:%M')
+        open_dt  = datetime.strptime(f"{date_str} {open_time}", '%Y-%m-%d %H:%M')
         close_dt = datetime.strptime(f"{date_str} {close_time}", '%Y-%m-%d %H:%M')
 
         taken_statuses = ['pending', 'confirmed', 'rescheduled', 'awaiting_client']
 
         if staff_id:
-            specific_staff = get_object_or_404(SalonStaff, pk=staff_id, salon=salon, is_active=True)
-            taken_datetimes = set(
+            # Duration-aware blocking for a specific professional
+            staff_bookings = (
                 Booking.objects.filter(
-                    staff_member=specific_staff,
+                    staff_member_id=staff_id,
                     requested_datetime__date=slot_date,
                     status__in=taken_statuses,
-                ).values_list('requested_datetime', flat=True)
+                ).prefetch_related('booking_services__salon_service')
             )
+            booking_intervals = []
+            for b in staff_bookings:
+                b_start = b.requested_datetime
+                b_dur = sum(
+                    bs.salon_service.effective_duration
+                    for bs in b.booking_services.all()
+                ) or slot_dur
+                booking_intervals.append((b_start, b_dur))
+
+            slots = []
+            current = open_dt
+            while current < close_dt:
+                aware = timezone.make_aware(current) if timezone.is_naive(current) else current
+                new_end = aware + timedelta(minutes=new_duration)
+                is_taken = False
+                for (b_start, b_dur) in booking_intervals:
+                    b_end = b_start + timedelta(minutes=b_dur)
+                    # Overlap: new booking window intersects existing booking window
+                    if aware < b_end and new_end > b_start:
+                        is_taken = True
+                        break
+                slots.append({'datetime': current.strftime('%Y-%m-%dT%H:%M'), 'available': not is_taken})
+                current += timedelta(minutes=slot_dur)
         else:
-            taken_datetimes = set(
+            # General salon availability — block slots occupied by any booking (duration-aware)
+            salon_bookings = (
                 Booking.objects.filter(
                     salon=salon,
                     requested_datetime__date=slot_date,
                     status__in=taken_statuses,
-                ).values_list('requested_datetime', flat=True)
+                ).prefetch_related('booking_services__salon_service')
             )
+            booking_intervals = []
+            for b in salon_bookings:
+                b_start = b.requested_datetime
+                b_dur = sum(
+                    bs.salon_service.effective_duration
+                    for bs in b.booking_services.all()
+                ) or slot_dur
+                booking_intervals.append((b_start, b_dur))
 
-        slots = []
-        current = open_dt
-        while current < close_dt:
-            aware = timezone.make_aware(current) if timezone.is_naive(current) else current
-            is_taken = any(abs((t - aware).total_seconds()) < 60 for t in taken_datetimes)
-            slots.append({'datetime': current.strftime('%Y-%m-%dT%H:%M'), 'available': not is_taken})
-            current += timedelta(minutes=duration)
+            slots = []
+            current = open_dt
+            while current < close_dt:
+                aware = timezone.make_aware(current) if timezone.is_naive(current) else current
+                new_end = aware + timedelta(minutes=new_duration)
+                is_taken = False
+                for (b_start, b_dur) in booking_intervals:
+                    b_end = b_start + timedelta(minutes=b_dur)
+                    if aware < b_end and new_end > b_start:
+                        is_taken = True
+                        break
+                slots.append({'datetime': current.strftime('%Y-%m-%dT%H:%M'), 'available': not is_taken})
+                current += timedelta(minutes=slot_dur)
 
         return Response({'slots': slots})
 

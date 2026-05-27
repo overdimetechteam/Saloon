@@ -9,7 +9,8 @@ import secrets
 
 from .models import Booking, BookingService, AlternativeSlot, Review, Promotion
 from .serializers import BookingSerializer, BookingCreateSerializer, ReviewSerializer, PromotionSerializer
-from salons.models import Salon, SalonStaff
+from salons.models import Salon
+from staff.models import StaffMember
 from services.models import SalonService
 from users.permissions import IsSystemAdmin, IsSalonOwner, IsClient
 from users.utils import send_notification
@@ -58,7 +59,7 @@ class BookingListCreateView(APIView):
         staff_member = None
         staff_member_id = data.get('staff_member_id')
         if staff_member_id:
-            staff_member = get_object_or_404(SalonStaff, pk=staff_member_id, salon=salon, is_active=True)
+            staff_member = get_object_or_404(StaffMember, pk=staff_member_id, salon=salon, is_active=True)
 
         if _is_slot_taken(salon, requested_dt, staff_member=staff_member):
             return Response({'detail': 'Slot already taken'}, status=status.HTTP_409_CONFLICT)
@@ -330,7 +331,7 @@ class BookingAssignStaffView(APIView):
         if not staff_id:
             booking.staff_member = None
         else:
-            staff = get_object_or_404(SalonStaff, pk=staff_id, salon=booking.salon, is_active=True)
+            staff = get_object_or_404(StaffMember, pk=staff_id, salon=booking.salon, is_active=True)
             booking.staff_member = staff
         booking.save()
         return Response(BookingSerializer(booking).data)

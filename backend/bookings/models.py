@@ -23,7 +23,7 @@ class Booking(models.Model):
     )
     salon = models.ForeignKey(Salon, on_delete=models.CASCADE, related_name='bookings')
     staff_member = models.ForeignKey(
-        'salons.SalonStaff',
+        'staff.StaffMember',
         null=True, blank=True,
         on_delete=models.SET_NULL,
         related_name='bookings',

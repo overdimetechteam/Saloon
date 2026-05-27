@@ -77,12 +77,16 @@ export default function BookSalon() {
       }
     }
     setSlotsLoading(true); setSlot('');
-    const staffParam = staffId !== null ? `&staff_id=${staffId}` : '';
-    api.get(`/salons/${salonId}/calendar/available-slots/?date=${date}${staffParam}`)
+    const totalDuration = services
+      .filter(s => selected.includes(s.id))
+      .reduce((sum, s) => sum + (s.effective_duration || 0), 0);
+    const staffParam    = staffId !== null ? `&staff_id=${staffId}` : '';
+    const durationParam = totalDuration > 0 ? `&duration=${totalDuration}` : '';
+    api.get(`/salons/${salonId}/calendar/available-slots/?date=${date}${staffParam}${durationParam}`)
       .then(r => setSlots(r.data.slots || []))
       .catch(() => setSlots([]))
       .finally(() => setSlotsLoading(false));
-  }, [date, salonId, staffId]);
+  }, [date, salonId, staffId, selected]);
 
   useEffect(() => { setPromoResult(null); }, [selected]);
 
