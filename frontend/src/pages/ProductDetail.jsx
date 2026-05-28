@@ -12,10 +12,11 @@ const CAT_COLORS = {
 };
 
 const STATUS_META = {
-  active:        { label: 'In Stock',     color: '#0D9488', bg: 'rgba(13,148,136,.12)' },
-  low_stock:     { label: 'Low Stock',    color: '#D4AF37', bg: 'rgba(212,175,55,.12)'  },
-  out_of_stock:  { label: 'Out of Stock', color: '#DC2626', bg: 'rgba(220,38,38,.12)'  },
-  expiring_soon: { label: 'Expiring Soon',color: '#0D9488', bg: 'rgba(13,148,136,.12)' },
+  active:        { label: 'In Stock',      color: '#0D9488', bg: 'rgba(13,148,136,.12)' },
+  low_stock:     { label: 'Low Stock',     color: '#D4AF37', bg: 'rgba(212,175,55,.12)'  },
+  out_of_stock:  { label: 'Out of Stock',  color: '#DC2626', bg: 'rgba(220,38,38,.12)'  },
+  expiring_soon: { label: 'Expiring Soon', color: '#F97316', bg: 'rgba(249,115,22,.12)' },
+  expired:       { label: 'Expired',       color: '#DC2626', bg: 'rgba(220,38,38,.12)'  },
 };
 
 export default function ProductDetail() {
@@ -43,7 +44,7 @@ export default function ProductDetail() {
   }, [id, productId]);
 
   const handleAddToCart = () => {
-    if (!product || product.status === 'out_of_stock') return;
+    if (!product || product.status === 'out_of_stock' || product.status === 'expired') return;
     addItem(
       {
         id: product.id,
@@ -85,6 +86,8 @@ export default function ProductDetail() {
   const meta = STATUS_META[product.status] || STATUS_META.active;
   const images = product.images || [];
   const isOutOfStock = product.status === 'out_of_stock';
+  const isExpired = product.status === 'expired';
+  const isUnavailable = isOutOfStock || isExpired;
 
   return (
     <div style={s.page}>
@@ -177,6 +180,7 @@ export default function ProductDetail() {
           )}
 
           {/* Quantity */}
+          {!isExpired && (
           <div style={s.qtyBlock}>
             <label style={s.variantLabel}>Quantity</label>
             <div style={s.qtyRow}>
@@ -189,21 +193,29 @@ export default function ProductDetail() {
               <span style={s.stockNote}>{product.current_stock} available</span>
             </div>
           </div>
+          )}
+
+          {/* Expired banner */}
+          {isExpired && (
+            <div style={{ padding: '12px 16px', borderRadius: 10, background: 'rgba(220,38,38,.08)', border: '1px solid rgba(220,38,38,.25)', color: '#DC2626', fontSize: 13, fontWeight: 600, marginBottom: 16 }}>
+              ⚠ This product is no longer available — its expiry date has passed.
+            </div>
+          )}
 
           {/* Add to cart */}
           <div style={s.ctaRow}>
             <button
               style={{
                 ...s.addBtn,
-                background: isOutOfStock ? '#D1D5DB' : (added ? '#0D9488' : `linear-gradient(135deg, ${color}, #D4AF37)`),
-                cursor: isOutOfStock ? 'not-allowed' : 'pointer',
+                background: isUnavailable ? '#D1D5DB' : (added ? '#0D9488' : `linear-gradient(135deg, ${color}, #D4AF37)`),
+                cursor: isUnavailable ? 'not-allowed' : 'pointer',
               }}
-              disabled={isOutOfStock}
+              disabled={isUnavailable}
               onClick={handleAddToCart}
             >
-              {isOutOfStock ? 'Out of Stock' : added ? '✓ Added to Cart' : '🛒 Add to Cart'}
+              {isExpired ? 'No Longer Available' : isOutOfStock ? 'Out of Stock' : added ? '✓ Added to Cart' : '🛒 Add to Cart'}
             </button>
-            {!isOutOfStock && (
+            {!isUnavailable && (
               <button
                 style={s.cartViewBtn}
                 onClick={() => { setCartOpen(true); }}

@@ -39,6 +39,8 @@ class Product(models.Model):
 
     @property
     def status(self):
+        if self.expiry_date and self.expiry_date < date.today():
+            return 'expired'
         if self.current_stock == 0:
             return 'out_of_stock'
         if self.current_stock <= self.reorder_level:

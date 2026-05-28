@@ -4,6 +4,7 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from datetime import timedelta
 import logging
 import secrets
 
@@ -18,6 +19,27 @@ from users.utils import send_notification
 logger = logging.getLogger(__name__)
 
 TAKEN_STATUSES = ['pending', 'confirmed', 'rescheduled', 'awaiting_client']
+
+
+def _has_schedule_conflict(staff_member, new_start, new_duration_minutes, exclude_booking=None):
+    """Return True if the staff member has any booking that overlaps [new_start, new_start+new_duration)."""
+    if not staff_member:
+        return False
+    new_end = new_start + timedelta(minutes=new_duration_minutes)
+    qs = (
+        Booking.objects
+        .filter(staff_member=staff_member, status__in=TAKEN_STATUSES)
+        .prefetch_related('booking_services__salon_service')
+    )
+    if exclude_booking:
+        qs = qs.exclude(pk=exclude_booking.pk)
+    for b in qs:
+        b_start = b.requested_datetime
+        b_dur = sum(bs.salon_service.effective_duration for bs in b.booking_services.all()) or 30
+        b_end = b_start + timedelta(minutes=b_dur)
+        if b_start < new_end and b_end > new_start:
+            return True
+    return False
 
 
 def _is_slot_taken(salon, requested_dt, exclude_booking=None, staff_member=None):
@@ -61,7 +83,14 @@ class BookingListCreateView(APIView):
         if staff_member_id:
             staff_member = get_object_or_404(StaffMember, pk=staff_member_id, salon=salon, is_active=True)
 
-        if _is_slot_taken(salon, requested_dt, staff_member=staff_member):
+        # Conflict check: calculate new booking's total duration, then check overlap
+        service_ids = data.get('salon_service_ids', [])
+        service_objs_for_dur = SalonService.objects.filter(id__in=service_ids)
+        new_duration = sum(ss.effective_duration for ss in service_objs_for_dur) or 30
+
+        if staff_member and _has_schedule_conflict(staff_member, requested_dt, new_duration):
+            return Response({'detail': 'This professional is already booked during that time.'}, status=status.HTTP_409_CONFLICT)
+        elif not staff_member and _is_slot_taken(salon, requested_dt):
             return Response({'detail': 'Slot already taken'}, status=status.HTTP_409_CONFLICT)
 
         promo = None

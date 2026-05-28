@@ -1,5 +1,5 @@
 ﻿import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
 import { useBreakpoint } from '../../hooks/useMobile';
 
@@ -21,6 +21,7 @@ const CAT_ICONS = {
 
 export default function Cosmetics() {
   const { isMobile, isTablet } = useBreakpoint();
+  const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [loading,  setLoading]  = useState(true);
   const [activeCat, setActiveCat] = useState('All');
@@ -135,23 +136,44 @@ export default function Cosmetics() {
                 <div style={{ ...s.grid, gridTemplateColumns: isMobile ? '1fr 1fr' : isTablet ? 'repeat(3, 1fr)' : 'repeat(auto-fill, minmax(200px, 1fr))' }}>
                   {salonProducts.map(p => {
                     const color = CAT_COLORS[p.category] || '#C96B51';
+                    const isExpired = p.status === 'expired';
+                    const stockLabel = isExpired
+                      ? '● Expired'
+                      : p.current_stock > 5 ? '● In Stock'
+                      : p.current_stock > 0 ? `● Only ${p.current_stock} left`
+                      : '● Out of Stock';
+                    const stockColor = isExpired ? '#9CA3AF'
+                      : p.current_stock > 5 ? '#0D9488'
+                      : p.current_stock > 0 ? '#D4AF37'
+                      : '#DC2626';
                     return (
-                      <div key={p.id} style={s.card} className="lift-sm fade-up">
-                        <div style={{ ...s.cardTop, background: `${color}18` }}>
+                      <div
+                        key={p.id}
+                        style={{ ...s.card, opacity: isExpired ? 0.55 : 1, cursor: isExpired ? 'default' : 'pointer' }}
+                        className={isExpired ? '' : 'lift-sm fade-up'}
+                        onClick={() => !isExpired && navigate(`/salons/${p.salon}/cosmetics/${p.id}`)}
+                      >
+                        <div style={{ ...s.cardTop, background: isExpired ? 'rgba(156,163,175,.12)' : `${color}18` }}>
                           <span style={{ fontSize: 28 }}>{CAT_ICONS[p.category] || '🛍'}</span>
-                          <span style={{ ...s.catTag, color, background: `${color}18`, border: `1px solid ${color}30` }}>
-                            {p.category}
-                          </span>
+                          {isExpired ? (
+                            <span style={{ fontSize: 10, fontWeight: 700, padding: '3px 9px', borderRadius: 20, letterSpacing: '0.05em', color: '#9CA3AF', background: 'rgba(156,163,175,.15)', border: '1px solid rgba(156,163,175,.3)' }}>
+                              Expired
+                            </span>
+                          ) : (
+                            <span style={{ ...s.catTag, color, background: `${color}18`, border: `1px solid ${color}30` }}>
+                              {p.category}
+                            </span>
+                          )}
                         </div>
                         <div style={s.cardBody}>
                           <div style={s.productName}>{p.name}</div>
                           {p.brand && <div style={s.brandName}>{p.brand}</div>}
                           <div style={s.priceRow}>
-                            <span style={{ ...s.price, color }}>LKR {Number(p.selling_price).toLocaleString()}</span>
+                            <span style={{ ...s.price, color: isExpired ? '#9CA3AF' : color }}>LKR {Number(p.selling_price).toLocaleString()}</span>
                             <span style={s.unit}>/ {p.unit_of_measure}</span>
                           </div>
-                          <div style={{ ...s.stockRow, color: p.current_stock > 5 ? '#0D9488' : p.current_stock > 0 ? '#D4AF37' : '#DC2626' }}>
-                            {p.current_stock > 5 ? '● In Stock' : p.current_stock > 0 ? `● Only ${p.current_stock} left` : '● Out of Stock'}
+                          <div style={{ ...s.stockRow, color: stockColor }}>
+                            {stockLabel}
                           </div>
                         </div>
                       </div>

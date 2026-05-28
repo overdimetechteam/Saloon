@@ -189,7 +189,7 @@ const s = {
   navSearch: {
     position: 'absolute', left: '50%', transform: 'translateX(-50%)',
     display: 'flex', alignItems: 'center', gap: 10,
-    width: 360, zIndex: 0,
+    width: 360, zIndex: 2,
     background: 'var(--surface2)', border: '1px solid var(--border)',
     borderRadius: 24, padding: '8px 16px',
     transition: 'border-color .2s ease, box-shadow .2s ease',

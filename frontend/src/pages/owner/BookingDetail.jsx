@@ -127,7 +127,7 @@ export default function OwnerBookingDetail() {
     setBooking(r.data);
     setAssignId(r.data.staff_member ?? '');
     if (r.data.salon) {
-      api.get(`/salons/${r.data.salon}/staff-members/`).then(sr => setStaff(sr.data)).catch(() => {});
+      api.get(`/salons/${r.data.salon}/staff-members/`).then(sr => setStaff(sr.data.filter(m => m.is_active))).catch(() => {});
       api.get(`/salons/${r.data.salon}/`).then(sr => setSalon(sr.data)).catch(() => {});
     }
   }).catch(() => {});

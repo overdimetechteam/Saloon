@@ -121,7 +121,8 @@ export default function BookSalon() {
     if (!promoCode.trim()) return;
     setPromoLoading(true); setPromoResult(null);
     try {
-      const r = await api.post('/promotions/validate/', { code: promoCode.trim(), salon_id: Number(salonId) });
+      const currentTotal = services.filter(ss => selected.includes(ss.id)).reduce((sum, ss) => sum + Number(ss.effective_price), 0);
+      const r = await api.post('/promotions/validate/', { code: promoCode.trim(), salon_id: Number(salonId), booking_total: currentTotal });
       setPromoResult(r.data);
     } catch (err) {
       setPromoResult({ valid: false, message: err.response?.data?.message || err.response?.data?.detail || 'Invalid promo code' });
@@ -191,8 +192,14 @@ export default function BookSalon() {
 
   const displayServices = homeVisit ? services.filter(ss => ss.home_visit_available) : services;
   const selectedDayName = date ? new Date(date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase() : null;
+  const selectedBaseServiceIds = services.filter(ss => selected.includes(ss.id)).map(ss => ss.service);
   const displayStaff = (homeVisit ? staffList.filter(m => m.home_visit_available) : staffList)
-    .filter(m => !selectedDayName || !m.working_days?.length || m.working_days.includes(selectedDayName));
+    .filter(m => !selectedDayName || !m.working_days?.length || m.working_days.includes(selectedDayName))
+    .filter(m => {
+      if (selectedBaseServiceIds.length === 0) return true;
+      if (!m.specialty_ids?.length) return true;
+      return selectedBaseServiceIds.some(svcId => m.specialty_ids.includes(svcId));
+    });
   const selectedServices = services.filter(ss => selected.includes(ss.id));
   const total = selectedServices.reduce((sum, ss) => sum + Number(ss.effective_price), 0);
   const discount = promoResult?.valid ? Number(promoResult.discount_amount) : 0;

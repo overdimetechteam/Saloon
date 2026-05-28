@@ -1,6 +1,7 @@
 ﻿import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 
 const CAT_COLORS = {
   'Hair Care': '#C96B51',
@@ -11,11 +12,20 @@ const CAT_COLORS = {
 
 export default function CartDrawer() {
   const { items, cartOpen, setCartOpen, removeItem, updateQty, totalItems, subtotal, clearCart } = useCart();
+  const { profile } = useAuth();
   const navigate = useNavigate();
 
   if (!cartOpen) return null;
 
+  const hasExpired = items.some(i => i.status === 'expired');
+
   const handleCheckout = () => {
+    if (!profile) {
+      setCartOpen(false);
+      navigate('/login?next=/user/checkout');
+      return;
+    }
+    if (hasExpired) return;
     setCartOpen(false);
     navigate('/user/checkout');
   };
@@ -46,31 +56,35 @@ export default function CartDrawer() {
             <div style={s.itemsList}>
               {items.map(item => {
                 const color = CAT_COLORS[item.category] || '#C96B51';
+                const itemExpired = item.status === 'expired';
                 return (
-                  <div key={item._key} style={s.item}>
+                  <div key={item._key} style={{ ...s.item, opacity: itemExpired ? 0.6 : 1 }}>
                     {item.first_image_url ? (
                       <img src={item.first_image_url} alt={item.name} style={s.itemImg} />
                     ) : (
-                      <div style={{ ...s.itemImgPlaceholder, background: `${color}22` }}>
+                      <div style={{ ...s.itemImgPlaceholder, background: itemExpired ? 'rgba(156,163,175,.15)' : `${color}22` }}>
                         <span style={{ fontSize: 22 }}>🛍</span>
                       </div>
                     )}
                     <div style={s.itemInfo}>
                       <div style={s.itemName}>{item.name}</div>
                       {item.brand && <div style={s.itemBrand}>{item.brand}</div>}
+                      {itemExpired && <div style={{ fontSize: 11, fontWeight: 700, color: '#DC2626', marginBottom: 4 }}>⚠ Expired — remove to proceed</div>}
                       {item.variantNote && <div style={s.itemVariant}>Variant: {item.variantNote}</div>}
-                      <div style={s.itemPrice}>LKR {(Number(item.selling_price) * item.quantity).toLocaleString()}</div>
+                      <div style={{ ...s.itemPrice, color: itemExpired ? '#9CA3AF' : '#C96B51' }}>LKR {(Number(item.selling_price) * item.quantity).toLocaleString()}</div>
                       <div style={s.itemMeta}>LKR {Number(item.selling_price).toLocaleString()} / {item.unit_of_measure}</div>
                     </div>
                     <div style={s.itemRight}>
-                      <div style={s.qtyRow}>
-                        <button style={s.qtyBtn} onClick={() => updateQty(item._key, item.quantity - 1)}>−</button>
-                        <span style={s.qty}>{item.quantity}</span>
-                        <button
-                          style={{ ...s.qtyBtn, opacity: item.quantity >= item.current_stock ? 0.4 : 1 }}
-                          onClick={() => item.quantity < item.current_stock && updateQty(item._key, item.quantity + 1)}
-                        >+</button>
-                      </div>
+                      {!itemExpired && (
+                        <div style={s.qtyRow}>
+                          <button style={s.qtyBtn} onClick={() => updateQty(item._key, item.quantity - 1)}>−</button>
+                          <span style={s.qty}>{item.quantity}</span>
+                          <button
+                            style={{ ...s.qtyBtn, opacity: item.quantity >= item.current_stock ? 0.4 : 1 }}
+                            onClick={() => item.quantity < item.current_stock && updateQty(item._key, item.quantity + 1)}
+                          >+</button>
+                        </div>
+                      )}
                       <button style={s.removeBtn} onClick={() => removeItem(item._key)}>Remove</button>
                     </div>
                   </div>
@@ -80,13 +94,27 @@ export default function CartDrawer() {
 
             {/* Footer */}
             <div style={s.footer}>
+              {hasExpired && (
+                <div style={{ padding: '10px 14px', borderRadius: 8, background: 'rgba(220,38,38,.08)', border: '1px solid rgba(220,38,38,.2)', color: '#DC2626', fontSize: 12, fontWeight: 600, marginBottom: 12 }}>
+                  ⚠ Remove expired items before checking out.
+                </div>
+              )}
+              {!profile && (
+                <div style={{ padding: '10px 14px', borderRadius: 8, background: 'rgba(201,107,81,.08)', border: '1px solid rgba(201,107,81,.2)', color: '#C96B51', fontSize: 12, fontWeight: 600, marginBottom: 12 }}>
+                  To complete your purchase, please sign in.
+                </div>
+              )}
               <div style={s.subtotalRow}>
                 <span style={s.subtotalLabel}>Subtotal</span>
                 <span style={s.subtotalValue}>LKR {subtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
               </div>
               <div style={s.taxNote}>Tax & delivery calculated at checkout</div>
-              <button style={s.checkoutBtn} onClick={handleCheckout}>
-                Proceed to Checkout →
+              <button
+                style={{ ...s.checkoutBtn, opacity: hasExpired ? 0.5 : 1, cursor: hasExpired ? 'not-allowed' : 'pointer' }}
+                onClick={handleCheckout}
+                disabled={hasExpired}
+              >
+                {!profile ? 'Sign in to Checkout →' : 'Proceed to Checkout →'}
               </button>
               <button style={s.clearBtn} onClick={clearCart}>Clear cart</button>
             </div>

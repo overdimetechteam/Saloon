@@ -9,6 +9,9 @@ User = get_user_model()
 class StaffMemberPublicSerializer(serializers.ModelSerializer):
     """Read-only public view (used on salon detail page)."""
     photo_url = serializers.SerializerMethodField()
+    specialty_ids = serializers.PrimaryKeyRelatedField(
+        source='specialties', many=True, read_only=True
+    )
 
     def get_photo_url(self, obj):
         request = self.context.get('request')
@@ -18,7 +21,7 @@ class StaffMemberPublicSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = StaffMember
-        fields = ['id', 'full_name', 'role', 'bio', 'photo_url', 'working_days', 'home_visit_available']
+        fields = ['id', 'full_name', 'role', 'bio', 'photo_url', 'working_days', 'home_visit_available', 'specialty_ids']
 
 
 class StaffMemberOwnerSerializer(serializers.ModelSerializer):

@@ -1,11 +1,12 @@
 ﻿import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useBreakpoint } from '../hooks/useMobile';
 
 export default function RegisterClient() {
   const { register } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { isMobile, isTablet } = useBreakpoint();
   const [form, setForm]     = useState({ email: '', full_name: '', phone: '', password: '' });
   const [showPw, setShowPw] = useState(false);
@@ -17,7 +18,8 @@ export default function RegisterClient() {
     e.preventDefault(); setError(''); setLoading(true);
     try {
       await register({ ...form, role: 'client' });
-      navigate('/user/dashboard');
+      setForm({ email: '', full_name: '', phone: '', password: '' });
+      navigate(searchParams.get('next') || '/user/dashboard');
     } catch (err) {
       const data = err.response?.data;
       setError(typeof data === 'string' ? data : Object.values(data || {}).flat().join(' '));

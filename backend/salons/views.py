@@ -598,47 +598,110 @@ class AvailableSlotsView(APIView):
             current = open_dt
             while current < close_dt:
                 aware = timezone.make_aware(current) if timezone.is_naive(current) else current
-                new_end = aware + timedelta(minutes=new_duration)
                 is_taken = False
                 for (b_start, b_dur) in booking_intervals:
                     b_end = b_start + timedelta(minutes=b_dur)
-                    # Overlap: new booking window intersects existing booking window
-                    if aware < b_end and new_end > b_start:
+                    # Block slots from booking start through its end (inclusive),
+                    # so the slot at the exact finish time is also unavailable.
+                    if b_start <= aware <= b_end:
                         is_taken = True
                         break
                 slots.append({'datetime': current.strftime('%Y-%m-%dT%H:%M'), 'available': not is_taken})
                 current += timedelta(minutes=slot_dur)
         else:
-            # General salon availability — block slots occupied by any booking (duration-aware)
-            salon_bookings = (
-                Booking.objects.filter(
-                    salon=salon,
-                    requested_datetime__date=slot_date,
-                    status__in=taken_statuses,
-                ).prefetch_related('booking_services__salon_service')
+            # General "Any Available" — a slot is free if at least one active staff member
+            # has no conflicting booking for the full new_duration window.
+            # Falls back to single-capacity logic if the salon has no staff configured.
+            active_staff = list(
+                StaffMember.objects.filter(salon=salon, is_active=True)
             )
-            booking_intervals = []
-            for b in salon_bookings:
-                b_start = b.requested_datetime
-                b_dur = sum(
-                    bs.salon_service.effective_duration
-                    for bs in b.booking_services.all()
-                ) or slot_dur
-                booking_intervals.append((b_start, b_dur))
 
-            slots = []
-            current = open_dt
-            while current < close_dt:
-                aware = timezone.make_aware(current) if timezone.is_naive(current) else current
-                new_end = aware + timedelta(minutes=new_duration)
-                is_taken = False
-                for (b_start, b_dur) in booking_intervals:
-                    b_end = b_start + timedelta(minutes=b_dur)
-                    if aware < b_end and new_end > b_start:
-                        is_taken = True
-                        break
-                slots.append({'datetime': current.strftime('%Y-%m-%dT%H:%M'), 'available': not is_taken})
-                current += timedelta(minutes=slot_dur)
+            if not active_staff:
+                # No staff configured — treat salon as single-capacity.
+                salon_bookings = (
+                    Booking.objects.filter(
+                        salon=salon,
+                        requested_datetime__date=slot_date,
+                        status__in=taken_statuses,
+                    ).prefetch_related('booking_services__salon_service')
+                )
+                booking_intervals = []
+                for b in salon_bookings:
+                    b_start = b.requested_datetime
+                    b_dur = sum(
+                        bs.salon_service.effective_duration
+                        for bs in b.booking_services.all()
+                    ) or slot_dur
+                    booking_intervals.append((b_start, b_dur))
+
+                slots = []
+                current = open_dt
+                while current < close_dt:
+                    aware = timezone.make_aware(current) if timezone.is_naive(current) else current
+                    is_taken = any(
+                        b_start <= aware <= b_start + timedelta(minutes=b_dur)
+                        for (b_start, b_dur) in booking_intervals
+                    )
+                    slots.append({'datetime': current.strftime('%Y-%m-%dT%H:%M'), 'available': not is_taken})
+                    current += timedelta(minutes=slot_dur)
+            else:
+                # Build per-staff booking intervals for this date (assigned bookings).
+                assigned_bookings = (
+                    Booking.objects.filter(
+                        salon=salon,
+                        staff_member__in=active_staff,
+                        requested_datetime__date=slot_date,
+                        status__in=taken_statuses,
+                    ).prefetch_related('booking_services__salon_service')
+                )
+                staff_intervals = defaultdict(list)
+                for b in assigned_bookings:
+                    b_start = b.requested_datetime
+                    b_dur = sum(
+                        bs.salon_service.effective_duration
+                        for bs in b.booking_services.all()
+                    ) or slot_dur
+                    staff_intervals[b.staff_member_id].append((b_start, b_dur))
+
+                # Also collect unassigned bookings — each one consumes one staff capacity unit.
+                unassigned_bookings = (
+                    Booking.objects.filter(
+                        salon=salon,
+                        staff_member__isnull=True,
+                        requested_datetime__date=slot_date,
+                        status__in=taken_statuses,
+                    ).prefetch_related('booking_services__salon_service')
+                )
+                unassigned_intervals = []
+                for b in unassigned_bookings:
+                    b_start = b.requested_datetime
+                    b_dur = sum(
+                        bs.salon_service.effective_duration
+                        for bs in b.booking_services.all()
+                    ) or slot_dur
+                    unassigned_intervals.append((b_start, b_dur))
+
+                total_capacity = len(active_staff)
+                slots = []
+                current = open_dt
+                while current < close_dt:
+                    aware = timezone.make_aware(current) if timezone.is_naive(current) else current
+                    # Count how many assigned staff are busy at this slot.
+                    busy_count = sum(
+                        1 for sm in active_staff
+                        if any(
+                            b_start <= aware <= b_start + timedelta(minutes=b_dur)
+                            for (b_start, b_dur) in staff_intervals.get(sm.id, [])
+                        )
+                    )
+                    # Count unassigned bookings covering this slot (each consumes one capacity unit).
+                    unassigned_count = sum(
+                        1 for (b_start, b_dur) in unassigned_intervals
+                        if b_start <= aware <= b_start + timedelta(minutes=b_dur)
+                    )
+                    any_free = (busy_count + unassigned_count) < total_capacity
+                    slots.append({'datetime': current.strftime('%Y-%m-%dT%H:%M'), 'available': any_free})
+                    current += timedelta(minutes=slot_dur)
 
         return Response({'slots': slots})
 

@@ -78,10 +78,18 @@ export default function StaffManager() {
     e.preventDefault(); setResetting(true); setResetMsg('');
     try {
       await api.patch(`/salons/${salon.id}/staff-members/${resetId}/reset-credentials/`, resetForm);
-      setResetMsg('Credentials updated successfully.');
+      setResetMsg('success: Credentials updated successfully.');
       setResetForm(blankReset);
     } catch (err) {
-      setResetMsg(err.response?.data?.detail || 'Failed to update credentials.');
+      const data = err.response?.data;
+      if (data && typeof data === 'object') {
+        const msgs = Object.entries(data)
+          .map(([k, v]) => `${k === 'non_field_errors' ? '' : k + ': '}${Array.isArray(v) ? v[0] : v}`)
+          .join(' | ');
+        setResetMsg(msgs);
+      } else {
+        setResetMsg(data?.detail || 'Failed to update credentials.');
+      }
     } finally { setResetting(false); }
   };
 
@@ -156,7 +164,11 @@ export default function StaffManager() {
               <span style={s.modalTitle}>Reset Credentials</span>
               <button style={s.closeBtn} onClick={() => { setResetId(null); setResetMsg(''); }}>✕</button>
             </div>
-            {resetMsg && <div style={resetMsg.includes('success') ? s.successMsg : s.errMsg}>{resetMsg}</div>}
+            {resetMsg && (
+              <div style={resetMsg.startsWith('success:') ? s.successMsg : s.errMsg}>
+                {resetMsg.startsWith('success:') ? resetMsg.slice(9).trim() : resetMsg}
+              </div>
+            )}
             <form onSubmit={handleReset} style={s.form}>
               <Field label="New Login Email (optional)">
                 <input style={s.input} type="email" value={resetForm.login_email} onChange={e => setResetForm({ ...resetForm, login_email: e.target.value })} />
