@@ -12,6 +12,7 @@ class StaffMemberPublicSerializer(serializers.ModelSerializer):
     specialty_ids = serializers.PrimaryKeyRelatedField(
         source='specialties', many=True, read_only=True
     )
+    specialty_categories = serializers.SerializerMethodField()
 
     def get_photo_url(self, obj):
         request = self.context.get('request')
@@ -19,9 +20,12 @@ class StaffMemberPublicSerializer(serializers.ModelSerializer):
             return request.build_absolute_uri(obj.photo.url) if request else obj.photo.url
         return None
 
+    def get_specialty_categories(self, obj):
+        return list({s.category for s in obj.specialties.all()})
+
     class Meta:
         model = StaffMember
-        fields = ['id', 'full_name', 'role', 'bio', 'photo_url', 'working_days', 'home_visit_available', 'specialty_ids']
+        fields = ['id', 'full_name', 'role', 'bio', 'photo_url', 'working_days', 'home_visit_available', 'specialty_ids', 'specialty_categories']
 
 
 class StaffMemberOwnerSerializer(serializers.ModelSerializer):

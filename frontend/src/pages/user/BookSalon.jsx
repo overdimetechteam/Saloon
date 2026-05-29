@@ -192,13 +192,13 @@ export default function BookSalon() {
 
   const displayServices = homeVisit ? services.filter(ss => ss.home_visit_available) : services;
   const selectedDayName = date ? new Date(date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase() : null;
-  const selectedBaseServiceIds = services.filter(ss => selected.includes(ss.id)).map(ss => ss.service);
+  const selectedCategories = [...new Set(services.filter(ss => selected.includes(ss.id)).map(ss => ss.service_category).filter(Boolean))];
   const displayStaff = (homeVisit ? staffList.filter(m => m.home_visit_available) : staffList)
     .filter(m => !selectedDayName || !m.working_days?.length || m.working_days.includes(selectedDayName))
     .filter(m => {
-      if (selectedBaseServiceIds.length === 0) return true;
-      if (!m.specialty_ids?.length) return true;
-      return selectedBaseServiceIds.some(svcId => m.specialty_ids.includes(svcId));
+      if (selectedCategories.length === 0) return true;
+      if (!m.specialty_categories?.length) return true;
+      return selectedCategories.some(cat => m.specialty_categories.includes(cat));
     });
   const selectedServices = services.filter(ss => selected.includes(ss.id));
   const total = selectedServices.reduce((sum, ss) => sum + Number(ss.effective_price), 0);
