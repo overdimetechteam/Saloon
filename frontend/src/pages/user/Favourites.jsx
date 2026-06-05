@@ -1,10 +1,11 @@
 ﻿import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
 
 const PALETTE = ['#0D9488','#14B8A8','#D4AF37','#0B7A70','#D4AF37','#0D9488'];
 
 export default function UserFavourites() {
+  const navigate = useNavigate();
   const [salons, setSalons] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -46,7 +47,12 @@ export default function UserFavourites() {
         {salons.map((salon, i) => {
           const color = PALETTE[i % PALETTE.length];
           return (
-            <div key={salon.id} style={s.card} className={`lift-sm fade-up d${Math.min(i + 1, 5)}`}>
+            <div
+              key={salon.id}
+              style={{ ...s.card, cursor: 'pointer' }}
+              className={`lift-sm fade-up d${Math.min(i + 1, 5)}`}
+              onClick={() => navigate(`/salons/${salon.id}`)}
+            >
               <div style={{ ...s.cardBanner, background: `linear-gradient(135deg, ${color}22 0%, ${color}08 100%)` }}>
                 <div style={{ ...s.salonAvatar, background: `linear-gradient(135deg, ${color} 0%, ${color}CC 100%)` }}>
                   {salon.name[0].toUpperCase()}
@@ -63,9 +69,9 @@ export default function UserFavourites() {
                   <div style={s.contactChip}>📞 {salon.contact_number}</div>
                 )}
               </div>
-              <Link to={`/salons/${salon.id}`} style={{ ...s.viewBtn, borderColor: color + '33', color }}>
+              <div style={{ ...s.viewBtn, borderColor: color + '33', color }}>
                 View Salon <span>→</span>
-              </Link>
+              </div>
             </div>
           );
         })}

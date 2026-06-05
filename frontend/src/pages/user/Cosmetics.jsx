@@ -35,6 +35,7 @@ export default function Cosmetics() {
   }, []);
 
   const filtered = products.filter(p => {
+    if (p.status === 'expired') return false;
     const matchCat = activeCat === 'All' || p.category === activeCat;
     const q = search.toLowerCase();
     const matchSearch = !q || p.name.toLowerCase().includes(q) || (p.brand || '').toLowerCase().includes(q) || p.salon_name.toLowerCase().includes(q);

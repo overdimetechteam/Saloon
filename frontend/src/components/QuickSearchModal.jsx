@@ -367,7 +367,7 @@ export default function QuickSearchModal({ onClose }) {
 function Overlay({ onClose, children }) {
   return (
     <>
-      <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 900, background: 'rgba(0,0,0,.45)', backdropFilter: 'blur(4px)' }} />
+      <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 900, background: 'rgba(0,0,0,.45)', backdropFilter: 'blur(4px)', animation: 'backdropIn .22s ease both' }} />
       <div style={{
         position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
         zIndex: 901, width: 'min(520px, 96vw)',
@@ -375,6 +375,7 @@ function Overlay({ onClose, children }) {
         boxShadow: '0 24px 64px rgba(13,148,136,.18), 0 8px 24px rgba(0,0,0,.12)',
         border: '1px solid var(--border)', overflow: 'hidden',
         display: 'flex', flexDirection: 'column', maxHeight: '90vh',
+        animation: 'scaleInBounce .28s cubic-bezier(.16,1,.3,1) both',
       }}>
         {children}
       </div>

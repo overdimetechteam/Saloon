@@ -5,6 +5,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.shortcuts import get_object_or_404
 from .models import Service, SalonService
 from salons.models import Salon
+from staff.models import StaffMember
 from .serializers import ServiceSerializer, SalonServiceSerializer, SalonServiceCreateSerializer, SalonServiceUpdateSerializer
 from users.permissions import IsSystemAdmin, IsSalonOwner
 
@@ -70,7 +71,7 @@ class SalonServiceListCreateView(APIView):
 
     def get(self, request, salon_pk):
         salon = self._get_salon(salon_pk)
-        qs = SalonService.objects.filter(salon=salon, is_active=True).select_related('service')
+        qs = SalonService.objects.filter(salon=salon, is_active=True).select_related('service').order_by('-id')
         return Response(SalonServiceSerializer(qs, many=True).data)
 
     def post(self, request, salon_pk):
@@ -103,6 +104,9 @@ class SalonServiceDetailView(APIView):
         if request.user.role == 'salon_owner' and salon.owner_id != request.user.id:
             return Response({'detail': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
         ss = get_object_or_404(SalonService, pk=pk, salon=salon)
+        # Remove this service from all staff members' specialties in this salon.
+        for sm in StaffMember.objects.filter(salon=salon, specialties=ss.service):
+            sm.specialties.remove(ss.service)
         if ss.service.is_private and ss.service.owner_salon_id == salon.id:
             ss.service.delete()
         else:

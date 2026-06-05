@@ -12,6 +12,11 @@ class Product(models.Model):
         ('Nail Care', 'Nail Care'),
         ('Other', 'Other'),
     ]
+    VALUATION_CHOICES = [
+        ('FIFO', 'FIFO — First In, First Out'),
+        ('LIFO', 'LIFO — Last In, First Out'),
+        ('FEFO', 'FEFO — First Expired, First Out'),
+    ]
 
     salon = models.ForeignKey(Salon, on_delete=models.CASCADE, related_name='products')
     name = models.CharField(max_length=255)
@@ -26,6 +31,7 @@ class Product(models.Model):
     selling_price = models.DecimalField(max_digits=10, decimal_places=2)
     reorder_level = models.PositiveIntegerField(default=0)
     current_stock = models.IntegerField(default=0)
+    valuation_method = models.CharField(max_length=4, choices=VALUATION_CHOICES, default='FIFO')
     supplier = models.CharField(max_length=255, blank=True)
     manufacturing_date = models.DateField(null=True, blank=True)
     expiry_date = models.DateField(null=True, blank=True)
@@ -83,6 +89,30 @@ class GRNItem(models.Model):
 
     def __str__(self):
         return f"{self.grn.reference_number} — {self.product.name} x{self.quantity_received}"
+
+
+class ProductBatch(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='batches')
+    grn = models.ForeignKey(GRN, on_delete=models.SET_NULL, null=True, blank=True, related_name='batches')
+    batch_number = models.CharField(max_length=80)
+    quantity_received = models.PositiveIntegerField()
+    quantity_remaining = models.PositiveIntegerField()
+    unit_cost = models.DecimalField(max_digits=10, decimal_places=2)
+    received_date = models.DateField()
+    expiry_date = models.DateField(null=True, blank=True)
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['received_date', 'created_at']
+
+    def save(self, *args, **kwargs):
+        if not self.batch_number:
+            self.batch_number = f'BATCH-{uuid.uuid4().hex[:8].upper()}'
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f'{self.batch_number} — {self.product.name} ({self.quantity_remaining} left)'
 
 
 class Sale(models.Model):

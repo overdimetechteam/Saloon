@@ -4,6 +4,12 @@ from django.conf import settings
 from django.conf.urls.static import static
 from rest_framework_simplejwt.views import TokenRefreshView
 from users.views import RegisterView, LoginView, ForgotPasswordView, ResetPasswordView
+from users.social_auth import (
+    GoogleSocialAuthView,
+    AppleSocialAuthView,
+    TwitterAuthInitView,
+    TwitterAuthCallbackView,
+)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -12,6 +18,10 @@ urlpatterns = [
     path('api/auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/auth/forgot-password/', ForgotPasswordView.as_view(), name='forgot-password'),
     path('api/auth/reset-password/', ResetPasswordView.as_view(), name='reset-password'),
+    path('api/auth/social/google/', GoogleSocialAuthView.as_view(), name='social-google'),
+    path('api/auth/social/apple/', AppleSocialAuthView.as_view(), name='social-apple'),
+    path('api/auth/social/twitter/init/', TwitterAuthInitView.as_view(), name='social-twitter-init'),
+    path('api/auth/social/twitter/callback/', TwitterAuthCallbackView.as_view(), name='social-twitter-callback'),
     path('api/', include('salons.urls')),
     path('api/', include('services.urls')),
     path('api/', include('bookings.urls')),

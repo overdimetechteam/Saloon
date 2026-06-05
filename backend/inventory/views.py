@@ -9,10 +9,11 @@ from django.shortcuts import get_object_or_404
 from django.db.models import Q, F, Sum
 from django.http import HttpResponse
 
-from .models import Product, GRN, GRNItem, Sale, SaleItem, StockAdjustment, ProductImage, CosmeticOrder
+from datetime import date as date_type
+from .models import Product, GRN, GRNItem, Sale, SaleItem, StockAdjustment, ProductImage, CosmeticOrder, ProductBatch
 from .serializers import (
     ProductSerializer, GRNSerializer, SaleSerializer, StockAdjustmentSerializer,
-    ProductImageSerializer, CosmeticOrderSerializer,
+    ProductImageSerializer, CosmeticOrderSerializer, ProductBatchSerializer,
 )
 from salons.models import Salon
 
@@ -292,6 +293,16 @@ class GRNConfirmView(APIView):
         for item in grn.items.all():
             item.product.current_stock += item.quantity_received
             item.product.save()
+            # Create a batch record for FIFO/LIFO/FEFO tracking.
+            ProductBatch.objects.create(
+                product=item.product,
+                grn=grn,
+                quantity_received=item.quantity_received,
+                quantity_remaining=item.quantity_received,
+                unit_cost=item.unit_cost,
+                received_date=date_type.today(),
+                expiry_date=item.product.expiry_date,
+            )
         grn.status = 'confirmed'
         grn.save()
         return Response(GRNSerializer(grn).data)
@@ -671,3 +682,29 @@ class CosmeticOrderListCreateView(APIView):
                 return err
             orders = CosmeticOrder.objects.filter(salon=salon).prefetch_related('items').order_by('-created_at')
         return Response(CosmeticOrderSerializer(orders, many=True).data)
+
+
+class ProductBatchListCreateView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, salon_pk, product_pk):
+        salon, err = _get_salon_for_owner(request, salon_pk)
+        if err:
+            return err
+        product = get_object_or_404(Product, pk=product_pk, salon=salon)
+        batches = product.batches.all().order_by('received_date', 'created_at')
+        return Response(ProductBatchSerializer(batches, many=True).data)
+
+    def post(self, request, salon_pk, product_pk):
+        salon, err = _get_salon_for_owner(request, salon_pk)
+        if err:
+            return err
+        product = get_object_or_404(Product, pk=product_pk, salon=salon)
+        serializer = ProductBatchSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        batch = serializer.save(product=product)
+        # Also update product's current_stock.
+        product.current_stock += batch.quantity_received
+        product.save()
+        return Response(ProductBatchSerializer(batch).data, status=status.HTTP_201_CREATED)

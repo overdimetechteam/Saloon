@@ -6,6 +6,7 @@ import { CartProvider } from './context/CartContext';
 import RequireRole from './components/RequireRole';
 import Navbar from './components/Navbar';
 import CartDrawer from './components/CartDrawer';
+import SnowEffect from './components/SnowEffect';
 
 import AdminLayout from './layouts/AdminLayout';
 import OwnerLayout from './layouts/OwnerLayout';
@@ -45,6 +46,7 @@ import OwnerOffers        from './pages/owner/Offers';
 import OwnerSubscription  from './pages/owner/Subscription';
 
 import ResetPassword from './pages/ResetPassword';
+import TwitterCallback from './pages/TwitterCallback';
 import UserDashboard from './pages/user/Dashboard';
 import UserBookingList from './pages/user/BookingList';
 import UserBookingDetail from './pages/user/BookingDetail';
@@ -60,8 +62,9 @@ function PublicLayout() {
       <Navbar />
       <motion.div
         key={location.pathname}
-        initial={{ opacity: 0, y: 14 }}
-        animate={{ opacity: 1, y: 0, transition: { duration: 0.32, ease: [0.0, 0.0, 0.2, 1] } }}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
       >
         <Outlet />
       </motion.div>
@@ -83,6 +86,7 @@ export default function App() {
       <CartProvider>
       <BrowserRouter>
         <CartDrawer />
+        <SnowEffect />
         <Routes>
           {/* Public pages with top navbar */}
           <Route element={<PublicLayout />}>
@@ -97,6 +101,7 @@ export default function App() {
           <Route path="/register/user" element={<RegisterClient />} />
           <Route path="/register/owner" element={<RegisterSalon />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/auth/twitter/callback" element={<TwitterCallback />} />
 
           {/* Salon portal select + employee login */}
           <Route path="/salon-portal" element={<SalonPortalSelect />} />

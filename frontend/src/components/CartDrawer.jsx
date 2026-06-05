@@ -1,4 +1,5 @@
 ﻿import { createPortal } from 'react-dom';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
@@ -14,23 +15,40 @@ export default function CartDrawer() {
   const { items, cartOpen, setCartOpen, removeItem, updateQty, totalItems, subtotal, clearCart } = useCart();
   const { profile } = useAuth();
   const navigate = useNavigate();
+  const [loginPrompt, setLoginPrompt] = useState(false);
 
   if (!cartOpen) return null;
 
   const hasExpired = items.some(i => i.status === 'expired');
 
   const handleCheckout = () => {
-    if (!profile) {
-      setCartOpen(false);
-      navigate('/login?next=/user/checkout');
-      return;
-    }
+    if (!profile) { setLoginPrompt(true); return; }
     if (hasExpired) return;
     setCartOpen(false);
     navigate('/user/checkout');
   };
 
+  const goLogin    = () => { setLoginPrompt(false); setCartOpen(false); navigate('/login?next=/user/checkout'); };
+  const goRegister = () => { setLoginPrompt(false); setCartOpen(false); navigate('/register/user?next=/user/checkout'); };
+
   return createPortal(
+    <>
+    {/* Guest checkout prompt modal */}
+    {loginPrompt && (
+      <div style={s.promptBackdrop} onClick={() => setLoginPrompt(false)}>
+        <div style={s.promptModal} onClick={e => e.stopPropagation()}>
+          <div style={s.promptIcon}>🛍</div>
+          <h3 style={s.promptTitle}>Sign in to complete your purchase</h3>
+          <p style={s.promptBody}>
+            To complete your purchase, please sign in or create a free account.
+            <br /><strong>Your cart has been saved</strong> — your items will be waiting for you.
+          </p>
+          <button style={s.promptPrimary} onClick={goLogin}>Sign In</button>
+          <button style={s.promptSecondary} onClick={goRegister}>Create a Free Account</button>
+          <button style={s.promptGhost} onClick={() => setLoginPrompt(false)}>Continue Shopping</button>
+        </div>
+      </div>
+    )}
     <div style={s.overlay} onClick={() => setCartOpen(false)}>
       <div style={s.drawer} onClick={e => e.stopPropagation()}>
 
@@ -121,7 +139,8 @@ export default function CartDrawer() {
           </>
         )}
       </div>
-    </div>,
+    </div>
+    </>,
     document.body
   );
 }
@@ -131,11 +150,13 @@ const s = {
     position: 'fixed', inset: 0, zIndex: 9000,
     background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(3px)',
     display: 'flex', justifyContent: 'flex-end',
+    animation: 'backdropIn .22s ease both',
   },
   drawer: {
     width: 420, maxWidth: '95vw', height: '100vh',
     background: 'var(--surface)', display: 'flex', flexDirection: 'column',
     boxShadow: '-8px 0 40px rgba(0,0,0,0.25)',
+    animation: 'slideInRight .32s cubic-bezier(.16,1,.3,1) both',
   },
 
   header: {
@@ -208,4 +229,25 @@ const s = {
     color: 'var(--text-muted)', borderRadius: 12, fontSize: 13,
     fontWeight: 600, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif",
   },
+
+  promptBackdrop: {
+    position: 'fixed', inset: 0, zIndex: 9100,
+    background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(6px)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    padding: '20px',
+    animation: 'backdropIn .22s ease both',
+  },
+  promptModal: {
+    background: 'var(--surface)', borderRadius: 24, padding: '36px 32px',
+    maxWidth: 420, width: '100%', textAlign: 'center',
+    boxShadow: '0 32px 80px rgba(0,0,0,0.4)', border: '1px solid var(--border)',
+    display: 'flex', flexDirection: 'column', gap: 0,
+    animation: 'scaleInBounce .3s cubic-bezier(.16,1,.3,1) both',
+  },
+  promptIcon:      { fontSize: 44, marginBottom: 16 },
+  promptTitle:     { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 24, fontWeight: 700, color: 'var(--text)', margin: '0 0 12px', letterSpacing: '-0.01em' },
+  promptBody:      { fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.7, margin: '0 0 28px' },
+  promptPrimary:   { width: '100%', padding: '14px', marginBottom: 10, background: 'linear-gradient(135deg, #C96B51, #D4AF37)', color: '#fff', border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", boxShadow: '0 6px 20px rgba(201,107,81,.35)' },
+  promptSecondary: { width: '100%', padding: '13px', marginBottom: 10, background: 'var(--surface2)', border: '1.5px solid var(--border)', color: 'var(--text)', borderRadius: 12, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" },
+  promptGhost:     { width: '100%', padding: '10px', background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: 13, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" },
 };

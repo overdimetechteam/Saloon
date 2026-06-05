@@ -42,6 +42,15 @@ export function AuthProvider({ children }) {
     return data.user;
   };
 
+  const socialLogin = (data) => {
+    localStorage.setItem('access', data.access);
+    localStorage.setItem('refresh', data.refresh);
+    localStorage.setItem('profile', JSON.stringify(data.user));
+    setUser(parseJwt(data.access));
+    setProfile(data.user);
+    return data.user;
+  };
+
   const logout = () => {
     localStorage.removeItem('access');
     localStorage.removeItem('refresh');
@@ -51,7 +60,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, profile, login, register, logout }}>
+    <AuthContext.Provider value={{ user, profile, login, register, socialLogin, logout }}>
       {children}
     </AuthContext.Provider>
   );

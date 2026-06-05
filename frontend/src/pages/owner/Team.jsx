@@ -31,6 +31,7 @@ export default function OwnerTeam() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [msg, setMsg] = useState('');
+  const [confirmTarget, setConfirmTarget] = useState(null); // member pending delete
 
   const load = () => {
     if (!salon) return;
@@ -96,8 +97,11 @@ export default function OwnerTeam() {
     } finally { setSaving(false); }
   };
 
-  const remove = async member => {
-    if (!window.confirm(`Remove ${member.full_name} from the team?`)) return;
+  const remove = member => setConfirmTarget(member);
+
+  const doRemove = async () => {
+    const member = confirmTarget;
+    setConfirmTarget(null);
     try {
       await api.delete(`/salons/${salon.id}/staff-members/${member.id}/`);
       setMsg(`${member.full_name} removed.`); load();
@@ -134,75 +138,101 @@ export default function OwnerTeam() {
       )}
 
       {showForm && (
-        <div style={s.formCard} className="scale-in">
-          <div style={s.formTitle}>Edit Team Member</div>
-          {error && <div style={s.alert}>{error}</div>}
-          <form onSubmit={save}>
-            <div style={{ ...s.formGrid, gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr' }}>
-              <div style={s.field}>
-                <label style={s.label}>Full Name *</label>
-                <input style={s.input} value={form.full_name}
-                  onChange={e => setForm(f => ({ ...f, full_name: e.target.value }))}
-                  placeholder="e.g. Ayesha Perera" />
+        <div style={s.modalOverlay} onClick={e => e.target === e.currentTarget && closeForm()}>
+          <div style={{ ...s.modalBox, width: isMobile ? '95vw' : 640 }} className="scale-in">
+            <div style={s.modalHead}>
+              <div>
+                <div style={s.modalEyebrow}>Team</div>
+                <h3 style={s.modalTitle}>Edit — {editing?.full_name}</h3>
               </div>
-              <div style={s.field}>
-                <label style={s.label}>Role</label>
-                <select style={s.input} value={form.role}
-                  onChange={e => setForm(f => ({ ...f, role: e.target.value }))}>
-                  {ROLE_OPTIONS.map(r => (
-                    <option key={r.value} value={r.value}>{r.label}</option>
-                  ))}
-                </select>
-              </div>
-              <div style={s.field}>
-                <label style={s.label}>Phone</label>
-                <input style={s.input} value={form.phone}
-                  onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
-                  placeholder="e.g. 077 123 4567" />
-              </div>
+              <button style={s.modalClose} onClick={closeForm}>✕</button>
             </div>
 
-            <div style={{ marginTop: 20 }}>
-              <label style={s.label}>Working Days</label>
-              <div style={s.dayRow}>
-                {ALL_DAYS.map(day => {
-                  const on = form.working_days.includes(day);
-                  return (
-                    <button type="button" key={day}
-                      style={{ ...s.dayChip, ...(on ? s.dayChipOn : {}) }}
-                      onClick={() => toggleDay(day)}>
-                      {DAY_LABELS[day]}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+            {error && <div style={s.alert}>{error}</div>}
 
-            {salonServices.length > 0 && (
-              <div style={{ marginTop: 18 }}>
-                <label style={s.label}>Specialties</label>
-                <div style={s.specGrid}>
-                  {salonServices.map(ss => {
-                    const on = form.specialties.includes(ss.service);
+            <form onSubmit={save}>
+              <div style={{ ...s.formGrid, gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr' }}>
+                <div style={s.field}>
+                  <label style={s.label}>Full Name *</label>
+                  <input style={s.input} value={form.full_name}
+                    onChange={e => setForm(f => ({ ...f, full_name: e.target.value }))}
+                    placeholder="e.g. Ayesha Perera" autoFocus />
+                </div>
+                <div style={s.field}>
+                  <label style={s.label}>Role</label>
+                  <select style={s.input} value={form.role}
+                    onChange={e => setForm(f => ({ ...f, role: e.target.value }))}>
+                    {ROLE_OPTIONS.map(r => (
+                      <option key={r.value} value={r.value}>{r.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div style={s.field}>
+                  <label style={s.label}>Phone</label>
+                  <input style={s.input} value={form.phone}
+                    onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
+                    placeholder="e.g. 077 123 4567" />
+                </div>
+              </div>
+
+              <div style={{ marginTop: 20 }}>
+                <label style={s.label}>Working Days</label>
+                <div style={s.dayRow}>
+                  {ALL_DAYS.map(day => {
+                    const on = form.working_days.includes(day);
                     return (
-                      <label key={ss.id} style={{ ...s.specItem, ...(on ? s.specItemOn : {}) }}>
-                        <input type="checkbox" checked={on} onChange={() => toggleSpecialty(ss.service)} style={{ display: 'none' }} />
-                        <span style={{ ...s.specCheck, ...(on ? s.specCheckOn : {}) }}>{on && '✓'}</span>
-                        {ss.service_name}
-                      </label>
+                      <button type="button" key={day}
+                        style={{ ...s.dayChip, ...(on ? s.dayChipOn : {}) }}
+                        onClick={() => toggleDay(day)}>
+                        {DAY_LABELS[day]}
+                      </button>
                     );
                   })}
                 </div>
               </div>
-            )}
 
-            <div style={s.formActions}>
-              <button type="button" style={s.cancelBtn} onClick={closeForm}>Cancel</button>
-              <button type="submit" style={{ ...s.saveBtn, opacity: saving ? 0.7 : 1 }} disabled={saving}>
-                {saving ? 'Saving…' : 'Save Changes'}
-              </button>
+              {salonServices.length > 0 && (
+                <div style={{ marginTop: 18 }}>
+                  <label style={s.label}>Specialties</label>
+                  <div style={s.specGrid}>
+                    {salonServices.map(ss => {
+                      const on = form.specialties.includes(ss.service);
+                      return (
+                        <label key={ss.id} style={{ ...s.specItem, ...(on ? s.specItemOn : {}) }}>
+                          <input type="checkbox" checked={on} onChange={() => toggleSpecialty(ss.service)} style={{ display: 'none' }} />
+                          <span style={{ ...s.specCheck, ...(on ? s.specCheckOn : {}) }}>{on && '✓'}</span>
+                          {ss.service_name}
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              <div style={s.formActions}>
+                <button type="button" style={s.cancelBtn} onClick={closeForm}>Cancel</button>
+                <button type="submit" style={{ ...s.saveBtn, opacity: saving ? 0.7 : 1 }} disabled={saving}>
+                  {saving ? 'Saving…' : 'Save Changes'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {confirmTarget && (
+        <div style={s.modalOverlay} onClick={e => e.target === e.currentTarget && setConfirmTarget(null)}>
+          <div style={s.confirmBox} className="scale-in">
+            <div style={s.confirmIcon}>✕</div>
+            <h3 style={s.confirmTitle}>Remove Team Member?</h3>
+            <p style={s.confirmSub}>
+              Are you sure you want to remove <strong>{confirmTarget.full_name}</strong> from the team? This action cannot be undone.
+            </p>
+            <div style={s.confirmActions}>
+              <button style={s.cancelBtn} onClick={() => setConfirmTarget(null)}>Cancel</button>
+              <button style={s.deletConfirmBtn} onClick={doRemove}>Yes, Remove</button>
             </div>
-          </form>
+          </div>
         </div>
       )}
 
@@ -300,14 +330,56 @@ const s = {
     borderRadius: 12, padding: '11px 18px', fontSize: 13, marginBottom: 22,
   },
   toastClose: { background: 'none', border: 'none', cursor: 'pointer', color: '#0D9488', fontSize: 14 },
-  formCard: {
-    background: 'var(--surface)', borderRadius: 20, padding: 28,
-    border: '1px solid var(--border)', marginBottom: 28,
-    boxShadow: '0 4px 24px rgba(13,148,136,.08)',
+  modalOverlay: {
+    position: 'fixed', inset: 0, background: 'rgba(8,6,17,.6)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    zIndex: 1200, padding: 20, backdropFilter: 'blur(6px)',
+    animation: 'backdropIn .22s ease both',
   },
-  formTitle: {
+  modalBox: {
+    background: 'var(--surface)', borderRadius: 24, padding: 32,
+    maxHeight: '90vh', overflowY: 'auto',
+    boxShadow: '0 32px 80px rgba(0,0,0,.35), 0 8px 24px rgba(13,148,136,.15)',
+    border: '1px solid var(--border)',
+  },
+  modalHead: {
+    display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24,
+  },
+  modalEyebrow: {
+    fontSize: 9, fontWeight: 700, color: 'var(--brand-label)',
+    letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: 5,
+  },
+  modalTitle: {
     fontFamily: "'Cormorant Garamond', Georgia, serif",
-    fontSize: 20, fontWeight: 700, color: 'var(--text)', marginBottom: 22, letterSpacing: '-0.01em',
+    fontSize: 22, fontWeight: 700, color: 'var(--text)', margin: 0, letterSpacing: '-0.01em',
+  },
+  modalClose: {
+    background: 'var(--surface2)', border: '1px solid var(--border)',
+    color: 'var(--text-muted)', fontSize: 15, cursor: 'pointer',
+    padding: '6px 10px', lineHeight: 1, borderRadius: 8,
+  },
+  confirmBox: {
+    background: 'var(--surface)', borderRadius: 22, padding: '36px 32px',
+    maxWidth: 420, width: '100%', textAlign: 'center',
+    boxShadow: '0 32px 80px rgba(0,0,0,.35)',
+    border: '1px solid var(--border)',
+  },
+  confirmIcon: {
+    width: 56, height: 56, borderRadius: '50%', background: '#FEF2F2',
+    border: '2px solid #FECACA', color: '#DC2626',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    fontSize: 22, fontWeight: 800, margin: '0 auto 18px',
+  },
+  confirmTitle: {
+    fontFamily: "'Cormorant Garamond', Georgia, serif",
+    fontSize: 22, fontWeight: 700, color: 'var(--text)', margin: '0 0 10px',
+  },
+  confirmSub: { fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.65, margin: '0 0 26px' },
+  confirmActions: { display: 'flex', gap: 10, justifyContent: 'center' },
+  deletConfirmBtn: {
+    padding: '10px 24px', background: '#DC2626', border: 'none', borderRadius: 12,
+    cursor: 'pointer', fontSize: 14, fontWeight: 700, color: '#fff',
+    boxShadow: '0 4px 14px rgba(220,38,38,.35)', fontFamily: "'DM Sans', sans-serif",
   },
   alert: {
     background: '#FEF2F2', border: '1px solid #FCA5A5',

@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+﻿import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import api from '../../api/axios';
@@ -40,6 +40,7 @@ export default function BookSalon() {
   const [date, setDate] = useState('');
   const [slots, setSlots] = useState([]);
   const [slotsLoading, setSlotsLoading] = useState(false);
+  const slotReqId = useRef(0);
   const [slot, setSlot] = useState('');
   const [notes, setNotes] = useState('');
   const [error, setError] = useState('');
@@ -77,15 +78,16 @@ export default function BookSalon() {
       }
     }
     setSlotsLoading(true); setSlot('');
+    const reqId = ++slotReqId.current;
     const totalDuration = services
       .filter(s => selected.includes(s.id))
       .reduce((sum, s) => sum + (s.effective_duration || 0), 0);
     const staffParam    = staffId !== null ? `&staff_id=${staffId}` : '';
     const durationParam = totalDuration > 0 ? `&duration=${totalDuration}` : '';
     api.get(`/salons/${salonId}/calendar/available-slots/?date=${date}${staffParam}${durationParam}`)
-      .then(r => setSlots(r.data.slots || []))
-      .catch(() => setSlots([]))
-      .finally(() => setSlotsLoading(false));
+      .then(r => { if (slotReqId.current === reqId) setSlots(r.data.slots || []); })
+      .catch(() => { if (slotReqId.current === reqId) setSlots([]); })
+      .finally(() => { if (slotReqId.current === reqId) setSlotsLoading(false); });
   }, [date, salonId, staffId, selected]);
 
   useEffect(() => { setPromoResult(null); }, [selected]);

@@ -158,20 +158,45 @@ export default function OwnerBookingList() {
 
 function WalkInModal({ salonId, onClose, onCreated }) {
   const [services, setServices] = useState([]);
+  const [staff, setStaff] = useState([]);
   const [form, setForm] = useState({
     client_email: '', client_name: '', client_phone: '',
-    appointment_datetime: '', notes: '',
+    appointment_datetime: '', notes: '', staff_id: '',
   });
   const [selectedServices, setSelectedServices] = useState([]);
+  const [availCheck, setAvailCheck] = useState(null); // null | 'checking' | 'free' | 'busy'
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const overlayRef = useRef(null);
 
   useEffect(() => {
-    if (salonId) {
-      api.get(`/salons/${salonId}/services/`).then(r => setServices(r.data.filter(sv => sv.is_active))).catch(() => {});
-    }
+    if (!salonId) return;
+    api.get(`/salons/${salonId}/services/`).then(r => setServices(r.data.filter(sv => sv.is_active))).catch(() => {});
+    api.get(`/salons/${salonId}/staff-members/`).then(r => setStaff(r.data.filter(m => m.is_active))).catch(() => {});
   }, [salonId]);
+
+  // Check stylist availability whenever staff + datetime + services change
+  useEffect(() => {
+    if (!form.staff_id || !form.appointment_datetime || selectedServices.length === 0) {
+      setAvailCheck(null);
+      return;
+    }
+    const dt = new Date(form.appointment_datetime);
+    if (isNaN(dt)) { setAvailCheck(null); return; }
+    const dateStr = dt.toISOString().slice(0, 10);
+    const totalDur = selectedServices.reduce((sum, id) => {
+      const sv = services.find(s => s.id === id);
+      return sum + (sv?.effective_duration || 30);
+    }, 0);
+    setAvailCheck('checking');
+    api.get(`/salons/${salonId}/available-slots/`, {
+      params: { date: dateStr, staff_id: form.staff_id, duration: totalDur }
+    }).then(r => {
+      const slotTime = form.appointment_datetime.slice(11, 16); // HH:MM
+      const match = r.data.slots?.find(s => s.datetime.slice(11, 16) === slotTime);
+      setAvailCheck(match?.available ? 'free' : 'busy');
+    }).catch(() => setAvailCheck(null));
+  }, [form.staff_id, form.appointment_datetime, selectedServices]);
 
   const toggleService = id => {
     setSelectedServices(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
@@ -182,11 +207,13 @@ function WalkInModal({ salonId, onClose, onCreated }) {
     if (!form.client_email) return setError('Client email is required.');
     if (!form.appointment_datetime) return setError('Appointment date/time is required.');
     if (selectedServices.length === 0) return setError('Select at least one service.');
+    if (availCheck === 'busy') return setError('That stylist already has a booking at this time. Please choose a different time or stylist.');
     setSubmitting(true);
     try {
       await api.post(`/salons/${salonId}/bookings/walk-in/`, {
         ...form,
         service_ids: selectedServices,
+        staff_id: form.staff_id || null,
       });
       onCreated();
     } catch (err) {
@@ -248,6 +275,28 @@ function WalkInModal({ salonId, onClose, onCreated }) {
               value={form.appointment_datetime}
               onChange={e => setForm(f => ({ ...f, appointment_datetime: e.target.value }))}
             />
+          </div>
+          <div style={m.field}>
+            <label style={m.label}>Assign Stylist</label>
+            <select
+              style={m.input}
+              value={form.staff_id}
+              onChange={e => setForm(f => ({ ...f, staff_id: e.target.value }))}
+            >
+              <option value="">Any Available</option>
+              {staff.map(m => (
+                <option key={m.id} value={m.id}>{m.full_name}{m.role ? ` — ${m.role}` : ''}</option>
+              ))}
+            </select>
+            {availCheck === 'checking' && (
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>Checking availability…</div>
+            )}
+            {availCheck === 'free' && (
+              <div style={{ fontSize: 11, color: '#0D9488', fontWeight: 700, marginTop: 4 }}>✓ Stylist is available at this time</div>
+            )}
+            {availCheck === 'busy' && (
+              <div style={{ fontSize: 11, color: '#DC2626', fontWeight: 700, marginTop: 4 }}>✗ Stylist already booked at this time</div>
+            )}
           </div>
         </div>
 

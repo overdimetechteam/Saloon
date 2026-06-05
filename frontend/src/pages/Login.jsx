@@ -2,10 +2,11 @@
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useBreakpoint } from '../hooks/useMobile';
+import { useGoogleLogin } from '@react-oauth/google';
 import api from '../api/axios';
 
 export default function Login() {
-  const { login, profile } = useAuth();
+  const { login, socialLogin, profile } = useAuth();
   const navigate  = useNavigate();
   const [searchParams] = useSearchParams();
   const nextPath = searchParams.get('next') || null;
@@ -14,6 +15,7 @@ export default function Login() {
   const [showPw, setShowPw]     = useState(false);
   const [error, setError]       = useState('');
   const [loading, setLoading]   = useState(false);
+  const [socialLoading, setSocialLoading] = useState('');
   const [forgotOpen, setForgotOpen] = useState(false);
   const [forgotEmail, setForgotEmail] = useState('');
   const [forgotLoading, setForgotLoading] = useState(false);
@@ -31,6 +33,13 @@ export default function Login() {
     navigate(roleRedirect(profile.role), { replace: true });
   }, [profile]);
 
+  // Show error if redirected back from Twitter with error
+  useEffect(() => {
+    const err = searchParams.get('error');
+    if (err === 'twitter_cancelled') setError('X sign-in was cancelled.');
+    if (err === 'twitter_failed') setError('X sign-in failed. Please try again.');
+  }, []);
+
   const handle = async e => {
     e.preventDefault(); setError(''); setLoading(true);
     try {
@@ -39,6 +48,73 @@ export default function Login() {
     } catch (err) {
       setError(err.response?.data?.detail || 'Invalid email or password');
     } finally { setLoading(false); }
+  };
+
+  // ── Google ────────────────────────────────────────────────────────────────
+  const googleLogin = useGoogleLogin({
+    onSuccess: async ({ access_token }) => {
+      setSocialLoading('google');
+      try {
+        const { data } = await api.post('/auth/social/google/', { access_token });
+        const user = socialLogin(data);
+        navigate(roleRedirect(user.role));
+      } catch (err) {
+        setError(err.response?.data?.detail || 'Google sign-in failed.');
+      } finally { setSocialLoading(''); }
+    },
+    onError: () => setError('Google sign-in was cancelled or failed.'),
+  });
+
+  // ── Apple ─────────────────────────────────────────────────────────────────
+  useEffect(() => {
+    const clientId = import.meta.env.VITE_APPLE_CLIENT_ID;
+    if (!clientId || clientId.startsWith('com.your')) return;
+    const script = document.createElement('script');
+    script.src = 'https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js';
+    script.onload = () => {
+      window.AppleID?.auth.init({
+        clientId,
+        scope: 'name email',
+        redirectURI: window.location.origin,
+        usePopup: true,
+      });
+    };
+    document.head.appendChild(script);
+    return () => script.remove();
+  }, []);
+
+  const handleApple = async () => {
+    if (!window.AppleID) {
+      setError('Apple Sign In is not available. Ensure VITE_APPLE_CLIENT_ID is configured and the site is served over HTTPS.');
+      return;
+    }
+    setSocialLoading('apple');
+    try {
+      const resp = await window.AppleID.auth.signIn();
+      const id_token = resp.authorization?.id_token;
+      const fullName = resp.user
+        ? `${resp.user.name?.firstName || ''} ${resp.user.name?.lastName || ''}`.trim()
+        : '';
+      const { data } = await api.post('/auth/social/apple/', { id_token, full_name: fullName });
+      const user = socialLogin(data);
+      navigate(roleRedirect(user.role));
+    } catch (err) {
+      if (err?.error !== 'popup_closed_by_user') {
+        setError(err?.response?.data?.detail || 'Apple sign-in failed.');
+      }
+    } finally { setSocialLoading(''); }
+  };
+
+  // ── Twitter / X ───────────────────────────────────────────────────────────
+  const handleTwitter = async () => {
+    setSocialLoading('twitter');
+    try {
+      const { data } = await api.get('/auth/social/twitter/init/');
+      window.location.href = data.auth_url;
+    } catch (err) {
+      setSocialLoading('');
+      setError(err.response?.data?.detail || 'X/Twitter sign-in is not configured yet.');
+    }
   };
 
   const sendForgot = async e => {
@@ -143,14 +219,69 @@ export default function Login() {
             </button>
           </form>
 
+          {/* Social login */}
+          <div style={s.divider}>
+            <span style={s.dividerLine} />
+            <span style={s.dividerText}>or continue with</span>
+            <span style={s.dividerLine} />
+          </div>
+
+          <div style={s.socialRow}>
+            <button
+              style={{ ...s.socialBtn, opacity: socialLoading === 'google' ? 0.65 : 1 }}
+              onClick={() => { setError(''); googleLogin(); }}
+              disabled={!!socialLoading}
+              title="Sign in with Google"
+            >
+              {socialLoading === 'google' ? '…' : (
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                  <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.258h2.908C16.658 14.268 17.64 11.872 17.64 9.2z" fill="#4285F4"/>
+                  <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z" fill="#34A853"/>
+                  <path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
+                  <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
+                </svg>
+              )}
+              <span>Google</span>
+            </button>
+
+            <button
+              style={{ ...s.socialBtn, opacity: socialLoading === 'apple' ? 0.65 : 1 }}
+              onClick={() => { setError(''); handleApple(); }}
+              disabled={!!socialLoading}
+              title="Sign in with Apple"
+            >
+              {socialLoading === 'apple' ? '…' : (
+                <svg width="16" height="18" viewBox="0 0 814 1000" fill="currentColor">
+                  <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.3-164-39.3c-76 0-103.7 40.8-165.9 40.8s-105.1-46.4-150.6-100.9C77.7 749.2 0 552.7 0 364.1C0 146.3 134.4 21.9 266.2 21.9c70.1 0 128.1 46.4 171.1 46.4 42.1 0 107.5-49.2 185.2-49.2 29.1 0 108.1 2.6 168.3 87.3z"/>
+                  <path d="M558.5 28.5c-10.1 50.4-36.5 96.8-73.8 129.1-37.3 32.4-85.1 52.6-137.4 52.6-3.4 0-6.7-.2-10-.7 2.5-49.2 22.3-97.3 57.3-131.5 35-34.2 83.8-56.1 137-58z"/>
+                </svg>
+              )}
+              <span>Apple</span>
+            </button>
+
+            <button
+              style={{ ...s.socialBtn, opacity: socialLoading === 'twitter' ? 0.65 : 1 }}
+              onClick={() => { setError(''); handleTwitter(); }}
+              disabled={!!socialLoading}
+              title="Sign in with X"
+            >
+              {socialLoading === 'twitter' ? '…' : (
+                <svg width="16" height="16" viewBox="0 0 300 300" fill="currentColor">
+                  <path d="M178.57 127.15 290.27 0h-26.46l-97.03 110.38L89.34 0H0l117.13 166.93L0 300.25h26.46l102.4-116.59 81.8 116.59H300Zm-36.3 41.39-11.88-16.57L36.13 19.54h40.66l76.28 106.41 11.88 16.57 99.19 138.33h-40.66Z"/>
+                </svg>
+              )}
+              <span>X</span>
+            </button>
+          </div>
+
           <div style={s.footer}>
-            <p>New client? <Link to="/register/user" style={s.footerLink}>Create account</Link></p>
+            <p>New client? <Link to={`/register/user${nextPath ? `?next=${encodeURIComponent(nextPath)}` : ''}`} style={s.footerLink}>Create account</Link></p>
             <p style={{ marginTop: 8 }}>Own a salon? <Link to="/register/owner" style={s.footerLink}>Apply here</Link></p>
           </div>
 
           {/* Forgot Password Modal */}
           {forgotOpen && (
-            <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} onClick={() => { setForgotOpen(false); setForgotMsg(''); setForgotEmail(''); }}>
+            <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, animation: 'backdropIn .22s ease both' }} onClick={() => { setForgotOpen(false); setForgotMsg(''); setForgotEmail(''); }}>
               <div style={{ background: 'var(--surface)', borderRadius: 20, padding: '32px 28px', maxWidth: 400, width: '100%', boxShadow: '0 24px 60px rgba(0,0,0,.3)', border: '1px solid var(--border)', animation: 'scaleIn .22s ease both' }} onClick={e => e.stopPropagation()}>
                 <h3 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 22, fontWeight: 700, color: 'var(--text)', marginBottom: 8, letterSpacing: '-0.01em' }}>Reset Password</h3>
                 <p style={{ fontSize: 14, color: 'var(--text-muted)', marginBottom: 20, lineHeight: 1.6 }}>Enter the email address associated with your account and we'll send you a reset link.</p>
@@ -292,6 +423,32 @@ const s = {
     boxShadow: '0 6px 20px rgba(13,148,136,.35), inset 0 1px 0 rgba(255,255,255,.15)',
     letterSpacing: '0.01em',
   },
-  footer: { marginTop: 28, textAlign: 'center', fontSize: 14, color: 'var(--text-muted)' },
+  divider: {
+    display: 'flex', alignItems: 'center', gap: 12, margin: '24px 0 20px',
+  },
+  dividerLine: {
+    flex: 1, height: 1, background: 'var(--border)',
+  },
+  dividerText: {
+    fontSize: 12, color: 'var(--text-muted)', whiteSpace: 'nowrap',
+    letterSpacing: '0.04em', textTransform: 'uppercase',
+  },
+  socialRow: {
+    display: 'flex', gap: 10, marginBottom: 28,
+  },
+  socialBtn: {
+    flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+    padding: '11px 8px',
+    background: 'var(--surface)',
+    border: '1.5px solid var(--border)',
+    borderRadius: 12,
+    cursor: 'pointer',
+    fontSize: 13, fontWeight: 600,
+    color: 'var(--text)',
+    fontFamily: "'DM Sans', sans-serif",
+    transition: 'border-color .15s, background .15s',
+  },
+
+  footer: { marginTop: 0, textAlign: 'center', fontSize: 14, color: 'var(--text-muted)' },
   footerLink: { color: '#0D9488', fontWeight: 600 },
 };

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useBreakpoint } from '../hooks/useMobile';
@@ -127,9 +128,13 @@ export default function AdminLayout() {
         padding: isMobile ? '16px 16px 80px' : isTablet ? '20px 24px 80px' : '36px 40px',
         marginTop: (isMobile || isTablet) ? 56 : 0,
       }}>
-        <div className="fade-in">
+        <motion.div
+          key={location.pathname}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0, transition: { duration: 0.22, ease: 'easeOut' } }}
+        >
           <Outlet />
-        </div>
+        </motion.div>
       </main>
 
       {/* ── Mobile bottom tab bar ── */}

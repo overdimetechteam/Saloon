@@ -62,10 +62,15 @@ function EditModal({ ss, onSave, onClose }) {
           <input style={m.input} type="number" min="1" value={duration} onChange={e => setDuration(e.target.value)} />
         </label>
 
-        <label style={m.label}>Service Description
+        <label style={m.label}>
+          Service Description
+          <span style={{ float: 'right', fontWeight: 400, color: description.length > 180 ? '#DC2626' : 'var(--text-muted)', fontSize: 11 }}>
+            {description.length}/200
+          </span>
           <textarea
             style={{ ...m.input, resize: 'vertical', minHeight: 90, lineHeight: 1.6 }}
-            placeholder="Describe what's included, the process, benefits, etc."
+            placeholder="Short description — highlights only (max 200 chars)."
+            maxLength={200}
             value={description}
             onChange={e => setDescription(e.target.value)}
           />
@@ -85,6 +90,7 @@ export default function OwnerServices() {
   const { isMobile } = useBreakpoint();
   const [attached, setAttached] = useState([]);
   const [all, setAll]           = useState([]);
+  const [staffMembers, setStaffMembers] = useState([]);
   const [toAdd, setToAdd]       = useState('');
   const [error, setError]       = useState('');
   const [msg, setMsg]           = useState('');
@@ -92,6 +98,9 @@ export default function OwnerServices() {
   const [showCreate, setShowCreate] = useState(false);
   const [form, setForm] = useState({ name: '', category: 'Hair', price: '', duration: '', description: '', is_price_starting_from: false });
   const [creating, setCreating] = useState(false);
+  // Removal confirmation state
+  const [removeTarget, setRemoveTarget] = useState(null); // { ss, assignedStaff[] }
+  const [removing, setRemoving] = useState(false);
 
   const reload = () => {
     if (!salon) return;
@@ -101,6 +110,10 @@ export default function OwnerServices() {
   useEffect(() => {
     api.get('/services/').then(r => setAll(r.data)).catch(() => {});
     reload();
+  }, [salon]);
+
+  useEffect(() => {
+    if (salon) api.get(`/salons/${salon.id}/staff-members/`).then(r => setStaffMembers(r.data.filter(m => m.is_active))).catch(() => {});
   }, [salon]);
 
   const attachedIds = new Set(attached.map(ss => ss.service));
@@ -130,12 +143,23 @@ export default function OwnerServices() {
     }
   };
 
-  const detach = async ssId => {
+  const confirmDetach = ss => {
+    const assignedStaff = staffMembers.filter(m => (m.specialty_ids || []).includes(ss.service));
+    setRemoveTarget({ ss, assignedStaff });
+  };
+
+  const doDetach = async () => {
+    if (!removeTarget) return;
+    setRemoving(true);
     try {
-      await api.delete(`/salons/${salon.id}/services/${ssId}/`);
-      setAttached(prev => prev.filter(ss => ss.id !== ssId));
+      await api.delete(`/salons/${salon.id}/services/${removeTarget.ss.id}/`);
+      setAttached(prev => prev.filter(s => s.id !== removeTarget.ss.id));
       flash('Service removed.');
-    } catch (err) { setError(err.response?.data?.detail || 'Error'); }
+      setRemoveTarget(null);
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Error');
+      setRemoveTarget(null);
+    } finally { setRemoving(false); }
   };
 
   const saveEdit = async (ssId, data) => {
@@ -146,6 +170,8 @@ export default function OwnerServices() {
 
   const createCustom = async () => {
     if (!form.name || !form.price || !form.duration) return setError('All fields are required.');
+    if (Number(form.duration) < 1) return setError('Duration must be at least 1 minute.');
+    if (Number(form.price) < 1) return setError('Price must be at least LKR 1.');
     setCreating(true); setError('');
     try {
       await api.post(`/salons/${salon.id}/services/custom/`, {
@@ -245,10 +271,15 @@ export default function OwnerServices() {
             </button>
           </div>
 
-          <label style={{ ...s.fLabel, marginTop: 14 }}>Service Description
+          <label style={{ ...s.fLabel, marginTop: 14 }}>
+            Service Description
+            <span style={{ float: 'right', fontWeight: 400, color: (form.description?.length || 0) > 180 ? '#DC2626' : 'var(--text-muted)', fontSize: 11 }}>
+              {form.description?.length || 0}/200
+            </span>
             <textarea
               style={{ ...s.fInput, resize: 'vertical', minHeight: 80, lineHeight: 1.6 }}
-              placeholder="Describe what's included, the process, duration breakdown, benefits…"
+              placeholder="Short description — highlights only (max 200 chars)."
+              maxLength={200}
               value={form.description}
               onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
             />
@@ -297,7 +328,7 @@ export default function OwnerServices() {
                         </div>
                         <div style={{ display: 'flex', gap: 6 }}>
                           <button style={s.editBtn} onClick={() => setEditTarget(ss)}>Edit</button>
-                          <button style={s.detachBtn} onClick={() => detach(ss.id)}>Remove</button>
+                          <button style={s.detachBtn} onClick={() => confirmDetach(ss)}>Remove</button>
                         </div>
                       </div>
                       <div style={s.meta}>
@@ -321,6 +352,41 @@ export default function OwnerServices() {
           </div>
         );
       })}
+
+      {removeTarget && (
+        <div style={s.rmOverlay} onClick={e => e.target === e.currentTarget && setRemoveTarget(null)}>
+          <div style={s.rmBox} className="scale-in">
+            <div style={s.rmIcon}>⚠</div>
+            <h3 style={s.rmTitle}>Remove Service?</h3>
+            <p style={s.rmSub}>
+              You are about to remove <strong>{removeTarget.ss.service_name}</strong> from your salon.
+            </p>
+            {removeTarget.assignedStaff.length > 0 ? (
+              <div style={s.rmWarnBlock}>
+                <div style={s.rmWarnTitle}>⚠ This service is assigned to {removeTarget.assignedStaff.length} team member{removeTarget.assignedStaff.length > 1 ? 's' : ''}:</div>
+                <div style={s.rmStaffList}>
+                  {removeTarget.assignedStaff.map(m => (
+                    <span key={m.id} style={s.rmStaffChip}>{m.full_name}</span>
+                  ))}
+                </div>
+                <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 8 }}>
+                  Removing this service will also unassign it from all team members above.
+                </div>
+              </div>
+            ) : (
+              <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 6 }}>
+                This service is not assigned to any team members.
+              </div>
+            )}
+            <div style={s.rmActions}>
+              <button style={s.rmCancelBtn} onClick={() => setRemoveTarget(null)}>Cancel</button>
+              <button style={{ ...s.rmDeleteBtn, opacity: removing ? 0.7 : 1 }} onClick={doDetach} disabled={removing}>
+                {removing ? 'Removing…' : removeTarget.assignedStaff.length > 0 ? 'Delete Anyway' : 'Remove Service'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -386,6 +452,50 @@ const s = {
   sfSub:    { fontSize: 11, color: 'var(--text-muted)' },
   sfToggle: { width: 44, height: 24, borderRadius: 99, cursor: 'pointer', position: 'relative', transition: 'background .2s', flexShrink: 0 },
   sfKnob:   { position: 'absolute', top: 2, width: 20, height: 20, borderRadius: '50%', background: '#fff', boxShadow: '0 1px 4px rgba(0,0,0,.2)', transition: 'transform .2s' },
+
+  rmOverlay: {
+    position: 'fixed', inset: 0, background: 'rgba(8,6,17,.6)', backdropFilter: 'blur(6px)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    zIndex: 1500, padding: 20, animation: 'backdropIn .22s ease both',
+  },
+  rmBox: {
+    background: 'var(--surface)', borderRadius: 22, padding: '36px 32px',
+    maxWidth: 460, width: '100%', textAlign: 'center',
+    boxShadow: '0 32px 80px rgba(0,0,0,.35)', border: '1px solid var(--border)',
+  },
+  rmIcon: {
+    width: 56, height: 56, borderRadius: '50%', background: '#FFFBEB',
+    border: '2px solid #FCD34D', color: '#D97706',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    fontSize: 24, margin: '0 auto 16px',
+  },
+  rmTitle: {
+    fontFamily: "'Cormorant Garamond', Georgia, serif",
+    fontSize: 22, fontWeight: 700, color: 'var(--text)', margin: '0 0 10px',
+  },
+  rmSub: { fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.65, margin: '0 0 16px' },
+  rmWarnBlock: {
+    background: '#FFFBEB', border: '1px solid #FCD34D', borderRadius: 12,
+    padding: '12px 16px', textAlign: 'left', marginBottom: 20,
+  },
+  rmWarnTitle: { fontSize: 13, fontWeight: 700, color: '#92400E', marginBottom: 8 },
+  rmStaffList: { display: 'flex', flexWrap: 'wrap', gap: 6 },
+  rmStaffChip: {
+    fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20,
+    background: 'rgba(217,119,6,.1)', color: '#92400E', border: '1px solid #FCD34D',
+  },
+  rmActions: { display: 'flex', gap: 10, justifyContent: 'center', marginTop: 6 },
+  rmCancelBtn: {
+    padding: '10px 22px', background: 'var(--surface2)',
+    border: '1.5px solid var(--border)', borderRadius: 12,
+    cursor: 'pointer', fontSize: 14, fontWeight: 500, color: 'var(--text-muted)',
+    fontFamily: "'DM Sans', sans-serif",
+  },
+  rmDeleteBtn: {
+    padding: '10px 24px', background: '#DC2626', border: 'none', borderRadius: 12,
+    cursor: 'pointer', fontSize: 14, fontWeight: 700, color: '#fff',
+    boxShadow: '0 4px 14px rgba(220,38,38,.35)', fontFamily: "'DM Sans', sans-serif",
+  },
 };
 
 const m = {

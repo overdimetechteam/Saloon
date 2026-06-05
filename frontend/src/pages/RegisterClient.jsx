@@ -78,25 +78,25 @@ export default function RegisterClient() {
             </div>
           )}
 
-          <form onSubmit={handle} style={s.form}>
+          <form onSubmit={handle} style={s.form} autoComplete="off">
             <div style={s.field}>
               <label style={s.label}>Full Name</label>
-              <input style={s.input} placeholder="Jane Doe" value={form.full_name} onChange={f('full_name')} required />
+              <input style={s.input} placeholder="Jane Doe" value={form.full_name} onChange={f('full_name')} autoComplete="off" required />
             </div>
             <div style={s.field}>
               <label style={s.label}>Email address</label>
-              <input style={s.input} type="email" placeholder="jane@example.com" value={form.email} onChange={f('email')} required />
+              <input style={s.input} type="email" placeholder="jane@example.com" value={form.email} onChange={f('email')} autoComplete="off" required />
             </div>
             <div style={s.field}>
               <label style={s.label}>
                 Phone <span style={s.opt}>(optional)</span>
               </label>
-              <input style={s.input} placeholder="+94 77 123 4567" value={form.phone} onChange={f('phone')} />
+              <input style={s.input} placeholder="+94 77 123 4567" value={form.phone} onChange={f('phone')} autoComplete="off" />
             </div>
             <div style={s.field}>
               <label style={s.label}>Password</label>
               <div style={{ position: 'relative' }}>
-                <input style={{ ...s.input, paddingRight: 44 }} type={showPw ? 'text' : 'password'} placeholder="Min. 6 characters" value={form.password} onChange={f('password')} required />
+                <input style={{ ...s.input, paddingRight: 44 }} type={showPw ? 'text' : 'password'} placeholder="Min. 6 characters" value={form.password} onChange={f('password')} autoComplete="new-password" required />
                 <button type="button" onClick={() => setShowPw(v => !v)} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, color: 'var(--text-muted)', padding: '2px 4px' }}>
                   {showPw ? '🙈' : '👁'}
                 </button>

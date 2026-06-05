@@ -598,6 +598,11 @@ class AvailableSlotsView(APIView):
             current = open_dt
             while current < close_dt:
                 aware = timezone.make_aware(current) if timezone.is_naive(current) else current
+                # Block if the service duration would extend past closing time.
+                if current + timedelta(minutes=new_duration) > close_dt:
+                    slots.append({'datetime': current.strftime('%Y-%m-%dT%H:%M'), 'available': False})
+                    current += timedelta(minutes=slot_dur)
+                    continue
                 is_taken = False
                 for (b_start, b_dur) in booking_intervals:
                     b_end = b_start + timedelta(minutes=b_dur)
@@ -638,6 +643,10 @@ class AvailableSlotsView(APIView):
                 current = open_dt
                 while current < close_dt:
                     aware = timezone.make_aware(current) if timezone.is_naive(current) else current
+                    if current + timedelta(minutes=new_duration) > close_dt:
+                        slots.append({'datetime': current.strftime('%Y-%m-%dT%H:%M'), 'available': False})
+                        current += timedelta(minutes=slot_dur)
+                        continue
                     is_taken = any(
                         b_start <= aware <= b_start + timedelta(minutes=b_dur)
                         for (b_start, b_dur) in booking_intervals
@@ -686,6 +695,10 @@ class AvailableSlotsView(APIView):
                 current = open_dt
                 while current < close_dt:
                     aware = timezone.make_aware(current) if timezone.is_naive(current) else current
+                    if current + timedelta(minutes=new_duration) > close_dt:
+                        slots.append({'datetime': current.strftime('%Y-%m-%dT%H:%M'), 'available': False})
+                        current += timedelta(minutes=slot_dur)
+                        continue
                     # Count how many assigned staff are busy at this slot.
                     busy_count = sum(
                         1 for sm in active_staff

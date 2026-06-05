@@ -49,6 +49,7 @@ export function CartProvider({ children }) {
         selling_price: product.selling_price,
         current_stock: product.current_stock,
         first_image_url: product.first_image_url,
+        status: product.status,
         quantity,
         variantNote,
       }];

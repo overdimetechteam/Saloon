@@ -210,7 +210,7 @@ export default function RegisterSalon() {
 
         {error && <div style={s.alert}><span>⚠</span> {error}</div>}
 
-        <form onSubmit={step < TOTAL_STEPS ? advance : handle}>
+        <form onSubmit={step < TOTAL_STEPS ? advance : handle} autoComplete="off">
           {/* Step 1 — Salon Details */}
           {step === 1 && (
             <div style={s.fields}>
@@ -230,7 +230,7 @@ export default function RegisterSalon() {
                 </div>
                 <div style={s.field}>
                   <label style={s.label}>Salon Email</label>
-                  <input style={s.input} type="email" value={form.email} onChange={f('email')} required />
+                  <input style={s.input} type="email" value={form.email} onChange={f('email')} autoComplete="off" required />
                 </div>
               </div>
 
@@ -330,7 +330,7 @@ export default function RegisterSalon() {
                 </div>
                 <div style={s.field}>
                   <label style={s.label}>Password</label>
-                  <input style={s.input} type="password" value={form.password} onChange={f('password')} required />
+                  <input style={s.input} type="password" value={form.password} onChange={f('password')} autoComplete="new-password" required />
                 </div>
               </div>
             </div>

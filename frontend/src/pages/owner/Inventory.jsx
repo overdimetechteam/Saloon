@@ -17,6 +17,7 @@ const STATUS_META = {
 const EMPTY_FORM = {
   name: '', brand: '', sku: '', category: 'Hair Care', subcategory: '', shade_variant: '',
   size: '', unit_of_measure: '', cost_price: '', selling_price: '', reorder_level: 0,
+  valuation_method: 'FIFO',
   supplier: '', manufacturing_date: '', expiry_date: '', pao: '', barcode: '',
   country_of_origin: '', certifications: '', skin_type: '', notes: '',
 };
@@ -185,6 +186,15 @@ function ProductModal({ product, onClose, onSaved, salonId }) {
               <MField label="Selling Price (LKR)" type="number" required value={form.selling_price} onChange={f('selling_price')} />
               <MField label="Reorder Level" type="number" value={form.reorder_level} onChange={f('reorder_level')} />
             </div>
+            <div style={s.mGrid3}>
+              <MField label="Inventory Valuation Method" required>
+                <select style={s.mInput} value={form.valuation_method || 'FIFO'} onChange={f('valuation_method')}>
+                  <option value="FIFO">FIFO — First In, First Out</option>
+                  <option value="LIFO">LIFO — Last In, First Out</option>
+                  <option value="FEFO">FEFO — First Expired, First Out</option>
+                </select>
+              </MField>
+            </div>
 
             <div style={s.mSection}>Supplier & Dates</div>
             <div style={s.mGrid3}>
@@ -292,6 +302,163 @@ function ProductImagesModal({ product, onClose, salonId }) {
   );
 }
 
+const VALUATION_INFO = {
+  FIFO: 'Units received first are sold/used first. Best for perishables.',
+  LIFO: 'Most recently received units are sold/used first.',
+  FEFO: 'Units expiring soonest are sold/used first. Best for cosmetics.',
+};
+
+function BatchModal({ product, salonId, onClose }) {
+  const [batches, setBatches]   = useState([]);
+  const [loading, setLoading]   = useState(true);
+  const [showAdd, setShowAdd]   = useState(false);
+  const [saving, setSaving]     = useState(false);
+  const [addErr, setAddErr]     = useState('');
+  const [form, setForm] = useState({ batch_number: '', quantity_received: '', unit_cost: '', received_date: '', expiry_date: '', notes: '' });
+
+  const loadBatches = () => {
+    setLoading(true);
+    api.get(`/salons/${salonId}/products/${product.id}/batches/`)
+      .then(r => setBatches(r.data))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => { loadBatches(); }, [product.id]);
+
+  const addBatch = async e => {
+    e.preventDefault(); setAddErr(''); setSaving(true);
+    if (!form.quantity_received || Number(form.quantity_received) < 1) { setAddErr('Quantity must be at least 1.'); setSaving(false); return; }
+    if (!form.unit_cost || Number(form.unit_cost) < 0) { setAddErr('Unit cost is required.'); setSaving(false); return; }
+    if (!form.received_date) { setAddErr('Received date is required.'); setSaving(false); return; }
+    try {
+      await api.post(`/salons/${salonId}/products/${product.id}/batches/`, {
+        ...form,
+        quantity_received: Number(form.quantity_received),
+        quantity_remaining: Number(form.quantity_received),
+        unit_cost: Number(form.unit_cost),
+      });
+      setForm({ batch_number: '', quantity_received: '', unit_cost: '', received_date: '', expiry_date: '', notes: '' });
+      setShowAdd(false);
+      loadBatches();
+    } catch (err) {
+      setAddErr(err.response?.data?.detail || JSON.stringify(err.response?.data) || 'Error adding batch.');
+    } finally { setSaving(false); }
+  };
+
+  const method = product.valuation_method || 'FIFO';
+  const methodColor = method === 'FIFO' ? '#0D9488' : method === 'LIFO' ? '#D4AF37' : '#0B7A70';
+
+  return createPortal(
+    <div style={s.overlay} onClick={e => e.target === e.currentTarget && onClose()}>
+      <div style={{ ...s.modal, maxWidth: 720 }}>
+        <div style={s.mHeader}>
+          <div>
+            <div style={s.mEyebrow}>Batch Tracking</div>
+            <div style={s.mTitle}>{product.name}</div>
+          </div>
+          <button style={s.mClose} onClick={onClose}>✕</button>
+        </div>
+
+        {/* Valuation method banner */}
+        <div style={{ margin: '0 32px 20px', padding: '10px 16px', borderRadius: 10, background: methodColor + '10', border: `1px solid ${methodColor}30`, display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ fontWeight: 800, fontSize: 13, color: methodColor, minWidth: 38 }}>{method}</span>
+          <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{VALUATION_INFO[method]}</span>
+        </div>
+
+        <div style={{ padding: '0 32px 24px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>
+              {batches.length} batch{batches.length !== 1 ? 'es' : ''} · {batches.reduce((s, b) => s + b.quantity_remaining, 0)} units remaining
+            </div>
+            <button style={{ ...s.mSave, padding: '7px 16px', fontSize: 12 }} onClick={() => setShowAdd(v => !v)}>
+              {showAdd ? 'Cancel' : '+ Add Batch'}
+            </button>
+          </div>
+
+          {showAdd && (
+            <form onSubmit={addBatch} style={{ background: 'var(--surface2)', borderRadius: 14, padding: 18, marginBottom: 18, border: '1px solid var(--border)' }}>
+              <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--text)', marginBottom: 14 }}>New Batch Entry</div>
+              {addErr && <div style={{ ...s.alert, marginBottom: 12 }}>{addErr}</div>}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 12, marginBottom: 12 }}>
+                {[
+                  { label: 'Batch Number', key: 'batch_number', placeholder: 'Auto-generated if blank' },
+                  { label: 'Qty Received *', key: 'quantity_received', type: 'number', placeholder: '0' },
+                  { label: 'Unit Cost (LKR) *', key: 'unit_cost', type: 'number', placeholder: '0.00' },
+                  { label: 'Received Date *', key: 'received_date', type: 'date' },
+                  { label: 'Expiry Date', key: 'expiry_date', type: 'date' },
+                ].map(({ label, key, type = 'text', placeholder = '' }) => (
+                  <div key={key} style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                    <label style={s.mLabel}>{label}</label>
+                    <input style={s.mInput} type={type} placeholder={placeholder} value={form[key]} onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))} />
+                  </div>
+                ))}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                  <label style={s.mLabel}>Notes</label>
+                  <input style={s.mInput} placeholder="Optional notes" value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} />
+                </div>
+              </div>
+              <button type="submit" style={{ ...s.mSave, opacity: saving ? 0.7 : 1 }} disabled={saving}>
+                {saving ? 'Adding…' : '✓ Add Batch'}
+              </button>
+            </form>
+          )}
+
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-muted)', fontSize: 13 }}>Loading batches…</div>
+          ) : batches.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-muted)', fontSize: 13 }}>
+              No batches yet. Batches are created automatically when a GRN is confirmed, or add one manually above.
+            </div>
+          ) : (
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ ...s.table, fontSize: 12 }}>
+                <thead>
+                  <tr>
+                    {['Batch No.', 'GRN Ref', 'Received', 'Expiry', 'Qty In', 'Remaining', 'Unit Cost', 'Notes'].map(h => (
+                      <th key={h} style={{ ...s.th, fontSize: 10 }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {batches.map(b => {
+                    const pct = b.quantity_received > 0 ? b.quantity_remaining / b.quantity_received : 0;
+                    const rowColor = b.quantity_remaining === 0 ? 'rgba(220,38,38,.03)' : b.expiry_date && new Date(b.expiry_date) < new Date() ? 'rgba(212,175,55,.04)' : '';
+                    return (
+                      <tr key={b.id} style={{ background: rowColor }}>
+                        <td style={s.td}><span style={{ fontFamily: 'monospace', fontSize: 11, fontWeight: 700 }}>{b.batch_number}</span></td>
+                        <td style={s.td}><span style={{ fontSize: 11, color: '#0D9488' }}>{b.grn_reference || '—'}</span></td>
+                        <td style={s.td}>{b.received_date}</td>
+                        <td style={s.td}>
+                          {b.expiry_date
+                            ? <span style={{ color: new Date(b.expiry_date) < new Date() ? '#DC2626' : 'var(--text-muted)' }}>{b.expiry_date}</span>
+                            : '—'}
+                        </td>
+                        <td style={s.td}><span style={{ fontWeight: 700 }}>{b.quantity_received}</span></td>
+                        <td style={s.td}>
+                          <span style={{ fontWeight: 700, color: b.quantity_remaining === 0 ? '#DC2626' : b.quantity_remaining < 5 ? '#D4AF37' : '#0D9488' }}>
+                            {b.quantity_remaining}
+                          </span>
+                          <div style={{ width: 50, height: 4, background: 'var(--surface2)', borderRadius: 2, marginTop: 3 }}>
+                            <div style={{ width: `${pct * 100}%`, height: '100%', background: pct > 0.5 ? '#0D9488' : pct > 0.2 ? '#D4AF37' : '#DC2626', borderRadius: 2, transition: 'width .3s' }} />
+                          </div>
+                        </td>
+                        <td style={s.td}>LKR {Number(b.unit_cost).toLocaleString()}</td>
+                        <td style={s.td}><span style={{ color: 'var(--text-muted)' }}>{b.notes || '—'}</span></td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
 export default function OwnerInventory() {
   const { salon } = useOwner();
   const [products, setProducts]   = useState([]);
@@ -302,6 +469,7 @@ export default function OwnerInventory() {
   const [modal, setModal]         = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [imagesProduct, setImagesProduct] = useState(null);
+  const [batchProduct, setBatchProduct] = useState(null);
 
   const load = () => {
     if (!salon) return;
@@ -417,6 +585,16 @@ export default function OwnerInventory() {
                     <td style={s.td}>
                       <span style={{ fontWeight: 700, color: meta.color }}>{p.current_stock}</span>
                       <span style={{ color: 'var(--text-muted)', fontSize: 11 }}> {p.unit_of_measure}</span>
+                      <div style={{ marginTop: 3 }}>
+                        <span style={{ fontSize: 10, fontWeight: 700, padding: '1px 7px', borderRadius: 20, background: 'rgba(13,148,136,.08)', color: '#0D9488', border: '1px solid rgba(13,148,136,.2)' }}>
+                          {p.valuation_method || 'FIFO'}
+                        </span>
+                        {p.batch_count > 0 && (
+                          <span style={{ fontSize: 10, fontWeight: 700, padding: '1px 7px', borderRadius: 20, background: 'rgba(212,175,55,.08)', color: '#D4AF37', border: '1px solid rgba(212,175,55,.2)', marginLeft: 4 }}>
+                            {p.batch_count} batch{p.batch_count !== 1 ? 'es' : ''}
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td style={s.td}><span style={{ fontWeight: 700, color: '#0D9488' }}>LKR {Number(p.selling_price).toLocaleString()}</span></td>
                     <td style={s.td}><span style={{ fontSize: 12, color: p.status === 'expiring_soon' ? '#0D9488' : 'var(--text-muted)' }}>{p.expiry_date || '—'}</span></td>
@@ -426,6 +604,7 @@ export default function OwnerInventory() {
                       </span>
                     </td>
                     <td style={{ ...s.td, whiteSpace: 'nowrap' }}>
+                      <button style={{ ...s.iconBtn, color: '#D4AF37' }} title="Batches" onClick={() => setBatchProduct(p)}>▦</button>
                       <button style={{ ...s.iconBtn, color: '#0D9488' }} title="Photos" onClick={() => setImagesProduct(p)}>📷</button>
                       <button style={s.iconBtn} title="Edit" onClick={() => setModal({ type: 'edit', product: p })}>✎</button>
                       <button style={{ ...s.iconBtn, color: '#DC2626' }} title="Delete" onClick={() => setDeleteTarget(p.id)}>✕</button>
@@ -478,6 +657,15 @@ export default function OwnerInventory() {
           </div>
         </div>,
         document.body
+      )}
+
+      {/* Batch management modal */}
+      {batchProduct && (
+        <BatchModal
+          product={batchProduct}
+          salonId={salon?.id}
+          onClose={() => { setBatchProduct(null); load(); }}
+        />
       )}
     </div>
   );

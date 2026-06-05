@@ -207,6 +207,15 @@ export default function OwnerBookingDetail() {
               </div>
             )}
 
+            {!booking.staff_member_name && !['cancelled', 'completed'].includes(booking.status) && (
+              <div style={s.alertWarn}>
+                <span style={{ fontSize: 18, flexShrink: 0 }}>⚠</span>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 2 }}>Stylist not assigned</div>
+                  <div style={{ fontSize: 12, lineHeight: 1.5 }}>This booking was made with "Any Available". Please assign a specific stylist using the panel on the right before the appointment date.</div>
+                </div>
+              </div>
+            )}
             {error && <div style={s.alertErr}>{error}</div>}
             {msg   && <div style={s.alertOk}>{msg}</div>}
 
@@ -349,8 +358,9 @@ const s = {
   walkInBadge: { fontSize: 10, fontWeight: 700, padding: '3px 9px', borderRadius: 20, background: '#F0FDFA', color: '#0D9488', border: '1px solid #99F6E4', flexShrink: 0 },
   bookingId: { color: 'var(--text-muted)', fontSize: 12, margin: '4px 0 0', lineHeight: 1.6 },
   badge: { display: 'inline-flex', borderRadius: 20, fontWeight: 700, flexShrink: 0, fontSize: 13, padding: '6px 16px' },
-  alertErr: { background: '#FEF2F2', border: '1px solid #FCA5A5', color: '#DC2626', borderRadius: 12, padding: '11px 14px', fontSize: 13, marginBottom: 18 },
-  alertOk:  { background: '#F0FDFA', border: '1px solid #99F6E4', color: '#0D9488', borderRadius: 12, padding: '11px 14px', fontSize: 13, marginBottom: 18 },
+  alertErr:  { background: '#FEF2F2', border: '1px solid #FCA5A5', color: '#DC2626', borderRadius: 12, padding: '11px 14px', fontSize: 13, marginBottom: 18 },
+  alertOk:   { background: '#F0FDFA', border: '1px solid #99F6E4', color: '#0D9488', borderRadius: 12, padding: '11px 14px', fontSize: 13, marginBottom: 18 },
+  alertWarn: { background: '#FFFBEB', border: '1px solid #FCD34D', color: '#92400E', borderRadius: 12, padding: '12px 16px', fontSize: 13, marginBottom: 18, display: 'flex', alignItems: 'flex-start', gap: 10 },
   clientMoreNotice: {
     display: 'flex', gap: 14, alignItems: 'flex-start',
     background: 'rgba(212,175,55,.08)', border: '1px solid rgba(212,175,55,.35)',

@@ -380,6 +380,7 @@ class WalkInBookingView(APIView):
         service_ids = request.data.get('service_ids', [])
         appointment_datetime = request.data.get('appointment_datetime')
         notes = request.data.get('notes', '')
+        staff_id = request.data.get('staff_id') or None
 
         if not client_email:
             return Response({'detail': 'client_email is required'}, status=status.HTTP_400_BAD_REQUEST)
@@ -412,6 +413,34 @@ class WalkInBookingView(APIView):
         if service_objs.count() != len(service_ids):
             return Response({'detail': 'One or more services are invalid'}, status=status.HTTP_400_BAD_REQUEST)
 
+        # Resolve staff member and check for booking conflicts.
+        staff_member = None
+        if staff_id:
+            try:
+                staff_member = StaffMember.objects.get(id=staff_id, salon=salon, is_active=True)
+            except StaffMember.DoesNotExist:
+                return Response({'detail': 'Selected stylist not found or inactive'}, status=status.HTTP_400_BAD_REQUEST)
+
+            total_duration = sum(ss.effective_duration for ss in service_objs) or 30
+            apt_end = apt_dt + timedelta(minutes=total_duration)
+            taken_statuses = ['pending', 'confirmed', 'rescheduled', 'awaiting_client']
+            conflicts = Booking.objects.filter(
+                staff_member=staff_member,
+                status__in=taken_statuses,
+            ).prefetch_related('booking_services__salon_service')
+            for existing in conflicts:
+                e_start = existing.requested_datetime
+                e_dur = sum(
+                    bs.salon_service.effective_duration
+                    for bs in existing.booking_services.all()
+                ) or 30
+                e_end = e_start + timedelta(minutes=e_dur)
+                if apt_dt < e_end and apt_end > e_start:
+                    return Response(
+                        {'detail': f'This stylist already has a booking from {e_start.strftime("%H:%M")} to {e_end.strftime("%H:%M")} on that day.'},
+                        status=status.HTTP_409_CONFLICT,
+                    )
+
         booking = Booking.objects.create(
             client=client,
             salon=salon,
@@ -419,6 +448,7 @@ class WalkInBookingView(APIView):
             status='confirmed',
             notes=notes,
             is_walk_in=True,
+            staff_member=staff_member,
         )
         for ss in service_objs:
             BookingService.objects.create(booking=booking, salon_service=ss)

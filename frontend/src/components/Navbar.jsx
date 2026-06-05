@@ -61,21 +61,23 @@ export default function Navbar() {
         </div>
       </Link>
 
-      {/* Centered search — desktop explore page only */}
-      {showNavSearch && (
-        <div style={s.navSearch} className="search-bar-wrap">
-          <span className="search-icon" style={{ color: accentColor, fontSize: 13, flexShrink: 0 }}>✦</span>
-          <input
-            style={s.navSearchInput}
-            placeholder="Search salons…"
-            value={navSearch}
-            onChange={e => setSearchParams(e.target.value ? { q: e.target.value } : {})}
-          />
-          {navSearch && (
-            <button style={s.navSearchClear} onClick={() => setSearchParams({})}>✕</button>
-          )}
-        </div>
-      )}
+      {/* Center slot — always a flex item so it pushes right-nav to the edge */}
+      <div style={s.navCenter}>
+        {showNavSearch && (
+          <div style={s.navSearch} className="search-bar-wrap">
+            <span className="search-icon" style={{ color: accentColor, fontSize: 13, flexShrink: 0 }}>✦</span>
+            <input
+              style={s.navSearchInput}
+              placeholder="Search salons…"
+              value={navSearch}
+              onChange={e => setSearchParams(e.target.value ? { q: e.target.value } : {})}
+            />
+            {navSearch && (
+              <button style={s.navSearchClear} onClick={() => setSearchParams({})}>✕</button>
+            )}
+          </div>
+        )}
+      </div>
 
       <div style={s.right}>
         {profile ? (
@@ -159,14 +161,14 @@ const s = {
     height: 64,
     background: 'var(--surface)',
     borderBottom: '1px solid var(--border)',
-    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    display: 'flex', alignItems: 'center',
     position: 'sticky', top: 0, zIndex: 200,
     boxShadow: '0 1px 0 var(--border), 0 4px 20px rgba(13,148,136,.04)',
     transition: 'background .3s ease',
   },
   brand: {
     display: 'flex', alignItems: 'center', gap: 12,
-    textDecoration: 'none', flexShrink: 0, position: 'relative', zIndex: 1,
+    textDecoration: 'none', flexShrink: 0,
   },
   brandMark: {
     width: 40, height: 40, borderRadius: 12, flexShrink: 0,
@@ -186,10 +188,13 @@ const s = {
     textTransform: 'uppercase', marginTop: 3, fontWeight: 500,
   },
 
+  navCenter: {
+    flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center',
+    minWidth: 0, padding: '0 16px',
+  },
   navSearch: {
-    position: 'absolute', left: '50%', transform: 'translateX(-50%)',
     display: 'flex', alignItems: 'center', gap: 10,
-    width: 360, zIndex: 2,
+    width: '100%', maxWidth: 360,
     background: 'var(--surface2)', border: '1px solid var(--border)',
     borderRadius: 24, padding: '8px 16px',
     transition: 'border-color .2s ease, box-shadow .2s ease',
@@ -204,7 +209,7 @@ const s = {
     color: 'var(--text-muted)', fontSize: 12, padding: '1px 4px', borderRadius: 4,
   },
 
-  right: { display: 'flex', alignItems: 'center', gap: 8, position: 'relative', zIndex: 1 },
+  right: { display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 },
   nav:   { display: 'flex', gap: 2 },
   navLink: {
     padding: '6px 14px', borderRadius: 8, fontSize: 14, fontWeight: 500,

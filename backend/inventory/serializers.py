@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Product, GRN, GRNItem, Sale, SaleItem, StockAdjustment, ProductImage, CosmeticOrder, CosmeticOrderItem
+from .models import Product, GRN, GRNItem, Sale, SaleItem, StockAdjustment, ProductImage, CosmeticOrder, CosmeticOrderItem, ProductBatch
 
 
 class ProductImageSerializer(serializers.ModelSerializer):
@@ -17,21 +17,39 @@ class ProductImageSerializer(serializers.ModelSerializer):
         return None
 
 
+class ProductBatchSerializer(serializers.ModelSerializer):
+    grn_reference = serializers.CharField(source='grn.reference_number', read_only=True, default=None)
+
+    class Meta:
+        model = ProductBatch
+        fields = [
+            'id', 'batch_number', 'grn', 'grn_reference',
+            'quantity_received', 'quantity_remaining', 'unit_cost',
+            'received_date', 'expiry_date', 'notes', 'created_at',
+        ]
+        read_only_fields = ['created_at']
+
+
 class ProductSerializer(serializers.ModelSerializer):
     status = serializers.ReadOnlyField()
     images = ProductImageSerializer(many=True, read_only=True)
     first_image_url = serializers.SerializerMethodField()
+    batch_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
         fields = [
             'id', 'salon', 'name', 'brand', 'sku', 'category', 'subcategory',
             'shade_variant', 'size', 'unit_of_measure', 'cost_price', 'selling_price',
-            'reorder_level', 'current_stock', 'supplier', 'manufacturing_date',
-            'expiry_date', 'pao', 'barcode', 'country_of_origin', 'certifications',
-            'skin_type', 'notes', 'is_active', 'status', 'images', 'first_image_url',
+            'reorder_level', 'current_stock', 'valuation_method', 'supplier',
+            'manufacturing_date', 'expiry_date', 'pao', 'barcode', 'country_of_origin',
+            'certifications', 'skin_type', 'notes', 'is_active', 'status',
+            'images', 'first_image_url', 'batch_count',
         ]
         read_only_fields = ['salon', 'current_stock', 'status']
+
+    def get_batch_count(self, obj):
+        return obj.batches.filter(quantity_remaining__gt=0).count()
 
     def get_first_image_url(self, obj):
         request = self.context.get('request')

@@ -132,6 +132,7 @@ function makeNb(C, R, TL) { return {
     border: '1px solid var(--border)', borderRadius: 18,
     boxShadow: `0 20px 56px rgba(${R},.12), 0 4px 16px rgba(0,0,0,.08)`,
     zIndex: 500, overflow: 'hidden',
+    animation: 'fadeSlideDown .22s cubic-bezier(.16,1,.3,1) both',
   },
   dropHeader: {
     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
