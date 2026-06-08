@@ -16,6 +16,9 @@ export default function Login() {
   const [error, setError]       = useState('');
   const [loading, setLoading]   = useState(false);
   const [socialLoading, setSocialLoading] = useState('');
+  const [unverifiedEmail, setUnverifiedEmail] = useState(''); // set when login rejected for unverified email
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendMsg, setResendMsg] = useState('');
   const [forgotOpen, setForgotOpen] = useState(false);
   const [forgotEmail, setForgotEmail] = useState('');
   const [forgotLoading, setForgotLoading] = useState(false);
@@ -41,13 +44,26 @@ export default function Login() {
   }, []);
 
   const handle = async e => {
-    e.preventDefault(); setError(''); setLoading(true);
+    e.preventDefault(); setError(''); setUnverifiedEmail(''); setResendMsg(''); setLoading(true);
     try {
       const user = await login(form.email, form.password);
       navigate(roleRedirect(user.role));
     } catch (err) {
+      if (err.response?.data?.code === 'email_not_verified') {
+        setUnverifiedEmail(form.email);
+      }
       setError(err.response?.data?.detail || 'Invalid email or password');
     } finally { setLoading(false); }
+  };
+
+  const resendVerification = async () => {
+    setResendLoading(true); setResendMsg('');
+    try {
+      await api.post('/auth/resend-verification/', { email: unverifiedEmail });
+      setResendMsg('Verification email sent! Check your inbox.');
+    } catch {
+      setResendMsg('Failed to send. Try again.');
+    } finally { setResendLoading(false); }
   };
 
   // ── Google ────────────────────────────────────────────────────────────────
@@ -174,6 +190,16 @@ export default function Login() {
           {error && (
             <div style={s.alert}>
               <span style={s.alertIcon}>⚠</span> {error}
+            </div>
+          )}
+          {unverifiedEmail && (
+            <div style={{ background: '#FFF7ED', border: '1px solid #FED7AA', borderRadius: 12, padding: '12px 16px', fontSize: 13, marginBottom: 16, color: '#92400E' }}>
+              {resendMsg || 'Your email is not verified yet.'}
+              {!resendMsg && (
+                <button onClick={resendVerification} disabled={resendLoading} style={{ marginLeft: 10, background: 'none', border: 'none', cursor: 'pointer', color: '#0D9488', fontWeight: 700, fontSize: 13, padding: 0, textDecoration: 'underline' }}>
+                  {resendLoading ? 'Sending…' : 'Resend verification email'}
+                </button>
+              )}
             </div>
           )}
 

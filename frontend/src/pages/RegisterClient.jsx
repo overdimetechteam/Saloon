@@ -8,23 +8,48 @@ export default function RegisterClient() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { isMobile, isTablet } = useBreakpoint();
-  const [form, setForm]     = useState({ email: '', full_name: '', phone: '', password: '' });
-  const [showPw, setShowPw] = useState(false);
-  const [error, setError]   = useState('');
-  const [loading, setLoading] = useState(false);
+  const [form, setForm]         = useState({ email: '', full_name: '', phone: '', password: '' });
+  const [showPw, setShowPw]     = useState(false);
+  const [error, setError]       = useState('');
+  const [loading, setLoading]   = useState(false);
+  const [verifyEmail, setVerifyEmail] = useState(''); // set after successful registration
   const f = k => e => setForm({ ...form, [k]: e.target.value });
 
   const handle = async e => {
     e.preventDefault(); setError(''); setLoading(true);
     try {
-      await register({ ...form, role: 'client' });
-      setForm({ email: '', full_name: '', phone: '', password: '' });
+      const result = await register({ ...form, role: 'client' });
+      if (result.requires_verification) {
+        setVerifyEmail(form.email);
+        return;
+      }
       navigate(searchParams.get('next') || '/user/dashboard');
     } catch (err) {
       const data = err.response?.data;
       setError(typeof data === 'string' ? data : Object.values(data || {}).flat().join(' '));
     } finally { setLoading(false); }
   };
+
+  if (verifyEmail) return (
+    <div style={s.page}>
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 32 }}>
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 22, padding: '48px 40px', maxWidth: 440, width: '100%', textAlign: 'center', boxShadow: '0 20px 56px rgba(13,148,136,.1)' }}>
+          <div style={{ fontSize: 48, marginBottom: 18 }}>📬</div>
+          <h2 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 30, fontWeight: 700, color: 'var(--text)', margin: '0 0 12px' }}>Check your email</h2>
+          <p style={{ color: 'var(--text-muted)', fontSize: 15, lineHeight: 1.7, margin: '0 0 8px' }}>
+            We sent a verification link to
+          </p>
+          <p style={{ color: '#0D9488', fontWeight: 700, fontSize: 15, margin: '0 0 24px', wordBreak: 'break-all' }}>{verifyEmail}</p>
+          <p style={{ color: 'var(--text-muted)', fontSize: 13, lineHeight: 1.6, margin: '0 0 28px' }}>
+            Click the link in that email to activate your account. Check your spam folder if you don't see it.
+          </p>
+          <Link to="/login" style={{ display: 'inline-block', padding: '12px 32px', background: 'linear-gradient(135deg,#0D9488,#14B8A8)', color: '#fff', borderRadius: 12, textDecoration: 'none', fontWeight: 600, fontSize: 14 }}>
+            Go to Login
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div style={{ ...s.page, flexDirection: (isMobile || isTablet) ? 'column' : 'row' }}>

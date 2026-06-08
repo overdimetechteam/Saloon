@@ -46,6 +46,7 @@ import OwnerOffers        from './pages/owner/Offers';
 import OwnerSubscription  from './pages/owner/Subscription';
 
 import ResetPassword from './pages/ResetPassword';
+import VerifyEmail from './pages/VerifyEmail';
 import TwitterCallback from './pages/TwitterCallback';
 import UserDashboard from './pages/user/Dashboard';
 import UserBookingList from './pages/user/BookingList';
@@ -101,6 +102,7 @@ export default function App() {
           <Route path="/register/user" element={<RegisterClient />} />
           <Route path="/register/owner" element={<RegisterSalon />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/auth/twitter/callback" element={<TwitterCallback />} />
 
           {/* Salon portal select + employee login */}

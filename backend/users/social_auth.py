@@ -35,6 +35,10 @@ def _get_or_create_social_user(email, full_name=''):
             full_name=full_name or email.split('@')[0],
             role='client',
         )
+    # Social login = email confirmed by the provider, mark verified
+    if not user.email_verified:
+        user.email_verified = True
+        user.save(update_fields=['email_verified'])
     return user
 
 
