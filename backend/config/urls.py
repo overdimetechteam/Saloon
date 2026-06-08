@@ -1,7 +1,8 @@
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.static import serve
 from rest_framework_simplejwt.views import TokenRefreshView
 from users.views import RegisterView, LoginView, ForgotPasswordView, ResetPasswordView
 from users.social_auth import (
@@ -29,4 +30,6 @@ urlpatterns = [
     path('api/', include('users.urls')),
     path('api/subscription/', include('subscriptions.urls')),
     path('api/', include('staff.urls')),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+] + [
+    re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
+]
