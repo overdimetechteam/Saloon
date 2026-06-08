@@ -27,37 +27,44 @@ TAKEN_STATUSES = ['pending', 'confirmed', 'rescheduled', 'awaiting_client']
 # ── Booking confirmation email ─────────────────────────────────────────────────
 
 def _send_booking_confirmation_email(booking):
-    client  = booking.client
-    salon   = booking.salon
-    dt      = booking.requested_datetime
+    client   = booking.client
+    salon    = booking.salon
+    dt       = booking.requested_datetime
     date_str = dt.strftime('%A, %B %d, %Y')
     time_str = dt.strftime('%I:%M %p')
 
-    services   = list(booking.booking_services.select_related('salon_service__service').all())
-    subtotal   = sum(float(bs.salon_service.effective_price) for bs in services)
-    discount   = float(booking.discount_amount)
-    total      = subtotal - discount
-    svc_rows   = ''.join(
-        f'<li style="margin:3px 0;color:#374151;font-size:13px;list-style:none">• {bs.salon_service.service.name}</li>'
+    services = list(booking.booking_services.select_related('salon_service__service').all())
+    subtotal = sum(float(bs.salon_service.effective_price) for bs in services)
+    discount = float(booking.discount_amount)
+    total    = subtotal - discount
+
+    # Service rows — white text for dark email
+    svc_rows = ''.join(
+        f'<div style="color:#e2e8f0;font-size:13px;margin:3px 0;text-align:right">&#8226; {bs.salon_service.service.name}</div>'
         for bs in services
     )
 
-    appt_type     = 'Home Visit' if booking.home_visit else ('Walk-In' if booking.is_walk_in else 'In-Salon')
-    type_color    = '#C2410C' if booking.home_visit else '#0D9488'
-    type_bg       = '#FFF7ED'  if booking.home_visit else '#F0FDFA'
-    staff_row     = (
-        f'<tr><td style="padding:8px 0;color:#6b7280;font-size:13px;border-bottom:1px solid #f3f4f6">Stylist</td>'
-        f'<td style="padding:8px 0;color:#1a1a2e;font-size:13px;font-weight:700;text-align:right;border-bottom:1px solid #f3f4f6">{booking.staff_member.full_name}</td></tr>'
-        if booking.staff_member else ''
-    )
-    discount_row  = (
-        f'<tr><td style="padding:6px 0;color:#0D9488;font-size:13px">Discount ({booking.promo_code.code})</td>'
-        f'<td style="padding:6px 0;color:#0D9488;font-size:13px;font-weight:700;text-align:right">− LKR {discount:,.0f}</td></tr>'
-        if discount > 0 else ''
-    )
+    appt_type = 'Home Visit' if booking.home_visit else ('Walk-In' if booking.is_walk_in else 'In-Salon')
 
-    frontend_url  = getattr(settings, 'FRONTEND_URL', 'http://localhost:5173')
-    booking_url   = f"{frontend_url}/user/bookings/{booking.pk}"
+    if booking.home_visit:
+        type_bg, type_color = 'rgba(251,146,60,0.15)', '#fb923c'
+    elif booking.is_walk_in:
+        type_bg, type_color = 'rgba(139,92,246,0.15)', '#a78bfa'
+    else:
+        type_bg, type_color = 'rgba(20,184,166,0.15)', '#14B8A8'
+
+    staff_row = (
+        f'<tr><td style="padding:10px 0;color:rgba(255,255,255,0.45);font-size:13px;border-bottom:1px solid #1e3a36">Stylist</td>'
+        f'<td style="padding:10px 0;color:#e2e8f0;font-size:13px;font-weight:700;text-align:right;border-bottom:1px solid #1e3a36">{booking.staff_member.full_name}</td></tr>'
+    ) if booking.staff_member else ''
+
+    discount_row = (
+        f'<tr><td style="padding:6px 0;color:#14B8A8;font-size:13px">Discount ({booking.promo_code.code})</td>'
+        f'<td style="padding:6px 0;color:#14B8A8;font-size:13px;font-weight:700;text-align:right">&#8722; LKR {discount:,.0f}</td></tr>'
+    ) if discount > 0 else ''
+
+    frontend_url = getattr(settings, 'FRONTEND_URL', 'http://localhost:5173')
+    booking_url  = f"{frontend_url}/user/bookings/{booking.pk}"
 
     if salon.latitude and salon.longitude:
         maps_url = f"https://maps.google.com/?q={salon.latitude},{salon.longitude}"
@@ -65,121 +72,161 @@ def _send_booking_confirmation_email(booking):
         maps_url = f"https://maps.google.com/?q={quote(f'{salon.address_street}, {salon.address_city}, Sri Lanka')}"
 
     if booking.home_visit and booking.home_visit_address:
-        loc_label  = 'Your Address (Home Visit)'
-        loc_addr   = booking.home_visit_address
-        loc_maps   = f"https://maps.google.com/?q={quote(booking.home_visit_address)}"
+        loc_label = 'Your Address (Home Visit)'
+        loc_addr  = booking.home_visit_address
+        loc_maps  = f"https://maps.google.com/?q={quote(booking.home_visit_address)}"
     else:
-        loc_label  = salon.name
-        loc_addr   = f"{salon.address_street}, {salon.address_city}, {salon.address_district}"
-        loc_maps   = maps_url
+        loc_label = salon.name
+        loc_addr  = f"{salon.address_street}, {salon.address_city}, {salon.address_district}"
+        loc_maps  = maps_url
 
+    # Fully dark email — no white sections so dark-mode clients can't invert anything
     html = f"""<!DOCTYPE html>
-<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="margin:0;padding:0;background:#f0f4f3;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif">
-<div style="max-width:580px;margin:32px auto;padding:0 12px 48px">
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="supported-color-schemes" content="dark">
+</head>
+<body style="margin:0;padding:0;background:#060e0d;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif" bgcolor="#060e0d">
 
-  <!-- Header -->
-  <div style="background:linear-gradient(135deg,#0a2e2a 0%,#0D9488 65%,#14B8A8 100%);border-radius:20px 20px 0 0;padding:34px 40px 30px;text-align:center">
-    <div style="font-size:13px;font-weight:700;color:rgba(153,246,228,.85);letter-spacing:0.24em;text-transform:uppercase;margin-bottom:5px">✦ &nbsp; S A L O O N</div>
-    <div style="font-size:10px;color:rgba(255,255,255,.45);letter-spacing:0.16em;text-transform:uppercase">Beauty &amp; Wellness Platform</div>
-  </div>
+<table width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#060e0d">
+<tr><td align="center" style="padding:32px 16px 52px" bgcolor="#060e0d">
 
-  <!-- Confirmation hero -->
-  <div style="background:#fff;padding:36px 40px 24px;text-align:center;border-left:1px solid #e5e7eb;border-right:1px solid #e5e7eb">
-    <div style="width:64px;height:64px;background:linear-gradient(135deg,#0D9488,#14B8A8);border-radius:50%;margin:0 auto 18px;text-align:center;line-height:64px;font-size:30px;color:#fff">✓</div>
-    <h1 style="margin:0 0 8px;font-size:24px;font-weight:800;color:#0a1a18;letter-spacing:-0.02em">Appointment Confirmed!</h1>
-    <p style="margin:0;font-size:15px;color:#6b7280;line-height:1.6">
-      Hi <strong style="color:#1a1a2e">{client.full_name or 'there'}</strong>, your appointment at
-    </p>
-    <p style="margin:6px 0 4px;font-size:21px;font-weight:800;color:#0D9488;letter-spacing:-0.01em">{salon.name}</p>
-    <p style="margin:0;font-size:13px;color:#9ca3af">is all set — we look forward to seeing you!</p>
-  </div>
+  <table width="560" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;width:100%;border-radius:20px;overflow:hidden">
 
-  <!-- Date / time banner -->
-  <div style="background:linear-gradient(135deg,#f0fdfa,#e6fffa);padding:18px 32px;border-left:4px solid #0D9488;border-right:1px solid #e5e7eb">
-    <table width="100%" cellpadding="0" cellspacing="0"><tr>
-      <td style="width:44px;font-size:30px;vertical-align:middle">📅</td>
-      <td style="vertical-align:middle;padding-left:12px">
-        <div style="font-size:17px;font-weight:800;color:#0a2e2a;letter-spacing:-0.01em">{date_str}</div>
-        <div style="font-size:14px;color:#0D9488;font-weight:600;margin-top:3px">⏰ &nbsp; {time_str}</div>
+    <!-- ── HEADER ── -->
+    <tr>
+      <td align="center" bgcolor="#0a2e2a" style="background:linear-gradient(135deg,#061a18 0%,#0a2e2a 40%,#0D9488 100%);padding:32px 40px 28px">
+        <div style="font-size:12px;font-weight:700;color:#5eead4;letter-spacing:0.28em;text-transform:uppercase;margin-bottom:5px">&#10022; &nbsp; S A L O O N</div>
+        <div style="font-size:10px;color:rgba(255,255,255,0.35);letter-spacing:0.18em;text-transform:uppercase">BEAUTY &amp; WELLNESS PLATFORM</div>
       </td>
-    </tr></table>
-  </div>
+    </tr>
 
-  <!-- CTA -->
-  <div style="background:#fff;padding:26px 40px 24px;text-align:center;border-left:1px solid #e5e7eb;border-right:1px solid #e5e7eb">
-    <a href="{booking_url}" style="display:inline-block;padding:14px 44px;background:linear-gradient(135deg,#0D9488,#14B8A8);color:#fff;border-radius:12px;text-decoration:none;font-weight:700;font-size:15px;letter-spacing:0.01em">
-      Manage Your Appointment &nbsp;→
-    </a>
-  </div>
-
-  <!-- Appointment details -->
-  <div style="background:#fff;padding:24px 40px 20px;border-left:1px solid #e5e7eb;border-right:1px solid #e5e7eb;border-top:1px solid #f3f4f6">
-    <div style="font-size:11px;font-weight:700;color:#9ca3af;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:14px">Appointment Details</div>
-    <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
-      <tr>
-        <td style="padding:9px 0;color:#6b7280;font-size:13px;border-bottom:1px solid #f3f4f6;vertical-align:top">Services</td>
-        <td style="padding:9px 0;text-align:right;border-bottom:1px solid #f3f4f6;vertical-align:top">
-          <ul style="margin:0;padding:0">{svc_rows}</ul>
-        </td>
-      </tr>
-      {staff_row}
-      <tr>
-        <td style="padding:9px 0;color:#6b7280;font-size:13px;border-bottom:1px solid #f3f4f6">Type</td>
-        <td style="padding:9px 0;text-align:right;border-bottom:1px solid #f3f4f6">
-          <span style="display:inline-block;padding:3px 12px;background:{type_bg};color:{type_color};border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.04em">{appt_type.upper()}</span>
-        </td>
-      </tr>
-      <tr>
-        <td style="padding:9px 0;color:#6b7280;font-size:13px;border-bottom:1px solid #f3f4f6">Status</td>
-        <td style="padding:9px 0;text-align:right;border-bottom:1px solid #f3f4f6">
-          <span style="display:inline-block;padding:3px 12px;background:#dcfce7;color:#15803d;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.04em">✓ CONFIRMED</span>
-        </td>
-      </tr>
-      <tr>
-        <td style="padding:9px 0;color:#6b7280;font-size:13px">Booking Ref</td>
-        <td style="padding:9px 0;color:#1a1a2e;font-size:14px;font-weight:800;text-align:right;font-family:monospace;letter-spacing:0.06em">REF-{booking.pk:06d}</td>
-      </tr>
-    </table>
-  </div>
-
-  <!-- Price summary -->
-  <div style="background:#f9fafb;padding:20px 40px;border-left:1px solid #e5e7eb;border-right:1px solid #e5e7eb;border-top:1px solid #f3f4f6">
-    <div style="font-size:11px;font-weight:700;color:#9ca3af;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:14px">Price Summary</div>
-    <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
-      <tr>
-        <td style="padding:6px 0;color:#6b7280;font-size:13px">Subtotal</td>
-        <td style="padding:6px 0;color:#374151;font-size:13px;text-align:right">LKR {subtotal:,.0f}</td>
-      </tr>
-      {discount_row}
-      <tr>
-        <td style="padding:12px 0 0;color:#0a2e2a;font-size:16px;font-weight:800;border-top:2px solid #e5e7eb">Total</td>
-        <td style="padding:12px 0 0;color:#0D9488;font-size:16px;font-weight:800;text-align:right;border-top:2px solid #e5e7eb">LKR {total:,.0f}</td>
-      </tr>
-    </table>
-  </div>
-
-  <!-- Location -->
-  <div style="background:#fff;padding:24px 40px;border-left:1px solid #e5e7eb;border-right:1px solid #e5e7eb;border-top:1px solid #f3f4f6">
-    <div style="font-size:11px;font-weight:700;color:#9ca3af;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:14px">Location</div>
-    <table cellpadding="0" cellspacing="0"><tr>
-      <td style="font-size:22px;vertical-align:top;padding-right:14px;padding-top:2px">📍</td>
-      <td>
-        <div style="font-size:14px;font-weight:700;color:#1a1a2e;margin-bottom:3px">{loc_label}</div>
-        <div style="font-size:13px;color:#6b7280;line-height:1.55">{loc_addr}</div>
-        <a href="{loc_maps}" style="display:inline-block;margin-top:12px;padding:8px 18px;background:#f0fdfa;border:1.5px solid #99f6e4;color:#0D9488;border-radius:8px;text-decoration:none;font-size:12px;font-weight:700">🗺 &nbsp; View on Google Maps</a>
+    <!-- ── HERO ── -->
+    <tr>
+      <td align="center" bgcolor="#0c1f1c" style="background:#0c1f1c;padding:40px 40px 32px">
+        <div style="width:62px;height:62px;background:linear-gradient(135deg,#0D9488,#14B8A8);border-radius:50%;margin:0 auto 20px;text-align:center;line-height:62px;font-size:26px;color:#ffffff">&#10003;</div>
+        <div style="font-size:26px;font-weight:800;color:#ffffff;letter-spacing:-0.02em;margin-bottom:12px">Appointment Confirmed!</div>
+        <div style="font-size:15px;color:rgba(255,255,255,0.55);line-height:1.65">
+          Hi <span style="color:#ffffff;font-weight:700">{client.full_name or 'there'}</span>, your appointment at
+        </div>
+        <div style="font-size:22px;font-weight:800;color:#14B8A8;letter-spacing:-0.01em;margin:10px 0 5px">{salon.name}</div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.35)">is all set &mdash; we look forward to seeing you!</div>
       </td>
-    </tr></table>
-  </div>
+    </tr>
 
-  <!-- Footer -->
-  <div style="background:linear-gradient(135deg,#0a2e2a,#0D9488);border-radius:0 0 20px 20px;padding:22px 40px;text-align:center">
-    <p style="margin:0 0 5px;font-size:12px;color:rgba(255,255,255,.55)">Questions? Reply to this email or visit your bookings dashboard.</p>
-    <p style="margin:0;font-size:10px;color:rgba(255,255,255,.35)">© 2026 Saloon · Beauty &amp; Wellness Platform</p>
-  </div>
+    <!-- ── DATE / TIME ── -->
+    <tr>
+      <td bgcolor="#0a1a17" style="background:#0a1a17;border-left:3px solid #0D9488;padding:0">
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <td bgcolor="#0a1a17" style="background:#0a1a17;padding:20px 36px">
+              <table cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="font-size:28px;vertical-align:middle;padding-right:16px">&#128197;</td>
+                  <td style="vertical-align:middle">
+                    <div style="font-size:18px;font-weight:800;color:#ffffff;letter-spacing:-0.01em">{date_str}</div>
+                    <div style="font-size:14px;color:#14B8A8;font-weight:600;margin-top:5px">&#128336; &nbsp; {time_str}</div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
 
-</div>
-</body></html>"""
+    <!-- ── CTA BUTTON ── -->
+    <tr>
+      <td align="center" bgcolor="#0c1f1c" style="background:#0c1f1c;padding:28px 40px">
+        <a href="{booking_url}" style="display:inline-block;padding:15px 48px;background:linear-gradient(135deg,#0D9488,#14B8A8);color:#ffffff;border-radius:12px;text-decoration:none;font-weight:700;font-size:15px;letter-spacing:0.01em;border:none">
+          Manage Your Appointment &nbsp;&#8594;
+        </a>
+      </td>
+    </tr>
+
+    <!-- ── APPOINTMENT DETAILS ── -->
+    <tr>
+      <td bgcolor="#0f1f1b" style="background:#0f1f1b;padding:24px 40px 20px;border-top:1px solid #1a3530">
+        <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.28);letter-spacing:0.14em;text-transform:uppercase;margin-bottom:18px">APPOINTMENT DETAILS</div>
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <td style="padding:11px 0;color:rgba(255,255,255,0.45);font-size:13px;border-bottom:1px solid #1a3530;vertical-align:top">Services</td>
+            <td style="padding:11px 0;text-align:right;border-bottom:1px solid #1a3530;vertical-align:top">{svc_rows}</td>
+          </tr>
+          {staff_row}
+          <tr>
+            <td style="padding:11px 0;color:rgba(255,255,255,0.45);font-size:13px;border-bottom:1px solid #1a3530">Type</td>
+            <td style="padding:11px 0;text-align:right;border-bottom:1px solid #1a3530">
+              <span style="display:inline-block;padding:4px 14px;background:{type_bg};color:{type_color};border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.05em">{appt_type.upper()}</span>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:11px 0;color:rgba(255,255,255,0.45);font-size:13px;border-bottom:1px solid #1a3530">Status</td>
+            <td style="padding:11px 0;text-align:right;border-bottom:1px solid #1a3530">
+              <span style="display:inline-block;padding:4px 14px;background:rgba(20,184,166,0.14);color:#14B8A8;border:1px solid rgba(20,184,166,0.28);border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.05em">&#10003; &nbsp;CONFIRMED</span>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:11px 0;color:rgba(255,255,255,0.45);font-size:13px">Booking Ref</td>
+            <td style="padding:11px 0;color:#e2e8f0;font-size:14px;font-weight:800;text-align:right;font-family:'Courier New',Courier,monospace;letter-spacing:0.08em">REF&#8209;{booking.pk:06d}</td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <!-- ── PRICE SUMMARY ── -->
+    <tr>
+      <td bgcolor="#091512" style="background:#091512;padding:22px 40px;border-top:1px solid #1a3530">
+        <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.28);letter-spacing:0.14em;text-transform:uppercase;margin-bottom:18px">PRICE SUMMARY</div>
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <td style="padding:7px 0;color:rgba(255,255,255,0.45);font-size:13px">Subtotal</td>
+            <td style="padding:7px 0;color:rgba(255,255,255,0.65);font-size:13px;text-align:right">LKR {subtotal:,.0f}</td>
+          </tr>
+          {discount_row}
+          <tr>
+            <td style="padding:14px 0 0;color:#ffffff;font-size:16px;font-weight:800;border-top:1px solid #1a3530">Total</td>
+            <td style="padding:14px 0 0;color:#14B8A8;font-size:17px;font-weight:800;text-align:right;border-top:1px solid #1a3530">LKR {total:,.0f}</td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <!-- ── LOCATION ── -->
+    <tr>
+      <td bgcolor="#0f1f1b" style="background:#0f1f1b;padding:24px 40px 28px;border-top:1px solid #1a3530">
+        <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.28);letter-spacing:0.14em;text-transform:uppercase;margin-bottom:18px">LOCATION</div>
+        <table cellpadding="0" cellspacing="0">
+          <tr>
+            <td style="font-size:20px;vertical-align:top;padding-right:14px;padding-top:3px">&#128205;</td>
+            <td>
+              <div style="font-size:14px;font-weight:700;color:#ffffff;margin-bottom:5px">{loc_label}</div>
+              <div style="font-size:13px;color:rgba(255,255,255,0.45);line-height:1.6">{loc_addr}</div>
+              <a href="{loc_maps}" style="display:inline-block;margin-top:14px;padding:9px 20px;background:rgba(13,148,136,0.12);border:1px solid rgba(13,148,136,0.35);color:#14B8A8;border-radius:8px;text-decoration:none;font-size:12px;font-weight:700">&#128506; &nbsp; View on Google Maps</a>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <!-- ── FOOTER ── -->
+    <tr>
+      <td align="center" bgcolor="#061210" style="background:linear-gradient(180deg,#091512,#061210);padding:24px 40px;border-top:1px solid #1a3530">
+        <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:6px">Questions? Reply to this email or visit your bookings dashboard.</div>
+        <div style="font-size:10px;color:rgba(255,255,255,0.2)">&copy; 2026 Saloon &nbsp;&middot;&nbsp; Beauty &amp; Wellness Platform</div>
+      </td>
+    </tr>
+
+  </table>
+
+</td></tr>
+</table>
+
+</body>
+</html>"""
 
     try:
         send_mail(
@@ -188,10 +235,11 @@ def _send_booking_confirmation_email(booking):
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[client.email],
             html_message=html,
-            fail_silently=True,
+            fail_silently=False,
         )
+        logger.info(f"[EMAIL] Booking confirmation sent to {client.email} for #{booking.pk}")
     except Exception as e:
-        logger.error(f"[EMAIL] Booking confirmation failed for #{booking.pk}: {e}")
+        logger.error(f"[EMAIL] Booking confirmation FAILED for #{booking.pk} → {client.email}: {e}")
 
 
 def _has_schedule_conflict(staff_member, new_start, new_duration_minutes, exclude_booking=None):
