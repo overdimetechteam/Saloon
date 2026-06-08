@@ -6,6 +6,7 @@ export default function EmployeeLogin() {
   const { login } = useAuth();
   const navigate  = useNavigate();
   const [form, setForm]     = useState({ email: '', password: '' });
+  const [showPw, setShowPw] = useState(false);
   const [error, setError]   = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -37,7 +38,7 @@ export default function EmployeeLogin() {
           <div style={s.alert}><span>⚠</span> {error}</div>
         )}
 
-        <form onSubmit={handle} style={s.form}>
+        <form onSubmit={handle} style={s.form} autoComplete="off">
           <div style={s.field}>
             <label style={s.label}>Email address</label>
             <input
@@ -46,19 +47,30 @@ export default function EmployeeLogin() {
               placeholder="you@salon.com"
               value={form.email}
               onChange={e => setForm({ ...form, email: e.target.value })}
+              autoComplete="off"
               required
             />
           </div>
           <div style={s.field}>
             <label style={s.label}>Password</label>
-            <input
-              style={s.input}
-              type="password"
-              placeholder="••••••••"
-              value={form.password}
-              onChange={e => setForm({ ...form, password: e.target.value })}
-              required
-            />
+            <div style={{ position: 'relative' }}>
+              <input
+                style={{ ...s.input, paddingRight: 44 }}
+                type={showPw ? 'text' : 'password'}
+                placeholder="••••••••"
+                value={form.password}
+                onChange={e => setForm({ ...form, password: e.target.value })}
+                autoComplete="new-password"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPw(v => !v)}
+                style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, color: 'var(--text-muted)', padding: '2px 4px' }}
+              >
+                {showPw ? '🙈' : '👁'}
+              </button>
+            </div>
           </div>
           <button style={{ ...s.btn, opacity: loading ? 0.75 : 1 }} type="submit" disabled={loading}>
             {loading ? 'Signing in…' : 'Sign In as Staff'}
@@ -106,7 +118,7 @@ const s = {
   input: {
     padding: '12px 14px', border: '1.5px solid var(--border)', borderRadius: 10,
     fontSize: 14, background: 'var(--input-bg)', color: 'var(--text)',
-    outline: 'none', fontFamily: "'DM Sans', sans-serif",
+    outline: 'none', fontFamily: "'DM Sans', sans-serif", width: '100%', boxSizing: 'border-box',
   },
   btn: {
     marginTop: 4, padding: '13px',

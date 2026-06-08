@@ -98,6 +98,7 @@ export default function RegisterSalon() {
   const [offer, setOffer] = useState({ title: '', description: '', discount_type: 'percentage', discount_value: '', start_date: '', end_date: '', note: '', is_active: true });
   const [hasOffer, setHasOffer]   = useState(false);
   const [cosmeticsEnabled, setCosmeticsEnabled] = useState(false);
+  const [showPw, setShowPw]        = useState(false);
   const [error, setError]         = useState('');
   const [success, setSuccess]     = useState(false);
   const [loading, setLoading]     = useState(false);
@@ -330,7 +331,12 @@ export default function RegisterSalon() {
                 </div>
                 <div style={s.field}>
                   <label style={s.label}>Password</label>
-                  <input style={s.input} type="password" value={form.password} onChange={f('password')} autoComplete="new-password" required />
+                  <div style={{ position: 'relative' }}>
+                    <input style={{ ...s.input, paddingRight: 44 }} type={showPw ? 'text' : 'password'} value={form.password} onChange={f('password')} autoComplete="new-password" required />
+                    <button type="button" onClick={() => setShowPw(v => !v)} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, color: 'var(--text-muted)', padding: '2px 4px' }}>
+                      {showPw ? '🙈' : '👁'}
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

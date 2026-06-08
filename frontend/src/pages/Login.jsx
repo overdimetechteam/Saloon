@@ -177,7 +177,7 @@ export default function Login() {
             </div>
           )}
 
-          <form onSubmit={handle} style={s.form}>
+          <form onSubmit={handle} style={s.form} autoComplete="off">
             <div style={s.field}>
               <label style={s.label}>Email address</label>
               <input
@@ -186,6 +186,7 @@ export default function Login() {
                 placeholder="you@example.com"
                 value={form.email}
                 onChange={e => setForm({ ...form, email: e.target.value })}
+                autoComplete="off"
                 required
               />
             </div>
@@ -203,6 +204,7 @@ export default function Login() {
                   placeholder="••••••••"
                   value={form.password}
                   onChange={e => setForm({ ...form, password: e.target.value })}
+                  autoComplete="new-password"
                   required
                 />
                 <button type="button" onClick={() => setShowPw(v => !v)} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, color: 'var(--text-muted)', padding: '2px 4px' }}>
@@ -242,21 +244,6 @@ export default function Login() {
                 </svg>
               )}
               <span>Google</span>
-            </button>
-
-            <button
-              style={{ ...s.socialBtn, opacity: socialLoading === 'apple' ? 0.65 : 1 }}
-              onClick={() => { setError(''); handleApple(); }}
-              disabled={!!socialLoading}
-              title="Sign in with Apple"
-            >
-              {socialLoading === 'apple' ? '…' : (
-                <svg width="16" height="18" viewBox="0 0 814 1000" fill="currentColor">
-                  <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.3-164-39.3c-76 0-103.7 40.8-165.9 40.8s-105.1-46.4-150.6-100.9C77.7 749.2 0 552.7 0 364.1C0 146.3 134.4 21.9 266.2 21.9c70.1 0 128.1 46.4 171.1 46.4 42.1 0 107.5-49.2 185.2-49.2 29.1 0 108.1 2.6 168.3 87.3z"/>
-                  <path d="M558.5 28.5c-10.1 50.4-36.5 96.8-73.8 129.1-37.3 32.4-85.1 52.6-137.4 52.6-3.4 0-6.7-.2-10-.7 2.5-49.2 22.3-97.3 57.3-131.5 35-34.2 83.8-56.1 137-58z"/>
-                </svg>
-              )}
-              <span>Apple</span>
             </button>
 
             <button
