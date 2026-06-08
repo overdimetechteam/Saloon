@@ -4,7 +4,10 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from django.core.mail import send_mail
+from django.conf import settings
 from datetime import timedelta
+from urllib.parse import quote
 import logging
 import secrets
 
@@ -19,6 +22,176 @@ from users.utils import send_notification
 logger = logging.getLogger(__name__)
 
 TAKEN_STATUSES = ['pending', 'confirmed', 'rescheduled', 'awaiting_client']
+
+
+# ── Booking confirmation email ─────────────────────────────────────────────────
+
+def _send_booking_confirmation_email(booking):
+    client  = booking.client
+    salon   = booking.salon
+    dt      = booking.requested_datetime
+    date_str = dt.strftime('%A, %B %d, %Y')
+    time_str = dt.strftime('%I:%M %p')
+
+    services   = list(booking.booking_services.select_related('salon_service__service').all())
+    subtotal   = sum(float(bs.salon_service.effective_price) for bs in services)
+    discount   = float(booking.discount_amount)
+    total      = subtotal - discount
+    svc_rows   = ''.join(
+        f'<li style="margin:3px 0;color:#374151;font-size:13px;list-style:none">• {bs.salon_service.service.name}</li>'
+        for bs in services
+    )
+
+    appt_type     = 'Home Visit' if booking.home_visit else ('Walk-In' if booking.is_walk_in else 'In-Salon')
+    type_color    = '#C2410C' if booking.home_visit else '#0D9488'
+    type_bg       = '#FFF7ED'  if booking.home_visit else '#F0FDFA'
+    staff_row     = (
+        f'<tr><td style="padding:8px 0;color:#6b7280;font-size:13px;border-bottom:1px solid #f3f4f6">Stylist</td>'
+        f'<td style="padding:8px 0;color:#1a1a2e;font-size:13px;font-weight:700;text-align:right;border-bottom:1px solid #f3f4f6">{booking.staff_member.full_name}</td></tr>'
+        if booking.staff_member else ''
+    )
+    discount_row  = (
+        f'<tr><td style="padding:6px 0;color:#0D9488;font-size:13px">Discount ({booking.promo_code.code})</td>'
+        f'<td style="padding:6px 0;color:#0D9488;font-size:13px;font-weight:700;text-align:right">− LKR {discount:,.0f}</td></tr>'
+        if discount > 0 else ''
+    )
+
+    frontend_url  = getattr(settings, 'FRONTEND_URL', 'http://localhost:5173')
+    booking_url   = f"{frontend_url}/user/bookings/{booking.pk}"
+
+    if salon.latitude and salon.longitude:
+        maps_url = f"https://maps.google.com/?q={salon.latitude},{salon.longitude}"
+    else:
+        maps_url = f"https://maps.google.com/?q={quote(f'{salon.address_street}, {salon.address_city}, Sri Lanka')}"
+
+    if booking.home_visit and booking.home_visit_address:
+        loc_label  = 'Your Address (Home Visit)'
+        loc_addr   = booking.home_visit_address
+        loc_maps   = f"https://maps.google.com/?q={quote(booking.home_visit_address)}"
+    else:
+        loc_label  = salon.name
+        loc_addr   = f"{salon.address_street}, {salon.address_city}, {salon.address_district}"
+        loc_maps   = maps_url
+
+    html = f"""<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f0f4f3;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif">
+<div style="max-width:580px;margin:32px auto;padding:0 12px 48px">
+
+  <!-- Header -->
+  <div style="background:linear-gradient(135deg,#0a2e2a 0%,#0D9488 65%,#14B8A8 100%);border-radius:20px 20px 0 0;padding:34px 40px 30px;text-align:center">
+    <div style="font-size:13px;font-weight:700;color:rgba(153,246,228,.85);letter-spacing:0.24em;text-transform:uppercase;margin-bottom:5px">✦ &nbsp; S A L O O N</div>
+    <div style="font-size:10px;color:rgba(255,255,255,.45);letter-spacing:0.16em;text-transform:uppercase">Beauty &amp; Wellness Platform</div>
+  </div>
+
+  <!-- Confirmation hero -->
+  <div style="background:#fff;padding:36px 40px 24px;text-align:center;border-left:1px solid #e5e7eb;border-right:1px solid #e5e7eb">
+    <div style="width:64px;height:64px;background:linear-gradient(135deg,#0D9488,#14B8A8);border-radius:50%;margin:0 auto 18px;text-align:center;line-height:64px;font-size:30px;color:#fff">✓</div>
+    <h1 style="margin:0 0 8px;font-size:24px;font-weight:800;color:#0a1a18;letter-spacing:-0.02em">Appointment Confirmed!</h1>
+    <p style="margin:0;font-size:15px;color:#6b7280;line-height:1.6">
+      Hi <strong style="color:#1a1a2e">{client.full_name or 'there'}</strong>, your appointment at
+    </p>
+    <p style="margin:6px 0 4px;font-size:21px;font-weight:800;color:#0D9488;letter-spacing:-0.01em">{salon.name}</p>
+    <p style="margin:0;font-size:13px;color:#9ca3af">is all set — we look forward to seeing you!</p>
+  </div>
+
+  <!-- Date / time banner -->
+  <div style="background:linear-gradient(135deg,#f0fdfa,#e6fffa);padding:18px 32px;border-left:4px solid #0D9488;border-right:1px solid #e5e7eb">
+    <table width="100%" cellpadding="0" cellspacing="0"><tr>
+      <td style="width:44px;font-size:30px;vertical-align:middle">📅</td>
+      <td style="vertical-align:middle;padding-left:12px">
+        <div style="font-size:17px;font-weight:800;color:#0a2e2a;letter-spacing:-0.01em">{date_str}</div>
+        <div style="font-size:14px;color:#0D9488;font-weight:600;margin-top:3px">⏰ &nbsp; {time_str}</div>
+      </td>
+    </tr></table>
+  </div>
+
+  <!-- CTA -->
+  <div style="background:#fff;padding:26px 40px 24px;text-align:center;border-left:1px solid #e5e7eb;border-right:1px solid #e5e7eb">
+    <a href="{booking_url}" style="display:inline-block;padding:14px 44px;background:linear-gradient(135deg,#0D9488,#14B8A8);color:#fff;border-radius:12px;text-decoration:none;font-weight:700;font-size:15px;letter-spacing:0.01em">
+      Manage Your Appointment &nbsp;→
+    </a>
+  </div>
+
+  <!-- Appointment details -->
+  <div style="background:#fff;padding:24px 40px 20px;border-left:1px solid #e5e7eb;border-right:1px solid #e5e7eb;border-top:1px solid #f3f4f6">
+    <div style="font-size:11px;font-weight:700;color:#9ca3af;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:14px">Appointment Details</div>
+    <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
+      <tr>
+        <td style="padding:9px 0;color:#6b7280;font-size:13px;border-bottom:1px solid #f3f4f6;vertical-align:top">Services</td>
+        <td style="padding:9px 0;text-align:right;border-bottom:1px solid #f3f4f6;vertical-align:top">
+          <ul style="margin:0;padding:0">{svc_rows}</ul>
+        </td>
+      </tr>
+      {staff_row}
+      <tr>
+        <td style="padding:9px 0;color:#6b7280;font-size:13px;border-bottom:1px solid #f3f4f6">Type</td>
+        <td style="padding:9px 0;text-align:right;border-bottom:1px solid #f3f4f6">
+          <span style="display:inline-block;padding:3px 12px;background:{type_bg};color:{type_color};border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.04em">{appt_type.upper()}</span>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:9px 0;color:#6b7280;font-size:13px;border-bottom:1px solid #f3f4f6">Status</td>
+        <td style="padding:9px 0;text-align:right;border-bottom:1px solid #f3f4f6">
+          <span style="display:inline-block;padding:3px 12px;background:#dcfce7;color:#15803d;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.04em">✓ CONFIRMED</span>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:9px 0;color:#6b7280;font-size:13px">Booking Ref</td>
+        <td style="padding:9px 0;color:#1a1a2e;font-size:14px;font-weight:800;text-align:right;font-family:monospace;letter-spacing:0.06em">REF-{booking.pk:06d}</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- Price summary -->
+  <div style="background:#f9fafb;padding:20px 40px;border-left:1px solid #e5e7eb;border-right:1px solid #e5e7eb;border-top:1px solid #f3f4f6">
+    <div style="font-size:11px;font-weight:700;color:#9ca3af;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:14px">Price Summary</div>
+    <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
+      <tr>
+        <td style="padding:6px 0;color:#6b7280;font-size:13px">Subtotal</td>
+        <td style="padding:6px 0;color:#374151;font-size:13px;text-align:right">LKR {subtotal:,.0f}</td>
+      </tr>
+      {discount_row}
+      <tr>
+        <td style="padding:12px 0 0;color:#0a2e2a;font-size:16px;font-weight:800;border-top:2px solid #e5e7eb">Total</td>
+        <td style="padding:12px 0 0;color:#0D9488;font-size:16px;font-weight:800;text-align:right;border-top:2px solid #e5e7eb">LKR {total:,.0f}</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- Location -->
+  <div style="background:#fff;padding:24px 40px;border-left:1px solid #e5e7eb;border-right:1px solid #e5e7eb;border-top:1px solid #f3f4f6">
+    <div style="font-size:11px;font-weight:700;color:#9ca3af;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:14px">Location</div>
+    <table cellpadding="0" cellspacing="0"><tr>
+      <td style="font-size:22px;vertical-align:top;padding-right:14px;padding-top:2px">📍</td>
+      <td>
+        <div style="font-size:14px;font-weight:700;color:#1a1a2e;margin-bottom:3px">{loc_label}</div>
+        <div style="font-size:13px;color:#6b7280;line-height:1.55">{loc_addr}</div>
+        <a href="{loc_maps}" style="display:inline-block;margin-top:12px;padding:8px 18px;background:#f0fdfa;border:1.5px solid #99f6e4;color:#0D9488;border-radius:8px;text-decoration:none;font-size:12px;font-weight:700">🗺 &nbsp; View on Google Maps</a>
+      </td>
+    </tr></table>
+  </div>
+
+  <!-- Footer -->
+  <div style="background:linear-gradient(135deg,#0a2e2a,#0D9488);border-radius:0 0 20px 20px;padding:22px 40px;text-align:center">
+    <p style="margin:0 0 5px;font-size:12px;color:rgba(255,255,255,.55)">Questions? Reply to this email or visit your bookings dashboard.</p>
+    <p style="margin:0;font-size:10px;color:rgba(255,255,255,.35)">© 2026 Saloon · Beauty &amp; Wellness Platform</p>
+  </div>
+
+</div>
+</body></html>"""
+
+    try:
+        send_mail(
+            subject=f"✓ Booking Confirmed — {salon.name} on {date_str}",
+            message=f"Your appointment at {salon.name} on {date_str} at {time_str} is confirmed. Ref: REF-{booking.pk:06d}. Manage: {booking_url}",
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[client.email],
+            html_message=html,
+            fail_silently=True,
+        )
+    except Exception as e:
+        logger.error(f"[EMAIL] Booking confirmation failed for #{booking.pk}: {e}")
 
 
 def _has_schedule_conflict(staff_member, new_start, new_duration_minutes, exclude_booking=None):
@@ -206,6 +379,7 @@ class BookingConfirmView(APIView):
             notif_type='booking_confirmed',
             booking_id=booking.pk,
         )
+        _send_booking_confirmation_email(booking)
         logger.info(f"Booking #{booking.pk} confirmed")
         return Response(BookingSerializer(booking).data)
 
@@ -453,6 +627,7 @@ class WalkInBookingView(APIView):
         for ss in service_objs:
             BookingService.objects.create(booking=booking, salon_service=ss)
 
+        _send_booking_confirmation_email(booking)
         logger.info(f"Walk-in booking #{booking.pk} created for {client_email}")
         return Response(BookingSerializer(booking).data, status=status.HTTP_201_CREATED)
 
