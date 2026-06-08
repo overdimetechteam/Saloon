@@ -13,3 +13,5 @@ whitenoise==6.8.2
 dj-database-url==2.3.0
 Pillow==11.2.1
 requests==2.34.2
+cloudinary==1.44.2
+django-cloudinary-storage==0.3.0
