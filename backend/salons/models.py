@@ -16,7 +16,7 @@ class Salon(models.Model):
     address_city = models.CharField(max_length=100)
     address_district = models.CharField(max_length=100)
     address_postal = models.CharField(max_length=20)
-    contact_number = EncryptedTextField()
+    contact_number = models.CharField(max_length=30, blank=True, default='')
     email = models.EmailField()
     operating_hours = models.JSONField(default=dict)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
