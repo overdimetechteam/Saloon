@@ -1,69 +1,112 @@
 import { useNavigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
+
+const STAR_COUNT = 110;
+
+function useStars() {
+  return useMemo(() =>
+    Array.from({ length: STAR_COUNT }, (_, i) => ({
+      id: i,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      size: Math.random() * 1.8 + 0.4,
+      twinkleDur: (Math.random() * 3 + 2).toFixed(2),
+      twinkleDelay: (Math.random() * 6).toFixed(2),
+      floatDur: (Math.random() * 10 + 8).toFixed(2),
+      floatDelay: (Math.random() * 8).toFixed(2),
+      baseOpacity: (Math.random() * 0.5 + 0.15).toFixed(2),
+    })),
+  []);
+}
 
 export default function LandingPage() {
   const navigate = useNavigate();
   const [visible, setVisible] = useState(false);
+  const stars = useStars();
 
   useEffect(() => {
-    const t = setTimeout(() => setVisible(true), 80);
+    const t = setTimeout(() => setVisible(true), 60);
     return () => clearTimeout(t);
   }, []);
 
   return (
     <div style={s.page}>
+      {/* ── Star animations ── */}
+      <style>{`
+        @keyframes twinkle {
+          0%,100% { opacity: var(--base-op); }
+          50%      { opacity: calc(var(--base-op) * 0.15); }
+        }
+        @keyframes floatUp {
+          0%   { transform: translateY(0); }
+          50%  { transform: translateY(-18px); }
+          100% { transform: translateY(0); }
+        }
+      `}</style>
+
+      {/* Stars */}
+      <div style={s.starLayer} aria-hidden>
+        {stars.map(st => (
+          <div
+            key={st.id}
+            style={{
+              position: 'absolute',
+              left: `${st.x}%`,
+              top: `${st.y}%`,
+              width: st.size,
+              height: st.size,
+              borderRadius: '50%',
+              background: '#ffffff',
+              '--base-op': st.baseOpacity,
+              animation: `twinkle ${st.twinkleDur}s ${st.twinkleDelay}s ease-in-out infinite,
+                           floatUp   ${st.floatDur}s   ${st.floatDelay}s  ease-in-out infinite`,
+            }}
+          />
+        ))}
+      </div>
+
       {/* Ambient blobs */}
       <div style={s.blob1} />
       <div style={s.blob2} />
       <div style={s.blob3} />
 
-      <div style={{ ...s.inner, opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(24px)', transition: 'opacity .7s ease, transform .7s ease' }}>
-
+      {/* Content */}
+      <div
+        style={{
+          ...s.inner,
+          opacity: visible ? 1 : 0,
+          transform: visible ? 'translateY(0)' : 'translateY(20px)',
+          transition: 'opacity .65s ease, transform .65s ease',
+        }}
+      >
         {/* Logo mark */}
         <div style={s.markWrap}>
-          <span style={s.mark}>✦</span>
+          <svg width="26" height="26" viewBox="0 0 48 48" fill="none">
+            <path d="M24,10 L25.8,22.2 L38,24 L25.8,25.8 L24,38 L22.2,25.8 L10,24 L22.2,22.2 Z" fill="#14B8A8"/>
+          </svg>
         </div>
 
-        {/* Brand */}
         <h1 style={s.brand}>Saloon</h1>
         <div style={s.tagline}>BEAUTY &amp; WELLNESS PLATFORM</div>
 
-        {/* Divider */}
         <div style={s.divider} />
 
-        {/* Bio */}
         <p style={s.bio}>
           Sri Lanka's premier salon booking platform — connecting you to the finest
           beauty professionals, barbers, and wellness studios island-wide.
-          Book appointments in seconds, discover nearby salons, and experience
-          luxury grooming on your schedule.
         </p>
 
         {/* Feature pills */}
         <div style={s.pills}>
           {[
             { icon: '◈', label: 'Premium Salons' },
-            { icon: '⏱', label: 'Instant Booking' },
+            { icon: '⚡', label: 'Instant Booking' },
             { icon: '✦', label: 'Trusted & Verified' },
             { icon: '🏠', label: 'Home Visits' },
           ].map(f => (
             <div key={f.label} style={s.pill}>
               <span style={s.pillIcon}>{f.icon}</span>
               <span style={s.pillLabel}>{f.label}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* Stats row */}
-        <div style={s.stats}>
-          {[
-            { val: '200+', label: 'Salons' },
-            { val: '50K+', label: 'Bookings' },
-            { val: '4.9★', label: 'Avg Rating' },
-          ].map(st => (
-            <div key={st.label} style={s.stat}>
-              <div style={s.statVal}>{st.val}</div>
-              <div style={s.statLabel}>{st.label}</div>
             </div>
           ))}
         </div>
@@ -82,93 +125,86 @@ export default function LandingPage() {
 
 const s = {
   page: {
-    minHeight: '100vh',
+    height: '100vh',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
-    background: 'linear-gradient(145deg, #080f0d 0%, #0a1f1c 35%, #0b2e28 65%, #0D9488 100%)',
-    position: 'relative', overflow: 'hidden', padding: '40px 24px',
+    background: 'linear-gradient(145deg, #040c0a 0%, #071812 40%, #092420 70%, #0b3530 100%)',
+    position: 'relative', overflow: 'hidden',
+    padding: '0 24px',
+  },
+  starLayer: {
+    position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0,
   },
   blob1: {
-    position: 'absolute', width: 500, height: 500,
-    background: 'radial-gradient(circle, rgba(13,148,136,.18) 0%, transparent 70%)',
-    top: -100, right: -100, pointerEvents: 'none', filter: 'blur(60px)',
+    position: 'absolute', width: 560, height: 560,
+    background: 'radial-gradient(circle, rgba(13,148,136,.16) 0%, transparent 70%)',
+    top: -140, right: -120, pointerEvents: 'none', filter: 'blur(70px)', zIndex: 1,
   },
   blob2: {
-    position: 'absolute', width: 400, height: 400,
-    background: 'radial-gradient(circle, rgba(20,184,166,.12) 0%, transparent 70%)',
-    bottom: -80, left: -80, pointerEvents: 'none', filter: 'blur(70px)',
+    position: 'absolute', width: 420, height: 420,
+    background: 'radial-gradient(circle, rgba(20,184,166,.1) 0%, transparent 70%)',
+    bottom: -100, left: -100, pointerEvents: 'none', filter: 'blur(80px)', zIndex: 1,
   },
   blob3: {
-    position: 'absolute', width: 300, height: 300,
-    background: 'radial-gradient(circle, rgba(212,175,55,.06) 0%, transparent 70%)',
-    top: '40%', left: '10%', pointerEvents: 'none', filter: 'blur(80px)',
+    position: 'absolute', width: 280, height: 280,
+    background: 'radial-gradient(circle, rgba(212,175,55,.05) 0%, transparent 70%)',
+    top: '45%', left: '8%', pointerEvents: 'none', filter: 'blur(90px)', zIndex: 1,
   },
   inner: {
     position: 'relative', zIndex: 2,
     display: 'flex', flexDirection: 'column', alignItems: 'center',
-    textAlign: 'center', maxWidth: 620, width: '100%',
+    textAlign: 'center', maxWidth: 600, width: '100%',
   },
   markWrap: {
-    width: 64, height: 64, borderRadius: '50%',
-    background: 'rgba(13,148,136,.15)',
-    border: '1.5px solid rgba(13,148,136,.35)',
+    width: 58, height: 58, borderRadius: '50%',
+    background: 'rgba(13,148,136,.13)',
+    border: '1.5px solid rgba(13,148,136,.3)',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
-    marginBottom: 20,
-    boxShadow: '0 0 40px rgba(13,148,136,.25)',
+    marginBottom: 18,
+    boxShadow: '0 0 36px rgba(13,148,136,.22), 0 0 80px rgba(13,148,136,.08)',
   },
-  mark: { fontSize: 26, color: '#14B8A8', filter: 'drop-shadow(0 0 10px rgba(20,184,166,.6))' },
   brand: {
     fontFamily: "'Cormorant Garamond', Georgia, serif",
-    fontSize: 72, fontWeight: 700, color: '#ffffff',
+    fontSize: 68, fontWeight: 700, color: '#ffffff',
     margin: '0 0 6px', letterSpacing: '-0.03em', lineHeight: 1,
   },
   tagline: {
-    fontSize: 11, color: 'rgba(153,246,228,.65)',
-    letterSpacing: '0.28em', textTransform: 'uppercase', fontWeight: 600,
-    margin: '0 0 36px',
+    fontSize: 10, color: 'rgba(153,246,228,.55)',
+    letterSpacing: '0.3em', textTransform: 'uppercase', fontWeight: 600,
+    margin: '0 0 28px',
   },
   divider: {
-    width: 48, height: 1.5,
+    width: 44, height: 1.5,
     background: 'linear-gradient(90deg, transparent, #0D9488, transparent)',
-    marginBottom: 32,
+    marginBottom: 24,
   },
   bio: {
-    fontSize: 16, color: 'rgba(255,255,255,.6)', lineHeight: 1.8,
-    maxWidth: 520, margin: '0 0 36px', fontWeight: 400,
+    fontSize: 15, color: 'rgba(255,255,255,.52)', lineHeight: 1.75,
+    maxWidth: 480, margin: '0 0 28px', fontWeight: 400,
   },
   pills: {
-    display: 'flex', flexWrap: 'wrap', gap: 10, justifyContent: 'center',
-    marginBottom: 36,
+    display: 'flex', flexWrap: 'wrap', gap: 9, justifyContent: 'center',
+    marginBottom: 32,
   },
   pill: {
-    display: 'flex', alignItems: 'center', gap: 7,
-    padding: '8px 16px',
-    background: 'rgba(255,255,255,.05)',
-    border: '1px solid rgba(255,255,255,.1)',
+    display: 'flex', alignItems: 'center', gap: 6,
+    padding: '7px 14px',
+    background: 'rgba(255,255,255,.045)',
+    border: '1px solid rgba(255,255,255,.09)',
     borderRadius: 30,
+    backdropFilter: 'blur(6px)',
   },
-  pillIcon: { fontSize: 14, color: '#14B8A8' },
-  pillLabel: { fontSize: 13, color: 'rgba(255,255,255,.75)', fontWeight: 600 },
-  stats: {
-    display: 'flex', gap: 48, marginBottom: 44,
-  },
-  stat: { textAlign: 'center' },
-  statVal: {
-    fontSize: 26, fontWeight: 800, color: '#ffffff',
-    fontFamily: "'Cormorant Garamond', Georgia, serif",
-    letterSpacing: '-0.02em',
-  },
-  statLabel: { fontSize: 12, color: 'rgba(255,255,255,.4)', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: 3 },
+  pillIcon: { fontSize: 12, color: '#14B8A8' },
+  pillLabel: { fontSize: 12, color: 'rgba(255,255,255,.72)', fontWeight: 600, letterSpacing: '0.01em' },
   cta: {
     display: 'flex', alignItems: 'center', gap: 12,
-    padding: '16px 52px',
+    padding: '15px 56px',
     background: 'linear-gradient(135deg, #0D9488, #14B8A8)',
     color: '#fff', border: 'none', borderRadius: 14,
     fontSize: 16, fontWeight: 700, cursor: 'pointer',
-    boxShadow: '0 8px 32px rgba(13,148,136,.45), inset 0 1px 0 rgba(255,255,255,.15)',
-    letterSpacing: '0.02em', marginBottom: 16,
-    transition: 'transform .15s, box-shadow .15s',
+    boxShadow: '0 8px 30px rgba(13,148,136,.45), inset 0 1px 0 rgba(255,255,255,.15)',
+    letterSpacing: '0.02em', marginBottom: 14,
     fontFamily: "'DM Sans', sans-serif",
   },
   ctaArrow: { fontSize: 18, fontWeight: 400 },
-  hint: { fontSize: 12, color: 'rgba(255,255,255,.3)', margin: 0 },
+  hint: { fontSize: 12, color: 'rgba(255,255,255,.28)', margin: 0, letterSpacing: '0.03em' },
 };
