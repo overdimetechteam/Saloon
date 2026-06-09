@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- full-bleed teal bg (maskable safe zone = inner 80%) -->
+  <rect width="512" height="512" fill="#0a1f1c"/>
+  <!-- subtle radial glow -->
+  <radialGradient id="g" cx="50%" cy="50%" r="50%">
+    <stop offset="0%" stop-color="#0D9488" stop-opacity="0.35"/>
+    <stop offset="100%" stop-color="#060e0d" stop-opacity="0"/>
+  </radialGradient>
+  <rect width="512" height="512" fill="url(#g)"/>
+  <!-- sparkle — centred within safe zone -->
+  <path d="M256,148 L265,247 L364,256 L265,265 L256,364 L247,265 L148,256 L247,247 Z" fill="#0D9488"/>
+  <circle cx="256" cy="256" r="9" fill="#14B8A8"/>
+</svg>

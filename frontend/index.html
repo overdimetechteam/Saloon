@@ -2,12 +2,17 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!-- ── Viewport — viewport-fit=cover handles iPhone notch / Dynamic Island ── -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover" />
 
-    <!-- Primary Meta Tags -->
+    <!-- Favicons -->
+    <link rel="icon"             type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.svg" />
+
+    <!-- PWA manifest (injected by vite-plugin-pwa) -->
+
+    <!-- ── Primary Meta ── -->
     <title>Saloon — Book Luxury Salons Near You</title>
     <meta name="title"       content="Saloon — Book Luxury Salons Near You" />
     <meta name="description" content="Discover and book premium salons for hair, nails, skin & more. Real-time availability, instant confirmation, and a seamless luxury experience." />
@@ -15,36 +20,44 @@
     <meta name="author"      content="Saloon" />
     <meta name="robots"      content="index, follow" />
 
-    <!-- Theme Color (teal) -->
-    <meta name="theme-color" content="#0D9488" />
+    <!-- ── Theme & colour ── -->
+    <meta name="theme-color"           content="#0D9488" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color"           content="#0D9488" media="(prefers-color-scheme: light)" />
+    <meta name="color-scheme"          content="dark light" />
+    <meta name="msapplication-TileColor" content="#0D9488" />
 
-    <!-- Open Graph / Facebook / WhatsApp / LinkedIn -->
+    <!-- ── Mobile / PWA display ── -->
+    <meta name="mobile-web-app-capable"                 content="yes" />
+    <meta name="apple-mobile-web-app-capable"           content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style"  content="black-translucent" />
+    <meta name="apple-mobile-web-app-title"             content="Saloon" />
+
+    <!-- Prevent phone/email auto-detection on iOS (breaks layouts) -->
+    <meta name="format-detection" content="telephone=no, email=no, address=no" />
+
+    <!-- Prevent iOS from popping up "Smart App Banner" for an App Store app we don't have -->
+    <meta name="apple-itunes-app" content="" />
+
+    <!-- ── Open Graph ── -->
     <meta property="og:type"        content="website" />
-    <meta property="og:url"         content="https://yourdomain.com/" />
+    <meta property="og:url"         content="https://saloon-frontend-67z0.onrender.com/" />
     <meta property="og:title"       content="Saloon — Book Luxury Salons Near You" />
     <meta property="og:description" content="Discover and book premium salons for hair, nails, skin & more. Real-time availability, instant confirmation." />
-    <meta property="og:image"       content="https://yourdomain.com/og-image.png" />
+    <meta property="og:image"       content="https://saloon-frontend-67z0.onrender.com/pwa-512.svg" />
     <meta property="og:locale"      content="en_US" />
     <meta property="og:site_name"   content="Saloon" />
 
-    <!-- Twitter / X -->
+    <!-- ── Twitter / X ── -->
     <meta name="twitter:card"        content="summary_large_image" />
-    <meta name="twitter:url"         content="https://yourdomain.com/" />
+    <meta name="twitter:url"         content="https://saloon-frontend-67z0.onrender.com/" />
     <meta name="twitter:title"       content="Saloon — Book Luxury Salons Near You" />
     <meta name="twitter:description" content="Discover and book premium salons for hair, nails, skin & more." />
-    <meta name="twitter:image"       content="https://yourdomain.com/og-image.png" />
+    <meta name="twitter:image"       content="https://saloon-frontend-67z0.onrender.com/pwa-512.svg" />
 
-    <!-- Apple PWA -->
-    <meta name="apple-mobile-web-app-capable"          content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title"            content="Saloon" />
-
-    <!-- Microsoft -->
-    <meta name="msapplication-TileColor" content="#0D9488" />
-
-    <!-- Fonts preconnect for performance -->
+    <!-- ── Performance hints ── -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="dns-prefetch" href="https://saloon-backend.onrender.com" />
   </head>
   <body>
     <div id="root"></div>
