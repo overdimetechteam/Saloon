@@ -12,6 +12,9 @@ import AdminLayout from './layouts/AdminLayout';
 import OwnerLayout from './layouts/OwnerLayout';
 import UserLayout from './layouts/UserLayout';
 
+import LandingPage from './pages/LandingPage';
+import PortalSelect from './pages/PortalSelect';
+import OwnerLogin from './pages/OwnerLogin';
 import Login from './pages/Login';
 import RegisterClient from './pages/RegisterClient';
 import RegisterSalon from './pages/RegisterSalon';
@@ -89,15 +92,19 @@ export default function App() {
         <CartDrawer />
         <SnowEffect />
         <Routes>
+          {/* Entry flow — standalone (no navbar) */}
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/portal" element={<PortalSelect />} />
+
           {/* Public pages with top navbar */}
           <Route element={<PublicLayout />}>
-            <Route path="/" element={<Navigate to="/salons" replace />} />
             <Route path="/salons" element={<SalonList />} />
             <Route path="/salons/:id" element={<SalonDetail />} />
             <Route path="/salons/:id/cosmetics" element={<SalonCosmetics />} />
           </Route>
 
           {/* Standalone auth pages */}
+          <Route path="/owner/login" element={<OwnerLogin />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register/user" element={<RegisterClient />} />
           <Route path="/register/owner" element={<RegisterSalon />} />
