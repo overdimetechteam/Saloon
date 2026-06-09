@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState, useMemo } from 'react';
 
-const STAR_COUNT = 110;
+const STAR_COUNT = 110; // v2
 
 function useStars() {
   return useMemo(() =>
