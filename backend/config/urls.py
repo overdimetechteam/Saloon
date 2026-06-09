@@ -6,7 +6,7 @@ from django.views.static import serve
 from rest_framework_simplejwt.views import TokenRefreshView
 from users.views import (
     RegisterView, LoginView, ForgotPasswordView, ResetPasswordView,
-    VerifyEmailView, ResendVerificationView,
+    VerifyEmailView, ResendVerificationView, LogoutView,
 )
 from users.social_auth import (
     GoogleSocialAuthView,
@@ -24,6 +24,7 @@ urlpatterns = [
     path('api/auth/reset-password/', ResetPasswordView.as_view(), name='reset-password'),
     path('api/auth/verify-email/', VerifyEmailView.as_view(), name='verify-email'),
     path('api/auth/resend-verification/', ResendVerificationView.as_view(), name='resend-verification'),
+    path('api/auth/logout/', LogoutView.as_view(), name='logout'),
     path('api/auth/social/google/', GoogleSocialAuthView.as_view(), name='social-google'),
     path('api/auth/social/apple/', AppleSocialAuthView.as_view(), name='social-apple'),
     path('api/auth/social/twitter/init/', TwitterAuthInitView.as_view(), name='social-twitter-init'),

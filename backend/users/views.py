@@ -1,9 +1,23 @@
+import logging
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.throttling import AnonRateThrottle
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
+
+logger = logging.getLogger(__name__)
+
+
+class LoginThrottle(AnonRateThrottle):
+    scope = 'auth_login'
+
+class RegisterThrottle(AnonRateThrottle):
+    scope = 'auth_register'
+
+class ResetThrottle(AnonRateThrottle):
+    scope = 'auth_reset'
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
@@ -86,6 +100,7 @@ def _send_password_reset_email(user, reset_url):
 
 class RegisterView(APIView):
     permission_classes = [AllowAny]
+    throttle_classes   = [RegisterThrottle]
 
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
@@ -112,12 +127,14 @@ class RegisterView(APIView):
 
 class LoginView(APIView):
     permission_classes = [AllowAny]
+    throttle_classes   = [LoginThrottle]
 
     def post(self, request):
-        email    = request.data.get('email')
-        password = request.data.get('password')
+        email    = request.data.get('email', '').strip().lower()
+        password = request.data.get('password', '')
         user = authenticate(request, username=email, password=password)
         if user is None:
+            logger.warning('Failed login attempt for email: %s', email)
             return Response({'detail': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
         if not user.email_verified and user.role == 'client':
             return Response(
@@ -125,6 +142,7 @@ class LoginView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
         refresh = RefreshToken.for_user(user)
+        logger.info('User %s logged in', user.pk)
         return Response({
             'user': UserSerializer(user).data,
             'access': str(refresh.access_token),
@@ -134,6 +152,7 @@ class LoginView(APIView):
 
 class VerifyEmailView(APIView):
     permission_classes = [AllowAny]
+    throttle_classes   = [ResetThrottle]
 
     def post(self, request):
         uid   = request.data.get('uid', '')
@@ -152,6 +171,7 @@ class VerifyEmailView(APIView):
 
 class ResendVerificationView(APIView):
     permission_classes = [AllowAny]
+    throttle_classes   = [ResetThrottle]
 
     def post(self, request):
         email = request.data.get('email', '').strip()
@@ -168,6 +188,7 @@ class ResendVerificationView(APIView):
 
 class ForgotPasswordView(APIView):
     permission_classes = [AllowAny]
+    throttle_classes   = [ResetThrottle]
 
     def post(self, request):
         email = request.data.get('email', '').strip()
@@ -191,7 +212,7 @@ class ResetPasswordView(APIView):
         uid      = request.data.get('uid', '')
         token    = request.data.get('token', '')
         password = request.data.get('password', '')
-        if not password or len(password) < 6:
+        if not password or len(password) < 8:
             return Response({'detail': 'Password must be at least 6 characters.'}, status=status.HTTP_400_BAD_REQUEST)
         try:
             user_id = force_str(urlsafe_base64_decode(uid))
@@ -203,6 +224,21 @@ class ResetPasswordView(APIView):
             return Response({'message': 'Password has been reset successfully. You can now log in.'})
         except Exception:
             return Response({'detail': 'Invalid reset link.'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class LogoutView(APIView):
+    """Blacklists the submitted refresh token so it cannot be reused after logout."""
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        refresh_token = request.data.get('refresh')
+        if refresh_token:
+            try:
+                token = RefreshToken(refresh_token)
+                token.blacklist()
+            except Exception:
+                pass  # already blacklisted or invalid — treat as logged out
+        return Response({'message': 'Logged out successfully.'}, status=status.HTTP_200_OK)
 
 
 # ── Notifications ──────────────────────────────────────────────────────────────

@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 from django.db import models
+from utils.encryption import EncryptedTextField
 
 
 class CustomUserManager(BaseUserManager):
@@ -28,8 +29,8 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     ]
 
     email = models.EmailField(unique=True)
-    full_name = models.CharField(max_length=255)
-    phone = models.CharField(max_length=20, blank=True)
+    full_name = EncryptedTextField()
+    phone = EncryptedTextField(blank=True, default='')
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='client')
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)

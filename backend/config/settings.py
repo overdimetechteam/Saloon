@@ -20,6 +20,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
     'users',
     'salons',
@@ -73,9 +74,16 @@ AUTH_USER_MODEL = 'users.CustomUser'
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator', 'OPTIONS': {'min_length': 8}},
     {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
+]
+
+# Argon2 is the winner of the Password Hashing Competition — stronger than PBKDF2
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.Argon2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',   # fallback for existing hashes
+    'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
 ]
 
 LANGUAGE_CODE = 'en-us'
@@ -115,15 +123,50 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '300/day',
+        'user': '3000/day',
+        'auth_login':    '10/min',   # login attempts
+        'auth_register': '5/min',    # account creation
+        'auth_reset':    '5/min',    # password reset / verification
+    },
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(hours=8),
+    'ACCESS_TOKEN_LIFETIME':  timedelta(minutes=15),   # short-lived; frontend auto-refreshes
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS':  True,   # issue new refresh token on every refresh
+    'BLACKLIST_AFTER_ROTATION': True,  # invalidate old refresh token
     'AUTH_HEADER_TYPES': ('Bearer',),
     'USER_ID_FIELD': 'id',
     'USER_ID_CLAIM': 'user_id',
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': SECRET_KEY,
 }
+
+# ── Security headers ─────────────────────────────────────────────────────────
+SECURE_CONTENT_TYPE_NOSNIFF  = True
+SECURE_BROWSER_XSS_FILTER    = True
+X_FRAME_OPTIONS              = 'DENY'
+SECURE_REFERRER_POLICY       = 'strict-origin-when-cross-origin'
+
+if not DEBUG:
+    SECURE_SSL_REDIRECT             = True
+    SECURE_HSTS_SECONDS             = 31_536_000   # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS  = True
+    SECURE_HSTS_PRELOAD             = True
+    SESSION_COOKIE_SECURE           = True
+    CSRF_COOKIE_SECURE              = True
+    CSRF_COOKIE_HTTPONLY            = True
+
+# ── Field-level encryption key ───────────────────────────────────────────────
+# Generate: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+# Set in .env and in Render environment variables.
+FIELD_ENCRYPTION_KEY = os.getenv('FIELD_ENCRYPTION_KEY', '')
 
 # Email — Gmail SMTP (set EMAIL_HOST_USER + EMAIL_HOST_PASSWORD in .env / Render)
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

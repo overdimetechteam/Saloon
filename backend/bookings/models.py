@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 from salons.models import Salon
 from services.models import SalonService
+from utils.encryption import EncryptedTextField
 
 
 class Booking(models.Model):
@@ -37,11 +38,11 @@ class Booking(models.Model):
     discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     is_walk_in = models.BooleanField(default=False)
     home_visit = models.BooleanField(default=False)
-    home_visit_address = models.TextField(blank=True, default='')
+    home_visit_address = EncryptedTextField(blank=True, default='')
     requested_datetime = models.DateTimeField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     negotiation_round = models.PositiveIntegerField(default=0)
-    notes = models.TextField(blank=True)
+    notes = EncryptedTextField(blank=True, default='')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

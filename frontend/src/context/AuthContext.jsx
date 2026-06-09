@@ -54,7 +54,16 @@ export function AuthProvider({ children }) {
     return data.user;
   };
 
-  const logout = () => {
+  const logout = async () => {
+    const refresh = localStorage.getItem('refresh');
+    // Blacklist the refresh token server-side so it can't be reused
+    if (refresh) {
+      try {
+        await api.post('/auth/logout/', { refresh });
+      } catch {
+        // proceed with local logout even if server call fails
+      }
+    }
     localStorage.removeItem('access');
     localStorage.removeItem('refresh');
     localStorage.removeItem('profile');

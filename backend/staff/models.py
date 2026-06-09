@@ -1,6 +1,7 @@
 from django.db import models
 from users.models import CustomUser
 from salons.models import Salon
+from utils.encryption import EncryptedTextField
 
 
 class StaffMember(models.Model):
@@ -19,7 +20,7 @@ class StaffMember(models.Model):
     role                 = models.CharField(max_length=30, choices=ROLE_CHOICES, default='other')
     bio                  = models.TextField(blank=True)
     photo                = models.ImageField(upload_to='staff_photos/', null=True, blank=True)
-    phone                = models.CharField(max_length=20, blank=True)
+    phone                = EncryptedTextField(blank=True, default='')
     specialties          = models.ManyToManyField('services.Service', blank=True, related_name='staff_member_specialties')
     working_days         = models.JSONField(default=list, blank=True)
     home_visit_available = models.BooleanField(default=False)
