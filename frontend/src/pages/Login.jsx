@@ -182,6 +182,10 @@ export default function Login() {
       {/* Right panel — form */}
       <div style={{ ...s.right, padding: isMobile ? '28px 20px 40px' : isTablet ? '40px 32px' : '60px 40px' }}>
         <div style={{ ...s.formWrap, maxWidth: (isMobile || isTablet) ? '100%' : 400, width: '100%' }} className="fade-up">
+          <button style={s.backBtn} onClick={() => navigate('/portal')}>
+            ← Back to portal select
+          </button>
+
           <div style={s.formHeader}>
             <h1 style={{ ...s.formTitle, fontSize: isMobile ? 28 : isTablet ? 32 : 38 }}>Welcome back</h1>
             <p style={s.formSub}>Sign in to continue your journey</p>
@@ -289,7 +293,6 @@ export default function Login() {
 
           <div style={s.footer}>
             <p>New client? <Link to={`/register/user${nextPath ? `?next=${encodeURIComponent(nextPath)}` : ''}`} style={s.footerLink}>Create account</Link></p>
-            <p style={{ marginTop: 8 }}>Own a salon? <Link to="/register/owner" style={s.footerLink}>Apply here</Link></p>
           </div>
 
           {/* Forgot Password Modal */}
@@ -398,6 +401,12 @@ const s = {
     background: 'var(--bg)',
   },
   formWrap: { width: '100%', maxWidth: 400 },
+  backBtn: {
+    background: 'none', border: 'none', cursor: 'pointer',
+    fontSize: 13, color: 'var(--text-muted)', padding: 0,
+    marginBottom: 28, fontFamily: "'DM Sans', sans-serif",
+    display: 'flex', alignItems: 'center', gap: 6,
+  },
   formHeader: { marginBottom: 36 },
   formTitle: {
     fontFamily: "'Cormorant Garamond', Georgia, serif",

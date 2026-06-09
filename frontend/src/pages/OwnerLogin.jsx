@@ -174,10 +174,6 @@ export default function OwnerLogin() {
               Don't have an owner account?{' '}
               <Link to="/register/owner" style={s.footerLink}>Register your salon</Link>
             </p>
-            <p style={{ marginTop: 8 }}>
-              Are you a customer?{' '}
-              <Link to="/login" style={s.footerLink}>Customer login</Link>
-            </p>
           </div>
 
         </div>
