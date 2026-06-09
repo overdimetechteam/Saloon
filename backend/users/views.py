@@ -226,6 +226,22 @@ class ResetPasswordView(APIView):
             return Response({'detail': 'Invalid reset link.'}, status=status.HTTP_400_BAD_REQUEST)
 
 
+class UserProfileView(APIView):
+    """GET own profile / PATCH update full_name and phone."""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        return Response(UserSerializer(request.user).data)
+
+    def patch(self, request):
+        allowed = {k: v for k, v in request.data.items() if k in ('full_name', 'phone')}
+        serializer = UserSerializer(request.user, data=allowed, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 class LogoutView(APIView):
     """Blacklists the submitted refresh token so it cannot be reused after logout."""
     permission_classes = [AllowAny]

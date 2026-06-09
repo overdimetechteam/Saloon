@@ -11,6 +11,7 @@ const NAV = [
   { to: '/user/bookings',   label: 'Bookings',     icon: '◉' },
   { to: '/user/favourites', label: 'Favourites',   icon: '♡' },
   { to: '/salons',          label: 'Explore',      icon: '✦' },
+  { to: '/user/settings',   label: 'Settings',     icon: '⚙' },
 ];
 
 const TYPE_ICON = {

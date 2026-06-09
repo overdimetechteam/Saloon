@@ -58,6 +58,8 @@ import BookSalon from './pages/user/BookSalon';
 import UserFavourites from './pages/user/Favourites';
 import UserCosmetics from './pages/user/Cosmetics';
 import Checkout from './pages/user/Checkout';
+import UserSettings from './pages/user/Settings';
+import OwnerSettings from './pages/owner/Settings';
 
 function PublicLayout() {
   const location = useLocation();
@@ -149,6 +151,7 @@ export default function App() {
               <Route path="inventory/sales" element={<OwnerSales />} />
               <Route path="inventory/adjustments" element={<OwnerAdjustments />} />
               <Route path="reports" element={<OwnerReports />} />
+              <Route path="settings" element={<OwnerSettings />} />
             </Route>
           </Route>
 
@@ -168,6 +171,7 @@ export default function App() {
               <Route path="favourites" element={<UserFavourites />} />
               <Route path="cosmetics" element={<UserCosmetics />} />
               <Route path="checkout" element={<Checkout />} />
+              <Route path="settings" element={<UserSettings />} />
             </Route>
           </Route>
         </Routes>

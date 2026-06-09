@@ -23,6 +23,7 @@ const NAV = [
   { to: '/owner/inventory/sales',       icon: '⊘', label: 'Record Sales',  group: 'stock' },
   { to: '/owner/inventory/adjustments', icon: '⊡', label: 'Adjustments',   group: 'stock' },
   { to: '/owner/reports',               icon: '◰', label: 'Reports',       group: 'stock' },
+  { to: '/owner/settings',              icon: '⚙', label: 'Settings',       group: 'account' },
 ];
 
 const PLAN_LABELS = { free_trial: 'Free Trial', starter: 'Starter', professional: 'Professional', premium: 'Premium' };
@@ -30,8 +31,9 @@ const PLAN_COLORS = { free_trial: '#6B7280', starter: '#14B8A8', professional: '
 const PLAN_ICONS  = { free_trial: '🆓', starter: '🚀', professional: '💎', premium: '👑' };
 
 const GROUPS = [
-  { key: 'main',  label: 'Workspace' },
-  { key: 'stock', label: 'Inventory' },
+  { key: 'main',    label: 'Workspace' },
+  { key: 'stock',   label: 'Inventory' },
+  { key: 'account', label: 'Account'   },
 ];
 
 export default function OwnerLayout() {

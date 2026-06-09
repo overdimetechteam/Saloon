@@ -242,6 +242,223 @@ def _send_booking_confirmation_email(booking):
         logger.error(f"[EMAIL] Booking confirmation FAILED for #{booking.pk} → {client.email}: {e}")
 
 
+def _send_owner_new_booking_email(booking):
+    """Notify the salon owner when a client creates a new booking."""
+    owner  = booking.salon.owner
+    client = booking.client
+    salon  = booking.salon
+    dt     = booking.requested_datetime
+    date_str = dt.strftime('%A, %B %d, %Y')
+    time_str = dt.strftime('%I:%M %p')
+
+    services = list(booking.booking_services.select_related('salon_service__service').all())
+    subtotal  = sum(float(bs.salon_service.effective_price) for bs in services)
+    discount  = float(booking.discount_amount)
+    total     = subtotal - discount
+
+    svc_rows = ''.join(
+        f'<tr><td style="padding:8px 0;color:rgba(255,255,255,0.5);font-size:13px;border-bottom:1px solid #1a3530">&#8226; {bs.salon_service.service.name}</td>'
+        f'<td style="padding:8px 0;color:#e2e8f0;font-size:13px;font-weight:600;text-align:right;border-bottom:1px solid #1a3530">LKR {float(bs.salon_service.effective_price):,.0f}</td></tr>'
+        for bs in services
+    )
+
+    appt_type = 'Home Visit' if booking.home_visit else ('Walk-In' if booking.is_walk_in else 'In-Salon')
+    if booking.home_visit:
+        type_bg, type_color = 'rgba(251,146,60,0.18)', '#fb923c'
+    elif booking.is_walk_in:
+        type_bg, type_color = 'rgba(139,92,246,0.18)', '#a78bfa'
+    else:
+        type_bg, type_color = 'rgba(20,184,166,0.18)', '#14B8A8'
+
+    staff_row = (
+        f'<tr><td style="padding:10px 0;color:rgba(255,255,255,0.45);font-size:13px;border-bottom:1px solid #1a3530">Assigned To</td>'
+        f'<td style="padding:10px 0;color:#e2e8f0;font-size:13px;font-weight:700;text-align:right;border-bottom:1px solid #1a3530">{booking.staff_member.full_name}</td></tr>'
+    ) if booking.staff_member else ''
+
+    discount_row = (
+        f'<tr><td style="padding:6px 0;color:#14B8A8;font-size:13px">Discount ({booking.promo_code.code})</td>'
+        f'<td style="padding:6px 0;color:#14B8A8;font-size:13px;font-weight:700;text-align:right">&#8722; LKR {discount:,.0f}</td></tr>'
+    ) if discount > 0 else ''
+
+    address_row = (
+        f'<tr><td style="padding:10px 0;color:rgba(255,255,255,0.45);font-size:13px;border-bottom:1px solid #1a3530">Home Address</td>'
+        f'<td style="padding:10px 0;color:#e2e8f0;font-size:13px;text-align:right;border-bottom:1px solid #1a3530">{booking.home_visit_address}</td></tr>'
+    ) if booking.home_visit and booking.home_visit_address else ''
+
+    notes_row = (
+        f'<tr><td colspan="2" style="padding:12px 16px;background:rgba(255,255,255,0.04);border-radius:8px;color:rgba(255,255,255,0.55);font-size:13px;line-height:1.6;font-style:italic">&#8220;{booking.notes}&#8221;</td></tr>'
+    ) if booking.notes else ''
+
+    frontend_url  = getattr(settings, 'FRONTEND_URL', 'http://localhost:5173')
+    view_appt_url = f"{frontend_url}/owner/bookings/{booking.pk}"
+
+    html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="supported-color-schemes" content="dark">
+</head>
+<body style="margin:0;padding:0;background:#080d10;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif" bgcolor="#080d10">
+
+<table width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#080d10">
+<tr><td align="center" style="padding:32px 16px 52px" bgcolor="#080d10">
+
+  <table width="580" cellpadding="0" cellspacing="0" border="0" style="max-width:580px;width:100%;border-radius:20px;overflow:hidden;border:1px solid rgba(255,255,255,0.06)">
+
+    <!-- HEADER -->
+    <tr>
+      <td align="center" bgcolor="#0a1520" style="background:linear-gradient(135deg,#060e18 0%,#0a1a28 50%,#0a2236 100%);padding:30px 40px 24px">
+        <div style="font-size:11px;font-weight:700;color:#60a5fa;letter-spacing:0.26em;text-transform:uppercase;margin-bottom:4px">&#10022; &nbsp; SALOON OWNER PORTAL</div>
+        <div style="font-size:10px;color:rgba(255,255,255,0.3);letter-spacing:0.16em;text-transform:uppercase">New Booking Notification</div>
+      </td>
+    </tr>
+
+    <!-- HERO -->
+    <tr>
+      <td align="center" bgcolor="#0c1825" style="background:#0c1825;padding:36px 40px 28px">
+        <div style="width:64px;height:64px;background:linear-gradient(135deg,#1d4ed8,#3b82f6);border-radius:50%;margin:0 auto 20px;text-align:center;line-height:64px;font-size:28px">&#128197;</div>
+        <div style="font-size:11px;font-weight:700;color:#93c5fd;letter-spacing:0.18em;text-transform:uppercase;margin-bottom:10px">NEW APPOINTMENT REQUEST</div>
+        <div style="font-size:28px;font-weight:800;color:#ffffff;letter-spacing:-0.02em;margin-bottom:10px">You have a new booking!</div>
+        <div style="font-size:14px;color:rgba(255,255,255,0.5);line-height:1.7">
+          A client has booked an appointment at<br>
+          <span style="color:#60a5fa;font-weight:700;font-size:18px">{salon.name}</span>
+        </div>
+      </td>
+    </tr>
+
+    <!-- DATE / TIME BANNER -->
+    <tr>
+      <td bgcolor="#0a1a2e" style="background:#0a1a2e;border-left:3px solid #3b82f6;padding:0">
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <td bgcolor="#0a1a2e" style="background:#0a1a2e;padding:18px 36px">
+              <table cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="font-size:26px;vertical-align:middle;padding-right:16px">&#128197;</td>
+                  <td style="vertical-align:middle">
+                    <div style="font-size:17px;font-weight:800;color:#ffffff">{date_str}</div>
+                    <div style="font-size:14px;color:#60a5fa;font-weight:600;margin-top:4px">&#128336; &nbsp; {time_str}</div>
+                  </td>
+                  <td align="right" style="vertical-align:middle">
+                    <span style="display:inline-block;padding:6px 16px;background:{type_bg};color:{type_color};border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.06em">{appt_type.upper()}</span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <!-- CLIENT INFO -->
+    <tr>
+      <td bgcolor="#0f1e2e" style="background:#0f1e2e;padding:24px 40px 20px;border-top:1px solid #1a2e42">
+        <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.28);letter-spacing:0.14em;text-transform:uppercase;margin-bottom:16px">CLIENT DETAILS</div>
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <td style="padding:9px 0;color:rgba(255,255,255,0.45);font-size:13px;border-bottom:1px solid #1a2e42">Name</td>
+            <td style="padding:9px 0;color:#e2e8f0;font-size:13px;font-weight:700;text-align:right;border-bottom:1px solid #1a2e42">{client.full_name or '—'}</td>
+          </tr>
+          <tr>
+            <td style="padding:9px 0;color:rgba(255,255,255,0.45);font-size:13px;border-bottom:1px solid #1a2e42">Email</td>
+            <td style="padding:9px 0;font-size:13px;font-weight:600;text-align:right;border-bottom:1px solid #1a2e42">
+              <a href="mailto:{client.email}" style="color:#60a5fa;text-decoration:none">{client.email}</a>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:9px 0;color:rgba(255,255,255,0.45);font-size:13px;border-bottom:1px solid #1a2e42">Phone</td>
+            <td style="padding:9px 0;color:#e2e8f0;font-size:13px;font-weight:600;text-align:right;border-bottom:1px solid #1a2e42">{client.phone or '—'}</td>
+          </tr>
+          {address_row}
+        </table>
+      </td>
+    </tr>
+
+    <!-- BOOKING DETAILS -->
+    <tr>
+      <td bgcolor="#091622" style="background:#091622;padding:24px 40px 20px;border-top:1px solid #1a2e42">
+        <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.28);letter-spacing:0.14em;text-transform:uppercase;margin-bottom:16px">BOOKING DETAILS</div>
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <td style="padding:9px 0;color:rgba(255,255,255,0.45);font-size:13px;border-bottom:1px solid #1a2e42" valign="top">Services</td>
+            <td style="padding:9px 0;border-bottom:1px solid #1a2e42">
+              <table width="100%" cellpadding="0" cellspacing="0">{svc_rows}</table>
+            </td>
+          </tr>
+          {staff_row}
+          <tr>
+            <td style="padding:9px 0;color:rgba(255,255,255,0.45);font-size:13px;border-bottom:1px solid #1a2e42">Booking Ref</td>
+            <td style="padding:9px 0;color:#e2e8f0;font-size:14px;font-weight:800;text-align:right;border-bottom:1px solid #1a2e42;font-family:'Courier New',Courier,monospace;letter-spacing:0.08em">REF&#8209;{booking.pk:06d}</td>
+          </tr>
+          <tr>
+            <td style="padding:9px 0;color:rgba(255,255,255,0.45);font-size:13px">Status</td>
+            <td style="padding:9px 0;text-align:right">
+              <span style="display:inline-block;padding:4px 14px;background:rgba(251,191,36,0.14);color:#fbbf24;border:1px solid rgba(251,191,36,0.28);border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.05em">&#9679; &nbsp;PENDING REVIEW</span>
+            </td>
+          </tr>
+        </table>
+        {"<table width='100%' cellpadding='0' cellspacing='0' style='margin-top:14px'>" + notes_row + "</table>" if notes_row else ""}
+      </td>
+    </tr>
+
+    <!-- PRICE SUMMARY -->
+    <tr>
+      <td bgcolor="#06101a" style="background:#06101a;padding:20px 40px;border-top:1px solid #1a2e42">
+        <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.28);letter-spacing:0.14em;text-transform:uppercase;margin-bottom:14px">PRICE SUMMARY</div>
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <td style="padding:6px 0;color:rgba(255,255,255,0.45);font-size:13px">Subtotal</td>
+            <td style="padding:6px 0;color:rgba(255,255,255,0.65);font-size:13px;text-align:right">LKR {subtotal:,.0f}</td>
+          </tr>
+          {discount_row}
+          <tr>
+            <td style="padding:13px 0 0;color:#ffffff;font-size:16px;font-weight:800;border-top:1px solid #1a2e42">Total</td>
+            <td style="padding:13px 0 0;color:#60a5fa;font-size:17px;font-weight:800;text-align:right;border-top:1px solid #1a2e42">LKR {total:,.0f}</td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <!-- CTA -->
+    <tr>
+      <td align="center" bgcolor="#0c1825" style="background:#0c1825;padding:28px 40px 32px;border-top:1px solid #1a2e42">
+        <div style="font-size:13px;color:rgba(255,255,255,0.45);margin-bottom:18px">Review and confirm or propose a new time from your dashboard.</div>
+        <a href="{view_appt_url}" style="display:inline-block;padding:15px 48px;background:linear-gradient(135deg,#1d4ed8,#3b82f6);color:#ffffff;border-radius:12px;text-decoration:none;font-weight:700;font-size:15px;letter-spacing:0.01em">
+          View Appointment &nbsp;&#8594;
+        </a>
+      </td>
+    </tr>
+
+    <!-- FOOTER -->
+    <tr>
+      <td align="center" bgcolor="#060e18" style="background:#060e18;padding:22px 40px;border-top:1px solid #1a2e42">
+        <div style="font-size:12px;color:rgba(255,255,255,0.35);margin-bottom:5px">Saloon Owner Portal &nbsp;&middot;&nbsp; You are receiving this because you own a registered salon.</div>
+        <div style="font-size:10px;color:rgba(255,255,255,0.18)">&copy; 2026 Saloon &nbsp;&middot;&nbsp; Beauty &amp; Wellness Platform, Sri Lanka</div>
+      </td>
+    </tr>
+
+  </table>
+</td></tr>
+</table>
+</body>
+</html>"""
+
+    try:
+        send_mail(
+            subject=f"📅 New Booking — {client.full_name or client.email} on {date_str} | {salon.name}",
+            message=f"New booking from {client.full_name or client.email} ({client.email}) at {salon.name} on {date_str} at {time_str}. REF-{booking.pk:06d}. View: {view_appt_url}",
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[owner.email],
+            html_message=html,
+            fail_silently=False,
+        )
+        logger.info(f"[EMAIL] Owner booking alert sent to {owner.email} for booking #{booking.pk}")
+    except Exception as e:
+        logger.error(f"[EMAIL] Owner booking alert FAILED for #{booking.pk}: {e}")
+
+
 def _has_schedule_conflict(staff_member, new_start, new_duration_minutes, exclude_booking=None):
     """Return True if the staff member has any booking that overlaps [new_start, new_start+new_duration)."""
     if not staff_member:
@@ -350,7 +567,7 @@ class BookingListCreateView(APIView):
         for ss_id in data['salon_service_ids']:
             BookingService.objects.create(booking=booking, salon_service_id=ss_id)
 
-        # Notify salon owner of new booking
+        # Notify salon owner — in-app notification + email
         dt_str = booking.requested_datetime.strftime('%b %d at %I:%M %p')
         send_notification(
             salon.owner,
@@ -358,6 +575,10 @@ class BookingListCreateView(APIView):
             notif_type='booking_confirmed',
             booking_id=booking.pk,
         )
+        try:
+            _send_owner_new_booking_email(booking)
+        except Exception as e:
+            logger.error(f"[EMAIL] Owner notification failed for booking #{booking.pk}: {e}")
 
         logger.info(f"New booking #{booking.pk} created by {request.user.email}")
         return Response(BookingSerializer(booking).data, status=status.HTTP_201_CREATED)

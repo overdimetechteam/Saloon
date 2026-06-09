@@ -189,6 +189,24 @@ class MySalonView(APIView):
             return Response({'detail': 'No salon registered'}, status=status.HTTP_404_NOT_FOUND)
         return Response(SalonSerializer(salon, context={'request': request}).data)
 
+    def patch(self, request):
+        if request.user.role != 'salon_owner':
+            return Response({'detail': 'Not a salon owner'}, status=status.HTTP_403_FORBIDDEN)
+        salon = Salon.objects.filter(owner=request.user).first()
+        if not salon:
+            return Response({'detail': 'No salon registered'}, status=status.HTTP_404_NOT_FOUND)
+        allowed = {
+            'name', 'contact_number', 'email',
+            'address_street', 'address_city', 'address_district', 'address_postal',
+            'operating_hours', 'home_visit_enabled', 'gender_focus',
+        }
+        data = {k: v for k, v in request.data.items() if k in allowed}
+        serializer = SalonSerializer(salon, data=data, partial=True, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(SalonSerializer(salon, context={'request': request}).data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class SalonLogoView(APIView):
     permission_classes = [IsAuthenticated]
