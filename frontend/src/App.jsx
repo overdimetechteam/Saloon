@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { OwnerProvider } from './context/OwnerContext';
 import { CartProvider } from './context/CartContext';
 import RequireRole from './components/RequireRole';
@@ -78,6 +78,14 @@ function PublicLayout() {
   );
 }
 
+// Shows UserLayout for logged-in clients, PublicLayout for everyone else.
+// This keeps the customer navbar consistent on salon browsing pages.
+function ClientAwareLayout() {
+  const { user } = useAuth();
+  if (user?.role === 'client') return <UserLayout />;
+  return <PublicLayout />;
+}
+
 function OwnerLayoutWithProvider() {
   return (
     <OwnerProvider>
@@ -98,11 +106,12 @@ export default function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/portal" element={<PortalSelect />} />
 
-          {/* Public pages with top navbar */}
-          <Route element={<PublicLayout />}>
+          {/* Salon browsing — UserLayout for logged-in clients, PublicLayout for guests */}
+          <Route element={<ClientAwareLayout />}>
             <Route path="/salons" element={<SalonList />} />
             <Route path="/salons/:id" element={<SalonDetail />} />
             <Route path="/salons/:id/cosmetics" element={<SalonCosmetics />} />
+            <Route path="/salons/:id/cosmetics/:productId" element={<ProductDetail />} />
           </Route>
 
           {/* Standalone auth pages */}
@@ -153,11 +162,6 @@ export default function App() {
               <Route path="reports" element={<OwnerReports />} />
               <Route path="settings" element={<OwnerSettings />} />
             </Route>
-          </Route>
-
-          {/* Public product detail */}
-          <Route element={<PublicLayout />}>
-            <Route path="/salons/:id/cosmetics/:productId" element={<ProductDetail />} />
           </Route>
 
           {/* User portal — /user/* */}
