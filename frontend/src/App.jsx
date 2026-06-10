@@ -81,8 +81,8 @@ function PublicLayout() {
 // Shows UserLayout for logged-in clients, PublicLayout for everyone else.
 // This keeps the customer navbar consistent on salon browsing pages.
 function ClientAwareLayout() {
-  const { user } = useAuth();
-  if (user?.role === 'client') return <UserLayout />;
+  const { profile } = useAuth();
+  if (profile?.role === 'client') return <UserLayout />;
   return <PublicLayout />;
 }
 
