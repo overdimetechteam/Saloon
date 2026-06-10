@@ -67,7 +67,7 @@ function SalonCard({ salon, i, isFav, col, numCols }) {
           <span style={{ color: c1, fontSize: 11 }}>◎</span>
           {salon.address_city}{salon.address_district ? `, ${salon.address_district}` : ''}
         </div>
-        {salon.contact_number && (
+        {salon.contact_number && salon.contact_number.length <= 25 && (
           <span style={s.phone}>📞 {salon.contact_number}</span>
         )}
       </div>
@@ -141,7 +141,13 @@ export default function SalonList() {
       {/* ── Hero — shown only to guests ── */}
       {!profile && (
         <div
-          style={{ ...s.hero, padding: isMobile ? '52px 20px 72px' : isTablet ? '72px 28px 96px' : '88px 40px 112px' }}
+          style={{
+            ...s.hero,
+            padding: isMobile ? '52px 20px 72px' : isTablet ? '72px 28px 96px' : '88px 40px 112px',
+            marginLeft: isMobile ? -16 : -40,
+            marginRight: isMobile ? -16 : -40,
+            marginTop: isMobile ? -24 : -40,
+          }}
           className="anim-gradient noise-bg"
         >
           <div style={s.glow1} />
@@ -177,7 +183,13 @@ export default function SalonList() {
 
       {/* ── Signed-in banner ── */}
       {profile && (
-        <div style={{ ...s.signedInBanner, padding: isMobile ? '28px 16px 24px' : isTablet ? '32px 24px 28px' : '40px 40px 36px' }}
+        <div style={{
+          ...s.signedInBanner,
+          padding: isMobile ? '28px 16px 24px' : isTablet ? '32px 24px 28px' : '40px 40px 36px',
+          marginLeft: isMobile ? -16 : -40,
+          marginRight: isMobile ? -16 : -40,
+          marginTop: isMobile ? -24 : -40,
+        }}
           className="anim-gradient">
           <div style={s.glow1} />
           <div style={s.glow2} />
@@ -355,7 +367,7 @@ export default function SalonList() {
 }
 
 const s = {
-  page: { minHeight: '100vh', background: 'var(--bg)' },
+  page: { minHeight: '100vh', background: 'var(--bg)', overflowX: 'hidden' },
 
   /* ── Hero (guests only) ── */
   hero: {

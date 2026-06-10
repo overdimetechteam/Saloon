@@ -232,12 +232,12 @@ export default function SalonDetail() {
             </div>
             <div style={{ flex: 1 }}>
               <div style={s.eyebrow}>Featured Salon</div>
-              <h1 style={{ ...s.salonName, fontSize: isMobile ? 28 : 42 }}>{salon.name}</h1>
+              <h1 style={{ ...s.salonName, fontSize: isMobile ? 22 : 42 }}>{salon.name}</h1>
 
               <div style={s.ratingRow}>
                 <Stars rating={summary ? Math.round(summary.average_rating) : 5} size={16} />
-                <span style={s.ratingNum}>{summary ? summary.average_rating.toFixed(1) : '—'}</span>
-                <span style={s.ratingCt}>({summary ? summary.total_reviews : 0} review{summary?.total_reviews !== 1 ? 's' : ''})</span>
+                <span style={{ ...s.ratingNum, fontSize: isMobile ? 13 : 16 }}>{summary ? summary.average_rating.toFixed(1) : '—'}</span>
+                <span style={{ ...s.ratingCt, fontSize: isMobile ? 11 : 13 }}>({summary ? summary.total_reviews : 0} review{summary?.total_reviews !== 1 ? 's' : ''})</span>
                 <span style={s.dot}>·</span>
                 <span style={{ ...s.openBadge, background: openNow ? `rgba(${R},.15)` : 'rgba(107,114,128,.1)', color: openNow ? '#F0FFFE' : 'rgba(255,255,255,.6)' }}>
                   <span style={{ color: openNow ? pal.light : '#9CA3AF', marginRight: 4 }}>●</span>
@@ -245,35 +245,42 @@ export default function SalonDetail() {
                 </span>
               </div>
 
-              <div style={s.addrRow}>
-                <span style={s.addrText}>📍 {fullAddress}</span>
+              <div style={{ ...s.addrRow, flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center', gap: isMobile ? 6 : 12 }}>
+                <span style={{ ...s.addrText, fontSize: isMobile ? 12 : 14 }}>📍 {fullAddress}</span>
                 <a
                   href={`https://www.google.com/maps/search/${encodeURIComponent(fullAddress)}`}
                   target="_blank" rel="noreferrer"
-                  style={{ ...s.locationBtn, color: pal.textLight, background: `rgba(${R},.22)`, border: `1px solid rgba(${R},.35)` }}
+                  style={{ ...s.locationBtn, color: pal.textLight, background: `rgba(${R},.22)`, border: `1px solid rgba(${R},.35)`, fontSize: isMobile ? 11 : 12 }}
                 >
                   See Location ↗
                 </a>
               </div>
 
               <div style={s.contactRow}>
-                {salon.contact_number && <span style={s.contactTag}>📞 {salon.contact_number}</span>}
-                {salon.email && <span style={s.contactTag}>✉ {salon.email}</span>}
+                {salon.contact_number && salon.contact_number.length <= 25 && <span style={{ ...s.contactTag, fontSize: isMobile ? 11 : 12 }}>📞 {salon.contact_number}</span>}
+                {salon.email && <span style={{ ...s.contactTag, fontSize: isMobile ? 11 : 12 }}>✉ {salon.email}</span>}
               </div>
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexShrink: 0, justifyContent: isMobile ? 'center' : 'flex-start', flexWrap: 'wrap' }}>
+          <div style={{
+            display: 'flex', gap: isMobile ? 8 : 12,
+            alignItems: 'center', flexShrink: 0,
+            justifyContent: isMobile ? 'stretch' : 'flex-start',
+            flexWrap: 'wrap',
+            width: isMobile ? '100%' : 'auto',
+          }}>
             {isClient && (
               <button
                 onClick={toggleFav}
                 disabled={favLoading}
                 title={isFav ? 'Remove from favourites' : 'Save to favourites'}
                 style={{
-                  width: 48, height: 48, borderRadius: 14, border: 'none',
+                  width: isMobile ? 44 : 48, height: isMobile ? 44 : 48,
+                  borderRadius: 14, border: 'none', flexShrink: 0,
                   background: isFav ? `rgba(${R},.25)` : 'rgba(255,255,255,.12)',
                   color: isFav ? pal.textLight : 'rgba(255,255,255,.7)',
-                  fontSize: 22, cursor: 'pointer',
+                  fontSize: isMobile ? 20 : 22, cursor: 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   transition: 'all .2s ease',
                   boxShadow: isFav ? `0 4px 14px rgba(${R},.35)` : 'none',
@@ -283,12 +290,34 @@ export default function SalonDetail() {
               </button>
             )}
             {showBookBtn && (
-              <Link to={`/user/book/${id}`} style={{ ...s.heroBookBtn, background: pal.main, boxShadow: `0 6px 20px rgba(${R},.45)` }} className="lift-sm">
+              <Link
+                to={`/user/book/${id}`}
+                style={{
+                  ...s.heroBookBtn,
+                  background: pal.main,
+                  boxShadow: `0 6px 20px rgba(${R},.45)`,
+                  flex: isMobile ? '1 1 auto' : 'none',
+                  justifyContent: 'center',
+                  padding: isMobile ? '12px 20px' : '14px 32px',
+                  fontSize: isMobile ? 14 : 16,
+                }}
+                className="lift-sm"
+              >
                 ✦ Book Now
               </Link>
             )}
             {salon.cosmetics_enabled && (
-              <Link to={`/salons/${id}/cosmetics`} style={s.heroCosmeticsBtn} className="lift-sm">
+              <Link
+                to={`/salons/${id}/cosmetics`}
+                style={{
+                  ...s.heroCosmeticsBtn,
+                  flex: isMobile ? '1 1 auto' : 'none',
+                  justifyContent: 'center',
+                  padding: isMobile ? '12px 16px' : '14px 26px',
+                  fontSize: isMobile ? 13 : 15,
+                }}
+                className="lift-sm"
+              >
                 ✿ Cosmetics
               </Link>
             )}

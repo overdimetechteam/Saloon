@@ -185,6 +185,7 @@ export default function UserLayout() {
   const location  = useLocation();
   const isMobile  = useIsMobile();
   const [scrolled, setScrolled] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10);
@@ -285,9 +286,159 @@ export default function UserLayout() {
                 }} onClick={handleLogout}>Sign Out</button>
               </>
             )}
+            {isMobile && (
+              <button
+                onClick={() => setDrawerOpen(v => !v)}
+                aria-label="Open menu"
+                style={{
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  fontSize: 20, color: 'var(--text)',
+                  padding: '6px 8px', borderRadius: 10, lineHeight: 1,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  transition: 'background .15s ease',
+                }}
+              >
+                ☰
+              </button>
+            )}
           </div>
         </div>
       </header>
+
+      {/* ── Mobile slide-out drawer ── */}
+      {isMobile && (
+        <>
+          {/* Backdrop */}
+          <div
+            onClick={() => setDrawerOpen(false)}
+            style={{
+              position: 'fixed', inset: 0, zIndex: 300,
+              background: 'rgba(0,0,0,.55)',
+              opacity: drawerOpen ? 1 : 0,
+              pointerEvents: drawerOpen ? 'auto' : 'none',
+              transition: 'opacity .28s ease',
+            }}
+          />
+          {/* Panel */}
+          <div style={{
+            position: 'fixed', top: 0, right: 0, bottom: 0,
+            width: 280, zIndex: 301,
+            background: 'var(--surface)',
+            borderLeft: '1px solid var(--border)',
+            transform: drawerOpen ? 'translateX(0)' : 'translateX(100%)',
+            transition: 'transform .32s cubic-bezier(.16,1,.3,1)',
+            display: 'flex', flexDirection: 'column',
+            boxShadow: '-24px 0 60px rgba(0,0,0,.25)',
+          }}>
+            {/* Panel header */}
+            <div style={{
+              padding: '16px 18px',
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              borderBottom: '1px solid var(--border)',
+            }}>
+              <Link to="/salons" onClick={() => setDrawerOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
+                <div style={{
+                  width: 28, height: 28, borderRadius: 8,
+                  background: `linear-gradient(145deg, ${C} 0%, ${Clight} 100%)`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: '#fff', fontSize: 12, fontWeight: 900,
+                }}>✦</div>
+                <span style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontWeight: 700, fontSize: 17, color: 'var(--text)' }}>Saloon</span>
+              </Link>
+              <button
+                onClick={() => setDrawerOpen(false)}
+                style={{
+                  width: 32, height: 32, borderRadius: '50%',
+                  background: 'var(--surface2)', border: '1px solid var(--border)',
+                  cursor: 'pointer', color: 'var(--text-muted)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 13, fontWeight: 700,
+                }}
+              >✕</button>
+            </div>
+
+            {/* User info */}
+            <div style={{
+              padding: '18px 18px 16px',
+              borderBottom: '1px solid var(--border)',
+              display: 'flex', alignItems: 'center', gap: 14,
+            }}>
+              <div style={{
+                width: 46, height: 46, borderRadius: '50%', flexShrink: 0,
+                background: `linear-gradient(145deg, ${C} 0%, ${Clight} 100%)`,
+                color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 15, fontWeight: 700,
+                boxShadow: `0 3px 12px rgba(${R},.35)`,
+              }}>{initials}</div>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {profile?.full_name}
+                </div>
+                <div style={{ fontSize: 11, color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{profile?.email}</div>
+              </div>
+            </div>
+
+            {/* Nav links */}
+            <nav style={{ flex: 1, padding: '10px 10px', overflowY: 'auto' }}>
+              {NAV.map(item => (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  onClick={() => setDrawerOpen(false)}
+                  style={({ isActive }) => ({
+                    display: 'flex', alignItems: 'center', gap: 14,
+                    padding: '13px 14px', borderRadius: 12, marginBottom: 3,
+                    textDecoration: 'none',
+                    fontSize: 15, fontWeight: isActive ? 600 : 500,
+                    color: isActive ? C : 'var(--text-muted)',
+                    background: isActive
+                      ? (isDark ? `rgba(${R},.12)` : `rgba(${R},.07)`)
+                      : 'transparent',
+                    transition: 'all .15s ease',
+                  })}
+                >
+                  <span style={{ fontSize: 17, width: 24, textAlign: 'center' }}>{item.icon}</span>
+                  {item.label}
+                </NavLink>
+              ))}
+            </nav>
+
+            {/* Bottom actions */}
+            <div style={{
+              padding: '14px 14px 32px',
+              borderTop: '1px solid var(--border)',
+              display: 'flex', flexDirection: 'column', gap: 10,
+            }}>
+              <button
+                onClick={toggle}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 12,
+                  padding: '11px 14px', borderRadius: 12,
+                  background: 'var(--surface2)', border: '1px solid var(--border)',
+                  cursor: 'pointer', fontSize: 14, fontWeight: 500,
+                  color: 'var(--text-muted)', width: '100%',
+                  fontFamily: "'DM Sans', sans-serif",
+                }}
+              >
+                <span style={{ fontSize: 16 }}>{isDark ? '☀' : '☾'}</span>
+                {isDark ? 'Light Mode' : 'Dark Mode'}
+              </button>
+              <button
+                onClick={() => { setDrawerOpen(false); handleLogout(); }}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                  padding: '12px 14px', borderRadius: 12,
+                  background: 'rgba(220,38,38,.08)', border: '1px solid rgba(220,38,38,.15)',
+                  cursor: 'pointer', fontSize: 14, fontWeight: 700, color: '#ef4444',
+                  width: '100%', fontFamily: "'DM Sans', sans-serif",
+                }}
+              >
+                Sign Out
+              </button>
+            </div>
+          </div>
+        </>
+      )}
 
       <main style={{
         flex: 1,
