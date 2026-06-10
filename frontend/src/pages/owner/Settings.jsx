@@ -30,7 +30,7 @@ export default function OwnerSettings() {
     api.get('/profile/').then(({ data }) => {
       setPForm({ full_name: data.full_name || '', phone: data.phone || '' });
     });
-    api.get('/salons/my/').then(({ data }) => {
+    api.get('/owner/salon/').then(({ data }) => {
       setSalonId(data.id);
       setSForm({
         name:             data.name             || '',
@@ -40,7 +40,7 @@ export default function OwnerSettings() {
         address_city:     data.address_city     || '',
         address_district: data.address_district || '',
         address_postal:   data.address_postal   || '',
-        home_visit_enabled: data.home_visit_enabled || false,
+        home_visit_enabled: data.home_visit_enabled ?? false,
         gender_focus:     data.gender_focus     || 'unisex',
       });
     }).catch(() => {});
@@ -61,10 +61,17 @@ export default function OwnerSettings() {
   const saveSalon = async e => {
     e.preventDefault(); setSSaving(true); setSMsg(null);
     try {
-      await api.patch('/salons/my/', sForm);
+      const { data } = await api.patch('/owner/salon/', sForm);
+      setSForm(f => ({ ...f, ...data }));
       setSMsg({ type: 'ok', text: 'Salon details updated successfully.' });
     } catch (err) {
-      setSMsg({ type: 'err', text: err.response?.data?.detail || 'Failed to save.' });
+      const d = err.response?.data;
+      const msg = d?.detail
+        || (d && typeof d === 'object'
+            ? Object.entries(d).map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(', ') : v}`).join(' | ')
+            : null)
+        || 'Failed to save.';
+      setSMsg({ type: 'err', text: msg });
     } finally { setSSaving(false); }
   };
 
