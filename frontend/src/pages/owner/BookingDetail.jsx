@@ -5,6 +5,9 @@ import { c, STATUS_META } from '../../styles/theme';
 import MiniCalendar from '../../components/MiniCalendar';
 import { useBreakpoint } from '../../hooks/useMobile';
 
+const looksEncrypted = v => typeof v === 'string' && v.startsWith('gAAAAA') && v.length > 30;
+const safeClientName = (name, email) => looksEncrypted(name) ? (email || 'Client') : (name || email || 'Client');
+
 /* ─── Single calendar, pick up to 3 dates, then set times ─────────────── */
 function MultiSlotPicker({ slots, setSlots, operatingHours }) {
   const DAY_NAMES = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
@@ -182,7 +185,7 @@ export default function OwnerBookingDetail() {
             <div style={s.cardHead}>
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 5 }}>
-                  <h2 style={s.clientName}>{booking.client_name || booking.client_email}</h2>
+                  <h2 style={s.clientName}>{safeClientName(booking.client_name, booking.client_email)}</h2>
                   {booking.is_walk_in && <span style={s.walkInBadge}>Walk-In</span>}
                 </div>
                 <p style={s.bookingId}>

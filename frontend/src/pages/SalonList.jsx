@@ -220,8 +220,12 @@ export default function SalonList() {
       )}
 
       {/* ── Sticky filter + sort strip ── */}
-      <div style={{ ...s.filterStrip, padding: hPad }}>
-        <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', alignItems: 'center' }}>
+      <div style={{
+        ...s.filterStrip, padding: hPad,
+        ...(isMobile ? { flexDirection: 'column', gap: 8, padding: '10px 14px', marginLeft: -16, marginRight: -16 } : {}),
+      }}>
+        {/* Status chips + Book Now */}
+        <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', alignItems: 'center', justifyContent: isMobile ? 'center' : 'flex-start' }}>
           {[
             { key: 'all',      label: 'All',      count: null         },
             { key: 'active',   label: '● Open',   count: openCount    },
@@ -241,15 +245,15 @@ export default function SalonList() {
             </button>
           ))}
 
-          {/* divider */}
-          <div style={{ width: 1, height: 18, background: 'var(--border)', margin: '0 2px' }} />
+          {!isMobile && <div style={{ width: 1, height: 18, background: 'var(--border)', margin: '0 2px' }} />}
 
-          {/* Book Now! */}
+          {/* Book Now! — centered on mobile */}
           <button
             onClick={() => setQS(true)}
             style={{
               display: 'inline-flex', alignItems: 'center', gap: 6,
-              padding: '5px 13px', borderRadius: 20, fontSize: 12, fontWeight: 700,
+              padding: isMobile ? '8px 22px' : '5px 13px',
+              borderRadius: 20, fontSize: isMobile ? 13 : 12, fontWeight: 700,
               border: 'none',
               background: 'linear-gradient(135deg, #0D9488 0%, #14B8A8 100%)',
               color: '#fff', cursor: 'pointer',
@@ -260,12 +264,13 @@ export default function SalonList() {
             }}
           >
             <span style={{ fontSize: 11 }}>✦</span>
-            {isMobile ? 'Search' : 'Book Now!'}
+            Book Now!
           </button>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-          {!isMobile && <span style={s.sortLabel}>SORT</span>}
+        {/* Sort row */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 7, justifyContent: isMobile ? 'center' : 'flex-start' }}>
+          <span style={s.sortLabel}>SORT</span>
           {[
             { key: 'default', label: 'Default' },
             { key: 'az',      label: 'A – Z'   },

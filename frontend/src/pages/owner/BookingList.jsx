@@ -7,6 +7,13 @@ import { useBreakpoint } from '../../hooks/useMobile';
 
 const STATUSES = ['pending','confirmed','awaiting_client','rescheduled','cancelled','completed','flagged'];
 
+const looksEncrypted = v => typeof v === 'string' && v.startsWith('gAAAAA') && v.length > 30;
+const safeClientName = (name, email) => looksEncrypted(name) ? (email || 'Client') : (name || email || 'Client');
+const safeClientInitial = (name, email) => {
+  const n = looksEncrypted(name) ? email : name;
+  return (n || 'C')[0].toUpperCase();
+};
+
 export default function OwnerBookingList() {
   const { salon } = useOwner();
   const { isMobile } = useBreakpoint();
@@ -110,11 +117,11 @@ export default function OwnerBookingList() {
 
               <div style={{ ...s.clientSection, flex: 1 }}>
                 <div style={{ ...s.avatar, background: meta.bg, color: meta.color, boxShadow: `0 4px 12px ${meta.color}28` }}>
-                  {b.client_name?.[0]?.toUpperCase() || b.client_email?.[0]?.toUpperCase()}
+                  {safeClientInitial(b.client_name, b.client_email)}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={s.clientName}>
-                    {b.client_name || b.client_email}
+                    {safeClientName(b.client_name, b.client_email)}
                     {b.is_walk_in && <span style={s.walkInBadge}>Walk-In</span>}
                   </div>
                   <div style={s.clientDt}>

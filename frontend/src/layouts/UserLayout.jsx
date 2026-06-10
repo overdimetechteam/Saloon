@@ -27,7 +27,8 @@ function NotificationBell() {
   const C  = navPalette?.main      || '#0D9488';
   const R  = navPalette?.rgb       || '13,148,136';
   const TL = navPalette?.textLight || '#5EEAD4';
-  const nb = makeNb(C, R, TL);
+  const isMobile = useIsMobile();
+  const nb = makeNb(C, R, TL, isMobile);
   const [open, setOpen]     = useState(false);
   const [notifs, setNotifs] = useState([]);
   const [unread, setUnread] = useState(0);
@@ -113,7 +114,7 @@ function NotificationBell() {
   );
 }
 
-function makeNb(C, R, TL) { return {
+function makeNb(C, R, TL, isMobile) { return {
   bell: {
     position: 'relative', background: 'none', border: 'none', cursor: 'pointer',
     fontSize: 18, padding: '5px 7px', borderRadius: 10, lineHeight: 1,
@@ -128,8 +129,12 @@ function makeNb(C, R, TL) { return {
     boxShadow: `0 2px 6px rgba(${R},.45)`,
   },
   dropdown: {
-    position: 'absolute', top: 'calc(100% + 12px)', right: 0,
-    width: 330, background: 'var(--surface)',
+    position: isMobile ? 'fixed' : 'absolute',
+    top: isMobile ? 68 : 'calc(100% + 12px)',
+    right: isMobile ? 8 : 0,
+    left: isMobile ? 8 : 'auto',
+    width: isMobile ? 'auto' : 330,
+    background: 'var(--surface)',
     border: '1px solid var(--border)', borderRadius: 18,
     boxShadow: `0 20px 56px rgba(${R},.12), 0 4px 16px rgba(0,0,0,.08)`,
     zIndex: 500, overflow: 'hidden',
