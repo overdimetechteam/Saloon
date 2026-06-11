@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { OwnerProvider } from './context/OwnerContext';
@@ -61,6 +62,96 @@ import Checkout from './pages/user/Checkout';
 import UserSettings from './pages/user/Settings';
 import OwnerSettings from './pages/owner/Settings';
 
+// ── Session timeout ──────────────────────────────────────────────────────────
+// Placed inside BrowserRouter so useNavigate works, but above <Routes> so it
+// never unmounts during navigation (unlike layout components).
+const IDLE_MS   = 15 * 60 * 1000;
+const IDLE_EVTS = ['mousemove','mousedown','keypress','touchstart','scroll','click'];
+
+function SessionTimeout() {
+  const { profile, logout } = useAuth();
+  const navigate   = useNavigate();
+  const [expired, setExpired] = useState(false);
+  const timerRef   = useRef(null);
+  const logoutRef  = useRef(logout);
+  const roleRef    = useRef(null);
+
+  // Keep refs current on every render — no deps needed
+  useEffect(() => { logoutRef.current = logout; });
+  useEffect(() => { if (profile?.role) roleRef.current = profile.role; }, [profile]);
+
+  // Stable reset — no dependencies, registered exactly once
+  const reset = useCallback(() => {
+    clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => {
+      logoutRef.current();
+      setExpired(true);
+    }, IDLE_MS);
+  }, []);
+
+  const loggedIn = !!profile;
+
+  useEffect(() => {
+    if (!loggedIn) { clearTimeout(timerRef.current); return; }
+    IDLE_EVTS.forEach(e => window.addEventListener(e, reset, { passive: true }));
+    reset();
+    return () => {
+      IDLE_EVTS.forEach(e => window.removeEventListener(e, reset));
+      clearTimeout(timerRef.current);
+    };
+  }, [loggedIn, reset]);
+
+  const handleSignIn = () => {
+    setExpired(false);
+    navigate(roleRef.current === 'salon_owner' ? '/owner/login' : '/login');
+  };
+
+  if (!expired) return null;
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 99999,
+      background: 'rgba(0,0,0,.78)', backdropFilter: 'blur(10px)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      padding: 20,
+    }}>
+      <div style={{
+        background: 'var(--surface)', borderRadius: 24, padding: '44px 36px',
+        maxWidth: 360, width: '100%', textAlign: 'center',
+        border: '1px solid var(--border)',
+        boxShadow: '0 40px 100px rgba(0,0,0,.55)',
+        animation: 'scaleIn .28s cubic-bezier(.34,1.56,.64,1) both',
+      }}>
+        <div style={{ fontSize: 46, marginBottom: 16 }}>⏱</div>
+        <h3 style={{
+          fontFamily: "'Cormorant Garamond',Georgia,serif",
+          fontSize: 26, fontWeight: 700, color: 'var(--text)',
+          margin: '0 0 10px', letterSpacing: '-0.01em',
+        }}>
+          Session Expired
+        </h3>
+        <p style={{ fontSize: 14, color: 'var(--text-muted)', marginBottom: 28, lineHeight: 1.65, margin: '0 0 28px' }}>
+          You were signed out after 15 minutes of inactivity.
+        </p>
+        <button
+          onClick={handleSignIn}
+          style={{
+            width: '100%', padding: '13px 24px',
+            background: 'linear-gradient(135deg,#0D9488 0%,#14B8A8 100%)',
+            color: '#fff', border: 'none', borderRadius: 12,
+            fontSize: 15, fontWeight: 700, cursor: 'pointer',
+            fontFamily: "'DM Sans',sans-serif",
+            boxShadow: '0 6px 20px rgba(13,148,136,.35)',
+          }}
+        >
+          Sign In Again
+        </button>
+      </div>
+    </div>
+  );
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 function PublicLayout() {
   const location = useLocation();
   return (
@@ -99,6 +190,7 @@ export default function App() {
     <AuthProvider>
       <CartProvider>
       <BrowserRouter>
+        <SessionTimeout />
         <CartDrawer />
         <SnowEffect />
         <Routes>

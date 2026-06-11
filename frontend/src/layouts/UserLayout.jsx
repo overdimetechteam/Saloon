@@ -4,7 +4,6 @@ import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useIsMobile } from '../hooks/useMobile';
-import { useIdleTimeout } from '../hooks/useIdleTimeout';
 import api from '../api/axios';
 
 const NAV = [
@@ -200,7 +199,6 @@ export default function UserLayout() {
   }, []);
 
   const handleLogout = () => { logout(); navigate('/login'); };
-  const { showWarning, extendSession } = useIdleTimeout(handleLogout);
   const initials = (profile?.full_name || 'U').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
 
   return (
@@ -311,45 +309,6 @@ export default function UserLayout() {
           </div>
         </div>
       </header>
-
-      {/* ── Idle-timeout warning banner ── */}
-      {showWarning && (
-        <div style={{
-          position: 'fixed', bottom: isMobile ? 80 : 24, left: '50%',
-          transform: 'translateX(-50%)',
-          zIndex: 9999,
-          background: 'linear-gradient(135deg,#1a1200,#2a1e00)',
-          border: '1px solid rgba(212,175,55,.45)',
-          borderRadius: 14,
-          padding: '14px 20px',
-          display: 'flex', alignItems: 'center', gap: 14,
-          boxShadow: '0 8px 32px rgba(0,0,0,.35), 0 0 0 1px rgba(212,175,55,.15)',
-          minWidth: isMobile ? 'calc(100vw - 32px)' : 360,
-          maxWidth: isMobile ? 'calc(100vw - 32px)' : 400,
-          animation: 'fadeSlideDown .3s cubic-bezier(.16,1,.3,1) both',
-        }}>
-          <span style={{ fontSize: 20, flexShrink: 0 }}>⏱</span>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#D4AF37', marginBottom: 2 }}>
-              Session expiring soon
-            </div>
-            <div style={{ fontSize: 12, color: 'rgba(255,255,255,.65)' }}>
-              You'll be signed out in 1 minute due to inactivity.
-            </div>
-          </div>
-          <button
-            onClick={extendSession}
-            style={{
-              padding: '7px 14px', borderRadius: 9, border: 'none', cursor: 'pointer',
-              background: 'linear-gradient(135deg,#92701a,#D4AF37)',
-              color: '#1a1200', fontSize: 12, fontWeight: 700,
-              fontFamily: "'DM Sans',sans-serif", flexShrink: 0,
-            }}
-          >
-            Stay in
-          </button>
-        </div>
-      )}
 
       {/* ── Mobile slide-out drawer ── */}
       {isMobile && (
