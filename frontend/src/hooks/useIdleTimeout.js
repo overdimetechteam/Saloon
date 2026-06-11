@@ -8,19 +8,25 @@ const ACTIVITY_EVENTS = ['mousemove', 'mousedown', 'keypress', 'touchstart', 'sc
 export function useIdleTimeout(onTimeout) {
   const logoutTimer  = useRef(null);
   const warningTimer = useRef(null);
+  const callbackRef  = useRef(onTimeout);
   const [showWarning, setShowWarning] = useState(false);
 
+  // Keep the ref pointing at the latest callback without making reset depend on it.
+  // This means re-renders (e.g. navigation) never recreate reset or re-run the effect.
+  useEffect(() => { callbackRef.current = onTimeout; }, [onTimeout]);
+
+  // Empty deps → stable reference, event listeners registered exactly once on mount.
   const reset = useCallback(() => {
     setShowWarning(false);
     clearTimeout(logoutTimer.current);
     clearTimeout(warningTimer.current);
     warningTimer.current = setTimeout(() => setShowWarning(true), WARNING_MS);
-    logoutTimer.current  = setTimeout(onTimeout, TIMEOUT_MS);
-  }, [onTimeout]);
+    logoutTimer.current  = setTimeout(() => callbackRef.current(), TIMEOUT_MS);
+  }, []);
 
   useEffect(() => {
     ACTIVITY_EVENTS.forEach(e => window.addEventListener(e, reset, { passive: true }));
-    reset();
+    reset(); // start the clock on mount
     return () => {
       ACTIVITY_EVENTS.forEach(e => window.removeEventListener(e, reset));
       clearTimeout(logoutTimer.current);
