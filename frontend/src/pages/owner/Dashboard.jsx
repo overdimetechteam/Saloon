@@ -6,7 +6,26 @@ import { STATUS_META } from '../../styles/theme';
 import { useBreakpoint } from '../../hooks/useMobile';
 import MapLocationPicker from '../../components/MapLocationPicker';
 
-const DAYS = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday'];
+const DAYS    = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday'];
+const HOURS   = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
+const MINUTES = ['00', '15', '30', '45'];
+
+function TimePicker({ value, onChange, style }) {
+  const [h, m] = (value || '09:00').split(':');
+  const emit = (hh, mm) => onChange({ target: { value: `${hh}:${mm}` } });
+  const sel = { ...style, padding: '7px 8px', appearance: 'auto', backgroundImage: 'none', cursor: 'pointer' };
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+      <select value={h} onChange={e => emit(e.target.value, m)} style={sel}>
+        {HOURS.map(hh => <option key={hh} value={hh}>{hh}</option>)}
+      </select>
+      <span style={{ color: 'var(--text-muted)', fontWeight: 700, fontSize: 14, userSelect: 'none' }}>:</span>
+      <select value={m} onChange={e => emit(h, e.target.value)} style={sel}>
+        {MINUTES.map(mm => <option key={mm} value={mm}>{mm}</option>)}
+      </select>
+    </div>
+  );
+}
 
 function buildLocalHours(operatingHours) {
   const out = {};
@@ -609,19 +628,9 @@ export default function OwnerDashboard() {
                 </label>
                 {!hours[day]?.closed && (
                   <>
-                    <input
-                      type="time"
-                      style={s.timeInput}
-                      value={hours[day]?.open || '09:00'}
-                      onChange={e => setHourField(day, 'open', e.target.value)}
-                    />
+                    <TimePicker style={s.timeInput} value={hours[day]?.open || '09:00'} onChange={e => setHourField(day, 'open', e.target.value)} />
                     <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>–</span>
-                    <input
-                      type="time"
-                      style={s.timeInput}
-                      value={hours[day]?.close || '17:00'}
-                      onChange={e => setHourField(day, 'close', e.target.value)}
-                    />
+                    <TimePicker style={s.timeInput} value={hours[day]?.close || '17:00'} onChange={e => setHourField(day, 'close', e.target.value)} />
                   </>
                 )}
               </div>

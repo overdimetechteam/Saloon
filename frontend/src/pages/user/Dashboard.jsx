@@ -4,6 +4,7 @@ import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
 import { STATUS_META } from '../../styles/theme';
 import { useBreakpoint } from '../../hooks/useMobile';
+import { safeFirstName } from '../../utils/profile';
 
 const HOUR     = new Date().getHours();
 const GREETING = HOUR < 12 ? 'Good morning' : HOUR < 17 ? 'Good afternoon' : 'Good evening';
@@ -38,7 +39,7 @@ export default function UserDashboard() {
       .catch(() => {});
   }, []);
 
-  const firstName = profile?.full_name?.split(' ')[0] || 'there';
+  const firstName = safeFirstName(profile?.full_name, profile?.email);
 
   const upcoming   = bookings.filter(b => ['pending','confirmed'].includes(b.status)).length;
   const needAction = bookings.filter(b => b.status === 'awaiting_client').length;

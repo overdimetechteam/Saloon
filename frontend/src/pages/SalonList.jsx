@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { useBreakpoint } from '../hooks/useMobile';
+import { safeFirstName } from '../utils/profile';
 import QuickSearchModal from '../components/QuickSearchModal';
 
 const PALETTE = [
@@ -200,7 +201,7 @@ export default function SalonList() {
             </div>
             <h2 style={{ ...s.heroTitle, fontSize: isMobile ? 24 : isTablet ? 30 : 36, marginBottom: 20 }}>
               Welcome back,{' '}
-              <em style={s.heroItalic}>{profile.full_name?.split(' ')[0] || 'there'}</em>
+              <em style={s.heroItalic}>{safeFirstName(profile.full_name, profile.email)}</em>
             </h2>
             <div style={{ ...s.heroSearch, maxWidth: isMobile ? '100%' : 500, margin: '0 auto' }} className="search-bar-wrap">
               <span className="search-icon" style={{ color: '#0D9488', fontSize: 15, flexShrink: 0 }}>✦</span>

@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import api from '../api/axios';
+import { sanitizeProfile } from '../utils/profile';
 
 const AuthContext = createContext(null);
 
@@ -19,39 +20,42 @@ export function AuthProvider({ children }) {
   });
   const [profile, setProfile] = useState(() => {
     const p = localStorage.getItem('profile');
-    return p ? JSON.parse(p) : null;
+    return p ? sanitizeProfile(JSON.parse(p)) : null;
   });
 
   const login = async (email, password) => {
     const { data } = await api.post('/auth/login/', { email, password });
+    const clean = sanitizeProfile(data.user);
     localStorage.setItem('access', data.access);
     localStorage.setItem('refresh', data.refresh);
-    localStorage.setItem('profile', JSON.stringify(data.user));
+    localStorage.setItem('profile', JSON.stringify(clean));
     setUser(parseJwt(data.access));
-    setProfile(data.user);
-    return data.user;
+    setProfile(clean);
+    return clean;
   };
 
   const register = async (payload) => {
     const { data } = await api.post('/auth/register/', payload);
     if (data.requires_verification) {
-      return data; // email verification required — don't auto-login
+      return data;
     }
+    const clean = sanitizeProfile(data.user);
     localStorage.setItem('access', data.access);
     localStorage.setItem('refresh', data.refresh);
-    localStorage.setItem('profile', JSON.stringify(data.user));
+    localStorage.setItem('profile', JSON.stringify(clean));
     setUser(parseJwt(data.access));
-    setProfile(data.user);
-    return data.user;
+    setProfile(clean);
+    return clean;
   };
 
   const socialLogin = (data) => {
+    const clean = sanitizeProfile(data.user);
     localStorage.setItem('access', data.access);
     localStorage.setItem('refresh', data.refresh);
-    localStorage.setItem('profile', JSON.stringify(data.user));
+    localStorage.setItem('profile', JSON.stringify(clean));
     setUser(parseJwt(data.access));
-    setProfile(data.user);
-    return data.user;
+    setProfile(clean);
+    return clean;
   };
 
   const logout = async () => {

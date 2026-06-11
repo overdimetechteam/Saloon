@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useIsMobile } from '../hooks/useMobile';
+import { safeFirstName, safeInitials, safeFullName } from '../utils/profile';
 import api from '../api/axios';
 
 const NAV = [
@@ -199,7 +200,7 @@ export default function UserLayout() {
   }, []);
 
   const handleLogout = () => { logout(); navigate('/login'); };
-  const initials = (profile?.full_name || 'U').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+  const initials = safeInitials(profile?.full_name, profile?.email);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: 'var(--bg)' }}>
@@ -281,7 +282,7 @@ export default function UserLayout() {
             {!isMobile && (
               <>
                 <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>
-                  {profile?.full_name?.split(' ')[0]}
+                  {safeFirstName(profile?.full_name, profile?.email)}
                 </div>
                 <button style={{
                   padding: '7px 16px', background: 'transparent',
@@ -377,7 +378,7 @@ export default function UserLayout() {
               }}>{initials}</div>
               <div style={{ minWidth: 0 }}>
                 <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {profile?.full_name}
+                  {safeFullName(profile?.full_name, profile?.email)}
                 </div>
                 <div style={{ fontSize: 11, color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{profile?.email}</div>
               </div>

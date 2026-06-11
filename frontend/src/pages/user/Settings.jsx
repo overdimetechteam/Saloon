@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api/axios';
+import { looksEncrypted, safeInitials, sanitizeProfile } from '../../utils/profile';
 
 export default function UserSettings() {
   const { profile, socialLogin } = useAuth();
@@ -10,7 +11,10 @@ export default function UserSettings() {
 
   useEffect(() => {
     api.get('/profile/').then(({ data }) => {
-      setForm({ full_name: data.full_name || '', phone: data.phone || '' });
+      setForm({
+        full_name: looksEncrypted(data.full_name) ? '' : (data.full_name || ''),
+        phone:     looksEncrypted(data.phone)     ? '' : (data.phone     || ''),
+      });
     });
   }, []);
 
@@ -21,7 +25,7 @@ export default function UserSettings() {
       const { data } = await api.patch('/profile/', form);
       // refresh profile in auth context
       const stored = JSON.parse(localStorage.getItem('profile') || '{}');
-      const updated = { ...stored, ...data };
+      const updated = sanitizeProfile({ ...stored, ...data });
       localStorage.setItem('profile', JSON.stringify(updated));
       setMsg({ type: 'ok', text: 'Profile updated successfully.' });
     } catch (err) {
@@ -40,10 +44,10 @@ export default function UserSettings() {
         {/* Avatar */}
         <div style={s.avatarRow}>
           <div style={s.avatar}>
-            {(form.full_name || profile?.full_name || '?')[0].toUpperCase()}
+            {safeInitials(form.full_name || profile?.full_name, profile?.email)}
           </div>
           <div>
-            <div style={s.avatarName}>{form.full_name || profile?.full_name || '—'}</div>
+            <div style={s.avatarName}>{form.full_name || profile?.email?.split('@')[0] || '—'}</div>
             <div style={s.avatarEmail}>{profile?.email}</div>
             <div style={s.roleBadge}>Customer</div>
           </div>

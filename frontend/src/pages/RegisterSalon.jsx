@@ -80,6 +80,30 @@ const GENDER_OPTIONS = [
   },
 ];
 
+const HOURS   = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
+const MINUTES = ['00', '15', '30', '45'];
+
+function TimePicker({ value, onChange, style }) {
+  const [h, m] = (value || '09:00').split(':');
+  const emit = (hh, mm) => onChange({ target: { value: `${hh}:${mm}` } });
+  const sel = {
+    ...style,
+    padding: '7px 8px', appearance: 'auto',
+    backgroundImage: 'none', cursor: 'pointer',
+  };
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+      <select value={h} onChange={e => emit(e.target.value, m)} style={sel}>
+        {HOURS.map(hh => <option key={hh} value={hh}>{hh}</option>)}
+      </select>
+      <span style={{ color: 'var(--text-muted)', fontWeight: 700, fontSize: 14, userSelect: 'none' }}>:</span>
+      <select value={m} onChange={e => emit(h, e.target.value)} style={sel}>
+        {MINUTES.map(mm => <option key={mm} value={mm}>{mm}</option>)}
+      </select>
+    </div>
+  );
+}
+
 export default function RegisterSalon() {
   const { isMobile } = useBreakpoint();
   const [step, setStep]   = useState(1);
@@ -355,9 +379,9 @@ export default function RegisterSalon() {
                   </label>
                   {!form.operating_hours[day].closed && (
                     <>
-                      <input type="time" style={s.timeInput} value={form.operating_hours[day].open}  onChange={e => setHours(day, 'open',  e.target.value)} />
+                      <TimePicker style={s.timeInput} value={form.operating_hours[day].open}  onChange={e => setHours(day, 'open',  e.target.value)} />
                       <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>–</span>
-                      <input type="time" style={s.timeInput} value={form.operating_hours[day].close} onChange={e => setHours(day, 'close', e.target.value)} />
+                      <TimePicker style={s.timeInput} value={form.operating_hours[day].close} onChange={e => setHours(day, 'close', e.target.value)} />
                     </>
                   )}
                 </div>
