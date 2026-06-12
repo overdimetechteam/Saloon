@@ -8,6 +8,7 @@ import RequireRole from './components/RequireRole';
 import Navbar from './components/Navbar';
 import CartDrawer from './components/CartDrawer';
 import SnowEffect from './components/SnowEffect';
+import CookieConsent from './components/CookieConsent';
 
 import AdminLayout from './layouts/AdminLayout';
 import OwnerLayout from './layouts/OwnerLayout';
@@ -191,6 +192,7 @@ export default function App() {
       <CartProvider>
       <BrowserRouter>
         <SessionTimeout />
+        <CookieConsent />
         <CartDrawer />
         <SnowEffect />
         <Routes>
