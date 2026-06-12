@@ -384,7 +384,18 @@ export default function SalonDetail() {
                 }}
               >✦ Book Now</Link>
             )}
-            {salon.cosmetics_enabled && <Link to={`/salons/${id}/cosmetics`} style={s.tabCosmeticsBtn}>✿ Cosmetics</Link>}
+            {salon.cosmetics_enabled && (
+              <Link
+                to={`/salons/${id}/cosmetics`}
+                style={{
+                  ...s.tabCosmeticsBtn,
+                  opacity: heroVisible ? 0 : 1,
+                  transform: heroVisible ? 'translateY(-6px) scale(0.92)' : 'translateY(0) scale(1)',
+                  pointerEvents: heroVisible ? 'none' : 'auto',
+                  transition: 'opacity .25s ease, transform .25s ease',
+                }}
+              >✿ Cosmetics</Link>
+            )}
           </div>
         </div>
       </div>
