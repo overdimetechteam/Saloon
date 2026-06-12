@@ -94,6 +94,14 @@ export default function QuickSearchModal({ onClose }) {
   // step state
   const [step, setStep] = useState(0); // 0=service 1=time 2=location 3=gender
 
+  // responsive — hide step labels on narrow screens
+  const [narrow, setNarrow] = useState(() => window.innerWidth < 500);
+  useEffect(() => {
+    const fn = () => setNarrow(window.innerWidth < 500);
+    window.addEventListener('resize', fn);
+    return () => window.removeEventListener('resize', fn);
+  }, []);
+
   // step 0 — service
   const [services, setServices] = useState([]);
   const [selService, setSelSvc] = useState(null);
@@ -160,7 +168,7 @@ export default function QuickSearchModal({ onClose }) {
           <span style={m.title}>{results.length} Salon{results.length !== 1 ? 's' : ''} Found</span>
           <button style={m.closeBtn} onClick={onClose}>✕</button>
         </div>
-        <div style={{ padding: '16px 24px', overflowY: 'auto', maxHeight: 480 }}>
+        <div style={{ padding: '16px 24px', overflowY: 'auto', flex: 1 }}>
           {results.length === 0 && (
             <div style={m.empty}>No salons match. Try a wider radius or fewer filters.</div>
           )}
@@ -204,25 +212,34 @@ export default function QuickSearchModal({ onClose }) {
       {/* Step indicator */}
       <div style={m.steps}>
         {STEPS.map((s, i) => (
-          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <div
-              style={{ ...m.stepDot, background: i <= step ? '#0D9488' : 'var(--border)', color: i <= step ? '#fff' : 'var(--text-muted)', cursor: i < step ? 'pointer' : 'default' }}
-              onClick={() => i < step && setStep(i)}
-            >
-              {i < step ? '✓' : s.icon}
+          <div key={i} style={{ display: 'flex', alignItems: 'center', flex: i < STEPS.length - 1 ? '1 1 auto' : '0 0 auto' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+              <div
+                style={{
+                  ...m.stepDot,
+                  background: i <= step ? '#0D9488' : 'var(--border)',
+                  color: i <= step ? '#fff' : 'var(--text-muted)',
+                  cursor: i < step ? 'pointer' : 'default',
+                }}
+                onClick={() => i < step && setStep(i)}
+              >
+                {i < step ? '✓' : s.icon}
+              </div>
+              {!narrow && (
+                <span style={{ fontSize: 10, fontWeight: i === step ? 700 : 400, color: i === step ? '#0D9488' : 'var(--text-muted)', whiteSpace: 'nowrap' }}>
+                  {s.label}
+                </span>
+              )}
             </div>
-            <span style={{ fontSize: 12, color: i === step ? '#0D9488' : 'var(--text-muted)', fontWeight: i === step ? 600 : 400 }}>
-              {s.label}
-            </span>
             {i < STEPS.length - 1 && (
-              <div style={{ width: 20, height: 1, background: i < step ? '#0D9488' : 'var(--border)', margin: '0 2px' }} />
+              <div style={{ flex: 1, height: 1.5, background: i < step ? '#0D9488' : 'var(--border)', margin: narrow ? '0 6px' : '0 8px', marginBottom: narrow ? 0 : 14 }} />
             )}
           </div>
         ))}
       </div>
 
       {/* Step content */}
-      <div style={{ padding: '16px 24px 8px', overflowY: 'auto', maxHeight: 400 }}>
+      <div style={{ padding: '16px 24px 8px', overflowY: 'auto', flex: 1 }}>
 
         {/* ── Step 0: Service ── */}
         {step === 0 && (
@@ -388,7 +405,7 @@ const m = {
   title:    { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 20, fontWeight: 700, color: 'var(--text)' },
   closeBtn: { background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: 'var(--text-muted)', padding: '4px 8px', borderRadius: 8 },
   backLink: { background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, color: '#0D9488', padding: '4px 8px', fontWeight: 600 },
-  steps:    { display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '12px 24px', borderBottom: '1px solid var(--border)', gap: 4 },
+  steps:    { display: 'flex', alignItems: 'center', padding: '14px 24px', borderBottom: '1px solid var(--border)' },
   stepDot:  { width: 28, height: 28, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0, transition: 'all .2s ease' },
   hint:     { fontSize: 15, fontWeight: 600, color: 'var(--text)', marginBottom: 14, marginTop: 0 },
   catLabel: { fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 },
