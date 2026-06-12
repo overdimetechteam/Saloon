@@ -600,43 +600,40 @@ export default function SalonDetail() {
           </section>
         )}
 
-        {/* About + Working Hours — side by side */}
+        {/* About Us — full width */}
         <section ref={infoRef} style={s.sec} className="fade-up d1">
-          <div style={{ display: 'flex', gap: 24, flexDirection: isMobile ? 'column' : 'row', alignItems: 'flex-start' }}>
-
-            {/* About — 75% */}
-            <div style={{ flex: 3, minWidth: 0 }}>
-              <div style={s.eyebrowSm}>Our Story</div>
-              <h2 style={s.secTitle}>About {salon.name}</h2>
-              <div style={s.aboutCard}>
-                <p style={s.aboutText}>
-                  {salon.description ||
-                    `Welcome to ${salon.name}, where beauty meets excellence. Nestled in the heart of ${salon.address_city}, we are dedicated to providing an unparalleled salon experience that combines artistry, expertise, and personalised care.`}
-                </p>
-                <p style={s.aboutText}>
-                  Our team of highly trained professionals is passionate about helping you look and feel your absolute best. Whether you're in for a fresh cut, a luxurious treatment, or a complete transformation, we promise results that exceed your expectations.
-                </p>
-                <div style={{ ...s.aboutStats, gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)' }}>
-                  {[
-                    { val: summary ? `${summary.total_reviews}` : '0',   label: 'Client Reviews',  color: pal.main  },
-                    { val: salon.created_at ? `${Math.max(1, new Date().getFullYear() - new Date(salon.created_at).getFullYear())}+` : '—', label: 'Years in Business', color: '#D4AF37' },
-                    { val: teamMembers.length > 0 ? `${teamMembers.length}` : '—', label: 'Team Members',   color: pal.main  },
-                    { val: summary && summary.total_reviews > 0 ? summary.average_rating.toFixed(1) : '—', label: 'Average Rating', color: '#D4AF37' },
-                  ].map(stat => (
-                    <div key={stat.label} style={{ textAlign: 'center', padding: '14px 8px', background: `${stat.color}0D`, borderRadius: 14, border: `1px solid ${stat.color}28` }}>
-                      <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 28, fontWeight: 800, color: stat.color, marginBottom: 4 }}>{stat.val}</div>
-                      <div style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>{stat.label}</div>
-                    </div>
-                  ))}
+          <div style={s.eyebrowSm}>Our Story</div>
+          <h2 style={s.secTitle}>About {salon.name}</h2>
+          <div style={s.aboutCard}>
+            <p style={s.aboutText}>
+              {salon.description ||
+                `Welcome to ${salon.name}, where beauty meets excellence. Nestled in the heart of ${salon.address_city}, we are dedicated to providing an unparalleled salon experience that combines artistry, expertise, and personalised care.`}
+            </p>
+            <p style={s.aboutText}>
+              Our team of highly trained professionals is passionate about helping you look and feel your absolute best. Whether you're in for a fresh cut, a luxurious treatment, or a complete transformation, we promise results that exceed your expectations.
+            </p>
+            <div style={{ ...s.aboutStats, gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)' }}>
+              {[
+                { val: summary ? `${summary.total_reviews}` : '0',   label: 'Client Reviews',  color: pal.main  },
+                { val: salon.created_at ? `${Math.max(1, new Date().getFullYear() - new Date(salon.created_at).getFullYear())}+` : '—', label: 'Years in Business', color: '#D4AF37' },
+                { val: teamMembers.length > 0 ? `${teamMembers.length}` : '—', label: 'Team Members',   color: pal.main  },
+                { val: summary && summary.total_reviews > 0 ? summary.average_rating.toFixed(1) : '—', label: 'Average Rating', color: '#D4AF37' },
+              ].map(stat => (
+                <div key={stat.label} style={{ textAlign: 'center', padding: '14px 8px', background: `${stat.color}0D`, borderRadius: 14, border: `1px solid ${stat.color}28` }}>
+                  <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 28, fontWeight: 800, color: stat.color, marginBottom: 4 }}>{stat.val}</div>
+                  <div style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>{stat.label}</div>
                 </div>
-              </div>
+              ))}
             </div>
+          </div>
 
-            {/* Working Hours + Facilities — 25% */}
-            <div style={{ flex: 1, minWidth: 160 }}>
-              <div style={s.eyebrowSm}>When We're Open</div>
-              <h2 style={s.secTitle}>Hours</h2>
-              <div style={{ ...s.hoursCard, padding: '16px 18px' }}>
+          {/* Opening Hours | Facilities — side by side below About */}
+          <div style={{ display: 'flex', gap: 20, marginTop: 20, flexDirection: isMobile ? 'column' : 'row', alignItems: 'flex-start' }}>
+
+            {/* Opening Hours */}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ ...s.eyebrowSm, marginBottom: 10 }}>When We're Open</div>
+              <div style={{ ...s.hoursCard, padding: '14px 18px' }}>
                 {Object.keys(salon.operating_hours || {}).length === 0 ? (
                   <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>Hours not specified</p>
                 ) : (
@@ -648,25 +645,26 @@ export default function SalonDetail() {
                   ))
                 )}
               </div>
-
-              {Array.isArray(salon.facilities) && salon.facilities.length > 0 && (
-                <>
-                  <div style={{ ...s.eyebrowSm, marginTop: 24 }}>Facilities</div>
-                  <div style={{ ...s.hoursCard, padding: '12px 18px' }}>
-                    {salon.facilities.map(key => {
-                      const f = FACILITY_MAP[key];
-                      if (!f) return null;
-                      return (
-                        <div key={key} style={{ ...s.hourRow, padding: '7px 0', gap: 8 }}>
-                          <span style={{ fontSize: 15, lineHeight: 1, flexShrink: 0 }}>{f.emoji}</span>
-                          <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', lineHeight: 1.3 }}>{f.label}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </>
-              )}
             </div>
+
+            {/* Facilities */}
+            {Array.isArray(salon.facilities) && salon.facilities.length > 0 && (
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ ...s.eyebrowSm, marginBottom: 10 }}>Facilities &amp; Amenities</div>
+                <div style={{ ...s.hoursCard, padding: '14px 18px' }}>
+                  {salon.facilities.map(key => {
+                    const f = FACILITY_MAP[key];
+                    if (!f) return null;
+                    return (
+                      <div key={key} style={{ ...s.hourRow, padding: '7px 0', gap: 10 }}>
+                        <span style={{ fontSize: 15, lineHeight: 1, flexShrink: 0 }}>{f.emoji}</span>
+                        <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', lineHeight: 1.3 }}>{f.label}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
           </div>
         </section>
