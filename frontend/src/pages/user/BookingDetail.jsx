@@ -118,6 +118,15 @@ export default function UserBookingDetail() {
 
         {/* Info grid */}
         <div style={{ ...s.infoGrid, gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', padding: isMobile ? '16px 18px' : '20px 28px' }}>
+          {booking.staff_member_name && (
+            <div style={s.infoCell}>
+              <div style={s.infoCellLabel}>Your Stylist</div>
+              <div style={{ ...s.infoCellVal, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: 16 }}>✂</span>
+                {booking.staff_member_name}
+              </div>
+            </div>
+          )}
           <div style={s.infoCell}>
             <div style={s.infoCellLabel}>Negotiation Round</div>
             <div style={s.infoCellVal}>

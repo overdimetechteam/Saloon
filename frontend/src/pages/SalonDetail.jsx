@@ -238,120 +238,220 @@ export default function SalonDetail() {
   return (
     <div style={{ background: 'var(--bg)', minHeight: '100vh' }}>
 
-      {/* HERO */}
-      <div ref={heroRef} style={{
-        ...s.hero,
-        padding: isMobile ? '36px 20px 30px' : '52px 48px 44px',
-        background: coverPhoto
-          ? `linear-gradient(160deg, rgba(13,13,22,.78) 0%, rgba(13,13,22,.58) 35%, rgba(11,56,50,.38) 68%, rgba(${R},.15) 100%), url(${coverPhoto}) center/cover no-repeat`
-          : `linear-gradient(145deg, #0D0D16 0%, ${pal.darkBg} 40%, ${pal.dark} 75%, ${pal.main} 100%)`,
-      }}>
-        <div style={s.heroBg} />
-        <div style={{ ...s.heroInner, flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? 20 : 24 }}>
-          <div style={{ ...s.heroLeft, gap: isMobile ? 16 : 22 }}>
-            <div style={{ ...s.salonInitial, width: isMobile ? 56 : 72, height: isMobile ? 56 : 72, fontSize: isMobile ? 24 : 34, padding: 0, overflow: 'hidden' }}>
-              {salon.logo_url
-                ? <img src={salon.logo_url} alt={salon.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                : salon.name[0]
-              }
-            </div>
-            <div style={{ flex: 1 }}>
-              <div style={s.eyebrow}>Featured Salon</div>
-              <h1 style={{ ...s.salonName, fontSize: isMobile ? 22 : 42 }}>{salon.name}</h1>
-
-              <div style={s.ratingRow}>
-                <Stars rating={summary ? Math.round(summary.average_rating) : 5} size={16} />
-                <span style={{ ...s.ratingNum, fontSize: isMobile ? 13 : 16 }}>{summary ? summary.average_rating.toFixed(1) : '—'}</span>
-                <span style={{ ...s.ratingCt, fontSize: isMobile ? 11 : 13 }}>({summary ? summary.total_reviews : 0} review{summary?.total_reviews !== 1 ? 's' : ''})</span>
-                <span style={s.dot}>·</span>
-                <span style={{ ...s.openBadge, background: openNow ? `rgba(${R},.15)` : 'rgba(107,114,128,.1)', color: openNow ? '#F0FFFE' : 'rgba(255,255,255,.6)' }}>
-                  <span style={{ color: openNow ? pal.light : '#9CA3AF', marginRight: 4 }}>●</span>
-                  {openNow ? 'Open Now' : 'Closed'}
-                </span>
-              </div>
-
-              <div style={{ ...s.addrRow, flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center', gap: isMobile ? 6 : 12 }}>
-                <span style={{ ...s.addrText, fontSize: isMobile ? 12 : 14 }}>📍 {fullAddress}</span>
-                <a
-                  href={`https://www.google.com/maps/search/${encodeURIComponent(fullAddress)}`}
-                  target="_blank" rel="noreferrer"
-                  style={{ ...s.locationBtn, color: pal.textLight, background: `rgba(${R},.22)`, border: `1px solid rgba(${R},.35)`, fontSize: isMobile ? 11 : 12 }}
-                >
-                  See Location ↗
-                </a>
-              </div>
-
-              <div style={s.contactRow}>
-                {salon.contact_number && salon.contact_number.length <= 25 && <span style={{ ...s.contactTag, fontSize: isMobile ? 11 : 12 }}>📞 {salon.contact_number}</span>}
-                {salon.email && <span style={{ ...s.contactTag, fontSize: isMobile ? 11 : 12 }}>✉ {salon.email}</span>}
-              </div>
-            </div>
+      {/* ── MOBILE HERO (iOS-style, full-screen) ── */}
+      {isMobile ? (
+        <div ref={heroRef} style={{ position: 'relative', minHeight: '100svh', overflow: 'hidden', background: '#0D0D16', display: 'flex', flexDirection: 'column' }}>
+          {/* Cover photo + fade overlay */}
+          <div style={{
+            position: 'absolute', inset: 0,
+            background: coverPhoto
+              ? `url(${coverPhoto}) center/cover no-repeat`
+              : `linear-gradient(145deg, #0D0D16 0%, ${pal.darkBg} 40%, ${pal.dark} 75%, ${pal.main} 100%)`,
+          }}>
+            <div style={{
+              position: 'absolute', inset: 0,
+              background: 'linear-gradient(to bottom, rgba(13,13,22,.18) 0%, rgba(13,13,22,.22) 32%, rgba(13,13,22,.88) 52%, #0D0D16 72%)',
+            }} />
           </div>
 
-          <div style={{
-            display: 'flex', gap: isMobile ? 8 : 12,
-            alignItems: 'center', flexShrink: 0,
-            justifyContent: isMobile ? 'stretch' : 'flex-start',
-            flexWrap: 'wrap',
-            width: isMobile ? '100%' : 'auto',
-          }}>
-            {isClient && (
-              <button
-                onClick={toggleFav}
-                disabled={favLoading}
-                title={isFav ? 'Remove from favourites' : 'Save to favourites'}
-                style={{
-                  width: isMobile ? 44 : 48, height: isMobile ? 44 : 48,
-                  borderRadius: 14, border: 'none', flexShrink: 0,
-                  background: isFav ? `rgba(${R},.25)` : 'rgba(255,255,255,.12)',
-                  color: isFav ? pal.textLight : 'rgba(255,255,255,.7)',
-                  fontSize: isMobile ? 20 : 22, cursor: 'pointer',
+          {/* Centered content */}
+          <div style={{ position: 'relative', zIndex: 1, flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '56px 28px 32px', gap: 10 }}>
+
+            {/* Logo */}
+            <div style={{
+              width: 92, height: 92, borderRadius: 26, overflow: 'hidden', flexShrink: 0,
+              background: `rgba(${R},.22)`, backdropFilter: 'blur(10px)',
+              border: '1.5px solid rgba(255,255,255,.22)',
+              boxShadow: '0 16px 48px rgba(0,0,0,.55), 0 2px 8px rgba(0,0,0,.3)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 6,
+            }}>
+              {salon.logo_url
+                ? <img src={salon.logo_url} alt={salon.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                : <span style={{ fontFamily: "'Cormorant Garamond',Georgia,serif", fontSize: 42, fontWeight: 700, color: '#fff' }}>{salon.name[0]}</span>
+              }
+            </div>
+
+            {/* Name */}
+            <h1 style={{ fontFamily: "'Cormorant Garamond',Georgia,serif", fontSize: 30, fontWeight: 700, color: '#fff', textAlign: 'center', margin: 0, lineHeight: 1.1, letterSpacing: '-0.01em' }}>
+              {salon.name}
+            </h1>
+
+            {/* Open Now — fade starts here */}
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 700,
+              background: openNow ? `rgba(${R},.2)` : 'rgba(107,114,128,.15)',
+              color: openNow ? pal.light : 'rgba(255,255,255,.5)',
+              border: `1px solid ${openNow ? `rgba(${R},.45)` : 'rgba(107,114,128,.3)'}`,
+              borderRadius: 20, padding: '6px 14px',
+            }}>
+              <span style={{ width: 7, height: 7, borderRadius: '50%', background: openNow ? pal.light : '#6B7280', display: 'inline-block', flexShrink: 0 }} />
+              {openNow ? 'Open Now' : 'Closed'}
+            </span>
+
+            {/* Rating */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Stars rating={summary ? Math.round(summary.average_rating) : 5} size={14} />
+              <span style={{ fontSize: 14, fontWeight: 800, color: '#D4AF37', fontFamily: "'DM Sans',sans-serif" }}>
+                {summary ? summary.average_rating.toFixed(1) : '—'}
+              </span>
+              <span style={{ fontSize: 12, color: 'rgba(255,255,255,.5)' }}>
+                ({summary ? summary.total_reviews : 0} review{summary?.total_reviews !== 1 ? 's' : ''})
+              </span>
+            </div>
+
+            {/* Info rows */}
+            <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 11, marginTop: 10, paddingTop: 14, borderTop: '1px solid rgba(255,255,255,.07)' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                <span style={{ fontSize: 15, lineHeight: 1.5, flexShrink: 0 }}>📍</span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <span style={{ fontSize: 13, color: 'rgba(255,255,255,.72)', lineHeight: 1.5 }}>{fullAddress}</span>
+                  <a href={`https://www.google.com/maps/search/${encodeURIComponent(fullAddress)}`} target="_blank" rel="noreferrer"
+                    style={{ display: 'block', fontSize: 11, color: pal.light, fontWeight: 600, marginTop: 3, textDecoration: 'none' }}>
+                    See on Maps ↗
+                  </a>
+                </div>
+              </div>
+              {salon.contact_number && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{ fontSize: 15, flexShrink: 0 }}>📞</span>
+                  <span style={{ fontSize: 13, color: 'rgba(255,255,255,.72)' }}>{salon.contact_number}</span>
+                </div>
+              )}
+              {salon.email && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{ fontSize: 15, flexShrink: 0 }}>✉</span>
+                  <span style={{ fontSize: 13, color: 'rgba(255,255,255,.72)' }}>{salon.email}</span>
+                </div>
+              )}
+            </div>
+
+            {/* CTA buttons */}
+            <div style={{ width: '100%', display: 'flex', gap: 12, marginTop: 14 }}>
+              {isClient && (
+                <button onClick={toggleFav} disabled={favLoading} style={{
+                  width: 54, height: 54, borderRadius: 16, border: 'none', flexShrink: 0, cursor: 'pointer',
+                  background: isFav ? `rgba(${R},.28)` : 'rgba(255,255,255,.1)',
+                  color: isFav ? pal.light : 'rgba(255,255,255,.65)', fontSize: 22,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  boxShadow: isFav ? `0 4px 16px rgba(${R},.4)` : 'none',
                   transition: 'all .2s ease',
-                  boxShadow: isFav ? `0 4px 14px rgba(${R},.35)` : 'none',
-                }}
-              >
-                {isFav ? '♥' : '♡'}
-              </button>
-            )}
-            {showBookBtn && (
-              <Link
-                to={`/user/book/${id}`}
-                style={{
-                  ...s.heroBookBtn,
-                  background: pal.main,
-                  boxShadow: `0 6px 20px rgba(${R},.45)`,
-                  flex: isMobile ? '1 1 auto' : 'none',
-                  justifyContent: 'center',
-                  padding: isMobile ? '12px 20px' : '14px 32px',
-                  fontSize: isMobile ? 14 : 16,
-                }}
-                className="lift-sm"
-              >
-                ✦ Book Now
-              </Link>
-            )}
-            {salon.cosmetics_enabled && (
-              <Link
-                to={`/salons/${id}/cosmetics`}
-                style={{
-                  ...s.heroCosmeticsBtn,
-                  flex: isMobile ? '1 1 auto' : 'none',
-                  justifyContent: 'center',
-                  padding: isMobile ? '12px 16px' : '14px 26px',
-                  fontSize: isMobile ? 13 : 15,
-                }}
-                className="lift-sm"
-              >
-                ✿ Cosmetics
-              </Link>
+                }}>
+                  {isFav ? '♥' : '♡'}
+                </button>
+              )}
+              {showBookBtn && (
+                <Link to={`/user/book/${id}`} style={{
+                  flex: 1, padding: '16px 20px',
+                  background: `linear-gradient(135deg, ${pal.main} 0%, ${pal.light} 100%)`,
+                  color: '#fff', borderRadius: 16, fontWeight: 700, fontSize: 16,
+                  textDecoration: 'none', textAlign: 'center',
+                  boxShadow: `0 8px 28px rgba(${R},.5)`,
+                  fontFamily: "'DM Sans',sans-serif", letterSpacing: '0.01em',
+                }}>✦ Book Now</Link>
+              )}
+              {!showBookBtn && salon.cosmetics_enabled && (
+                <Link to={`/salons/${id}/cosmetics`} style={{
+                  flex: 1, padding: '16px 20px',
+                  background: 'linear-gradient(135deg,#C96B51,#D4AF37)',
+                  color: '#fff', borderRadius: 16, fontWeight: 700, fontSize: 16,
+                  textDecoration: 'none', textAlign: 'center',
+                }}>✿ Cosmetics</Link>
+              )}
+            </div>
+            {showBookBtn && salon.cosmetics_enabled && (
+              <Link to={`/salons/${id}/cosmetics`} style={{
+                width: '100%', padding: '13px 20px',
+                background: 'rgba(201,107,81,.1)', color: '#D4AF37',
+                border: '1px solid rgba(201,107,81,.25)', borderRadius: 16,
+                fontWeight: 700, fontSize: 14, textDecoration: 'none', textAlign: 'center',
+                fontFamily: "'DM Sans',sans-serif",
+              }}>✿ Shop Cosmetics</Link>
             )}
           </div>
         </div>
-      </div>
 
-      {/* TAB BAR — sticky below navbar */}
-      <div style={s.tabBar}>
+      ) : (
+        /* ── DESKTOP HERO ── */
+        <div ref={heroRef} style={{
+          ...s.hero, padding: '52px 48px 44px',
+          background: coverPhoto
+            ? `linear-gradient(160deg,rgba(13,13,22,.78) 0%,rgba(13,13,22,.58) 35%,rgba(11,56,50,.38) 68%,rgba(${R},.15) 100%),url(${coverPhoto}) center/cover no-repeat`
+            : `linear-gradient(145deg,#0D0D16 0%,${pal.darkBg} 40%,${pal.dark} 75%,${pal.main} 100%)`,
+        }}>
+          <div style={s.heroBg} />
+          <div style={{ ...s.heroInner, flexDirection: 'row', gap: 24 }}>
+            <div style={{ ...s.heroLeft, gap: 22 }}>
+              <div style={{ ...s.salonInitial, width: 72, height: 72, fontSize: 34, padding: 0, overflow: 'hidden' }}>
+                {salon.logo_url
+                  ? <img src={salon.logo_url} alt={salon.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                  : salon.name[0]
+                }
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={s.eyebrow}>Featured Salon</div>
+                <h1 style={{ ...s.salonName, fontSize: 42 }}>{salon.name}</h1>
+                <div style={s.ratingRow}>
+                  <Stars rating={summary ? Math.round(summary.average_rating) : 5} size={16} />
+                  <span style={{ ...s.ratingNum, fontSize: 16 }}>{summary ? summary.average_rating.toFixed(1) : '—'}</span>
+                  <span style={{ ...s.ratingCt, fontSize: 13 }}>({summary ? summary.total_reviews : 0} review{summary?.total_reviews !== 1 ? 's' : ''})</span>
+                  <span style={s.dot}>·</span>
+                  <span style={{ ...s.openBadge, background: openNow ? `rgba(${R},.15)` : 'rgba(107,114,128,.1)', color: openNow ? '#F0FFFE' : 'rgba(255,255,255,.6)' }}>
+                    <span style={{ color: openNow ? pal.light : '#9CA3AF', marginRight: 4 }}>●</span>
+                    {openNow ? 'Open Now' : 'Closed'}
+                  </span>
+                </div>
+                <div style={{ ...s.addrRow, alignItems: 'center', gap: 12 }}>
+                  <span style={{ ...s.addrText, fontSize: 14 }}>📍 {fullAddress}</span>
+                  <a href={`https://www.google.com/maps/search/${encodeURIComponent(fullAddress)}`} target="_blank" rel="noreferrer"
+                    style={{ ...s.locationBtn, color: pal.textLight, background: `rgba(${R},.22)`, border: `1px solid rgba(${R},.35)`, fontSize: 12 }}>
+                    See Location ↗
+                  </a>
+                </div>
+                <div style={s.contactRow}>
+                  {salon.contact_number && salon.contact_number.length <= 25 && <span style={{ ...s.contactTag, fontSize: 12 }}>📞 {salon.contact_number}</span>}
+                  {salon.email && <span style={{ ...s.contactTag, fontSize: 12 }}>✉ {salon.email}</span>}
+                </div>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexShrink: 0, flexWrap: 'wrap' }}>
+              {isClient && (
+                <button onClick={toggleFav} disabled={favLoading}
+                  style={{ width: 48, height: 48, borderRadius: 14, border: 'none', flexShrink: 0, background: isFav ? `rgba(${R},.25)` : 'rgba(255,255,255,.12)', color: isFav ? pal.textLight : 'rgba(255,255,255,.7)', fontSize: 22, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all .2s ease', boxShadow: isFav ? `0 4px 14px rgba(${R},.35)` : 'none' }}>
+                  {isFav ? '♥' : '♡'}
+                </button>
+              )}
+              {showBookBtn && (
+                <Link to={`/user/book/${id}`} style={{ ...s.heroBookBtn, background: pal.main, boxShadow: `0 6px 20px rgba(${R},.45)`, padding: '14px 32px', fontSize: 16 }} className="lift-sm">
+                  ✦ Book Now
+                </Link>
+              )}
+              {salon.cosmetics_enabled && (
+                <Link to={`/salons/${id}/cosmetics`} style={{ ...s.heroCosmeticsBtn, padding: '14px 26px', fontSize: 15 }} className="lift-sm">
+                  ✿ Cosmetics
+                </Link>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB BAR — sticky top on desktop, fixed bottom (slides up) on mobile */}
+      <div style={{
+        ...(isMobile ? {
+          position: 'fixed', bottom: 0, left: 0, right: 0,
+          opacity: heroVisible ? 0 : 1,
+          transform: heroVisible ? 'translateY(100%)' : 'translateY(0)',
+          transition: 'opacity .3s cubic-bezier(.16,1,.3,1), transform .3s cubic-bezier(.16,1,.3,1)',
+          paddingBottom: isClient ? 64 : 0,
+        } : {
+          position: 'sticky', top: 64,
+        }),
+        background: 'var(--surface)',
+        borderTop: isMobile ? '1px solid var(--border)' : 'none',
+        borderBottom: !isMobile ? '1px solid var(--border)' : 'none',
+        boxShadow: isMobile ? '0 -4px 24px rgba(0,0,0,.18)' : '0 2px 12px rgba(0,0,0,.08)',
+        zIndex: 100,
+      }}>
         <div style={s.tabBarInner}>
           <div style={s.tabBtns}>
             {[
@@ -360,43 +460,22 @@ export default function SalonDetail() {
               { label: 'Reviews',  ref: reviewsRef  },
               { label: 'Info',     ref: infoRef     },
             ].map(tab => (
-              <button
-                key={tab.label}
-                style={s.tabBtn}
-                onClick={() => tab.ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-              >
+              <button key={tab.label} style={s.tabBtn}
+                onClick={() => tab.ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
                 {tab.label}
               </button>
             ))}
           </div>
-          <div style={{ display: 'flex', gap: 8, flexShrink: 0, marginLeft: 8 }}>
-            {showBookBtn && (
-              <Link
-                to={`/user/book/${id}`}
-                style={{
-                  ...s.tabBookBtn,
-                  background: pal.main,
-                  boxShadow: `0 4px 14px rgba(${R},.3)`,
-                  opacity: heroVisible ? 0 : 1,
-                  transform: heroVisible ? 'translateY(-6px) scale(0.92)' : 'translateY(0) scale(1)',
-                  pointerEvents: heroVisible ? 'none' : 'auto',
-                  transition: 'opacity .25s ease, transform .25s ease',
-                }}
-              >✦ Book Now</Link>
-            )}
-            {salon.cosmetics_enabled && (
-              <Link
-                to={`/salons/${id}/cosmetics`}
-                style={{
-                  ...s.tabCosmeticsBtn,
-                  opacity: heroVisible ? 0 : 1,
-                  transform: heroVisible ? 'translateY(-6px) scale(0.92)' : 'translateY(0) scale(1)',
-                  pointerEvents: heroVisible ? 'none' : 'auto',
-                  transition: 'opacity .25s ease, transform .25s ease',
-                }}
-              >✿ Cosmetics</Link>
-            )}
-          </div>
+          {!isMobile && (
+            <div style={{ display: 'flex', gap: 8, flexShrink: 0, marginLeft: 8 }}>
+              {showBookBtn && (
+                <Link to={`/user/book/${id}`} style={{ ...s.tabBookBtn, background: pal.main, boxShadow: `0 4px 14px rgba(${R},.3)`, opacity: heroVisible ? 0 : 1, transform: heroVisible ? 'translateY(-6px) scale(0.92)' : 'translateY(0) scale(1)', pointerEvents: heroVisible ? 'none' : 'auto', transition: 'opacity .25s ease, transform .25s ease' }}>✦ Book Now</Link>
+              )}
+              {salon.cosmetics_enabled && (
+                <Link to={`/salons/${id}/cosmetics`} style={{ ...s.tabCosmeticsBtn, opacity: heroVisible ? 0 : 1, transform: heroVisible ? 'translateY(-6px) scale(0.92)' : 'translateY(0) scale(1)', pointerEvents: heroVisible ? 'none' : 'auto', transition: 'opacity .25s ease, transform .25s ease' }}>✿ Cosmetics</Link>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -510,7 +589,7 @@ export default function SalonDetail() {
       )}
 
       {/* BODY */}
-      <div style={{ ...s.body, padding: isMobile ? '20px 16px 48px' : isTablet ? '28px 20px' : '44px 48px' }}>
+      <div style={{ ...s.body, padding: isMobile ? `20px 16px ${isClient ? 148 : 96}px` : isTablet ? '28px 20px' : '44px 48px' }}>
 
         {/* Services */}
         <section ref={servicesRef} style={s.sec} className="fade-up">
