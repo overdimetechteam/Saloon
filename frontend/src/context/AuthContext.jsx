@@ -58,6 +58,14 @@ export function AuthProvider({ children }) {
     return clean;
   };
 
+  const updateProfile = (data) => {
+    const stored = JSON.parse(localStorage.getItem('profile') || '{}');
+    const updated = sanitizeProfile({ ...stored, ...data });
+    localStorage.setItem('profile', JSON.stringify(updated));
+    setProfile(updated);
+    return updated;
+  };
+
   const logout = async () => {
     const refresh = localStorage.getItem('refresh');
     // Blacklist the refresh token server-side so it can't be reused
@@ -76,7 +84,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, profile, login, register, socialLogin, logout }}>
+    <AuthContext.Provider value={{ user, profile, login, register, socialLogin, logout, updateProfile }}>
       {children}
     </AuthContext.Provider>
   );

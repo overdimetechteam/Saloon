@@ -4,7 +4,7 @@ import api from '../../api/axios';
 import { looksEncrypted, safeInitials, sanitizeProfile } from '../../utils/profile';
 
 export default function UserSettings() {
-  const { profile, socialLogin } = useAuth();
+  const { profile, updateProfile } = useAuth();
   const [form, setForm]   = useState({ full_name: '', phone: '' });
   const [saving, setSaving] = useState(false);
   const [msg, setMsg]       = useState(null); // { type: 'ok'|'err', text }
@@ -23,10 +23,7 @@ export default function UserSettings() {
     setSaving(true); setMsg(null);
     try {
       const { data } = await api.patch('/profile/', form);
-      // refresh profile in auth context
-      const stored = JSON.parse(localStorage.getItem('profile') || '{}');
-      const updated = sanitizeProfile({ ...stored, ...data });
-      localStorage.setItem('profile', JSON.stringify(updated));
+      updateProfile(data);
       setMsg({ type: 'ok', text: 'Profile updated successfully.' });
     } catch (err) {
       setMsg({ type: 'err', text: err.response?.data?.detail || 'Failed to save changes.' });

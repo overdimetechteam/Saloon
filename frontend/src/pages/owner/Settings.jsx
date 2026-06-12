@@ -33,7 +33,7 @@ const TABS = [
 ];
 
 export default function OwnerSettings() {
-  const { profile } = useAuth();
+  const { profile, updateProfile } = useAuth();
   const [tab, setTab] = useState('profile');
 
   // Profile form
@@ -76,8 +76,7 @@ export default function OwnerSettings() {
     e.preventDefault(); setPSaving(true); setPMsg(null);
     try {
       const { data } = await api.patch('/profile/', pForm);
-      const stored = JSON.parse(localStorage.getItem('profile') || '{}');
-      localStorage.setItem('profile', JSON.stringify({ ...stored, ...data }));
+      updateProfile(data);
       setPMsg({ type: 'ok', text: 'Profile updated successfully.' });
     } catch (err) {
       setPMsg({ type: 'err', text: err.response?.data?.detail || 'Failed to save.' });
