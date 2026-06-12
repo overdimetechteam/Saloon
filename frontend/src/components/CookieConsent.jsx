@@ -101,7 +101,7 @@ export default function CookieConsent() {
               {
                 icon: '🔐',
                 label: 'Authentication (Essential)',
-                desc: 'JWT access & refresh tokens stored in localStorage keep you signed in. Without these the app cannot function.',
+                desc: 'JWT access & refresh tokens stored in sessionStorage keep you signed in. Isolated per browser tab for security.',
                 always: true,
               },
               {

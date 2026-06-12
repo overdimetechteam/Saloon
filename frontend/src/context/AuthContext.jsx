@@ -15,20 +15,20 @@ function parseJwt(token) {
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
-    const token = localStorage.getItem('access');
+    const token = sessionStorage.getItem('access');
     return token ? parseJwt(token) : null;
   });
   const [profile, setProfile] = useState(() => {
-    const p = localStorage.getItem('profile');
+    const p = sessionStorage.getItem('profile');
     return p ? sanitizeProfile(JSON.parse(p)) : null;
   });
 
   const login = async (email, password) => {
     const { data } = await api.post('/auth/login/', { email, password });
     const clean = sanitizeProfile(data.user);
-    localStorage.setItem('access', data.access);
-    localStorage.setItem('refresh', data.refresh);
-    localStorage.setItem('profile', JSON.stringify(clean));
+    sessionStorage.setItem('access', data.access);
+    sessionStorage.setItem('refresh', data.refresh);
+    sessionStorage.setItem('profile', JSON.stringify(clean));
     setUser(parseJwt(data.access));
     setProfile(clean);
     return clean;
@@ -40,9 +40,9 @@ export function AuthProvider({ children }) {
       return data;
     }
     const clean = sanitizeProfile(data.user);
-    localStorage.setItem('access', data.access);
-    localStorage.setItem('refresh', data.refresh);
-    localStorage.setItem('profile', JSON.stringify(clean));
+    sessionStorage.setItem('access', data.access);
+    sessionStorage.setItem('refresh', data.refresh);
+    sessionStorage.setItem('profile', JSON.stringify(clean));
     setUser(parseJwt(data.access));
     setProfile(clean);
     return clean;
@@ -50,24 +50,24 @@ export function AuthProvider({ children }) {
 
   const socialLogin = (data) => {
     const clean = sanitizeProfile(data.user);
-    localStorage.setItem('access', data.access);
-    localStorage.setItem('refresh', data.refresh);
-    localStorage.setItem('profile', JSON.stringify(clean));
+    sessionStorage.setItem('access', data.access);
+    sessionStorage.setItem('refresh', data.refresh);
+    sessionStorage.setItem('profile', JSON.stringify(clean));
     setUser(parseJwt(data.access));
     setProfile(clean);
     return clean;
   };
 
   const updateProfile = (data) => {
-    const stored = JSON.parse(localStorage.getItem('profile') || '{}');
+    const stored = JSON.parse(sessionStorage.getItem('profile') || '{}');
     const updated = sanitizeProfile({ ...stored, ...data });
-    localStorage.setItem('profile', JSON.stringify(updated));
+    sessionStorage.setItem('profile', JSON.stringify(updated));
     setProfile(updated);
     return updated;
   };
 
   const logout = async () => {
-    const refresh = localStorage.getItem('refresh');
+    const refresh = sessionStorage.getItem('refresh');
     // Blacklist the refresh token server-side so it can't be reused
     if (refresh) {
       try {
@@ -76,9 +76,9 @@ export function AuthProvider({ children }) {
         // proceed with local logout even if server call fails
       }
     }
-    localStorage.removeItem('access');
-    localStorage.removeItem('refresh');
-    localStorage.removeItem('profile');
+    sessionStorage.removeItem('access');
+    sessionStorage.removeItem('refresh');
+    sessionStorage.removeItem('profile');
     setUser(null);
     setProfile(null);
   };
