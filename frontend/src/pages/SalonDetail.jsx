@@ -632,7 +632,7 @@ export default function SalonDetail() {
               </div>
             </div>
 
-            {/* Working Hours — 25% */}
+            {/* Working Hours + Facilities — 25% */}
             <div style={{ flex: 1, minWidth: 160 }}>
               <div style={s.eyebrowSm}>When We're Open</div>
               <h2 style={s.secTitle}>Hours</h2>
@@ -648,39 +648,28 @@ export default function SalonDetail() {
                   ))
                 )}
               </div>
+
+              {Array.isArray(salon.facilities) && salon.facilities.length > 0 && (
+                <>
+                  <div style={{ ...s.eyebrowSm, marginTop: 24 }}>Facilities</div>
+                  <div style={{ ...s.hoursCard, padding: '12px 18px' }}>
+                    {salon.facilities.map(key => {
+                      const f = FACILITY_MAP[key];
+                      if (!f) return null;
+                      return (
+                        <div key={key} style={{ ...s.hourRow, padding: '7px 0', gap: 8 }}>
+                          <span style={{ fontSize: 15, lineHeight: 1, flexShrink: 0 }}>{f.emoji}</span>
+                          <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', lineHeight: 1.3 }}>{f.label}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
             </div>
 
           </div>
         </section>
-
-        {/* Facilities */}
-        {Array.isArray(salon.facilities) && salon.facilities.length > 0 && (
-          <section style={s.sec} className="fade-up d1">
-            <div style={s.eyebrowSm}>What We Offer</div>
-            <h2 style={s.secTitle}>Facilities &amp; Amenities</h2>
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fill, minmax(170px, 1fr))',
-              gap: 12,
-            }}>
-              {salon.facilities.map(key => {
-                const f = FACILITY_MAP[key];
-                if (!f) return null;
-                return (
-                  <div key={key} style={{
-                    display: 'flex', alignItems: 'center', gap: 10,
-                    padding: '13px 16px',
-                    background: 'var(--surface)', border: '1px solid var(--border)',
-                    borderRadius: 14, boxShadow: '0 2px 6px rgba(0,0,0,.04)',
-                  }}>
-                    <span style={{ fontSize: 20, lineHeight: 1, flexShrink: 0 }}>{f.emoji}</span>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', lineHeight: 1.3 }}>{f.label}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
-        )}
 
         {/* Team */}
         <section ref={teamRef} style={s.sec} className="fade-up d2">
