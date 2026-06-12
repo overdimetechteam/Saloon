@@ -2,6 +2,31 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api/axios';
 
+const ALL_FACILITIES = [
+  { key: 'parking',          label: 'Free Parking',             emoji: '🅿️' },
+  { key: 'street_parking',   label: 'Street Parking Nearby',    emoji: '🚗' },
+  { key: 'wifi',             label: 'Free Wi-Fi',               emoji: '📶' },
+  { key: 'coffee',           label: 'Complimentary Coffee',     emoji: '☕' },
+  { key: 'tea',              label: 'Complimentary Tea',        emoji: '🍵' },
+  { key: 'drinks',           label: 'Refreshments Available',   emoji: '🧃' },
+  { key: 'ac',               label: 'Air Conditioning',         emoji: '❄️' },
+  { key: 'kids_area',        label: 'Kids Play Area',           emoji: '🧸' },
+  { key: 'wheelchair',       label: 'Wheelchair Accessible',    emoji: '♿' },
+  { key: 'waiting_lounge',   label: 'Comfortable Waiting Area', emoji: '🛋️' },
+  { key: 'tv',               label: 'Entertainment / TV',       emoji: '📺' },
+  { key: 'music',            label: 'Relaxing Music',           emoji: '🎵' },
+  { key: 'restroom',         label: 'Clean Restrooms',          emoji: '🚻' },
+  { key: 'prayer_room',      label: 'Prayer Room',              emoji: '🕌' },
+  { key: 'card_payment',     label: 'Card Payment Accepted',    emoji: '💳' },
+  { key: 'online_payment',   label: 'Online Payment Accepted',  emoji: '📱' },
+  { key: 'gift_vouchers',    label: 'Gift Vouchers Available',  emoji: '🎁' },
+  { key: 'loyalty_program',  label: 'Loyalty Program',          emoji: '⭐' },
+  { key: 'private_rooms',    label: 'Private Treatment Rooms',  emoji: '🚪' },
+  { key: 'consultation',     label: 'Free Consultation',        emoji: '💬' },
+  { key: 'home_visit',       label: 'Home Visit Available',     emoji: '🏠' },
+  { key: 'instagram_worthy', label: 'Instagram-Worthy Decor',   emoji: '📸' },
+];
+
 const TABS = [
   { key: 'profile', label: '👤  My Profile' },
   { key: 'salon',   label: '🏪  Salon Details' },
@@ -20,7 +45,7 @@ export default function OwnerSettings() {
   const [sForm, setSForm]   = useState({
     name: '', contact_number: '', email: '',
     address_street: '', address_city: '', address_district: '', address_postal: '',
-    home_visit_enabled: false, gender_focus: 'unisex',
+    home_visit_enabled: false, gender_focus: 'unisex', facilities: [],
   });
   const [sSaving, setSSaving] = useState(false);
   const [sMsg, setSMsg]       = useState(null);
@@ -42,6 +67,7 @@ export default function OwnerSettings() {
         address_postal:   data.address_postal   || '',
         home_visit_enabled: data.home_visit_enabled ?? false,
         gender_focus:     data.gender_focus     || 'unisex',
+        facilities:       Array.isArray(data.facilities) ? data.facilities : [],
       });
     }).catch(() => {});
   }, []);
@@ -243,6 +269,43 @@ export default function OwnerSettings() {
               </div>
             </div>
 
+            <div style={s.sectionDivider}>Facilities &amp; Amenities</div>
+            <div style={{ marginBottom: 4 }}>
+              <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: '0 0 14px', lineHeight: 1.6 }}>
+                Select the facilities your salon offers. Only selected ones will be shown to customers on your salon page.
+              </p>
+              <div style={s.facilitiesGrid}>
+                {ALL_FACILITIES.map(f => {
+                  const active = sForm.facilities.includes(f.key);
+                  return (
+                    <button
+                      key={f.key}
+                      type="button"
+                      onClick={() => setSForm(p => ({
+                        ...p,
+                        facilities: active
+                          ? p.facilities.filter(k => k !== f.key)
+                          : [...p.facilities, f.key],
+                      }))}
+                      style={{
+                        ...s.facilityBtn,
+                        ...(active ? s.facilityActive : {}),
+                      }}
+                    >
+                      <span style={{ fontSize: 18, lineHeight: 1 }}>{f.emoji}</span>
+                      <span style={{ fontSize: 12, fontWeight: active ? 700 : 500, lineHeight: 1.3 }}>{f.label}</span>
+                      {active && <span style={s.facilityCheck}>✓</span>}
+                    </button>
+                  );
+                })}
+              </div>
+              {sForm.facilities.length > 0 && (
+                <div style={{ marginTop: 10, fontSize: 12, color: '#0D9488', fontWeight: 600 }}>
+                  {sForm.facilities.length} facilit{sForm.facilities.length === 1 ? 'y' : 'ies'} selected
+                </div>
+              )}
+            </div>
+
             <div style={s.sectionDivider}>Preferences</div>
 
             <div style={s.row}>
@@ -339,6 +402,26 @@ const s = {
   toggleOff: { background: 'var(--border)' },
   toggleKnob: { position: 'absolute', top: 2, left: 2, width: 20, height: 20, borderRadius: '50%', background: '#fff', transition: 'transform .2s', display: 'block' },
   toggleLabel: { fontSize: 13, color: 'var(--text-muted)' },
+  facilitiesGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
+    gap: 8,
+    marginBottom: 6,
+  },
+  facilityBtn: {
+    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+    gap: 5, padding: '10px 8px', border: '1.5px solid var(--border)', borderRadius: 12,
+    background: 'var(--surface)', cursor: 'pointer', textAlign: 'center',
+    minHeight: 72, transition: 'all .15s', position: 'relative',
+    color: 'var(--text-muted)',
+  },
+  facilityActive: {
+    border: '1.5px solid #0D9488', background: 'rgba(13,148,136,.08)', color: 'var(--text)',
+  },
+  facilityCheck: {
+    position: 'absolute', top: 5, right: 7, fontSize: 11, fontWeight: 800,
+    color: '#0D9488', lineHeight: 1,
+  },
   actions: { display: 'flex', justifyContent: 'flex-end', paddingTop: 6 },
   btn: {
     padding: '12px 32px',

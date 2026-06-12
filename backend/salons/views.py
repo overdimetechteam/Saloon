@@ -198,7 +198,7 @@ class MySalonView(APIView):
         allowed = {
             'name', 'contact_number', 'email',
             'address_street', 'address_city', 'address_district', 'address_postal',
-            'operating_hours', 'home_visit_enabled', 'gender_focus',
+            'operating_hours', 'home_visit_enabled', 'gender_focus', 'facilities',
         }
         data = {k: v for k, v in request.data.items() if k in allowed}
         serializer = SalonSerializer(salon, data=data, partial=True, context={'request': request})

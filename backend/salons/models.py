@@ -38,6 +38,7 @@ class Salon(models.Model):
     longitude = models.FloatField(null=True, blank=True)
     logo = models.FileField(upload_to='salon_logos/', blank=True, null=True)
     cover_image = models.FileField(upload_to='salon_covers/', blank=True, null=True)
+    facilities = models.JSONField(default=list, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

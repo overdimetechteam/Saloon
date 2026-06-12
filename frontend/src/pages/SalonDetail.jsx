@@ -7,6 +7,31 @@ import { useTheme } from '../context/ThemeContext';
 import { useBreakpoint } from '../hooks/useMobile';
 import { SALON_PALETTES } from '../styles/theme';
 
+const FACILITY_MAP = {
+  parking:          { label: 'Free Parking',             emoji: '🅿️' },
+  street_parking:   { label: 'Street Parking Nearby',    emoji: '🚗' },
+  wifi:             { label: 'Free Wi-Fi',               emoji: '📶' },
+  coffee:           { label: 'Complimentary Coffee',     emoji: '☕' },
+  tea:              { label: 'Complimentary Tea',        emoji: '🍵' },
+  drinks:           { label: 'Refreshments Available',   emoji: '🧃' },
+  ac:               { label: 'Air Conditioning',         emoji: '❄️' },
+  kids_area:        { label: 'Kids Play Area',           emoji: '🧸' },
+  wheelchair:       { label: 'Wheelchair Accessible',    emoji: '♿' },
+  waiting_lounge:   { label: 'Comfortable Waiting Area', emoji: '🛋️' },
+  tv:               { label: 'Entertainment / TV',       emoji: '📺' },
+  music:            { label: 'Relaxing Music',           emoji: '🎵' },
+  restroom:         { label: 'Clean Restrooms',          emoji: '🚻' },
+  prayer_room:      { label: 'Prayer Room',              emoji: '🕌' },
+  card_payment:     { label: 'Card Payment Accepted',    emoji: '💳' },
+  online_payment:   { label: 'Online Payment Accepted',  emoji: '📱' },
+  gift_vouchers:    { label: 'Gift Vouchers Available',  emoji: '🎁' },
+  loyalty_program:  { label: 'Loyalty Program',          emoji: '⭐' },
+  private_rooms:    { label: 'Private Treatment Rooms',  emoji: '🚪' },
+  consultation:     { label: 'Free Consultation',        emoji: '💬' },
+  home_visit:       { label: 'Home Visit Available',     emoji: '🏠' },
+  instagram_worthy: { label: 'Instagram-Worthy Decor',   emoji: '📸' },
+};
+
 const getMockPalette = pal => [
   `linear-gradient(135deg, ${pal.main} 0%, ${pal.light} 100%)`,
   `linear-gradient(135deg, ${pal.main} 0%, #D4AF37 100%)`,
@@ -627,6 +652,35 @@ export default function SalonDetail() {
 
           </div>
         </section>
+
+        {/* Facilities */}
+        {Array.isArray(salon.facilities) && salon.facilities.length > 0 && (
+          <section style={s.sec} className="fade-up d1">
+            <div style={s.eyebrowSm}>What We Offer</div>
+            <h2 style={s.secTitle}>Facilities &amp; Amenities</h2>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fill, minmax(170px, 1fr))',
+              gap: 12,
+            }}>
+              {salon.facilities.map(key => {
+                const f = FACILITY_MAP[key];
+                if (!f) return null;
+                return (
+                  <div key={key} style={{
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    padding: '13px 16px',
+                    background: 'var(--surface)', border: '1px solid var(--border)',
+                    borderRadius: 14, boxShadow: '0 2px 6px rgba(0,0,0,.04)',
+                  }}>
+                    <span style={{ fontSize: 20, lineHeight: 1, flexShrink: 0 }}>{f.emoji}</span>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', lineHeight: 1.3 }}>{f.label}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
 
         {/* Team */}
         <section ref={teamRef} style={s.sec} className="fade-up d2">

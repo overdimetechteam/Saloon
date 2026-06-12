@@ -109,7 +109,7 @@ class SalonSerializer(serializers.ModelSerializer):
             'gender_focus', 'latitude', 'longitude',
             'owner', 'owner_email', 'created_at', 'calendar',
             'logo_url', 'cover_image_url', 'subscription_plan', 'subscription_status', 'subscription_days_remaining',
-            'service_names',
+            'service_names', 'facilities',
         ]
         read_only_fields = ['status', 'owner', 'created_at', 'logo_url', 'cover_image_url',
                             'subscription_plan', 'subscription_status', 'subscription_days_remaining',
