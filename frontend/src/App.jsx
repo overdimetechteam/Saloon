@@ -66,7 +66,7 @@ import OwnerSettings from './pages/owner/Settings';
 // ── Session timeout ──────────────────────────────────────────────────────────
 // Placed inside BrowserRouter so useNavigate works, but above <Routes> so it
 // never unmounts during navigation (unlike layout components).
-const IDLE_MS   = 15 * 60 * 1000;
+const IDLE_MS   = 30 * 60 * 1000;
 const IDLE_EVTS = ['mousemove','mousedown','keypress','touchstart','scroll','click'];
 
 function SessionTimeout() {
@@ -132,7 +132,7 @@ function SessionTimeout() {
           Session Expired
         </h3>
         <p style={{ fontSize: 14, color: 'var(--text-muted)', marginBottom: 28, lineHeight: 1.65, margin: '0 0 28px' }}>
-          You were signed out after 15 minutes of inactivity.
+          You were signed out after 30 minutes of inactivity.
         </p>
         <button
           onClick={handleSignIn}
