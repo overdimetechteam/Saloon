@@ -194,7 +194,10 @@ function Step3Payment({ form, setForm, salonId, subtotal, goNext, goBack }) {
 
       <div style={c.radioGroup}>
         <div style={c.radioLabel}>Payment Method</div>
-        {[['cash', '💵 Cash on Delivery'], ['card', '💳 Pay by Card'], ['online', '🔗 Online Transfer']].map(([val, lab]) => (
+        {[
+          ['cash',    '💵 Cash on Delivery'],
+          ['payhere', '💳 Pay Online via PayHere (Card / Bank / Wallet)'],
+        ].map(([val, lab]) => (
           <label key={val} style={c.radioRow}>
             <input type="radio" name="payment_method" value={val} checked={form.payment_method === val} onChange={set('payment_method')} />
             <span style={c.radioText}>{lab}</span>
@@ -250,10 +253,24 @@ function Step3Payment({ form, setForm, salonId, subtotal, goNext, goBack }) {
   );
 }
 
+function submitToPayHere(data) {
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = data.checkout_url;
+  ['merchant_id','return_url','cancel_url','notify_url','order_id','items',
+   'currency','amount','first_name','last_name','email','phone',
+   'address','city','country','hash'].forEach(k => {
+    const inp = document.createElement('input');
+    inp.type = 'hidden'; inp.name = k; inp.value = data[k] ?? '';
+    form.appendChild(inp);
+  });
+  document.body.appendChild(form);
+  form.submit();
+}
+
 // Step 4 — Order Summary + Confirm
 function Step4Confirm({ form, items, salonId, clearCart, setStep }) {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const [placing, setPlacing] = useState(false);
   const [error, setError]     = useState('');
   const [success, setSuccess] = useState(false);
@@ -266,37 +283,53 @@ function Step4Confirm({ form, items, salonId, clearCart, setStep }) {
   const discount    = Number(form.discount_amount || 0);
   const total       = subtotal + tax + deliveryFee + giftFee - discount;
 
+  const buildPayload = () => ({
+    client_name:      form.client_name,
+    client_email:     form.client_email,
+    client_phone:     form.client_phone,
+    delivery_type:    form.delivery_type,
+    delivery_address: form.delivery_address || '',
+    delivery_city:    form.delivery_city || '',
+    delivery_postal:  form.delivery_postal || '',
+    payment_method:   form.payment_method === 'payhere' ? 'online' : form.payment_method,
+    gift_wrap:        form.gift_wrap,
+    gift_message:     form.gift_message || '',
+    promo_code:       form.promo_code || '',
+    notes:            form.notes || '',
+    items: items.map(i => ({
+      product:      i.productId,
+      product_name: i.name,
+      product_sku:  i.sku || '',
+      quantity:     i.quantity,
+      unit_price:   i.selling_price,
+      variant_note: i.variantNote || '',
+    })),
+  });
+
   const placeOrder = async () => {
     setPlacing(true); setError('');
-    const payload = {
-      client_name: form.client_name,
-      client_email: form.client_email,
-      client_phone: form.client_phone,
-      delivery_type: form.delivery_type,
-      delivery_address: form.delivery_address || '',
-      delivery_city: form.delivery_city || '',
-      delivery_postal: form.delivery_postal || '',
-      payment_method: form.payment_method,
-      gift_wrap: form.gift_wrap,
-      gift_message: form.gift_message || '',
-      promo_code: form.promo_code || '',
-      notes: form.notes || '',
-      items: items.map(i => ({
-        product: i.productId,
-        product_name: i.name,
-        product_sku: i.sku || '',
-        quantity: i.quantity,
-        unit_price: i.selling_price,
-        variant_note: i.variantNote || '',
-      })),
-    };
     try {
-      const r = await api.post(`/salons/${salonId}/orders/`, payload);
-      setOrderId(r.data.id);
+      const r = await api.post(`/salons/${salonId}/orders/`, buildPayload());
+      const createdOrderId = r.data.id;
+
+      if (form.payment_method === 'payhere') {
+        // Initiate PayHere — page will navigate away
+        const ph = await api.post('/payments/initiate/', {
+          type: 'cosmetics',
+          cosmetic_order_id: createdOrderId,
+          phone: form.client_phone,
+        });
+        clearCart();
+        submitToPayHere(ph.data);
+        return; // browser navigates away
+      }
+
+      // Cash order — show success inline
+      setOrderId(createdOrderId);
       clearCart();
       setSuccess(true);
     } catch (err) {
-      setError(JSON.stringify(err.response?.data) || 'Failed to place order. Please try again.');
+      setError(err.response?.data?.detail || JSON.stringify(err.response?.data) || 'Failed to place order. Please try again.');
     } finally {
       setPlacing(false);
     }
@@ -361,7 +394,7 @@ function Step4Confirm({ form, items, salonId, clearCart, setStep }) {
       {/* Payment */}
       <div style={c.summaryCard}>
         <div style={c.summaryLabel}>Payment</div>
-        <Line label="Method" val={{ cash: 'Cash on Delivery', card: 'Pay by Card', online: 'Online Transfer' }[form.payment_method]} />
+        <Line label="Method" val={{ cash: 'Cash on Delivery', payhere: 'PayHere (Card / Bank / Wallet)' }[form.payment_method] || form.payment_method} />
         {form.gift_wrap && <Line label="Gift Message" val={form.gift_message || '(none)'} />}
       </div>
 
@@ -370,7 +403,9 @@ function Step4Confirm({ form, items, salonId, clearCart, setStep }) {
       <div style={c.btnRow}>
         <button style={c.outlineBtn} onClick={() => setStep(2)}>← Back</button>
         <button style={{ ...c.primaryBtn, opacity: placing ? 0.7 : 1 }} onClick={placeOrder} disabled={placing}>
-          {placing ? 'Placing Order…' : '✓ Place Order'}
+          {placing
+            ? (form.payment_method === 'payhere' ? 'Redirecting to PayHere…' : 'Placing Order…')
+            : (form.payment_method === 'payhere' ? '💳 Pay via PayHere' : '✓ Place Order')}
         </button>
       </div>
     </div>

@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'inventory',
     'subscriptions',
     'staff',
+    'payments',
 ]
 
 MIDDLEWARE = [
@@ -179,6 +180,11 @@ DEFAULT_FROM_EMAIL  = f'Saloon <{os.getenv("EMAIL_HOST_USER", "noreply@saloon.lk
 
 # Frontend base URL — used in email links
 FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:5173')
+
+# PayHere payment gateway
+PAYHERE_MERCHANT_ID     = os.getenv('PAYHERE_MERCHANT_ID', '')
+PAYHERE_MERCHANT_SECRET = os.getenv('PAYHERE_MERCHANT_SECRET', '')
+PAYHERE_SANDBOX         = os.getenv('PAYHERE_SANDBOX', 'True') == 'True'
 
 # Social OAuth credentials — set these in .env / Render environment variables
 GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID', '')

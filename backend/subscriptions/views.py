@@ -1,5 +1,3 @@
-from datetime import timedelta
-from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -8,6 +6,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 
 from salons.models import Salon
 from .models import Subscription, PLANS
+
 
 
 def _get_or_create_sub(salon):
@@ -63,57 +62,18 @@ class SubscriptionDetailView(APIView):
 
 
 class SubscribeView(APIView):
+    """
+    Kept for backward-compat but payment is now handled by /api/payments/initiate/.
+    This endpoint is only called by PayHere notify (via payments app internals).
+    Direct POST here returns 410 Gone to prevent legacy usage.
+    """
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        salon = get_object_or_404(Salon, owner=request.user)
-
-        plan_key      = request.data.get('plan', '')
-        billing_name  = (request.data.get('billing_name') or '').strip()
-        billing_email = (request.data.get('billing_email') or '').strip()
-        card_number   = (request.data.get('card_number') or '').replace(' ', '')
-        card_expiry   = (request.data.get('card_expiry') or '').strip()
-        card_cvv      = (request.data.get('card_cvv') or '').strip()
-
-        if plan_key not in PLANS or plan_key == 'free_trial':
-            return Response({'detail': 'Invalid plan.'}, status=status.HTTP_400_BAD_REQUEST)
-
-        if not billing_name:
-            return Response({'detail': 'Billing name is required.'}, status=status.HTTP_400_BAD_REQUEST)
-        if not billing_email:
-            return Response({'detail': 'Billing email is required.'}, status=status.HTTP_400_BAD_REQUEST)
-        if len(card_number) < 13 or not card_number.isdigit():
-            return Response({'detail': 'Invalid card number.'}, status=status.HTTP_400_BAD_REQUEST)
-        if not card_expiry or '/' not in card_expiry:
-            return Response({'detail': 'Invalid expiry (MM/YY).'}, status=status.HTTP_400_BAD_REQUEST)
-        if len(card_cvv) < 3:
-            return Response({'detail': 'Invalid CVV.'}, status=status.HTTP_400_BAD_REQUEST)
-
-        if card_number.startswith('0000'):
-            return Response({'detail': 'Card declined. Please use a different card.'}, status=status.HTTP_402_PAYMENT_REQUIRED)
-
-        plan_info = PLANS[plan_key]
-        sub, _ = Subscription.objects.get_or_create(salon=salon)
-
-        sub.plan            = plan_key
-        sub.status          = 'active'
-        sub.billing_name    = billing_name
-        sub.billing_email   = billing_email
-        sub.card_last4      = card_number[-4:]
-        sub.amount_paid     = plan_info['price']
-        sub.expires_at      = timezone.now() + timedelta(days=plan_info['duration_days'])
-        sub.transaction_ref = ''
-        sub.save()
-
-        if not plan_info['features'].get('cosmetics', False) and salon.cosmetics_enabled:
-            salon.cosmetics_enabled = False
-            salon.save(update_fields=['cosmetics_enabled'])
-
-        return Response({
-            'success': True,
-            'subscription': _sub_data(sub),
-            'message': f'Successfully subscribed to {plan_info["name"]}!',
-        })
+        return Response(
+            {'detail': 'Direct card payment is no longer supported. Use /api/payments/initiate/ to pay via PayHere.'},
+            status=status.HTTP_410_GONE,
+        )
 
 
 class CancelSubscriptionView(APIView):

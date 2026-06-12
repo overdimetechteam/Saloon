@@ -51,6 +51,7 @@ import OwnerOffers        from './pages/owner/Offers';
 import OwnerSubscription  from './pages/owner/Subscription';
 
 import ResetPassword from './pages/ResetPassword';
+import { PaymentSuccess, PaymentCancel } from './pages/PaymentReturn';
 import VerifyEmail from './pages/VerifyEmail';
 import TwitterCallback from './pages/TwitterCallback';
 import UserDashboard from './pages/user/Dashboard';
@@ -216,6 +217,8 @@ export default function App() {
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/auth/twitter/callback" element={<TwitterCallback />} />
+          <Route path="/payment/success" element={<PaymentSuccess />} />
+          <Route path="/payment/cancel"  element={<PaymentCancel />} />
 
           {/* Salon portal select + employee login */}
           <Route path="/salon-portal" element={<SalonPortalSelect />} />

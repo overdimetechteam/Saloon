@@ -36,41 +36,40 @@ const FEATURE_ROWS = [
   { key: 'priority_support',       label: 'Priority Support',       fmt: v => v ? '✓' : '—' },
 ];
 
+/* ─── PayHere redirect helper ────────────────────────────────────────── */
+function submitToPayHere(data) {
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = data.checkout_url;
+  const fields = [
+    'merchant_id','return_url','cancel_url','notify_url',
+    'order_id','items','currency','amount',
+    'first_name','last_name','email','phone',
+    'address','city','country','hash',
+  ];
+  fields.forEach(k => {
+    const inp = document.createElement('input');
+    inp.type = 'hidden'; inp.name = k; inp.value = data[k] ?? '';
+    form.appendChild(inp);
+  });
+  document.body.appendChild(form);
+  form.submit();
+}
+
 /* ─── Payment modal ──────────────────────────────────────────────────── */
-function PaymentModal({ plan, planKey, onClose, onSuccess }) {
-  const [form, setForm] = useState({ billing_name: '', billing_email: '', card_number: '', card_expiry: '', card_cvv: '' });
-  const [error, setError]     = useState('');
+function PaymentModal({ plan, planKey, onClose }) {
+  const [error,   setError]   = useState('');
   const [loading, setLoading] = useState(false);
+  const color = PLAN_COLORS[planKey];
 
-  const set = k => e => setForm(p => ({ ...p, [k]: e.target.value }));
-
-  const formatCard = e => {
-    const v = e.target.value.replace(/\D/g, '').slice(0, 16);
-    const parts = v.match(/.{1,4}/g) || [];
-    setForm(p => ({ ...p, card_number: parts.join(' ') }));
-  };
-
-  const formatExpiry = e => {
-    let v = e.target.value.replace(/\D/g, '').slice(0, 4);
-    if (v.length > 2) v = v.slice(0, 2) + '/' + v.slice(2);
-    setForm(p => ({ ...p, card_expiry: v }));
-  };
-
-  const submit = async e => {
-    e.preventDefault(); setError(''); setLoading(true);
+  const handlePay = async () => {
+    setError(''); setLoading(true);
     try {
-      const r = await api.post('/subscription/subscribe/', {
-        plan: planKey,
-        billing_name: form.billing_name,
-        billing_email: form.billing_email,
-        card_number: form.card_number.replace(/\s/g, ''),
-        card_expiry: form.card_expiry,
-        card_cvv: form.card_cvv,
-      });
-      onSuccess(r.data.subscription, r.data.message);
+      const r = await api.post('/payments/initiate/', { type: 'subscription', plan: planKey });
+      submitToPayHere(r.data);
+      // Page navigates away — no need to setLoading(false)
     } catch (err) {
-      setError(err.response?.data?.detail || 'Payment failed. Please try again.');
-    } finally {
+      setError(err.response?.data?.detail || 'Could not start payment. Please try again.');
       setLoading(false);
     }
   };
@@ -78,10 +77,10 @@ function PaymentModal({ plan, planKey, onClose, onSuccess }) {
   return createPortal(
     <div style={pm.overlay} onClick={e => e.target === e.currentTarget && onClose()}>
       <div style={pm.modal}>
-        <div style={{ ...pm.header, background: `linear-gradient(135deg, ${PLAN_COLORS[planKey]}22, ${PLAN_COLORS[planKey]}08)`, borderBottom: `1px solid ${PLAN_COLORS[planKey]}30` }}>
+        <div style={{ ...pm.header, background: `linear-gradient(135deg, ${color}22, ${color}08)`, borderBottom: `1px solid ${color}30` }}>
           <div>
-            <div style={{ fontSize: 11, fontWeight: 700, color: PLAN_COLORS[planKey], textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 4 }}>
-              Subscribe
+            <div style={{ fontSize: 11, fontWeight: 700, color, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 4 }}>
+              Subscribe via PayHere
             </div>
             <div style={pm.title}>{PLAN_META[planKey]?.icon} {plan.name}</div>
             <div style={{ fontSize: 22, fontWeight: 900, color: 'var(--text)', marginTop: 4 }}>
@@ -92,74 +91,46 @@ function PaymentModal({ plan, planKey, onClose, onSuccess }) {
           <button style={pm.closeBtn} onClick={onClose}>✕</button>
         </div>
 
-        {error && <div style={pm.error}>{error}</div>}
-
-        <form onSubmit={submit} style={pm.form}>
-          <div style={pm.section}>Billing Information</div>
-          <PField label="Full Name *" value={form.billing_name} onChange={set('billing_name')} placeholder="John Silva" />
-          <PField label="Email *" value={form.billing_email} onChange={set('billing_email')} placeholder="billing@example.com" type="email" />
-
-          <div style={pm.section}>Card Details</div>
-          <div style={pm.testNote}>
-            🧪 Test mode — use any card number (e.g. <code>4242 4242 4242 4242</code>). Cards starting with <code>0000</code> will be declined.
-          </div>
-          <div style={{ position: 'relative' }}>
-            <PField label="Card Number *" value={form.card_number} onChange={formatCard} placeholder="4242 4242 4242 4242" />
-            <span style={pm.cardIcon}>💳</span>
-          </div>
-          <div style={pm.twoCol}>
-            <PField label="Expiry (MM/YY) *" value={form.card_expiry} onChange={formatExpiry} placeholder="12/26" />
-            <PField label="CVV *" value={form.card_cvv} onChange={set('card_cvv')} placeholder="123" maxLength={4} />
-          </div>
+        <div style={pm.form}>
+          {error && <div style={pm.error}>{error}</div>}
 
           <div style={pm.summary}>
-            <div style={pm.summaryRow}>
-              <span>Plan</span><span style={{ fontWeight: 700 }}>{plan.name}</span>
-            </div>
-            <div style={pm.summaryRow}>
-              <span>Duration</span><span>30 days</span>
-            </div>
+            <div style={pm.summaryRow}><span>Plan</span><span style={{ fontWeight: 700 }}>{plan.name}</span></div>
+            <div style={pm.summaryRow}><span>Duration</span><span>30 days</span></div>
             <div style={{ ...pm.summaryRow, borderTop: '1.5px solid var(--border)', paddingTop: 10, marginTop: 4 }}>
               <span style={{ fontWeight: 700 }}>Total</span>
               <span style={{ fontWeight: 900, fontSize: 17, color: 'var(--text)' }}>LKR {plan.price.toLocaleString()}</span>
             </div>
           </div>
 
-          <button type="submit" style={{ ...pm.payBtn, background: `linear-gradient(135deg, ${PLAN_COLORS[planKey]}, ${PLAN_COLORS[planKey]}cc)` }} disabled={loading}>
-            {loading ? 'Processing…' : `Pay LKR ${plan.price.toLocaleString()} & Subscribe`}
+          <div style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.7, marginBottom: 20, padding: '12px 14px', background: 'rgba(13,148,136,.06)', borderRadius: 10, border: '1px solid rgba(13,148,136,.15)' }}>
+            🔐 You'll be redirected to <strong style={{ color: 'var(--text)' }}>PayHere</strong> to complete your payment securely with your card, bank account, or mobile wallet.
+          </div>
+
+          <button
+            style={{ ...pm.payBtn, background: `linear-gradient(135deg, ${color}, ${color}cc)`, opacity: loading ? 0.75 : 1 }}
+            onClick={handlePay}
+            disabled={loading}
+          >
+            {loading ? 'Redirecting to PayHere…' : `Pay LKR ${plan.price.toLocaleString()} via PayHere`}
           </button>
-          <p style={pm.disclaimer}>🔒 Secure test payment. No real charges apply.</p>
-        </form>
+          <p style={pm.disclaimer}>🔒 Secured by PayHere · LKR · Sri Lanka</p>
+        </div>
       </div>
     </div>,
     document.body
   );
 }
 
-function PField({ label, value, onChange, placeholder, type = 'text', maxLength }) {
-  return (
-    <div style={{ marginBottom: 14 }}>
-      <label style={pm.fieldLabel}>{label}</label>
-      <input style={pm.input} type={type} value={value} onChange={onChange} placeholder={placeholder} maxLength={maxLength} required />
-    </div>
-  );
-}
-
 const pm = {
   overlay:    { position: 'fixed', inset: 0, background: 'rgba(0,0,0,.6)', backdropFilter: 'blur(6px)', zIndex: 9000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 },
-  modal:      { background: 'var(--surface)', borderRadius: 22, width: '100%', maxWidth: 480, maxHeight: '92vh', overflowY: 'auto', boxShadow: '0 30px 80px rgba(0,0,0,.35)' },
+  modal:      { background: 'var(--surface)', borderRadius: 22, width: '100%', maxWidth: 440, boxShadow: '0 30px 80px rgba(0,0,0,.35)' },
   header:     { padding: '26px 28px 22px', borderRadius: '22px 22px 0 0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' },
   title:      { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 24, fontWeight: 700, color: 'var(--text)', margin: 0 },
   closeBtn:   { background: 'none', border: 'none', fontSize: 18, cursor: 'pointer', color: 'var(--text-muted)', padding: '2px 6px', borderRadius: 6 },
-  error:      { margin: '0 28px 0', padding: '11px 14px', background: '#FEF2F2', border: '1px solid #FCA5A5', color: '#DC2626', borderRadius: 10, fontSize: 13, marginTop: 12 },
-  form:       { padding: '4px 28px 28px' },
-  section:    { fontSize: 10, fontWeight: 700, color: 'var(--brand-label)', letterSpacing: '0.12em', textTransform: 'uppercase', margin: '20px 0 12px', paddingBottom: 8, borderBottom: '1px solid var(--border)' },
-  testNote:   { fontSize: 12, color: '#0D9488', background: 'rgba(13,148,136,.07)', borderRadius: 8, padding: '8px 12px', marginBottom: 14, lineHeight: 1.5 },
-  twoCol:     { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 },
-  fieldLabel: { display: 'block', fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 5 },
-  input:      { width: '100%', padding: '10px 13px', border: '1.5px solid var(--border)', borderRadius: 10, fontSize: 14, color: 'var(--text)', background: 'var(--surface)', fontFamily: "'DM Sans', sans-serif", outline: 'none', boxSizing: 'border-box' },
-  cardIcon:   { position: 'absolute', right: 14, top: '50%', transform: 'translateY(4px)', fontSize: 16, pointerEvents: 'none' },
-  summary:    { background: 'var(--surface2)', borderRadius: 12, padding: '14px 16px', margin: '18px 0 20px', border: '1px solid var(--border)' },
+  error:      { padding: '11px 14px', background: '#FEF2F2', border: '1px solid #FCA5A5', color: '#DC2626', borderRadius: 10, fontSize: 13, marginBottom: 16 },
+  form:       { padding: '20px 28px 28px' },
+  summary:    { background: 'var(--bg)', borderRadius: 12, padding: '14px 16px', marginBottom: 16, border: '1px solid var(--border)' },
   summaryRow: { display: 'flex', justifyContent: 'space-between', fontSize: 14, color: 'var(--text)', marginBottom: 6 },
   payBtn:     { width: '100%', padding: '14px', border: 'none', borderRadius: 12, color: '#fff', fontSize: 15, fontWeight: 800, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", boxShadow: '0 6px 20px rgba(0,0,0,.2)' },
   disclaimer: { textAlign: 'center', fontSize: 11, color: 'var(--text-muted)', marginTop: 10 },
@@ -214,13 +185,11 @@ export default function OwnerSubscription() {
 
   useEffect(() => { load(); }, []);
 
-  const handleSuccess = (newSub, message) => {
+  // handleSuccess is called from PaymentReturn page after PayHere redirect back
+  const handleSuccess = () => {
     setPayModal(null);
-    setMsg(message);
     load();
-    // Update OwnerContext so layout badge refreshes
     api.get('/owner/salon/').then(r => setSalon(r.data)).catch(() => {});
-    setTimeout(() => setMsg(''), 6000);
   };
 
   const handleCancel = async () => {
@@ -471,7 +440,6 @@ export default function OwnerSubscription() {
           plan={payModal.plan}
           planKey={payModal.key}
           onClose={() => setPayModal(null)}
-          onSuccess={handleSuccess}
         />
       )}
 
