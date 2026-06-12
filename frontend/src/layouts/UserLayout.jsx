@@ -448,8 +448,9 @@ export default function UserLayout() {
 
       <main style={{
         flex: 1,
-        padding: isMobile ? '24px 16px 80px' : '40px 40px',
-        maxWidth: 1320, margin: '0 auto', width: '100%',
+        padding: /^\/salons\/\d+/.test(location.pathname) ? 0 : (isMobile ? '24px 16px 80px' : '40px 40px'),
+        maxWidth: /^\/salons\/\d+/.test(location.pathname) ? 'none' : 1320,
+        margin: '0 auto', width: '100%',
         boxSizing: 'border-box',
       }}>
         <motion.div

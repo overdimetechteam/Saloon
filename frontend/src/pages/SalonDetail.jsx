@@ -240,7 +240,7 @@ export default function SalonDetail() {
 
       {/* ── MOBILE HERO (iOS-style, full-screen) ── */}
       {isMobile ? (
-        <div ref={heroRef} style={{ position: 'relative', minHeight: '100svh', overflow: 'hidden', background: '#0D0D16', display: 'flex', flexDirection: 'column', marginTop: -24, marginLeft: 'calc(50% - 50vw)', width: '100vw' }}>
+        <div ref={heroRef} style={{ position: 'relative', minHeight: '100svh', overflow: 'hidden', background: '#0D0D16', display: 'flex', flexDirection: 'column' }}>
           {/* Cover photo + fade overlay */}
           <div style={{
             position: 'absolute', inset: 0,
@@ -377,9 +377,6 @@ export default function SalonDetail() {
           background: coverPhoto
             ? `linear-gradient(160deg,rgba(13,13,22,.78) 0%,rgba(13,13,22,.58) 35%,rgba(11,56,50,.38) 68%,rgba(${R},.15) 100%),url(${coverPhoto}) center/cover no-repeat`
             : `linear-gradient(145deg,#0D0D16 0%,${pal.darkBg} 40%,${pal.dark} 75%,${pal.main} 100%)`,
-          marginTop: -40,
-          marginLeft: 'calc(50% - 50vw)',
-          width: '100vw',
         }}>
           <div style={s.heroBg} />
           <div style={{ ...s.heroInner, flexDirection: 'row', gap: 24 }}>
@@ -448,8 +445,6 @@ export default function SalonDetail() {
           paddingBottom: isClient ? 64 : 0,
         } : {
           position: 'sticky', top: 64,
-          marginLeft: 'calc(50% - 50vw)',
-          width: '100vw',
         }),
         background: 'var(--surface)',
         borderTop: isMobile ? '1px solid var(--border)' : 'none',
@@ -485,7 +480,7 @@ export default function SalonDetail() {
       </div>
 
       {/* PHOTOS */}
-      <div style={{ ...s.photoStrip, marginLeft: isMobile ? 'calc(50% - 50vw)' : 'calc(50% - 50vw)', width: '100vw' }}>
+      <div style={s.photoStrip}>
         <div style={{ position: 'relative', padding: '0 48px' }}>
           {!isMobile && (
             <button style={{ ...s.carouselArrow, left: 4, boxShadow: '0 4px 18px rgba(0,0,0,.14)' }}
