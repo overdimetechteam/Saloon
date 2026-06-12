@@ -3,6 +3,7 @@ from datetime import date, timedelta
 from django.db import models
 from django.conf import settings
 from salons.models import Salon
+from utils.encryption import EncryptedTextField
 
 
 class Product(models.Model):
@@ -181,11 +182,11 @@ class CosmeticOrder(models.Model):
 
     salon = models.ForeignKey(Salon, on_delete=models.CASCADE, related_name='cosmetic_orders')
     client = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='cosmetic_orders')
-    client_name = models.CharField(max_length=255)
+    client_name = EncryptedTextField()
     client_email = models.EmailField()
-    client_phone = models.CharField(max_length=30)
+    client_phone = EncryptedTextField(blank=True, default='')
     delivery_type = models.CharField(max_length=20, choices=DELIVERY_CHOICES, default='pickup')
-    delivery_address = models.TextField(blank=True)
+    delivery_address = EncryptedTextField(blank=True, default='')
     delivery_city = models.CharField(max_length=100, blank=True)
     delivery_postal = models.CharField(max_length=20, blank=True)
     payment_method = models.CharField(max_length=20, choices=PAYMENT_CHOICES, default='cash')

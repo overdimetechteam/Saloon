@@ -16,7 +16,7 @@ class StaffMember(models.Model):
 
     salon                = models.ForeignKey(Salon, on_delete=models.CASCADE, related_name='staff_members')
     user                 = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='staff_profile', null=True, blank=True)
-    full_name            = models.CharField(max_length=255)
+    full_name            = EncryptedTextField()
     role                 = models.CharField(max_length=30, choices=ROLE_CHOICES, default='other')
     bio                  = models.TextField(blank=True)
     photo                = models.ImageField(upload_to='staff_photos/', null=True, blank=True)
@@ -28,7 +28,7 @@ class StaffMember(models.Model):
     created_at           = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ['full_name']
+        ordering = ['created_at']
 
     def __str__(self):
         return f"{self.full_name} @ {self.salon.name}"

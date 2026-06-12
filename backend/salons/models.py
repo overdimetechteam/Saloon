@@ -90,7 +90,7 @@ class Offer(models.Model):
 
 class SalonStaff(models.Model):
     salon = models.ForeignKey(Salon, on_delete=models.CASCADE, related_name='staff')
-    full_name = models.CharField(max_length=255)
+    full_name = EncryptedTextField()
     role = models.CharField(max_length=100, blank=True)
     phone = EncryptedTextField(blank=True, default='')
     specialties = models.ManyToManyField('services.Service', blank=True, related_name='staff_specialties')
