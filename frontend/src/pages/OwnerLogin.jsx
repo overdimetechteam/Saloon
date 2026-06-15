@@ -15,7 +15,7 @@ export default function OwnerLogin() {
 
   // If already logged in as owner, skip to dashboard
   useEffect(() => {
-    if (profile?.role === 'salon_owner') navigate('/salon-portal', { replace: true });
+    if (profile?.role === 'salon_owner') navigate('/owner/dashboard', { replace: true });
   }, [profile]);
 
   const handleLogin = async e => {
@@ -26,7 +26,7 @@ export default function OwnerLogin() {
         setError('This portal is for salon owners only. Please use the Customer portal instead.');
         return;
       }
-      navigate('/salon-portal');
+      navigate('/owner/dashboard');
     } catch (err) {
       setError(err.response?.data?.detail || 'Invalid email or password');
     } finally { setLoading(false); }
@@ -42,7 +42,7 @@ export default function OwnerLogin() {
           return;
         }
         socialLogin(data);
-        navigate('/salon-portal');
+        navigate('/owner/dashboard');
       } catch (err) {
         setError(err.response?.data?.detail || 'Google sign-in failed.');
       } finally { setGLoading(false); }

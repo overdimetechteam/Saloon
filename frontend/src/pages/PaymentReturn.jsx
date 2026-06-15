@@ -24,10 +24,10 @@ export function PaymentSuccess() {
   }, [orderId]);
 
   const meta = {
-    confirmed: { icon: '🎉', title: 'Payment Successful!',    color: '#0D9488', sub: 'Your payment has been confirmed and your order is being processed.' },
-    pending:   { icon: '⏳', title: 'Payment Processing…',    color: '#D97706', sub: 'Your payment is being verified. This usually takes less than a minute.' },
-    failed:    { icon: '❌', title: 'Payment Failed',          color: '#DC2626', sub: 'Something went wrong with your payment. Please try again.' },
-    checking:  { icon: '⏳', title: 'Checking payment…',       color: '#6B7280', sub: '' },
+    confirmed: { icon: '🎉', title: 'Transaction Completed!',       color: '#0D9488', sub: 'Your payment was successful and your order is being processed.' },
+    pending:   { icon: '⏳', title: 'Payment Processing…',           color: '#D97706', sub: 'Your payment is being verified. This usually takes less than a minute. Check your bookings shortly.' },
+    failed:    { icon: '⚠️', title: 'Transaction Incomplete',        color: '#DC2626', sub: 'The transaction could not be completed. No charges were made. Please try again or use a different payment method.' },
+    checking:  { icon: '⏳', title: 'Verifying transaction…',        color: '#6B7280', sub: 'Please wait while we confirm your payment.' },
   }[status];
 
   return (
@@ -43,12 +43,21 @@ export function PaymentSuccess() {
           </div>
         )}
         <div style={s.actions}>
-          <Link to="/user/bookings" style={{ ...s.btn, background: 'linear-gradient(135deg,#0D9488,#14B8A8)' }}>
-            My Bookings
-          </Link>
-          <Link to="/salons" style={s.outlineBtn}>
-            Continue Shopping
-          </Link>
+          {status === 'failed' ? (
+            <>
+              <Link to="/user/checkout" style={{ ...s.btn, background: 'linear-gradient(135deg,#DC2626,#EF4444)' }}>
+                Try Again
+              </Link>
+              <Link to="/salons" style={s.outlineBtn}>Back to Salons</Link>
+            </>
+          ) : (
+            <>
+              <Link to="/user/bookings" style={{ ...s.btn, background: 'linear-gradient(135deg,#0D9488,#14B8A8)' }}>
+                My Bookings
+              </Link>
+              <Link to="/salons" style={s.outlineBtn}>Back to Salons</Link>
+            </>
+          )}
         </div>
       </div>
     </div>
@@ -59,16 +68,14 @@ export function PaymentCancel() {
   return (
     <div style={s.page}>
       <div style={s.card}>
-        <div style={{ fontSize: 64, marginBottom: 16 }}>😕</div>
-        <h2 style={{ ...s.title, color: '#D97706' }}>Payment Cancelled</h2>
-        <p style={s.sub}>You cancelled the payment. No charges were made. You can try again whenever you're ready.</p>
+        <div style={{ fontSize: 64, marginBottom: 16 }}>⚠️</div>
+        <h2 style={{ ...s.title, color: '#DC2626' }}>Transaction Incomplete</h2>
+        <p style={s.sub}>Your transaction was not completed and no charges were made. This could be because you cancelled, the session timed out, or the payment was declined. Please try again.</p>
         <div style={s.actions}>
-          <Link to="/user/cosmetics" style={{ ...s.btn, background: 'linear-gradient(135deg,#0D9488,#14B8A8)' }}>
-            Back to Shop
-          </Link>
-          <Link to="/owner/subscription" style={s.outlineBtn}>
-            View Plans
-          </Link>
+          <button onClick={() => window.history.back()} style={{ ...s.btn, background: 'linear-gradient(135deg,#0D9488,#14B8A8)', border: 'none', cursor: 'pointer', width: '100%' }}>
+            Try Again
+          </button>
+          <Link to="/salons" style={s.outlineBtn}>Back to Salons</Link>
         </div>
       </div>
     </div>
