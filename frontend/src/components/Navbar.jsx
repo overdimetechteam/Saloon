@@ -56,7 +56,7 @@ export default function Navbar() {
       <Link to={dashTo || '/salons'} style={s.brand}>
         <div style={{ ...s.brandMark, background: `linear-gradient(145deg, ${accentColor} 0%, ${accentColor2} 100%)`, boxShadow: `0 4px 16px ${accentShadow}.4), inset 0 1px 0 rgba(255,255,255,.2)` }}>✦</div>
         <div style={s.brandText}>
-          <div style={{ ...s.brandName, fontSize: isMobile ? 18 : 20 }}>Saloon</div>
+          <div style={{ ...s.brandName, fontSize: isMobile ? 18 : 20 }}>BookMyStyle</div>
           {!isMobile && <div style={{ ...s.brandTagline, color: accentColor }}>Beauty & Wellness</div>}
         </div>
       </Link>

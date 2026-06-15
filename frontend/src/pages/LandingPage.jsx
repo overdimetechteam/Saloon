@@ -86,7 +86,7 @@ export default function LandingPage() {
           </svg>
         </div>
 
-        <h1 style={s.brand}>Saloon</h1>
+        <h1 style={s.brand}>BookMyStyle</h1>
         <div style={s.tagline}>BEAUTY &amp; WELLNESS PLATFORM</div>
 
         <div style={s.divider} />

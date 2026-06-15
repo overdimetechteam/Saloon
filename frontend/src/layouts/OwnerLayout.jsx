@@ -96,7 +96,7 @@ export default function OwnerLayout() {
             <span style={s.burgerLine} />
           </button>
           <div style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontWeight: 700, fontSize: 18, color: 'var(--text)' }}>
-            {salon?.name || 'Saloon'}
+            {salon?.name || 'BookMyStyle'}
           </div>
           <div style={{ display: 'flex', gap: 6 }}>
             <button onClick={toggle} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: isDark ? '#5EEAD4' : '#0D9488' }}>

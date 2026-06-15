@@ -179,7 +179,7 @@ export default function SalonDetail() {
   useEffect(() => {
     if (!salon) return;
     const prevTitle = document.title;
-    document.title = `${salon.name} — Luxe Salons`;
+    document.title = `${salon.name} — BookMyStyle`;
 
     const setMeta = (key, val, attr = 'name') => {
       let el = document.querySelector(`meta[${attr}="${key}"]`);
@@ -194,7 +194,7 @@ export default function SalonDetail() {
 
     setMeta('description', desc);
     setMeta('keywords', `salon, ${salon.name}, beauty, ${salon.address_city}, hair, nails, skin, spa, booking`);
-    setMeta('og:title',       `${salon.name} | Luxe Salons`, 'property');
+    setMeta('og:title',       `${salon.name} | BookMyStyle`, 'property');
     setMeta('og:description', desc, 'property');
     setMeta('og:image',       heroImg, 'property');
     setMeta('og:type',        'business.business', 'property');

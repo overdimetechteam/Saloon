@@ -9,8 +9,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'apple-touch-icon.svg', 'pwa-512.svg', 'pwa-maskable.svg'],
       manifest: {
-        name: 'Saloon — Beauty & Wellness',
-        short_name: 'Saloon',
+        name: 'BookMyStyle — Beauty & Wellness',
+        short_name: 'BookMyStyle',
         description: 'Discover and book premium salons for hair, nails, skin & more.',
         theme_color: '#0D9488',
         background_color: '#060e0d',

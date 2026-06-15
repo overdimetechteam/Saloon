@@ -14,7 +14,7 @@ export default function PortalSelect() {
         {/* Header */}
         <div style={s.logoRow}>
           <span style={s.mark}>✦</span>
-          <span style={s.brand}>Saloon</span>
+          <span style={s.brand}>BookMyStyle</span>
         </div>
         <h2 style={s.heading}>How would you like to continue?</h2>
         <p style={s.sub}>Choose your portal to get started</p>

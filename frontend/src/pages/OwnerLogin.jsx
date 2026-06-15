@@ -91,7 +91,7 @@ export default function OwnerLogin() {
           <div style={s.formHeader}>
             <div style={s.logoRow}>
               <span style={s.logoMark}>✦</span>
-              <span style={s.logoBrand}>Saloon</span>
+              <span style={s.logoBrand}>BookMyStyle</span>
             </div>
             <h1 style={s.formTitle}>Salon Owner Sign In</h1>
             <p style={s.formSub}>Access your salon management dashboard</p>

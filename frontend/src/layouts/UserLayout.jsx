@@ -231,7 +231,7 @@ export default function UserLayout() {
               boxShadow: `0 4px 16px rgba(${R},.4), inset 0 1px 0 rgba(255,255,255,.2)`,
             }}>✦</div>
             <div>
-              <div style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontWeight: 700, fontSize: isMobile ? 18 : 20, color: 'var(--text)', lineHeight: 1, letterSpacing: '-0.01em' }}>Saloon</div>
+              <div style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontWeight: 700, fontSize: isMobile ? 18 : 20, color: 'var(--text)', lineHeight: 1, letterSpacing: '-0.01em' }}>BookMyStyle</div>
               {!isMobile && <div style={{ fontSize: 9, color: TL, letterSpacing: '0.18em', textTransform: 'uppercase', marginTop: 3, fontWeight: 500 }}>Beauty & Wellness</div>}
             </div>
           </Link>
@@ -349,7 +349,7 @@ export default function UserLayout() {
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   color: '#fff', fontSize: 12, fontWeight: 900,
                 }}>✦</div>
-                <span style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontWeight: 700, fontSize: 17, color: 'var(--text)' }}>Saloon</span>
+                <span style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontWeight: 700, fontSize: 17, color: 'var(--text)' }}>BookMyStyle</span>
               </Link>
               <button
                 onClick={() => setDrawerOpen(false)}

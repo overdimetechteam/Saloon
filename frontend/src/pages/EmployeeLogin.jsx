@@ -29,7 +29,7 @@ export default function EmployeeLogin() {
       <div style={s.card}>
         <div style={s.logo}>
           <span style={s.mark}>✦</span>
-          <span style={s.brand}>Saloon</span>
+          <span style={s.brand}>BookMyStyle</span>
         </div>
         <h1 style={s.title}>Staff Login</h1>
         <p style={s.sub}>Sign in with your employee credentials</p>

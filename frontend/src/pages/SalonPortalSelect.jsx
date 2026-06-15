@@ -9,7 +9,7 @@ export default function SalonPortalSelect() {
     <div style={s.page}>
       <div style={s.card}>
         <div style={s.mark}>✦</div>
-        <h1 style={s.title}>Saloon Portal</h1>
+        <h1 style={s.title}>BookMyStyle Portal</h1>
         <p style={s.sub}>Choose how you'd like to continue</p>
 
         <div style={s.options}>

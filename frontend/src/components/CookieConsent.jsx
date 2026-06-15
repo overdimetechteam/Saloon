@@ -93,7 +93,7 @@ export default function CookieConsent() {
             </div>
 
             <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.7, margin: '0 0 18px' }}>
-              Saloon uses browser storage to provide core functionality. We do <strong style={{ color: 'var(--text)' }}>not</strong> use
+              BookMyStyle uses browser storage to provide core functionality. We do <strong style={{ color: 'var(--text)' }}>not</strong> use
               third-party advertising or tracking cookies.
             </p>
 
@@ -135,7 +135,7 @@ export default function CookieConsent() {
             ))}
 
             <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: '14px 0 18px', lineHeight: 1.6 }}>
-              By using Saloon you agree to essential storage. Since we only use essential storage,
+              By using BookMyStyle you agree to essential storage. Since we only use essential storage,
               declining has no functional effect — your data is never sold or shared with advertisers.
             </p>
 
