@@ -301,7 +301,7 @@ class GRNConfirmView(APIView):
                 quantity_remaining=item.quantity_received,
                 unit_cost=item.unit_cost,
                 received_date=date_type.today(),
-                expiry_date=item.product.expiry_date,
+                expiry_date=item.expiry_date,
             )
         grn.status = 'confirmed'
         grn.save()

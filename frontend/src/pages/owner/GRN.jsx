@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import api from '../../api/axios';
 import { useOwner } from '../../context/OwnerContext';
 
@@ -7,7 +7,7 @@ export default function OwnerGRN() {
   const [grns, setGrns] = useState([]);
   const [products, setProducts] = useState([]);
   const [supplier, setSupplier] = useState('');
-  const [items, setItems] = useState([{ product: '', quantity_received: 1, unit_cost: '' }]);
+  const [items, setItems] = useState([{ product: '', quantity_received: 1, unit_cost: '', expiry_date: '' }]);
   const [error, setError] = useState('');
   const [msg, setMsg] = useState('');
   const [showForm, setShowForm] = useState(false);
@@ -20,7 +20,7 @@ export default function OwnerGRN() {
   useEffect(() => { load(); }, [salon]);
 
   const setItem = (i, k, v) => setItems(prev => prev.map((it, idx) => idx === i ? { ...it, [k]: v } : it));
-  const addItem = () => setItems(prev => [...prev, { product: '', quantity_received: 1, unit_cost: '' }]);
+  const addItem = () => setItems(prev => [...prev, { product: '', quantity_received: 1, unit_cost: '', expiry_date: '' }]);
   const removeItem = i => setItems(prev => prev.filter((_, idx) => idx !== i));
 
   const submit = async e => {
@@ -28,10 +28,19 @@ export default function OwnerGRN() {
     try {
       await api.post(`/salons/${salon.id}/grn/`, {
         supplier_name: supplier,
-        items: items.map(it => ({ product: Number(it.product), quantity_received: Number(it.quantity_received), unit_cost: it.unit_cost })),
+        items: items.map(it => ({
+          product: Number(it.product),
+          quantity_received: Number(it.quantity_received),
+          unit_cost: it.unit_cost,
+          ...(it.expiry_date ? { expiry_date: it.expiry_date } : {}),
+        })),
       });
-      load(); setShowForm(false); setSupplier(''); setItems([{ product: '', quantity_received: 1, unit_cost: '' }]);
-      setMsg('GRN created as draft. Confirm it to update stock.'); setTimeout(() => setMsg(''), 4000);
+      load();
+      setShowForm(false);
+      setSupplier('');
+      setItems([{ product: '', quantity_received: 1, unit_cost: '', expiry_date: '' }]);
+      setMsg('GRN created as draft. Confirm it to update stock.');
+      setTimeout(() => setMsg(''), 4000);
     } catch (err) { setError(JSON.stringify(err.response?.data) || 'Error'); }
   };
 
@@ -74,6 +83,7 @@ export default function OwnerGRN() {
                 <span style={{ flex: 3 }}>Product</span>
                 <span style={{ flex: 1, textAlign: 'center' }}>Qty</span>
                 <span style={{ flex: 1, textAlign: 'right' }}>Unit Cost</span>
+                <span style={{ flex: 1.5, textAlign: 'center' }}>Expiry Date</span>
                 <span style={{ width: 32 }} />
               </div>
               {items.map((it, i) => (
@@ -84,6 +94,7 @@ export default function OwnerGRN() {
                   </select>
                   <input style={{ ...s.input, flex: 1, marginBottom: 0, textAlign: 'center' }} type="number" min={1} value={it.quantity_received} onChange={e => setItem(i, 'quantity_received', e.target.value)} required />
                   <input style={{ ...s.input, flex: 1, marginBottom: 0, textAlign: 'right' }} type="number" step="0.01" placeholder="0.00" value={it.unit_cost} onChange={e => setItem(i, 'unit_cost', e.target.value)} required />
+                  <input style={{ ...s.input, flex: 1.5, marginBottom: 0 }} type="date" value={it.expiry_date} onChange={e => setItem(i, 'expiry_date', e.target.value)} />
                   {items.length > 1 && (
                     <button type="button" style={s.rmBtn} onClick={() => removeItem(i)}>✕</button>
                   )}
@@ -114,9 +125,27 @@ export default function OwnerGRN() {
                   <span style={s.itemName}>{it.product_name}</span>
                   <span style={s.itemQty}>×{it.quantity_received}</span>
                   <span style={s.itemCost}>LKR {it.unit_cost} each</span>
+                  {it.expiry_date && (
+                    <span style={s.itemExpiry}>Exp: {it.expiry_date}</span>
+                  )}
                 </div>
               ))}
             </div>
+            {grn.status === 'confirmed' && grn.batches?.length > 0 && (
+              <div style={s.batchSection}>
+                <div style={s.batchLabel}>Batch IDs Created</div>
+                <div style={s.batchList}>
+                  {grn.batches.map(b => (
+                    <div key={b.id} style={s.batchChip}>
+                      <span style={s.batchId}>{b.batch_number}</span>
+                      <span style={s.batchProduct}>{b.product_name}</span>
+                      <span style={s.batchCost}>LKR {Number(b.unit_cost).toLocaleString()}</span>
+                      {b.expiry_date && <span style={s.batchExpiry}>Exp: {b.expiry_date}</span>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
             {grn.status === 'draft' && (
               <div style={s.grnFooter}>
                 <button style={s.confirmBtn} onClick={() => confirm(grn.id)}>✓ Confirm GRN (Update Stock)</button>
@@ -207,6 +236,19 @@ const s = {
   itemName: { flex: 1, fontSize: 14, color: 'var(--text)', fontWeight: 500 },
   itemQty: { fontWeight: 700, fontSize: 14, color: '#0D9488' },
   itemCost: { fontSize: 13, color: 'var(--text-muted)' },
+  itemExpiry: { fontSize: 11, fontWeight: 600, color: '#D4AF37', background: 'rgba(212,175,55,.1)', padding: '2px 8px', borderRadius: 6 },
+  batchSection: { padding: '12px 22px', background: 'rgba(13,148,136,.04)', borderTop: '1px solid var(--border)' },
+  batchLabel: { fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 },
+  batchList: { display: 'flex', flexWrap: 'wrap', gap: 8 },
+  batchChip: {
+    display: 'flex', alignItems: 'center', gap: 8,
+    background: 'var(--surface)', borderRadius: 8, padding: '6px 12px',
+    border: '1px solid var(--border)',
+  },
+  batchId: { fontFamily: 'monospace', fontSize: 11, fontWeight: 800, color: '#0D9488' },
+  batchProduct: { fontSize: 12, color: 'var(--text)', fontWeight: 500 },
+  batchCost: { fontSize: 12, fontWeight: 700, color: 'var(--text)' },
+  batchExpiry: { fontSize: 10, fontWeight: 600, color: '#D4AF37' },
   grnFooter: { padding: '13px 22px', background: 'var(--surface2)', borderTop: '1px solid var(--border)' },
   confirmBtn: {
     padding: '9px 22px',

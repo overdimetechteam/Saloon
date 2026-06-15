@@ -87,6 +87,7 @@ class GRNItem(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity_received = models.PositiveIntegerField()
     unit_cost = models.DecimalField(max_digits=10, decimal_places=2)
+    expiry_date = models.DateField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.grn.reference_number} — {self.product.name} x{self.quantity_received}"

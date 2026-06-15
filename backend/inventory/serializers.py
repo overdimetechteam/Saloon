@@ -19,11 +19,12 @@ class ProductImageSerializer(serializers.ModelSerializer):
 
 class ProductBatchSerializer(serializers.ModelSerializer):
     grn_reference = serializers.CharField(source='grn.reference_number', read_only=True, default=None)
+    product_name = serializers.CharField(source='product.name', read_only=True)
 
     class Meta:
         model = ProductBatch
         fields = [
-            'id', 'batch_number', 'grn', 'grn_reference',
+            'id', 'batch_number', 'grn', 'grn_reference', 'product_name',
             'quantity_received', 'quantity_remaining', 'unit_cost',
             'received_date', 'expiry_date', 'notes', 'created_at',
         ]
@@ -64,15 +65,16 @@ class GRNItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = GRNItem
-        fields = ['id', 'product', 'product_name', 'quantity_received', 'unit_cost']
+        fields = ['id', 'product', 'product_name', 'quantity_received', 'unit_cost', 'expiry_date']
 
 
 class GRNSerializer(serializers.ModelSerializer):
     items = GRNItemSerializer(many=True)
+    batches = ProductBatchSerializer(many=True, read_only=True)
 
     class Meta:
         model = GRN
-        fields = ['id', 'salon', 'reference_number', 'supplier_name', 'status', 'created_by', 'created_at', 'items']
+        fields = ['id', 'salon', 'reference_number', 'supplier_name', 'status', 'created_by', 'created_at', 'items', 'batches']
         read_only_fields = ['salon', 'reference_number', 'status', 'created_by', 'created_at']
 
     def create(self, validated_data):

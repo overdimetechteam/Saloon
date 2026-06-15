@@ -18,7 +18,7 @@ const EMPTY_FORM = {
   name: '', brand: '', sku: '', category: 'Hair Care', subcategory: '', shade_variant: '',
   size: '', unit_of_measure: '', cost_price: '', selling_price: '', reorder_level: 0,
   valuation_method: 'FIFO',
-  supplier: '', manufacturing_date: '', expiry_date: '', pao: '', barcode: '',
+  supplier: '', manufacturing_date: '', pao: '', barcode: '',
   country_of_origin: '', certifications: '', skin_type: '', notes: '',
 };
 
@@ -186,21 +186,10 @@ function ProductModal({ product, onClose, onSaved, salonId }) {
               <MField label="Selling Price (LKR)" type="number" required value={form.selling_price} onChange={f('selling_price')} />
               <MField label="Reorder Level" type="number" value={form.reorder_level} onChange={f('reorder_level')} />
             </div>
-            <div style={s.mGrid3}>
-              <MField label="Inventory Valuation Method" required>
-                <select style={s.mInput} value={form.valuation_method || 'FIFO'} onChange={f('valuation_method')}>
-                  <option value="FIFO">FIFO — First In, First Out</option>
-                  <option value="LIFO">LIFO — Last In, First Out</option>
-                  <option value="FEFO">FEFO — First Expired, First Out</option>
-                </select>
-              </MField>
-            </div>
-
             <div style={s.mSection}>Supplier & Dates</div>
             <div style={s.mGrid3}>
               <MField label="Supplier" placeholder="e.g. Beauty Depot" value={form.supplier} onChange={f('supplier')} />
               <MField label="Manufacturing Date" type="date" value={form.manufacturing_date} onChange={f('manufacturing_date')} />
-              <MField label="Expiry Date" type="date" value={form.expiry_date} onChange={f('expiry_date')} />
             </div>
             <div style={s.mGrid3}>
               <MField label="PAO (Period After Opening)" placeholder="e.g. 12M" value={form.pao} onChange={f('pao')} />
@@ -302,12 +291,6 @@ function ProductImagesModal({ product, onClose, salonId }) {
   );
 }
 
-const VALUATION_INFO = {
-  FIFO: 'Units received first are sold/used first. Best for perishables.',
-  LIFO: 'Most recently received units are sold/used first.',
-  FEFO: 'Units expiring soonest are sold/used first. Best for cosmetics.',
-};
-
 function BatchModal({ product, salonId, onClose }) {
   const [batches, setBatches]   = useState([]);
   const [loading, setLoading]   = useState(true);
@@ -346,9 +329,6 @@ function BatchModal({ product, salonId, onClose }) {
     } finally { setSaving(false); }
   };
 
-  const method = product.valuation_method || 'FIFO';
-  const methodColor = method === 'FIFO' ? '#0D9488' : method === 'LIFO' ? '#D4AF37' : '#0B7A70';
-
   return createPortal(
     <div style={s.overlay} onClick={e => e.target === e.currentTarget && onClose()}>
       <div style={{ ...s.modal, maxWidth: 720 }}>
@@ -360,10 +340,10 @@ function BatchModal({ product, salonId, onClose }) {
           <button style={s.mClose} onClick={onClose}>✕</button>
         </div>
 
-        {/* Valuation method banner */}
-        <div style={{ margin: '0 32px 20px', padding: '10px 16px', borderRadius: 10, background: methodColor + '10', border: `1px solid ${methodColor}30`, display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontWeight: 800, fontSize: 13, color: methodColor, minWidth: 38 }}>{method}</span>
-          <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{VALUATION_INFO[method]}</span>
+        {/* FIFO method banner */}
+        <div style={{ margin: '0 32px 20px', padding: '10px 16px', borderRadius: 10, background: 'rgba(13,148,136,.08)', border: '1px solid rgba(13,148,136,.2)', display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ fontWeight: 800, fontSize: 13, color: '#0D9488', minWidth: 38 }}>FIFO</span>
+          <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Units received first are sold/used first. Oldest stock leaves inventory first.</span>
         </div>
 
         <div style={{ padding: '0 32px 24px' }}>
@@ -415,23 +395,27 @@ function BatchModal({ product, salonId, onClose }) {
               <table style={{ ...s.table, fontSize: 12 }}>
                 <thead>
                   <tr>
-                    {['Batch No.', 'GRN Ref', 'Received', 'Expiry', 'Qty In', 'Remaining', 'Unit Cost', 'Notes'].map(h => (
+                    {['Batch ID', 'GRN Ref', 'Received', 'Expiry', 'Qty In', 'Remaining', 'Unit Cost', 'Notes'].map(h => (
                       <th key={h} style={{ ...s.th, fontSize: 10 }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {batches.map(b => {
+                  {batches.map((b, idx) => {
+                    const prev = idx > 0 ? batches[idx - 1] : null;
+                    const priceChange = prev ? Number(b.unit_cost) - Number(prev.unit_cost) : null;
                     const pct = b.quantity_received > 0 ? b.quantity_remaining / b.quantity_received : 0;
-                    const rowColor = b.quantity_remaining === 0 ? 'rgba(220,38,38,.03)' : b.expiry_date && new Date(b.expiry_date) < new Date() ? 'rgba(212,175,55,.04)' : '';
+                    const isExpired = b.expiry_date && new Date(b.expiry_date) < new Date();
                     return (
-                      <tr key={b.id} style={{ background: rowColor }}>
-                        <td style={s.td}><span style={{ fontFamily: 'monospace', fontSize: 11, fontWeight: 700 }}>{b.batch_number}</span></td>
+                      <tr key={b.id}>
+                        <td style={s.td}>
+                          <span style={{ fontFamily: 'monospace', fontSize: 11, fontWeight: 800, color: '#0D9488', background: 'rgba(13,148,136,.1)', padding: '2px 8px', borderRadius: 6 }}>{b.batch_number}</span>
+                        </td>
                         <td style={s.td}><span style={{ fontSize: 11, color: '#0D9488' }}>{b.grn_reference || '—'}</span></td>
                         <td style={s.td}>{b.received_date}</td>
                         <td style={s.td}>
                           {b.expiry_date
-                            ? <span style={{ color: new Date(b.expiry_date) < new Date() ? '#DC2626' : 'var(--text-muted)' }}>{b.expiry_date}</span>
+                            ? <span style={{ color: isExpired ? '#DC2626' : 'var(--text-muted)' }}>{b.expiry_date}{isExpired ? ' ⚠' : ''}</span>
                             : '—'}
                         </td>
                         <td style={s.td}><span style={{ fontWeight: 700 }}>{b.quantity_received}</span></td>
@@ -443,7 +427,15 @@ function BatchModal({ product, salonId, onClose }) {
                             <div style={{ width: `${pct * 100}%`, height: '100%', background: pct > 0.5 ? '#0D9488' : pct > 0.2 ? '#D4AF37' : '#DC2626', borderRadius: 2, transition: 'width .3s' }} />
                           </div>
                         </td>
-                        <td style={s.td}>LKR {Number(b.unit_cost).toLocaleString()}</td>
+                        <td style={s.td}>
+                          <span style={{ fontWeight: 700 }}>LKR {Number(b.unit_cost).toLocaleString()}</span>
+                          {priceChange !== null && (
+                            <div style={{ fontSize: 10, fontWeight: 700, marginTop: 2, color: priceChange > 0 ? '#DC2626' : priceChange < 0 ? '#0D9488' : 'var(--text-muted)' }}>
+                              {priceChange > 0 ? '▲' : priceChange < 0 ? '▼' : '='}{' '}
+                              {priceChange !== 0 ? `LKR ${Math.abs(priceChange).toFixed(2)}` : 'same price'}
+                            </div>
+                          )}
+                        </td>
                         <td style={s.td}><span style={{ color: 'var(--text-muted)' }}>{b.notes || '—'}</span></td>
                       </tr>
                     );
@@ -587,7 +579,7 @@ export default function OwnerInventory() {
                       <span style={{ color: 'var(--text-muted)', fontSize: 11 }}> {p.unit_of_measure}</span>
                       <div style={{ marginTop: 3 }}>
                         <span style={{ fontSize: 10, fontWeight: 700, padding: '1px 7px', borderRadius: 20, background: 'rgba(13,148,136,.08)', color: '#0D9488', border: '1px solid rgba(13,148,136,.2)' }}>
-                          {p.valuation_method || 'FIFO'}
+                          FIFO
                         </span>
                         {p.batch_count > 0 && (
                           <span style={{ fontSize: 10, fontWeight: 700, padding: '1px 7px', borderRadius: 20, background: 'rgba(212,175,55,.08)', color: '#D4AF37', border: '1px solid rgba(212,175,55,.2)', marginLeft: 4 }}>
