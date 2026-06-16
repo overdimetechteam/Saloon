@@ -2,6 +2,7 @@
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useBreakpoint } from '../hooks/useMobile';
+import { checkPasswordStrength, PASSWORD_REQUIREMENT_TEXT } from '../utils/passwordStrength';
 
 export default function RegisterClient() {
   const { register } = useAuth();
@@ -15,8 +16,12 @@ export default function RegisterClient() {
   const [verifyEmail, setVerifyEmail] = useState(''); // set after successful registration
   const f = k => e => setForm({ ...form, [k]: e.target.value });
 
+  const pwStrength = checkPasswordStrength(form.password);
+
   const handle = async e => {
-    e.preventDefault(); setError(''); setLoading(true);
+    e.preventDefault(); setError('');
+    if (!pwStrength.valid) return setError(PASSWORD_REQUIREMENT_TEXT);
+    setLoading(true);
     try {
       const result = await register({ ...form, role: 'client' });
       if (result.requires_verification) {
@@ -121,11 +126,19 @@ export default function RegisterClient() {
             <div style={s.field}>
               <label style={s.label}>Password</label>
               <div style={{ position: 'relative' }}>
-                <input style={{ ...s.input, paddingRight: 44 }} type={showPw ? 'text' : 'password'} placeholder="Min. 6 characters" value={form.password} onChange={f('password')} autoComplete="new-password" required />
+                <input style={{ ...s.input, paddingRight: 44 }} type={showPw ? 'text' : 'password'} placeholder="Min. 8 characters" value={form.password} onChange={f('password')} autoComplete="new-password" required minLength={8} />
                 <button type="button" onClick={() => setShowPw(v => !v)} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, color: 'var(--text-muted)', padding: '2px 4px' }}>
                   {showPw ? '🙈' : '👁'}
                 </button>
               </div>
+              {form.password && (
+                <div>
+                  <div style={s.pwBarTrack}>
+                    <div style={{ ...s.pwBarFill, width: `${(pwStrength.score / 5) * 100}%`, background: pwStrength.color }} />
+                  </div>
+                  <div style={{ ...s.pwLabel, color: pwStrength.color }}>{pwStrength.label}</div>
+                </div>
+              )}
             </div>
             <button style={{ ...s.btn, opacity: loading ? 0.75 : 1 }} type="submit" disabled={loading}>
               {loading ? 'Creating account…' : 'Create Account'}
@@ -176,6 +189,9 @@ const s = {
   field: { display: 'flex', flexDirection: 'column', gap: 7 },
   label: { fontSize: 13, fontWeight: 600, color: 'var(--text-sub)', letterSpacing: '0.01em' },
   opt: { color: 'var(--text-light)', fontWeight: 400 },
+  pwBarTrack: { marginTop: 8, height: 5, borderRadius: 4, background: 'var(--surface2)', overflow: 'hidden' },
+  pwBarFill: { height: '100%', borderRadius: 4, transition: 'width .2s ease, background .2s ease' },
+  pwLabel: { fontSize: 11, fontWeight: 600, marginTop: 4 },
   input: { padding: '13px 16px', border: '1.5px solid var(--border)', borderRadius: 12, fontSize: 15, background: 'var(--input-bg)', color: 'var(--text)', outline: 'none', width: '100%', boxSizing: 'border-box', fontFamily: "'DM Sans', sans-serif" },
   btn: { marginTop: 4, padding: '14px', background: 'linear-gradient(135deg, #0D9488 0%, #14B8A8 50%, #0D9488 100%)', color: '#fff', border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 600, cursor: 'pointer', width: '100%', boxShadow: '0 6px 20px rgba(13,148,136,.35), inset 0 1px 0 rgba(255,255,255,.15)' },
   footer: { marginTop: 28, textAlign: 'center', fontSize: 14, color: 'var(--text-muted)' },

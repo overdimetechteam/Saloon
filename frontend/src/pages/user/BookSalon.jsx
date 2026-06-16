@@ -135,6 +135,7 @@ export default function BookSalon() {
     e.preventDefault(); setError('');
     if (selected.length === 0) return setError('Please select at least one service');
     if (!slot) return setError('Please select a time slot');
+    if (staffId === null) return setError('Please select a specific professional — "Any Available" is no longer supported.');
     if (homeVisit && (!hvStreet.trim() || !hvCity.trim() || !hvDistrict.trim() || !hvPostal.trim())) return setError('Please fill in all address fields for the home visit');
     setSubmitting(true);
     const hvAddress = homeVisit ? `${hvStreet.trim()}, ${hvCity.trim()}, ${hvDistrict.trim()} ${hvPostal.trim()}` : '';
@@ -207,10 +208,10 @@ export default function BookSalon() {
   const discount = promoResult?.valid ? Number(promoResult.discount_amount) : 0;
   const finalTotal = Math.max(0, total - discount);
   const selectedStaffMember = staffId === null ? null : staffList.find(m => m.id === staffId);
-  const selectedStaffName = staffId === null ? 'Any Available' : selectedStaffMember ? `${selectedStaffMember.full_name} · ${selectedStaffMember.role?.charAt(0).toUpperCase()}${selectedStaffMember.role?.slice(1) || ''}` : '';
+  const selectedStaffName = selectedStaffMember ? `${selectedStaffMember.full_name} · ${selectedStaffMember.role?.charAt(0).toUpperCase()}${selectedStaffMember.role?.slice(1) || ''}` : '';
 
   const hvAddressFilled = !homeVisit || (hvStreet.trim() && hvCity.trim() && hvDistrict.trim() && hvPostal.trim());
-  const stepDone = [selected.length > 0 && hvAddressFilled, !!date && !!slot, true];
+  const stepDone = [selected.length > 0 && hvAddressFilled, !!date && !!slot && staffId !== null, true];
   const canAdvance = stepDone[step];
 
   const goNext = () => {
@@ -493,15 +494,8 @@ export default function BookSalon() {
               {/* Compact professional selector */}
               {!staffLoading && (
                 <div style={s.proRow}>
-                  <span style={s.proLabel}>★ Professional{homeVisit ? ' (Home Visit)' : ''}</span>
+                  <span style={s.proLabel}>★ Professional{homeVisit ? ' (Home Visit)' : ''} * <span style={{ color: '#DC2626' }}>Required</span></span>
                   <div style={s.proChips}>
-                    <button
-                      type="button"
-                      style={{ ...s.proChip, ...(staffId === null ? { ...s.proChipOn, background: `rgba(${R},.08)`, color: pal.main, borderColor: `${pal.main}50` } : {}) }}
-                      onClick={() => setStaffId(null)}
-                    >
-                      ✦ Any Available
-                    </button>
                     {displayStaff.map((m, i) => {
                       const roleLabel = m.role ? m.role.charAt(0).toUpperCase() + m.role.slice(1) : '';
                       return (
@@ -517,10 +511,17 @@ export default function BookSalon() {
                         </button>
                       );
                     })}
-                    {homeVisit && displayStaff.length === 0 && (
-                      <span style={{ fontSize: 12, color: 'var(--text-muted)', fontStyle: 'italic', paddingTop: 5 }}>No staff assigned to home visits yet</span>
+                    {displayStaff.length === 0 && (
+                      <span style={{ fontSize: 12, color: 'var(--text-muted)', fontStyle: 'italic', paddingTop: 5 }}>
+                        {homeVisit ? 'No staff assigned to home visits yet' : 'No professionals available for the selected service/date'}
+                      </span>
                     )}
                   </div>
+                  {staffId === null && displayStaff.length > 0 && (
+                    <div style={{ fontSize: 11, color: '#D4AF37', fontWeight: 600, marginTop: 6, width: '100%' }}>
+                      ⚠ Please select a professional to continue
+                    </div>
+                  )}
                 </div>
               )}
 

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import api from '../api/axios';
 import { useBreakpoint } from '../hooks/useMobile';
 import MapLocationPicker from '../components/MapLocationPicker';
+import { checkPasswordStrength, PASSWORD_REQUIREMENT_TEXT } from '../utils/passwordStrength';
 
 const DAYS       = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday'];
 const BASE_CATS  = ['Hair', 'Nails', 'Skin', 'Makeup'];
@@ -134,6 +135,8 @@ export default function RegisterSalon() {
   });
   const offerF = k => e => setOffer(o => ({ ...o, [k]: e.target.value }));
 
+  const pwStrength = checkPasswordStrength(form.password);
+
   const addService = () => setServices(p => [...p, { ...EMPTY_SVC }]);
   const removeService = i => setServices(p => p.filter((_, idx) => idx !== i));
   const updateService = (i, k, v) => setServices(p => p.map((s, idx) => idx === i ? { ...s, [k]: v } : s));
@@ -202,6 +205,12 @@ export default function RegisterSalon() {
       const phone = form.contact_number.trim();
       if (phone && !/^\+?[\d\s\-()]{7,15}$/.test(phone)) {
         setError('Contact number appears invalid. Use digits, spaces, dashes, and optionally a leading +.');
+        return;
+      }
+    }
+    if (step === 2) {
+      if (!pwStrength.valid) {
+        setError(PASSWORD_REQUIREMENT_TEXT);
         return;
       }
     }
@@ -356,11 +365,19 @@ export default function RegisterSalon() {
                 <div style={s.field}>
                   <label style={s.label}>Password</label>
                   <div style={{ position: 'relative' }}>
-                    <input style={{ ...s.input, paddingRight: 44 }} type={showPw ? 'text' : 'password'} value={form.password} onChange={f('password')} autoComplete="new-password" required />
+                    <input style={{ ...s.input, paddingRight: 44 }} type={showPw ? 'text' : 'password'} value={form.password} onChange={f('password')} autoComplete="new-password" required minLength={8} />
                     <button type="button" onClick={() => setShowPw(v => !v)} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, color: 'var(--text-muted)', padding: '2px 4px' }}>
                       {showPw ? '🙈' : '👁'}
                     </button>
                   </div>
+                  {form.password && (
+                    <div>
+                      <div style={s.pwBarTrack}>
+                        <div style={{ ...s.pwBarFill, width: `${(pwStrength.score / 5) * 100}%`, background: pwStrength.color }} />
+                      </div>
+                      <div style={{ ...s.pwLabel, color: pwStrength.color }}>{pwStrength.label}</div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -431,8 +448,8 @@ export default function RegisterSalon() {
                         </select>
                       </div>
                       <div style={s.field}>
-                        <label style={s.label}>Service Name</label>
-                        <select style={s.input} value={svc.name} onChange={e => updateService(i, 'name', e.target.value)}>
+                        <label style={s.label}>Service Name *</label>
+                        <select style={s.input} value={svc.name} onChange={e => updateService(i, 'name', e.target.value)} required>
                           <option value="">— Select a service —</option>
                           {(SERVICES_BY_CATEGORY[svc.category] || []).map(name => (
                             <option key={name} value={name}>{name}</option>
@@ -442,12 +459,12 @@ export default function RegisterSalon() {
                     </div>
                     <div style={{ ...s.row2, flex: 1 }}>
                       <div style={s.field}>
-                        <label style={s.label}>Price (LKR)</label>
-                        <input style={s.input} type="number" min="0" placeholder="1500" value={svc.price} onChange={e => updateService(i, 'price', e.target.value)} />
+                        <label style={s.label}>Price (LKR) *</label>
+                        <input style={s.input} type="number" min="0" placeholder="1500" value={svc.price} onChange={e => updateService(i, 'price', e.target.value)} required />
                       </div>
                       <div style={s.field}>
-                        <label style={s.label}>Duration (min)</label>
-                        <input style={s.input} type="number" min="1" placeholder="60" value={svc.duration} onChange={e => updateService(i, 'duration', e.target.value)} />
+                        <label style={s.label}>Duration (min) *</label>
+                        <input style={s.input} type="number" min="1" placeholder="60" value={svc.duration} onChange={e => updateService(i, 'duration', e.target.value)} required />
                       </div>
                     </div>
                     {services.length > 1 && (
@@ -463,7 +480,7 @@ export default function RegisterSalon() {
                 <div style={s.offerToggleRow}>
                   <h4 style={{ ...s.sectionTitle, margin: 0 }}>Opening Offer <span style={s.optTag}>optional</span></h4>
                   <button type="button" style={{ ...s.toggleBtn, ...(hasOffer ? s.toggleOn : s.toggleOff) }} onClick={() => setHasOffer(o => !o)}>
-                    {hasOffer ? '● Include' : '○ Skip'}
+                    {hasOffer ? '● Skip' : '○ Include'}
                   </button>
                 </div>
                 {hasOffer && (
@@ -547,6 +564,9 @@ const s = {
   hint:         { fontSize: 13, color: 'var(--text-muted)', margin: 0, lineHeight: 1.6 },
   field:  { display: 'flex', flexDirection: 'column', gap: 7 },
   label:  { fontSize: 13, fontWeight: 600, color: 'var(--text-sub)', letterSpacing: '0.01em' },
+  pwBarTrack: { marginTop: 4, height: 5, borderRadius: 4, background: 'var(--surface2)', overflow: 'hidden' },
+  pwBarFill: { height: '100%', borderRadius: 4, transition: 'width .2s ease, background .2s ease' },
+  pwLabel: { fontSize: 11, fontWeight: 600, marginTop: 4 },
   input:  { padding: '12px 15px', border: '1.5px solid var(--border)', borderRadius: 11, fontSize: 14, background: 'var(--input-bg)', outline: 'none', width: '100%', boxSizing: 'border-box', color: 'var(--text)', fontFamily: "'DM Sans', sans-serif" },
   row2:   { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(240px, 100%), 1fr))', gap: 14 },
   dayRow: { display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderBottom: '1px solid var(--border)', flexWrap: 'wrap' },

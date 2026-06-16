@@ -158,9 +158,11 @@ export default function OwnerBookingDetail() {
   };
 
   const assignStaff = async () => {
+    setError('');
+    if (!assignId) return setError('Assigning a specific stylist is required — "Any Available" is no longer supported.');
     setAssigning(true);
     try {
-      await api.patch(`/bookings/${id}/assign-staff/`, { staff_id: assignId || null });
+      await api.patch(`/bookings/${id}/assign-staff/`, { staff_id: assignId });
       setMsg('Stylist assigned successfully.'); load();
     } catch (err) { setError(err.response?.data?.detail || 'Error assigning staff'); }
     finally { setAssigning(false); }
@@ -315,14 +317,14 @@ export default function OwnerBookingDetail() {
 
           {canAssign && staff.length > 0 && (
             <div style={s.assignCard}>
-              <div style={s.secTitle}>Assign Stylist</div>
+              <div style={s.secTitle}>Assign Stylist * <span style={{ color: '#DC2626' }}>Required</span></div>
               <select style={s.select} value={assignId} onChange={e => setAssignId(e.target.value)}>
-                <option value="">Any Available</option>
+                <option value="">— Select Stylist —</option>
                 {staff.map(m => (
                   <option key={m.id} value={m.id}>{m.full_name}{m.role ? ` — ${m.role}` : ''}</option>
                 ))}
               </select>
-              <button style={{ ...s.assignBtn, opacity: assigning ? 0.7 : 1 }} onClick={assignStaff} disabled={assigning}>
+              <button style={{ ...s.assignBtn, opacity: assigning ? 0.7 : 1 }} onClick={assignStaff} disabled={assigning || !assignId}>
                 {assigning ? 'Saving…' : '★ Assign'}
               </button>
             </div>

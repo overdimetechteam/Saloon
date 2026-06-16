@@ -60,6 +60,21 @@ export default function OwnerTeam() {
       working_days: member.working_days || [],
     });
     setError(''); setShowForm(true);
+
+    // Re-fetch this member's latest details so the popup never shows stale specialties/role.
+    api.get(`/salons/${salon.id}/staff-members/${member.id}/`)
+      .then(res => {
+        const fresh = res.data;
+        setEditing(fresh);
+        setForm({
+          full_name: fresh.full_name,
+          role: fresh.role || 'other',
+          phone: fresh.phone || '',
+          specialties: fresh.specialty_ids || [],
+          working_days: fresh.working_days || [],
+        });
+      })
+      .catch(() => {});
   };
 
   const closeForm = () => { setShowForm(false); setEditing(null); };
