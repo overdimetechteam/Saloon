@@ -26,9 +26,12 @@ import SalonCosmetics from './pages/SalonCosmetics';
 import ProductDetail from './pages/ProductDetail';
 
 import AdminLogin from './pages/AdminLogin';
+import AdminDashboard from './pages/admin/Dashboard';
 import AdminSalons from './pages/admin/Salons';
+import AdminSalonDetail from './pages/admin/SalonDetail';
 import PendingSalons from './pages/admin/PendingSalons';
 import AdminServices from './pages/admin/Services';
+import AdminSettings from './pages/admin/Settings';
 
 import OwnerDashboard from './pages/owner/Dashboard';
 import OwnerBookingList from './pages/owner/BookingList';
@@ -239,10 +242,13 @@ export default function App() {
           {/* Admin portal — /admin/* */}
           <Route path="/admin" element={<RequireRole roles={['system_admin']} />}>
             <Route element={<AdminLayout />}>
-              <Route index element={<Navigate to="salons" replace />} />
+              <Route index element={<Navigate to="dashboard" replace />} />
+              <Route path="dashboard" element={<AdminDashboard />} />
               <Route path="salons" element={<AdminSalons />} />
               <Route path="salons/pending" element={<PendingSalons />} />
+              <Route path="salons/:id" element={<AdminSalonDetail />} />
               <Route path="services" element={<AdminServices />} />
+              <Route path="settings" element={<AdminSettings />} />
             </Route>
           </Route>
 

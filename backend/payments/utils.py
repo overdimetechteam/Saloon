@@ -1,10 +1,23 @@
 import hashlib
-from django.conf import settings
+from django.conf import settings as django_settings
+
+
+def _get_payhere_config():
+    """Return (merchant_id, merchant_secret, sandbox) — DB takes priority over env vars."""
+    from .models import PlatformSettings
+    ps = PlatformSettings.get()
+    if ps.payhere_merchant_id:
+        return ps.payhere_merchant_id, ps.payhere_merchant_secret, ps.payhere_sandbox
+    return (
+        django_settings.PAYHERE_MERCHANT_ID,
+        django_settings.PAYHERE_MERCHANT_SECRET,
+        getattr(django_settings, 'PAYHERE_SANDBOX', True),
+    )
 
 
 def _secret_hash():
-    secret = settings.PAYHERE_MERCHANT_SECRET
-    return hashlib.md5(secret.encode()).hexdigest().upper()
+    _, merchant_secret, _ = _get_payhere_config()
+    return hashlib.md5(merchant_secret.encode()).hexdigest().upper()
 
 
 def generate_checkout_hash(merchant_id, order_id, amount_str, currency='LKR'):

@@ -5,6 +5,7 @@ from django.conf import settings
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+from django.db.models import Sum, F
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -12,8 +13,9 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 
 from salons.models import Salon
-from .models import Payment
-from .utils import generate_checkout_hash, verify_notify_hash
+from .models import Payment, PlatformSettings
+from .utils import generate_checkout_hash, verify_notify_hash, _get_payhere_config
+from users.permissions import IsSystemAdmin
 
 
 # ── helpers ──────────────────────────────────────────────────────────────────
@@ -60,8 +62,7 @@ class InitiatePaymentView(APIView):
 
     def post(self, request):
         payment_type = request.data.get('type', '')
-        merchant_id  = settings.PAYHERE_MERCHANT_ID
-        sandbox      = settings.PAYHERE_SANDBOX
+        merchant_id, _, sandbox = _get_payhere_config()
 
         if payment_type == 'subscription':
             from subscriptions.models import PLANS
@@ -215,4 +216,112 @@ class PaymentStatusView(APIView):
             'amount':       str(payment.amount),
             'plan':         payment.plan,
             'cosmetic_order_id': payment.cosmetic_order_id,
+        })
+
+
+# ── Admin views ────────────────────────────────────────────────────────────────
+
+class AdminSettingsView(APIView):
+    """
+    GET  /api/payments/admin/settings/payhere/ — return platform PayHere settings (secret masked)
+    PATCH /api/payments/admin/settings/payhere/ — update platform PayHere settings
+    """
+    permission_classes = [IsSystemAdmin]
+
+    def get(self, request):
+        ps = PlatformSettings.get()
+        secret = ps.payhere_merchant_secret
+        masked_secret = ('*' * (len(secret) - 4) + secret[-4:]) if len(secret) > 4 else ('*' * len(secret))
+        return Response({
+            'payhere_merchant_id': ps.payhere_merchant_id,
+            'payhere_merchant_secret_masked': masked_secret if secret else '',
+            'payhere_sandbox': ps.payhere_sandbox,
+            'updated_at': ps.updated_at,
+        })
+
+    def patch(self, request):
+        ps = PlatformSettings.get()
+        if 'payhere_merchant_id' in request.data:
+            ps.payhere_merchant_id = request.data['payhere_merchant_id']
+        if 'payhere_merchant_secret' in request.data:
+            ps.payhere_merchant_secret = request.data['payhere_merchant_secret']
+        if 'payhere_sandbox' in request.data:
+            ps.payhere_sandbox = bool(request.data['payhere_sandbox'])
+        ps.save()
+        return Response({
+            'payhere_merchant_id': ps.payhere_merchant_id,
+            'payhere_sandbox': ps.payhere_sandbox,
+            'updated_at': ps.updated_at,
+            'detail': 'Settings updated.',
+        })
+
+
+class AdminStatsView(APIView):
+    """GET /api/payments/admin/stats/ — platform-wide statistics for the admin dashboard."""
+    permission_classes = [IsSystemAdmin]
+
+    def get(self, request):
+        from subscriptions.models import Subscription, PLANS
+        from bookings.models import Booking
+        from django.utils.timezone import now
+
+        today = now()
+        month_start = today.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+        # Salon counts
+        all_salons = Salon.objects.all()
+        total_salons     = all_salons.count()
+        active_salons    = all_salons.filter(status='active', is_suspended=False).count()
+        pending_salons   = all_salons.filter(status='pending').count()
+        suspended_salons = all_salons.filter(is_suspended=True).count()
+
+        # Revenue from completed payments
+        completed_payments = Payment.objects.filter(status='completed')
+        total_revenue = float(
+            completed_payments.aggregate(total=Sum('amount'))['total'] or 0
+        )
+        revenue_this_month = float(
+            completed_payments.filter(created_at__gte=month_start)
+            .aggregate(total=Sum('amount'))['total'] or 0
+        )
+
+        # Subscription breakdown
+        subscription_breakdown = {}
+        for plan_key in PLANS.keys():
+            subscription_breakdown[plan_key] = Subscription.objects.filter(plan=plan_key, status='active').count()
+
+        # Recent payments (last 10 completed)
+        recent_qs = (
+            completed_payments
+            .select_related('salon', 'user')
+            .order_by('-created_at')[:10]
+        )
+        recent_payments = []
+        for p in recent_qs:
+            recent_payments.append({
+                'order_id':   p.order_id,
+                'salon_name': p.salon.name if p.salon else '',
+                'plan':       p.plan,
+                'amount':     float(p.amount),
+                'type':       p.payment_type,
+                'date':       p.created_at,
+            })
+
+        # Platform-wide booking count
+        total_bookings_platform = Booking.objects.count()
+
+        # New salons this month
+        new_salons_this_month = Salon.objects.filter(created_at__gte=month_start).count()
+
+        return Response({
+            'total_salons':             total_salons,
+            'active_salons':            active_salons,
+            'pending_salons':           pending_salons,
+            'suspended_salons':         suspended_salons,
+            'total_revenue':            round(total_revenue, 2),
+            'revenue_this_month':       round(revenue_this_month, 2),
+            'subscription_breakdown':   subscription_breakdown,
+            'recent_payments':          recent_payments,
+            'total_bookings_platform':  total_bookings_platform,
+            'new_salons_this_month':    new_salons_this_month,
         })

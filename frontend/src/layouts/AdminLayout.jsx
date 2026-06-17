@@ -6,9 +6,11 @@ import { useTheme } from '../context/ThemeContext';
 import { useBreakpoint } from '../hooks/useMobile';
 
 const NAV = [
+  { to: '/admin/dashboard',      icon: '▤', label: 'Dashboard'         },
   { to: '/admin/salons',         icon: '◈', label: 'All Salons'        },
   { to: '/admin/salons/pending', icon: '◎', label: 'Pending Approvals' },
   { to: '/admin/services',       icon: '◇', label: 'Global Services'   },
+  { to: '/admin/settings',       icon: '⚙', label: 'Settings'          },
 ];
 
 export default function AdminLayout() {
@@ -24,7 +26,7 @@ export default function AdminLayout() {
 
   useEffect(() => { setDrawerOpen(false); }, [location.pathname]);
 
-  const handleLogout = () => { logout(); navigate('/login'); };
+  const handleLogout = () => { logout(); navigate('/admin/login'); };
   const initials = (profile?.full_name || 'A').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
 
   const sidebarW = isMobile ? 272 : collapsed ? 68 : 264;

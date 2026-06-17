@@ -13,6 +13,7 @@ from .views import (
     SalonImageListCreateView, SalonImageDetailView,
     SalonLogoView, SalonCoverView,
     QuickSearchView, AllServicesView,
+    AdminSalonDetailView,
 )
 
 urlpatterns = [
@@ -47,4 +48,5 @@ urlpatterns = [
     path('salons/<int:pk>/cover/', SalonCoverView.as_view(), name='salon-cover'),
     path('salons/quick-search/', QuickSearchView.as_view(), name='salon-quick-search'),
     path('services/all/', AllServicesView.as_view(), name='all-services'),
+    path('admin/salons/<int:pk>/detail/', AdminSalonDetailView.as_view(), name='admin-salon-detail'),
 ]

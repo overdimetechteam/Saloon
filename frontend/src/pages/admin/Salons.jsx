@@ -1,4 +1,5 @@
 ﻿import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
 import { useBreakpoint } from '../../hooks/useMobile';
 
@@ -29,6 +30,7 @@ function ConfirmModal({ title, message, danger, onConfirm, onCancel, loading }) 
 
 export default function AdminSalons() {
   const { isMobile, isTablet } = useBreakpoint();
+  const navigate = useNavigate();
   const [salons, setSalons] = useState([]);
   const [filter, setFilter] = useState('all');
   const [msg, setMsg] = useState('');
@@ -138,9 +140,9 @@ export default function AdminSalons() {
               const isPending  = salon.status === 'pending';
               const isInactive = salon.status === 'inactive';
               return (
-                <tr key={salon.id} style={s.tr}>
+                <tr key={salon.id} style={{ ...s.tr, cursor: 'pointer' }} onClick={() => navigate(`/admin/salons/${salon.id}`)}>
                   <td style={s.td}>
-                    <div style={s.salonName}>{salon.name}</div>
+                    <div style={{ ...s.salonName, color: '#0D9488' }}>{salon.name} →</div>
                     {salon.business_reg_number && <div style={s.salonReg}>Reg: {salon.business_reg_number}</div>}
                   </td>
                   <td style={s.td}><span style={s.ownerEmail}>{salon.owner_email}</span></td>
@@ -157,7 +159,7 @@ export default function AdminSalons() {
                       {meta.label}
                     </span>
                   </td>
-                  <td style={s.td}>
+                  <td style={s.td} onClick={e => e.stopPropagation()}>
                     <div style={s.actions}>
                       {isPending && (
                         <>

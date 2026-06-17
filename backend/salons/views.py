@@ -936,3 +936,139 @@ class AllServicesView(APIView):
         ).values_list('service_id', flat=True).distinct()
         services = Service.objects.filter(id__in=service_ids, is_active=True)
         return Response(ServiceSerializer(services, many=True).data)
+
+
+class AdminSalonDetailView(APIView):
+    """
+    GET /api/admin/salons/<pk>/detail/
+    Comprehensive salon detail for the admin dashboard.
+    """
+    permission_classes = [IsSystemAdmin]
+
+    def get(self, request, pk):
+        from subscriptions.models import Subscription, PLANS
+        from services.models import SalonService
+        from staff.models import StaffMember
+        from bookings.models import Booking, BookingService as BS
+        from inventory.models import Product, SaleItem
+        from payments.models import Payment
+
+        salon = get_object_or_404(Salon, pk=pk)
+        owner = salon.owner
+
+        # ── Subscription ──────────────────────────────────────────────────────
+        try:
+            sub = salon.subscription
+            plan_meta = PLANS.get(sub.plan, {})
+            subscription_data = {
+                'plan':            sub.plan,
+                'plan_name':       plan_meta.get('name', sub.plan),
+                'plan_color':      plan_meta.get('color', ''),
+                'status':          sub.status,
+                'is_active':       sub.is_active,
+                'expires_at':      sub.expires_at,
+                'days_remaining':  sub.days_remaining,
+                'amount_paid':     float(sub.amount_paid),
+                'transaction_ref': sub.transaction_ref,
+                'billing_name':    sub.billing_name,
+                'billing_email':   sub.billing_email,
+            }
+        except Subscription.DoesNotExist:
+            subscription_data = None
+
+        # ── Services ──────────────────────────────────────────────────────────
+        salon_services_qs = SalonService.objects.filter(salon=salon).select_related('service')
+        services_list = [
+            {
+                'id':       ss.id,
+                'name':     ss.service.name,
+                'category': ss.service.category,
+                'price':    float(ss.effective_price),
+                'duration': ss.effective_duration,
+                'is_active': ss.is_active,
+            }
+            for ss in salon_services_qs
+        ]
+
+        # ── Staff ─────────────────────────────────────────────────────────────
+        staff_qs = StaffMember.objects.filter(salon=salon)
+        staff_list = [
+            {'id': sm.id, 'name': sm.full_name, 'role': sm.role}
+            for sm in staff_qs
+        ]
+
+        # ── Cosmetics ─────────────────────────────────────────────────────────
+        product_count = Product.objects.filter(salon=salon).count()
+        cosmetics_revenue = float(
+            SaleItem.objects.filter(sale__salon=salon)
+            .aggregate(total=Sum(F('quantity') * F('unit_price')))['total'] or 0
+        )
+        cosmetics_data = {
+            'enabled':             salon.cosmetics_enabled,
+            'product_count':       product_count,
+            'total_sales_revenue': round(cosmetics_revenue, 2),
+        }
+
+        # ── Bookings ──────────────────────────────────────────────────────────
+        bookings_qs = Booking.objects.filter(salon=salon)
+        total_bookings     = bookings_qs.count()
+        completed_bookings = bookings_qs.filter(status='completed')
+        pending_bookings   = bookings_qs.filter(status='pending').count()
+        cancelled_bookings = bookings_qs.filter(status='cancelled').count()
+
+        # Revenue from completed bookings (sum of service prices minus discounts)
+        booking_revenue = 0.0
+        for b in completed_bookings.prefetch_related('booking_services__salon_service'):
+            svc_total = sum(float(bs.salon_service.effective_price) for bs in b.booking_services.all())
+            booking_revenue += max(0.0, svc_total - float(b.discount_amount))
+
+        bookings_data = {
+            'total':     total_bookings,
+            'completed': completed_bookings.count(),
+            'pending':   pending_bookings,
+            'cancelled': cancelled_bookings,
+            'revenue':   round(booking_revenue, 2),
+        }
+
+        # ── Payments ──────────────────────────────────────────────────────────
+        payments_qs = Payment.objects.filter(salon=salon).order_by('-created_at')[:20]
+        payments_list = [
+            {
+                'order_id':   p.order_id,
+                'type':       p.payment_type,
+                'amount':     float(p.amount),
+                'status':     p.status,
+                'plan':       p.plan,
+                'created_at': p.created_at,
+            }
+            for p in payments_qs
+        ]
+
+        return Response({
+            'id':                  salon.id,
+            'name':                salon.name,
+            'status':              salon.status,
+            'is_suspended':        salon.is_suspended,
+            'owner_email':         owner.email,
+            'owner_name':          getattr(owner, 'full_name', '') or '',
+            'contact_number':      salon.contact_number,
+            'email':               salon.email,
+            'address_street':      salon.address_street,
+            'address_city':        salon.address_city,
+            'address_district':    salon.address_district,
+            'address_postal':      salon.address_postal,
+            'business_reg_number': salon.business_reg_number,
+            'created_at':          salon.created_at,
+            'gender_focus':        salon.gender_focus,
+            'home_visit_enabled':  salon.home_visit_enabled,
+            'cosmetics_enabled':   salon.cosmetics_enabled,
+            'facilities':          salon.facilities,
+            'subscription':        subscription_data,
+            'services':            services_list,
+            'services_count':      len(services_list),
+            'staff':               staff_list,
+            'staff_count':         len(staff_list),
+            'cosmetics':           cosmetics_data,
+            'bookings':            bookings_data,
+            'payments':            payments_list,
+        })

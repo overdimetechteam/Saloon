@@ -1,6 +1,25 @@
 from django.db import models
 
 
+class PlatformSettings(models.Model):
+    """Singleton — always use PlatformSettings.get()"""
+    payhere_merchant_id     = models.CharField(max_length=100, blank=True, default='')
+    payhere_merchant_secret = models.CharField(max_length=255, blank=True, default='')
+    payhere_sandbox         = models.BooleanField(default=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Platform Settings'
+
+    @classmethod
+    def get(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj
+
+    def __str__(self):
+        return 'Platform Settings'
+
+
 class Payment(models.Model):
     PAYMENT_TYPES = [
         ('subscription', 'Subscription'),
