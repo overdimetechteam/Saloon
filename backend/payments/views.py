@@ -1,4 +1,5 @@
 import uuid
+import secrets
 from datetime import timedelta
 
 from django.conf import settings
@@ -6,6 +7,9 @@ from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.db.models import Sum, F
+from django.core.mail import send_mail
+from django.http import HttpResponse
+from django.shortcuts import redirect
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -325,3 +329,113 @@ class AdminStatsView(APIView):
             'total_bookings_platform':  total_bookings_platform,
             'new_salons_this_month':    new_salons_this_month,
         })
+
+
+class AdminNotificationEmailView(APIView):
+    """
+    GET  /api/payments/admin/settings/notification-email/ — return current notification email + status
+    PATCH /api/payments/admin/settings/notification-email/ — set email, send verification
+    DELETE /api/payments/admin/settings/notification-email/ — remove notification email
+    """
+    permission_classes = [IsSystemAdmin]
+
+    def get(self, request):
+        ps = PlatformSettings.get()
+        return Response({
+            'notification_email':          ps.notification_email,
+            'notification_email_verified': ps.notification_email_verified,
+        })
+
+    def patch(self, request):
+        email = request.data.get('notification_email', '').strip()
+        if not email:
+            return Response({'detail': 'Email is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        ps = PlatformSettings.get()
+        token = secrets.token_urlsafe(32)
+        ps.notification_email          = email
+        ps.notification_email_verified = False
+        ps.notification_email_token    = token
+        ps.save()
+
+        verify_url = (
+            f"{getattr(settings, 'BACKEND_URL', request.build_absolute_uri('/').rstrip('/'))}"
+            f"/api/payments/verify-notification-email/?token={token}"
+        )
+
+        send_mail(
+            subject='Verify your admin notification email — BookMyStyle',
+            message='',
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[email],
+            html_message=f'''
+                <div style="font-family:sans-serif;max-width:520px;margin:auto;padding:36px 28px;background:#fff;border-radius:14px;border:1px solid #e5e7eb;">
+                  <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
+                    <div style="width:40px;height:40px;background:linear-gradient(145deg,#0D9488,#14B8A8);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;font-weight:900;">✦</div>
+                    <div>
+                      <div style="font-family:Georgia,serif;font-size:18px;font-weight:700;color:#111;">BookMyStyle</div>
+                      <div style="font-size:11px;color:#0D9488;text-transform:uppercase;letter-spacing:.1em;">Admin Portal</div>
+                    </div>
+                  </div>
+                  <h2 style="color:#111;margin:0 0 10px;font-family:Georgia,serif;">Verify Notification Email</h2>
+                  <p style="color:#4B5563;line-height:1.65;margin:0 0 20px;">
+                    You've configured <strong>{email}</strong> to receive real-time notifications when new salons
+                    register on BookMyStyle. Click the button below to verify this email address.
+                  </p>
+                  <a href="{verify_url}"
+                     style="display:inline-block;padding:13px 28px;background:linear-gradient(135deg,#0D9488,#14B8A8);color:#fff;border-radius:10px;text-decoration:none;font-weight:700;font-size:14px;letter-spacing:.02em;">
+                    ✓ Verify Email Address
+                  </a>
+                  <p style="color:#9CA3AF;font-size:12px;margin-top:24px;line-height:1.6;">
+                    If you did not request this, you can safely ignore this email.<br>
+                    This link will remain active until a new notification email is configured.
+                  </p>
+                </div>
+            ''',
+            fail_silently=True,
+        )
+
+        return Response({
+            'notification_email':          ps.notification_email,
+            'notification_email_verified': ps.notification_email_verified,
+            'detail': 'Verification email sent. Please check your inbox.',
+        })
+
+    def delete(self, request):
+        ps = PlatformSettings.get()
+        ps.notification_email          = ''
+        ps.notification_email_verified = False
+        ps.notification_email_token    = ''
+        ps.save()
+        return Response({'detail': 'Notification email removed.'})
+
+
+class VerifyNotificationEmailView(APIView):
+    """
+    GET /api/payments/verify-notification-email/?token=xxx  (public)
+    Validates the token and marks the notification email as verified.
+    Redirects to the admin settings page on the frontend.
+    """
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        token = request.query_params.get('token', '')
+        if not token:
+            return HttpResponse('<h2>Invalid verification link.</h2>', status=400, content_type='text/html')
+
+        ps = PlatformSettings.get()
+        if not ps.notification_email_token or ps.notification_email_token != token:
+            return HttpResponse('''
+                <div style="font-family:sans-serif;max-width:480px;margin:60px auto;padding:32px;border-radius:12px;border:1px solid #FCA5A5;background:#FEF2F2;text-align:center;">
+                  <div style="font-size:36px;margin-bottom:12px;">✕</div>
+                  <h2 style="color:#DC2626;margin:0 0 10px;">Invalid or Expired Link</h2>
+                  <p style="color:#6B7280;">This verification link is invalid or has already been used. Please generate a new one from the admin settings.</p>
+                </div>
+            ''', status=400, content_type='text/html')
+
+        ps.notification_email_verified = True
+        ps.notification_email_token    = ''
+        ps.save()
+
+        frontend_url = getattr(settings, 'FRONTEND_URL', 'http://localhost:5173')
+        return redirect(f'{frontend_url}/admin/settings?email_verified=1')

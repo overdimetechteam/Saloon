@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import api from '../../api/axios';
 
 export default function AdminSettings() {
@@ -9,11 +10,40 @@ export default function AdminSettings() {
   const [msg, setMsg] = useState('');
   const [err, setErr] = useState('');
 
+  // Notification email state
+  const [notifEmail, setNotifEmail] = useState('');
+  const [notifEmailInput, setNotifEmailInput] = useState('');
+  const [notifVerified, setNotifVerified] = useState(false);
+  const [notifLoading, setNotifLoading] = useState(true);
+  const [notifSaving, setNotifSaving] = useState(false);
+  const [notifMsg, setNotifMsg] = useState('');
+  const [notifErr, setNotifErr] = useState('');
+  const [notifEditing, setNotifEditing] = useState(false);
+  const [verifyBanner, setVerifyBanner] = useState(false);
+
+  const [searchParams, setSearchParams] = useSearchParams();
+
   useEffect(() => {
     api.get('/payments/admin/settings/payhere/')
       .then(r => setForm(f => ({ ...f, payhere_merchant_id: r.data.payhere_merchant_id || '', payhere_sandbox: r.data.payhere_sandbox ?? true })))
       .catch(() => {})
       .finally(() => setLoading(false));
+
+    api.get('/payments/admin/settings/notification-email/')
+      .then(r => {
+        setNotifEmail(r.data.notification_email || '');
+        setNotifEmailInput(r.data.notification_email || '');
+        setNotifVerified(r.data.notification_email_verified || false);
+      })
+      .catch(() => {})
+      .finally(() => setNotifLoading(false));
+
+    // Detect redirect back from email verification link
+    if (searchParams.get('email_verified') === '1') {
+      setVerifyBanner(true);
+      setNotifVerified(true);
+      setSearchParams({}, { replace: true });
+    }
   }, []);
 
   const save = async e => {
@@ -32,6 +62,30 @@ export default function AdminSettings() {
     } finally { setSaving(false); }
   };
 
+  const saveNotifEmail = async () => {
+    const email = notifEmailInput.trim();
+    if (!email) return;
+    setNotifSaving(true); setNotifMsg(''); setNotifErr('');
+    try {
+      const r = await api.patch('/payments/admin/settings/notification-email/', { notification_email: email });
+      setNotifEmail(r.data.notification_email);
+      setNotifVerified(false);
+      setNotifEditing(false);
+      setNotifMsg(r.data.detail || 'Verification email sent.');
+    } catch (e) {
+      setNotifErr(e.response?.data?.detail || 'Failed to save email.');
+    } finally { setNotifSaving(false); }
+  };
+
+  const removeNotifEmail = async () => {
+    if (!window.confirm('Remove notification email?')) return;
+    try {
+      await api.delete('/payments/admin/settings/notification-email/');
+      setNotifEmail(''); setNotifEmailInput(''); setNotifVerified(false);
+      setNotifMsg('Notification email removed.');
+    } catch { setNotifErr('Failed to remove.'); }
+  };
+
   return (
     <div>
       <div style={s.pageHeader} className="fade-up">
@@ -40,8 +94,104 @@ export default function AdminSettings() {
         <p style={s.sub}>Manage payment gateway credentials and platform-level configuration</p>
       </div>
 
+      {verifyBanner && (
+        <div style={{ ...s.alertOk, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 20 }}>
+          <span>✓ Notification email verified successfully! You will now receive alerts when salons register.</span>
+          <button onClick={() => setVerifyBanner(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#0D9488', fontSize: 16, padding: 0 }}>✕</button>
+        </div>
+      )}
       {msg && <div style={s.alertOk}>{msg}</div>}
       {err && <div style={s.alertErr}>{err}</div>}
+
+      {/* Notification email card */}
+      <div style={{ ...s.card, marginBottom: 24, maxWidth: '100%' }}>
+        <div style={s.cardHead}>
+          <div style={{ ...s.cardIcon, color: '#D97706', background: 'rgba(217,119,6,.1)', border: '1px solid rgba(217,119,6,.2)' }}>
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <path d="M2 4h14v10a1 1 0 01-1 1H3a1 1 0 01-1-1V4z" stroke="currentColor" strokeWidth="1.4"/>
+              <path d="M2 4l7 6 7-6" stroke="currentColor" strokeWidth="1.4"/>
+            </svg>
+          </div>
+          <div>
+            <div style={s.cardTitle}>Admin Notification Email</div>
+            <div style={s.cardSub}>Receive real-time email alerts when new salons request to register</div>
+          </div>
+        </div>
+
+        {notifLoading ? (
+          <div style={{ display: 'flex', justifyContent: 'center', padding: 24 }}><div style={s.spin} /></div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {notifMsg && <div style={s.alertOk}>{notifMsg}</div>}
+            {notifErr && <div style={s.alertErr}>{notifErr}</div>}
+
+            {notifEmail && !notifEditing ? (
+              <div>
+                <div style={s.notifEmailRow}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={s.notifEmailAddr}>{notifEmail}</div>
+                    <div style={{ marginTop: 6 }}>
+                      {notifVerified ? (
+                        <span style={s.verifiedBadge}>✓ Verified</span>
+                      ) : (
+                        <span style={s.pendingBadge}>⏳ Pending Verification</span>
+                      )}
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+                    <button style={s.editBtn} onClick={() => { setNotifEditing(true); setNotifMsg(''); setNotifErr(''); }}>
+                      Edit
+                    </button>
+                    <button style={s.removeBtn} onClick={removeNotifEmail}>
+                      Remove
+                    </button>
+                  </div>
+                </div>
+                {!notifVerified && (
+                  <div style={s.notifHint}>
+                    A verification email was sent to <strong>{notifEmail}</strong>. Click the link in the email to activate notifications.
+                    <button
+                      style={{ ...s.resendLink }}
+                      onClick={saveNotifEmail}
+                    >
+                      Resend verification
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <label style={s.label}>
+                  {notifEditing ? 'Update Email Address' : 'Email Address'}
+                </label>
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <input
+                    style={{ ...s.input, flex: 1 }}
+                    type="email"
+                    placeholder="e.g. admin@yourdomain.com"
+                    value={notifEmailInput}
+                    onChange={e => setNotifEmailInput(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && saveNotifEmail()}
+                  />
+                  <button
+                    style={{ ...s.saveBtn, padding: '12px 20px', minWidth: 0, opacity: notifSaving ? 0.7 : 1 }}
+                    disabled={notifSaving || !notifEmailInput.trim()}
+                    onClick={saveNotifEmail}
+                  >
+                    {notifSaving ? 'Sending…' : notifEditing ? 'Update & Verify' : 'Save & Verify'}
+                  </button>
+                  {notifEditing && (
+                    <button style={s.cancelEditBtn} onClick={() => { setNotifEditing(false); setNotifEmailInput(notifEmail); }}>
+                      Cancel
+                    </button>
+                  )}
+                </div>
+                <div style={s.hint}>A verification email will be sent to this address to confirm it before notifications are enabled.</div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
       <div style={s.grid}>
         {/* PayHere config */}
@@ -188,4 +338,14 @@ const s = {
   infoBody: { fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.7 },
   infoSep: { height: 1, background: 'var(--border)', margin: '20px 0' },
   list: { paddingLeft: 18, margin: '8px 0 0', display: 'flex', flexDirection: 'column', gap: 6 },
+
+  notifEmailRow: { display: 'flex', alignItems: 'center', gap: 16, padding: '14px 16px', background: 'var(--surface2)', borderRadius: 11, border: '1px solid var(--border)' },
+  notifEmailAddr: { fontWeight: 600, fontSize: 14, color: 'var(--text)', wordBreak: 'break-all' },
+  verifiedBadge: { display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700, color: '#0D9488', background: 'rgba(13,148,136,.1)', border: '1px solid rgba(13,148,136,.25)' },
+  pendingBadge: { display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700, color: '#D97706', background: 'rgba(217,119,6,.1)', border: '1px solid rgba(217,119,6,.25)' },
+  editBtn: { padding: '7px 16px', fontSize: 12, fontWeight: 600, border: '1.5px solid var(--border)', borderRadius: 8, background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" },
+  removeBtn: { padding: '7px 16px', fontSize: 12, fontWeight: 600, border: '1.5px solid rgba(220,38,38,.3)', borderRadius: 8, background: 'transparent', color: '#DC2626', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" },
+  notifHint: { fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.6, marginTop: 10, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' },
+  resendLink: { background: 'none', border: 'none', cursor: 'pointer', color: '#0D9488', fontSize: 12, fontWeight: 600, padding: 0, textDecoration: 'underline', fontFamily: "'DM Sans', sans-serif" },
+  cancelEditBtn: { padding: '12px 16px', border: '1.5px solid var(--border)', borderRadius: 11, background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 13, fontFamily: "'DM Sans', sans-serif" },
 };

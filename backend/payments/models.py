@@ -6,6 +6,12 @@ class PlatformSettings(models.Model):
     payhere_merchant_id     = models.CharField(max_length=100, blank=True, default='')
     payhere_merchant_secret = models.CharField(max_length=255, blank=True, default='')
     payhere_sandbox         = models.BooleanField(default=True)
+
+    # Admin notification email for new salon registration alerts
+    notification_email          = models.EmailField(blank=True, default='')
+    notification_email_verified = models.BooleanField(default=False)
+    notification_email_token    = models.CharField(max_length=64, blank=True, default='')
+
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:

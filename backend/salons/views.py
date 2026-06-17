@@ -6,6 +6,8 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.db.models import Avg, Sum, F
+from django.core.mail import send_mail
+from django.conf import settings
 from datetime import datetime, timedelta
 from collections import defaultdict
 
@@ -53,6 +55,62 @@ class SalonRegisterView(APIView):
                 note=offer_data.get('note', ''),
                 is_active=offer_data.get('is_active', True),
             )
+
+        # Notify admin notification email if configured and verified
+        try:
+            from payments.models import PlatformSettings
+            ps = PlatformSettings.get()
+            if ps.notification_email and ps.notification_email_verified:
+                admin_panel_url = f"{settings.FRONTEND_URL}/admin/salons/{salon.pk}"
+                send_mail(
+                    subject=f'New salon registration: {salon.name}',
+                    message='',
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[ps.notification_email],
+                    html_message=f'''
+                        <div style="font-family:sans-serif;max-width:520px;margin:auto;padding:36px 28px;background:#fff;border-radius:14px;border:1px solid #e5e7eb;">
+                          <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
+                            <div style="width:40px;height:40px;background:linear-gradient(145deg,#0D9488,#14B8A8);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;font-weight:900;">✦</div>
+                            <div>
+                              <div style="font-family:Georgia,serif;font-size:18px;font-weight:700;color:#111;">BookMyStyle</div>
+                              <div style="font-size:11px;color:#0D9488;text-transform:uppercase;letter-spacing:.1em;">Admin Notification</div>
+                            </div>
+                          </div>
+                          <h2 style="color:#D97706;margin:0 0 10px;font-family:Georgia,serif;">New Salon Registration</h2>
+                          <p style="color:#4B5563;line-height:1.65;margin:0 0 20px;">
+                            A new salon has just submitted a registration request and is awaiting your review.
+                          </p>
+                          <table style="width:100%;border-collapse:collapse;margin-bottom:22px;">
+                            <tr style="border-bottom:1px solid #F3F4F6;">
+                              <td style="padding:10px 0;color:#9CA3AF;font-size:13px;width:110px;">Salon Name</td>
+                              <td style="padding:10px 0;font-weight:700;color:#111;font-size:13px;">{salon.name}</td>
+                            </tr>
+                            <tr style="border-bottom:1px solid #F3F4F6;">
+                              <td style="padding:10px 0;color:#9CA3AF;font-size:13px;">Owner</td>
+                              <td style="padding:10px 0;color:#111;font-size:13px;">{salon.owner.full_name or salon.owner.email}</td>
+                            </tr>
+                            <tr style="border-bottom:1px solid #F3F4F6;">
+                              <td style="padding:10px 0;color:#9CA3AF;font-size:13px;">Contact</td>
+                              <td style="padding:10px 0;color:#111;font-size:13px;">{salon.owner.email}</td>
+                            </tr>
+                            <tr>
+                              <td style="padding:10px 0;color:#9CA3AF;font-size:13px;">Registered</td>
+                              <td style="padding:10px 0;color:#111;font-size:13px;">{salon.created_at.strftime("%d %b %Y, %H:%M")}</td>
+                            </tr>
+                          </table>
+                          <a href="{admin_panel_url}"
+                             style="display:inline-block;padding:13px 28px;background:linear-gradient(135deg,#D97706,#F59E0B);color:#fff;border-radius:10px;text-decoration:none;font-weight:700;font-size:14px;">
+                            Review Salon →
+                          </a>
+                          <p style="color:#9CA3AF;font-size:12px;margin-top:24px;line-height:1.6;">
+                            You are receiving this because you configured this address as the admin notification email.
+                          </p>
+                        </div>
+                    ''',
+                    fail_silently=True,
+                )
+        except Exception:
+            pass
 
         return Response(SalonSerializer(salon).data, status=status.HTTP_201_CREATED)
 
@@ -159,7 +217,116 @@ class SalonToggleSuspendView(APIView):
             return Response({'detail': 'Only active salons can be suspended/unsuspended.'}, status=status.HTTP_400_BAD_REQUEST)
         salon.is_suspended = not salon.is_suspended
         salon.save()
+
+        owner_email = getattr(salon.owner, 'email', None)
+        if owner_email:
+            if salon.is_suspended:
+                send_mail(
+                    subject=f'Your salon "{salon.name}" has been temporarily suspended',
+                    message='',
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[owner_email],
+                    html_message=f'''
+                        <div style="font-family:sans-serif;max-width:560px;margin:auto;padding:32px 24px;background:#fff;border-radius:12px;">
+                          <h2 style="color:#DC2626;margin:0 0 12px;">Salon Suspended</h2>
+                          <p style="color:#374151;line-height:1.6;">
+                            Your salon <strong>{salon.name}</strong> has been <strong>temporarily suspended</strong>
+                            by the platform administrator.
+                          </p>
+                          <p style="color:#374151;line-height:1.6;">
+                            While suspended, your salon will not appear in search results and customers will
+                            not be able to make new bookings. Existing bookings are unaffected.
+                          </p>
+                          <div style="background:#FEF2F2;border:1px solid #FCA5A5;border-radius:8px;padding:16px 20px;margin:20px 0;">
+                            <strong style="color:#DC2626;">What to do next:</strong>
+                            <p style="color:#374151;margin:8px 0 0;line-height:1.6;">
+                              Log in to your owner portal at <a href="https://saloon-frontend-67z0.onrender.com/owner/login" style="color:#0D9488;">BookMyStyle Owner Portal</a>
+                              and submit a re-enable request explaining your situation. The admin will review and
+                              reinstate your salon as soon as possible.
+                            </p>
+                          </div>
+                          <p style="color:#6B7280;font-size:13px;margin-top:24px;">
+                            If you believe this was done in error, please contact support.
+                          </p>
+                        </div>
+                    ''',
+                    fail_silently=True,
+                )
+            else:
+                send_mail(
+                    subject=f'Your salon "{salon.name}" has been reinstated',
+                    message='',
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[owner_email],
+                    html_message=f'''
+                        <div style="font-family:sans-serif;max-width:560px;margin:auto;padding:32px 24px;background:#fff;border-radius:12px;">
+                          <h2 style="color:#0D9488;margin:0 0 12px;">Salon Reinstated</h2>
+                          <p style="color:#374151;line-height:1.6;">
+                            Great news! Your salon <strong>{salon.name}</strong> has been <strong>reinstated</strong>
+                            by the platform administrator.
+                          </p>
+                          <p style="color:#374151;line-height:1.6;">
+                            Your salon is now visible to customers again and can accept new bookings.
+                          </p>
+                          <div style="background:#F0FDF4;border:1px solid #86EFAC;border-radius:8px;padding:16px 20px;margin:20px 0;">
+                            <a href="https://saloon-frontend-67z0.onrender.com/owner/dashboard"
+                               style="color:#0D9488;font-weight:700;text-decoration:none;">
+                              → Go to your Owner Dashboard
+                            </a>
+                          </div>
+                        </div>
+                    ''',
+                    fail_silently=True,
+                )
+
         return Response(SalonSerializer(salon).data)
+
+
+class OwnerRequestReactivationView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        salon = get_object_or_404(Salon, owner=request.user)
+        if not salon.is_suspended:
+            return Response({'detail': 'Your salon is not currently suspended.'}, status=status.HTTP_400_BAD_REQUEST)
+        reason = request.data.get('reason', '').strip()
+
+        from users.models import CustomUser
+        admin_emails = list(
+            CustomUser.objects.filter(role='system_admin').values_list('email', flat=True)
+        )
+        if not admin_emails:
+            admin_emails = [settings.DEFAULT_FROM_EMAIL]
+
+        send_mail(
+            subject=f'Re-enable Request: {salon.name}',
+            message='',
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=admin_emails,
+            html_message=f'''
+                <div style="font-family:sans-serif;max-width:560px;margin:auto;padding:32px 24px;background:#fff;border-radius:12px;">
+                  <h2 style="color:#D97706;margin:0 0 12px;">Re-enable Request</h2>
+                  <p style="color:#374151;line-height:1.6;">
+                    The owner of <strong>{salon.name}</strong> has submitted a request to reinstate their suspended salon.
+                  </p>
+                  <table style="width:100%;border-collapse:collapse;margin:16px 0;">
+                    <tr><td style="padding:8px 0;color:#6B7280;font-size:13px;">Owner</td>
+                        <td style="padding:8px 0;font-weight:600;color:#111;">{salon.owner.full_name or salon.owner.email}</td></tr>
+                    <tr><td style="padding:8px 0;color:#6B7280;font-size:13px;">Email</td>
+                        <td style="padding:8px 0;color:#111;">{salon.owner.email}</td></tr>
+                    <tr><td style="padding:8px 0;color:#6B7280;font-size:13px;">Salon ID</td>
+                        <td style="padding:8px 0;color:#111;">#{salon.pk}</td></tr>
+                  </table>
+                  {f'<div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;padding:14px 18px;margin:16px 0;"><strong style="color:#92400E;">Owner\'s message:</strong><p style="color:#374151;margin:8px 0 0;line-height:1.6;">{reason}</p></div>' if reason else ''}
+                  <a href="https://saloon-frontend-67z0.onrender.com/admin/salons/{salon.pk}"
+                     style="display:inline-block;margin-top:20px;padding:12px 24px;background:#0D9488;color:#fff;border-radius:8px;text-decoration:none;font-weight:700;">
+                    Review in Admin Panel
+                  </a>
+                </div>
+            ''',
+            fail_silently=True,
+        )
+        return Response({'detail': 'Your re-enable request has been submitted. The admin will review it shortly.'})
 
 
 class PendingSalonsView(APIView):

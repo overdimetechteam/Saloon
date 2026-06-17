@@ -1,6 +1,6 @@
 ﻿import { useState, useEffect, useRef } from 'react';
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useOwner } from '../context/OwnerContext';
 import { useTheme } from '../context/ThemeContext';
@@ -83,6 +83,26 @@ export default function OwnerLayout() {
 
   const sidebarVisible = isMobile ? drawerOpen : true;
   const sidebarWidth   = isMobile ? 272 : (isTablet || collapsed) ? 68 : 252;
+
+  const [showReactivateModal, setShowReactivateModal] = useState(false);
+  const [reactivateReason, setReactivateReason] = useState('');
+  const [reactivateSending, setReactivateSending] = useState(false);
+  const [reactivateMsg, setReactivateMsg] = useState('');
+  const [reactivateErr, setReactivateErr] = useState('');
+
+  const submitReactivation = async () => {
+    setReactivateSending(true);
+    setReactivateMsg(''); setReactivateErr('');
+    try {
+      const res = await api.post('/owner/request-reactivation/', { reason: reactivateReason });
+      setReactivateMsg(res.data.detail || 'Request submitted.');
+      setReactivateReason('');
+    } catch (e) {
+      setReactivateErr(e.response?.data?.detail || 'Failed to send request. Please try again.');
+    } finally {
+      setReactivateSending(false);
+    }
+  };
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg)' }}>
@@ -197,12 +217,11 @@ export default function OwnerLayout() {
           <div style={s.statusPill}>
             <span style={{
               ...s.statusDot,
-              background: salon.status === 'active' ? '#14B8A8' : '#D4AF37',
-              boxShadow: salon.status === 'active' ? '0 0 8px rgba(13,148,136,.5)' : '0 0 8px rgba(212,175,55,.5)',
+              background: salon.is_suspended ? '#DC2626' : salon.status === 'active' ? '#14B8A8' : '#D4AF37',
+              boxShadow: salon.is_suspended ? '0 0 8px rgba(220,38,38,.5)' : salon.status === 'active' ? '0 0 8px rgba(13,148,136,.5)' : '0 0 8px rgba(212,175,55,.5)',
             }} />
-
-            <span style={s.statusText}>
-              {salon.status === 'active' ? 'Live & Accepting' : salon.status === 'pending' ? 'Pending Approval' : 'Inactive'}
+            <span style={{ ...s.statusText, color: salon.is_suspended ? '#FCA5A5' : '#5EEAD4' }}>
+              {salon.is_suspended ? 'Suspended' : salon.status === 'active' ? 'Live & Accepting' : salon.status === 'pending' ? 'Pending Approval' : 'Inactive'}
             </span>
           </div>
         )}
@@ -266,6 +285,28 @@ export default function OwnerLayout() {
         padding: isMobile ? '16px 16px 80px' : isTablet ? '20px 20px 80px' : '36px 40px',
         marginTop: isMobile ? 56 : 0,
       }}>
+        {/* Suspension banner */}
+        {salon?.is_suspended && (
+          <div style={s.suspendBanner}>
+            <div style={s.suspendBannerInner}>
+              <div style={s.suspendIcon}>⏸</div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={s.suspendTitle}>Your salon is temporarily suspended</div>
+                <div style={s.suspendSub}>
+                  Your salon is not visible to customers and cannot accept new bookings.
+                  If you believe this is an error, submit a re-enable request below.
+                </div>
+              </div>
+              <button
+                style={s.suspendBtn}
+                onClick={() => { setShowReactivateModal(true); setReactivateMsg(''); setReactivateErr(''); }}
+              >
+                Request Re-enable
+              </button>
+            </div>
+          </div>
+        )}
+
         <motion.div
           key={location.pathname}
           initial={{ opacity: 0 }}
@@ -275,6 +316,69 @@ export default function OwnerLayout() {
           <Outlet />
         </motion.div>
       </main>
+
+      {/* Re-enable request modal */}
+      <AnimatePresence>
+        {showReactivateModal && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            style={s.modalOverlay}
+            onClick={e => { if (e.target === e.currentTarget) setShowReactivateModal(false); }}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.93, y: 16 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.93, y: 16 }}
+              transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+              style={s.modal}
+            >
+              <div style={s.modalHeader}>
+                <div style={s.modalTitleRow}>
+                  <span style={s.modalIcon}>⏸</span>
+                  <div>
+                    <div style={s.modalTitle}>Request Re-enable</div>
+                    <div style={s.modalSub}>Explain your situation to the admin for review</div>
+                  </div>
+                </div>
+                <button style={s.modalClose} onClick={() => setShowReactivateModal(false)}>✕</button>
+              </div>
+
+              {reactivateMsg ? (
+                <div style={s.modalSuccess}>
+                  <div style={{ fontSize: 32, marginBottom: 10 }}>✓</div>
+                  <div style={{ fontWeight: 700, fontSize: 15, color: '#0D9488', marginBottom: 6 }}>Request Submitted</div>
+                  <div style={{ color: 'var(--text-muted)', fontSize: 13, lineHeight: 1.6 }}>{reactivateMsg}</div>
+                  <button style={{ ...s.submitBtn, marginTop: 20 }} onClick={() => setShowReactivateModal(false)}>Close</button>
+                </div>
+              ) : (
+                <div style={s.modalBody}>
+                  <label style={s.modalLabel}>
+                    Message to admin <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(optional)</span>
+                  </label>
+                  <textarea
+                    style={s.modalTextarea}
+                    rows={5}
+                    placeholder="Explain why your salon should be reinstated, provide any relevant context…"
+                    value={reactivateReason}
+                    onChange={e => setReactivateReason(e.target.value)}
+                  />
+                  {reactivateErr && <div style={s.modalErr}>{reactivateErr}</div>}
+                  <div style={s.modalActions}>
+                    <button style={s.cancelBtn} onClick={() => setShowReactivateModal(false)}>Cancel</button>
+                    <button
+                      style={{ ...s.submitBtn, opacity: reactivateSending ? 0.7 : 1 }}
+                      disabled={reactivateSending}
+                      onClick={submitReactivation}
+                    >
+                      {reactivateSending ? 'Sending…' : 'Send Request'}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Mobile bottom tab bar — main workspace items */}
       {isMobile && (
@@ -426,6 +530,86 @@ const s = {
     flex: 1, minHeight: '100vh', padding: '36px 40px',
     background: 'var(--bg)',
     transition: 'margin-left .28s cubic-bezier(.4,0,.2,1)',
+  },
+
+  suspendBanner: {
+    background: 'linear-gradient(135deg, #450A0A 0%, #7F1D1D 100%)',
+    border: '1px solid rgba(220,38,38,.4)',
+    borderRadius: 14, marginBottom: 24,
+    boxShadow: '0 4px 24px rgba(220,38,38,.2)',
+  },
+  suspendBannerInner: {
+    display: 'flex', alignItems: 'center', gap: 16,
+    padding: '18px 22px', flexWrap: 'wrap',
+  },
+  suspendIcon: {
+    width: 44, height: 44, borderRadius: 12, flexShrink: 0,
+    background: 'rgba(220,38,38,.25)', border: '1px solid rgba(220,38,38,.4)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    fontSize: 20, color: '#FCA5A5',
+  },
+  suspendTitle: {
+    fontWeight: 700, fontSize: 15, color: '#FEE2E2', marginBottom: 4,
+    fontFamily: "'Cormorant Garamond', Georgia, serif",
+  },
+  suspendSub: { fontSize: 12, color: '#FCA5A5', lineHeight: 1.55 },
+  suspendBtn: {
+    padding: '10px 20px', borderRadius: 9, cursor: 'pointer', flexShrink: 0,
+    background: 'rgba(220,38,38,.3)', border: '1px solid rgba(220,38,38,.5)',
+    color: '#FEE2E2', fontSize: 13, fontWeight: 700,
+    transition: 'background .18s ease',
+    fontFamily: "'DM Sans', sans-serif",
+  },
+
+  modalOverlay: {
+    position: 'fixed', inset: 0, zIndex: 9000,
+    background: 'rgba(0,0,0,.72)', backdropFilter: 'blur(8px)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    padding: 20,
+  },
+  modal: {
+    background: 'var(--surface)', borderRadius: 20,
+    border: '1px solid var(--border)',
+    width: '100%', maxWidth: 460,
+    boxShadow: '0 32px 80px rgba(0,0,0,.55)',
+    overflow: 'hidden',
+  },
+  modalHeader: {
+    display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
+    padding: '22px 24px 16px', borderBottom: '1px solid var(--border)',
+  },
+  modalTitleRow: { display: 'flex', alignItems: 'center', gap: 14 },
+  modalIcon: {
+    width: 42, height: 42, borderRadius: 12, background: 'rgba(220,38,38,.1)',
+    border: '1px solid rgba(220,38,38,.2)', display: 'flex', alignItems: 'center',
+    justifyContent: 'center', fontSize: 18, color: '#DC2626', flexShrink: 0,
+  },
+  modalTitle: { fontWeight: 700, fontSize: 17, color: 'var(--text)', fontFamily: "'Cormorant Garamond', Georgia, serif" },
+  modalSub: { fontSize: 12, color: 'var(--text-muted)', marginTop: 2 },
+  modalClose: { background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, color: 'var(--text-muted)', padding: '4px 6px' },
+  modalBody: { padding: '20px 24px 24px', display: 'flex', flexDirection: 'column', gap: 14 },
+  modalLabel: { fontSize: 13, fontWeight: 600, color: 'var(--text-sub)' },
+  modalTextarea: {
+    padding: '12px 16px', border: '1.5px solid var(--border)', borderRadius: 11,
+    fontSize: 13, background: 'var(--input-bg)', color: 'var(--text)',
+    resize: 'vertical', fontFamily: "'DM Sans', sans-serif", lineHeight: 1.6,
+    outline: 'none', width: '100%', boxSizing: 'border-box',
+  },
+  modalErr: { background: '#FEF2F2', border: '1px solid #FCA5A5', color: '#DC2626', borderRadius: 8, padding: '10px 14px', fontSize: 13 },
+  modalActions: { display: 'flex', gap: 10, justifyContent: 'flex-end', paddingTop: 4 },
+  cancelBtn: {
+    padding: '11px 20px', border: '1.5px solid var(--border)', borderRadius: 10,
+    background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer',
+    fontSize: 13, fontWeight: 600, fontFamily: "'DM Sans', sans-serif",
+  },
+  submitBtn: {
+    padding: '11px 24px', background: 'linear-gradient(135deg, #DC2626, #B91C1C)',
+    border: 'none', borderRadius: 10, color: '#fff', cursor: 'pointer',
+    fontSize: 13, fontWeight: 700, fontFamily: "'DM Sans', sans-serif",
+    boxShadow: '0 4px 14px rgba(220,38,38,.4)',
+  },
+  modalSuccess: {
+    padding: '32px 24px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center',
   },
 
   mobileHeader: {
