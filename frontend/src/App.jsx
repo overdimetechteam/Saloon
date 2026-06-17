@@ -25,6 +25,7 @@ import SalonDetail from './pages/SalonDetail';
 import SalonCosmetics from './pages/SalonCosmetics';
 import ProductDetail from './pages/ProductDetail';
 
+import AdminLogin from './pages/AdminLogin';
 import AdminSalons from './pages/admin/Salons';
 import PendingSalons from './pages/admin/PendingSalons';
 import AdminServices from './pages/admin/Services';
@@ -105,7 +106,12 @@ function SessionTimeout() {
 
   const handleSignIn = () => {
     setExpired(false);
-    navigate(roleRef.current === 'salon_owner' ? '/owner/login' : '/login');
+    const role = roleRef.current;
+    navigate(
+      role === 'salon_owner' ? '/owner/login' :
+      role === 'system_admin' ? '/admin/login' :
+      '/login'
+    );
   };
 
   if (!expired) return null;
@@ -226,6 +232,9 @@ export default function App() {
           <Route path="/employee/profile" element={
             <RequireEmployee><EmployeeProfileEditor /></RequireEmployee>
           } />
+
+          {/* Admin login — standalone, no auth required */}
+          <Route path="/admin/login" element={<AdminLogin />} />
 
           {/* Admin portal — /admin/* */}
           <Route path="/admin" element={<RequireRole roles={['system_admin']} />}>
