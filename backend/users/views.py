@@ -37,7 +37,7 @@ def _email_html(heading, body_html, cta_url, cta_label, footnote):
 <body style="margin:0;padding:0;background:#f4f7f6;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif">
   <div style="max-width:560px;margin:40px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.08)">
     <div style="background:linear-gradient(135deg,#0D9488,#14B8A8);padding:40px 32px;text-align:center">
-      <div style="font-size:26px;color:#fff;font-weight:900;letter-spacing:-0.02em">✦ Saloon</div>
+      <div style="font-size:26px;color:#fff;font-weight:900;letter-spacing:-0.02em">✦ BookMyStyle</div>
       <div style="color:rgba(255,255,255,.8);font-size:11px;letter-spacing:0.2em;text-transform:uppercase;margin-top:6px">Beauty &amp; Wellness</div>
     </div>
     <div style="padding:36px 32px">
@@ -52,7 +52,7 @@ def _email_html(heading, body_html, cta_url, cta_label, footnote):
       </div>
     </div>
     <div style="background:#f9fafb;padding:16px 32px;text-align:center;border-top:1px solid #f3f4f6">
-      <p style="margin:0;font-size:11px;color:#9ca3af">© 2026 Saloon · Beauty &amp; Wellness Platform</p>
+      <p style="margin:0;font-size:11px;color:#9ca3af">© 2026 BookMyStyle · Beauty &amp; Wellness Platform</p>
     </div>
   </div>
 </body></html>"""
@@ -64,13 +64,13 @@ def _send_verification_email(user):
     url   = f"{settings.FRONTEND_URL}/verify-email?uid={uid}&token={token}"
     html  = _email_html(
         heading=f"Hi {user.full_name or 'there'}, verify your email",
-        body_html='<p style="color:#6b7280;font-size:15px;line-height:1.6;margin:0 0 8px">Thanks for signing up! Click the button below to verify your email address and activate your Saloon account.</p>',
+        body_html='<p style="color:#6b7280;font-size:15px;line-height:1.6;margin:0 0 8px">Thanks for signing up! Click the button below to verify your email address and activate your BookMyStyle account.</p>',
         cta_url=url,
         cta_label="Verify Email Address",
-        footnote="If you didn't create a Saloon account, you can safely ignore this email.",
+        footnote="If you didn't create a BookMyStyle account, you can safely ignore this email.",
     )
     send_mail(
-        subject="Verify your Saloon account",
+        subject="Verify your BookMyStyle account",
         message=f"Verify your email: {url}",
         from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[user.email],
@@ -82,13 +82,13 @@ def _send_verification_email(user):
 def _send_password_reset_email(user, reset_url):
     html = _email_html(
         heading="Reset your password",
-        body_html='<p style="color:#6b7280;font-size:15px;line-height:1.6;margin:0 0 8px">We received a request to reset the password for your Saloon account. Click the button below to choose a new password.</p>',
+        body_html='<p style="color:#6b7280;font-size:15px;line-height:1.6;margin:0 0 8px">We received a request to reset the password for your BookMyStyle account. Click the button below to choose a new password.</p>',
         cta_url=reset_url,
         cta_label="Reset Password",
         footnote="If you didn't request a password reset, you can safely ignore this email.",
     )
     send_mail(
-        subject="Reset your Saloon password",
+        subject="Reset your BookMyStyle password",
         message=f"Reset your password: {reset_url}",
         from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[user.email],

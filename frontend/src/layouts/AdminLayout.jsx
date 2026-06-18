@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useBreakpoint } from '../hooks/useMobile';
+import api from '../api/axios';
 
 const NAV = [
   { to: '/admin/dashboard',      icon: '▤', label: 'Dashboard'         },
@@ -20,7 +21,48 @@ export default function AdminLayout() {
   const navigate  = useNavigate();
   const location  = useLocation();
   const { isMobile, isTablet } = useBreakpoint();
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen]       = useState(false);
+  const [notifs, setNotifs]               = useState([]);
+  const [showNotifs, setShowNotifs]       = useState(false);
+  const notifRef                          = useRef(null);
+
+  const unreadCount = notifs.filter(n => !n.is_read).length;
+
+  const fetchNotifs = () => {
+    api.get('/notifications/').then(r => setNotifs(r.data)).catch(() => {});
+  };
+
+  useEffect(() => {
+    fetchNotifs();
+    const interval = setInterval(fetchNotifs, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const handler = (e) => { if (notifRef.current && !notifRef.current.contains(e.target)) setShowNotifs(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const markRead = async (id) => {
+    try { await api.patch(`/notifications/${id}/read/`, {}); } catch { /* noop */ }
+    setNotifs(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
+  };
+
+  const markAllRead = async () => {
+    try { await api.post('/notifications/mark-read/', {}); } catch { /* noop */ }
+    setNotifs(prev => prev.map(n => ({ ...n, is_read: true })));
+  };
+
+  function fmtTime(dt) {
+    if (!dt) return '';
+    const d = new Date(dt), now = new Date();
+    const diff = Math.floor((now - d) / 60000);
+    if (diff < 1) return 'Just now';
+    if (diff < 60) return `${diff}m ago`;
+    if (diff < 1440) return `${Math.floor(diff / 60)}h ago`;
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
 
   // collapse = show icon-only sidebar on tablet
   const collapsed = isTablet;
@@ -44,9 +86,17 @@ export default function AdminLayout() {
           <div style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontWeight: 700, fontSize: 17, color: 'var(--text)' }}>
             Admin Portal
           </div>
-          <button onClick={toggle} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 17, color: isDark ? '#5EEAD4' : '#0D9488', padding: '6px 8px' }}>
-            {isDark ? '☀' : '☾'}
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <button onClick={toggle} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 17, color: isDark ? '#5EEAD4' : '#0D9488', padding: '6px 8px' }}>
+              {isDark ? '☀' : '☾'}
+            </button>
+            <button onClick={() => setShowNotifs(v => !v)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, padding: '6px 8px', position: 'relative' }}>
+              🔔
+              {unreadCount > 0 && (
+                <span style={{ ...s.notifBadge, top: 4, right: 4 }}>{unreadCount > 9 ? '9+' : unreadCount}</span>
+              )}
+            </button>
+          </div>
         </header>
       )}
 
@@ -110,6 +160,61 @@ export default function AdminLayout() {
 
           <div style={s.sidebarFooter}>
             <div style={s.divider} />
+
+            {/* Notification bell */}
+            <div ref={notifRef} style={{ position: 'relative', padding: '10px 12px 0' }}>
+              <button
+                onClick={() => setShowNotifs(v => !v)}
+                style={{ ...s.notifBell, ...(showNotifs ? s.notifBellActive : {}) }}
+              >
+                <span style={{ fontSize: 16 }}>🔔</span>
+                <span style={s.notifLabel}>Notifications</span>
+                {unreadCount > 0 && (
+                  <span style={s.notifBadge}>{unreadCount > 9 ? '9+' : unreadCount}</span>
+                )}
+              </button>
+
+              <AnimatePresence>
+                {showNotifs && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -8, scale: 0.97 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -8, scale: 0.97 }}
+                    transition={{ duration: 0.15 }}
+                    style={s.notifPanel}
+                  >
+                    <div style={s.notifHeader}>
+                      <span style={s.notifTitle}>Notifications</span>
+                      {unreadCount > 0 && (
+                        <button style={s.markAllBtn} onClick={markAllRead}>Mark all read</button>
+                      )}
+                    </div>
+                    <div style={s.notifList}>
+                      {notifs.length === 0 ? (
+                        <div style={s.notifEmpty}>No notifications yet</div>
+                      ) : (
+                        notifs.slice(0, 20).map(n => (
+                          <div
+                            key={n.id}
+                            style={{ ...s.notifItem, ...(n.is_read ? {} : s.notifItemUnread) }}
+                            onClick={() => { markRead(n.id); }}
+                          >
+                            <div style={s.notifDotWrap}>
+                              <span style={{ ...s.notifDot, ...(n.is_read ? s.notifDotRead : {}) }} />
+                            </div>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={s.notifMsg}>{n.message}</div>
+                              <div style={s.notifTime}>{fmtTime(n.created_at)}</div>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
             <div style={s.userRow}>
               <div style={s.avatar}>{initials}</div>
               <div style={s.userInfo}>
@@ -255,4 +360,51 @@ const s = {
     flex: 1, minHeight: '100vh',
     background: 'var(--bg)',
   },
+
+  notifBell: {
+    width: '100%', display: 'flex', alignItems: 'center', gap: 10,
+    padding: '10px 13px', borderRadius: 10, border: '1px solid rgba(13,148,136,.18)',
+    background: 'transparent', color: '#5EEAD4', cursor: 'pointer', fontSize: 13,
+    fontFamily: "'DM Sans', sans-serif", position: 'relative', transition: 'all .15s',
+  },
+  notifBellActive: { background: 'rgba(13,148,136,.15)', borderColor: 'rgba(13,148,136,.4)' },
+  notifLabel: { flex: 1, textAlign: 'left', fontWeight: 500 },
+  notifBadge: {
+    position: 'absolute', top: -4, right: -4,
+    minWidth: 18, height: 18, borderRadius: 10,
+    background: '#DC2626', color: '#fff',
+    fontSize: 10, fontWeight: 700,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    padding: '0 4px', border: '2px solid #0D0D16',
+  },
+  notifPanel: {
+    position: 'absolute', bottom: '110%', left: 0, right: 0,
+    background: '#1a1a2e', border: '1px solid rgba(13,148,136,.25)',
+    borderRadius: 14, boxShadow: '0 8px 32px rgba(0,0,0,.5)',
+    zIndex: 200, overflow: 'hidden',
+    minWidth: 320,
+  },
+  notifHeader: {
+    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    padding: '14px 16px 10px', borderBottom: '1px solid rgba(13,148,136,.15)',
+  },
+  notifTitle: { color: '#fff', fontWeight: 700, fontSize: 13 },
+  markAllBtn: {
+    background: 'none', border: 'none', color: '#0D9488', fontSize: 11,
+    cursor: 'pointer', fontWeight: 600, padding: 0,
+    fontFamily: "'DM Sans', sans-serif",
+  },
+  notifList: { maxHeight: 360, overflowY: 'auto' },
+  notifEmpty: { padding: '24px 16px', textAlign: 'center', color: 'rgba(94,234,212,.5)', fontSize: 13 },
+  notifItem: {
+    display: 'flex', gap: 10, padding: '12px 16px',
+    borderBottom: '1px solid rgba(255,255,255,.05)', cursor: 'pointer',
+    transition: 'background .12s',
+  },
+  notifItemUnread: { background: 'rgba(13,148,136,.08)' },
+  notifDotWrap: { paddingTop: 4, flexShrink: 0 },
+  notifDot: { display: 'block', width: 7, height: 7, borderRadius: '50%', background: '#0D9488' },
+  notifDotRead: { background: 'rgba(255,255,255,.15)' },
+  notifMsg: { color: '#E5E7EB', fontSize: 12, lineHeight: 1.5, marginBottom: 3 },
+  notifTime: { color: 'rgba(94,234,212,.5)', fontSize: 10 },
 };

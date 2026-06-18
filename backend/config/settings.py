@@ -179,7 +179,7 @@ if _email_user:
     EMAIL_USE_TLS       = True
     EMAIL_HOST_USER     = _email_user
     EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
-    DEFAULT_FROM_EMAIL  = f'Saloon <{_email_user}>'
+    DEFAULT_FROM_EMAIL  = f'BookMyStyle <{_email_user}>'
 else:
     # No SMTP credentials — print to console so dev logs show the email body.
     # Set EMAIL_HOST_USER + EMAIL_HOST_PASSWORD on Render to enable real delivery.

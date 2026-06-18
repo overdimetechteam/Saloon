@@ -291,37 +291,59 @@ class OwnerRequestReactivationView(APIView):
             return Response({'detail': 'Your salon is not currently suspended.'}, status=status.HTTP_400_BAD_REQUEST)
         reason = request.data.get('reason', '').strip()
 
-        from users.models import CustomUser
-        admin_emails = list(
-            CustomUser.objects.filter(role='system_admin').values_list('email', flat=True)
+        from users.models import CustomUser, Notification
+        admins = list(CustomUser.objects.filter(role='system_admin'))
+        admin_emails = [a.email for a in admins] or [settings.DEFAULT_FROM_EMAIL]
+
+        owner_name = salon.owner.full_name or salon.owner.email
+        notif_msg = (
+            f'Re-enable request from "{salon.name}" (owner: {owner_name})'
+            + (f': "{reason}"' if reason else '')
         )
-        if not admin_emails:
-            admin_emails = [settings.DEFAULT_FROM_EMAIL]
+
+        # Create in-app notification for every admin
+        for admin in admins:
+            Notification.objects.create(
+                recipient=admin,
+                message=notif_msg,
+                notif_type='reactivation_request',
+            )
 
         send_mail(
-            subject=f'Re-enable Request: {salon.name}',
-            message='',
+            subject=f'Re-enable Request: {salon.name} — BookMyStyle',
+            message=f'{notif_msg}\n\nReview at {settings.FRONTEND_URL}/admin/salons/{salon.pk}',
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=admin_emails,
             html_message=f'''
-                <div style="font-family:sans-serif;max-width:560px;margin:auto;padding:32px 24px;background:#fff;border-radius:12px;">
-                  <h2 style="color:#D97706;margin:0 0 12px;">Re-enable Request</h2>
-                  <p style="color:#374151;line-height:1.6;">
-                    The owner of <strong>{salon.name}</strong> has submitted a request to reinstate their suspended salon.
-                  </p>
-                  <table style="width:100%;border-collapse:collapse;margin:16px 0;">
-                    <tr><td style="padding:8px 0;color:#6B7280;font-size:13px;">Owner</td>
-                        <td style="padding:8px 0;font-weight:600;color:#111;">{salon.owner.full_name or salon.owner.email}</td></tr>
-                    <tr><td style="padding:8px 0;color:#6B7280;font-size:13px;">Email</td>
-                        <td style="padding:8px 0;color:#111;">{salon.owner.email}</td></tr>
-                    <tr><td style="padding:8px 0;color:#6B7280;font-size:13px;">Salon ID</td>
-                        <td style="padding:8px 0;color:#111;">#{salon.pk}</td></tr>
-                  </table>
-                  {f'<div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;padding:14px 18px;margin:16px 0;"><strong style="color:#92400E;">Owner\'s message:</strong><p style="color:#374151;margin:8px 0 0;line-height:1.6;">{reason}</p></div>' if reason else ''}
-                  <a href="https://saloon-frontend-67z0.onrender.com/admin/salons/{salon.pk}"
-                     style="display:inline-block;margin-top:20px;padding:12px 24px;background:#0D9488;color:#fff;border-radius:8px;text-decoration:none;font-weight:700;">
-                    Review in Admin Panel
-                  </a>
+                <div style="font-family:'Helvetica Neue',Arial,sans-serif;max-width:560px;margin:40px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.08);">
+                  <div style="background:linear-gradient(135deg,#D97706,#F59E0B);padding:32px;text-align:center;">
+                    <div style="font-size:22px;color:#fff;font-weight:900;letter-spacing:-0.02em">✦ BookMyStyle</div>
+                    <div style="color:rgba(255,255,255,.8);font-size:11px;letter-spacing:0.2em;text-transform:uppercase;margin-top:6px">Admin Notification</div>
+                  </div>
+                  <div style="padding:32px;">
+                    <h2 style="color:#92400E;margin:0 0 12px;font-size:20px;">Salon Re-enable Request</h2>
+                    <p style="color:#374151;line-height:1.6;">
+                      The owner of <strong>{salon.name}</strong> has submitted a request to reinstate their suspended salon.
+                    </p>
+                    <table style="width:100%;border-collapse:collapse;margin:16px 0;border:1px solid #E5E7EB;border-radius:8px;overflow:hidden;">
+                      <tr style="background:#F9FAFB;"><td style="padding:10px 14px;color:#6B7280;font-size:13px;width:110px;">Salon</td>
+                          <td style="padding:10px 14px;font-weight:600;color:#111;">{salon.name} (#{salon.pk})</td></tr>
+                      <tr><td style="padding:10px 14px;color:#6B7280;font-size:13px;">Owner</td>
+                          <td style="padding:10px 14px;font-weight:600;color:#111;">{owner_name}</td></tr>
+                      <tr style="background:#F9FAFB;"><td style="padding:10px 14px;color:#6B7280;font-size:13px;">Email</td>
+                          <td style="padding:10px 14px;color:#111;">{salon.owner.email}</td></tr>
+                    </table>
+                    {f'<div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;padding:14px 18px;margin:16px 0;"><p style="color:#92400E;font-weight:700;margin:0 0 6px;">Owner\'s message:</p><p style="color:#374151;margin:0;line-height:1.6;">{reason}</p></div>' if reason else '<p style="color:#9CA3AF;font-size:13px;">No message provided.</p>'}
+                    <div style="text-align:center;margin-top:24px;">
+                      <a href="{settings.FRONTEND_URL}/admin/salons/{salon.pk}"
+                         style="display:inline-block;padding:13px 32px;background:#0D9488;color:#fff;border-radius:10px;text-decoration:none;font-weight:700;font-size:15px;">
+                        Review in Admin Panel
+                      </a>
+                    </div>
+                  </div>
+                  <div style="background:#F9FAFB;padding:14px 32px;text-align:center;border-top:1px solid #F3F4F6;">
+                    <p style="margin:0;font-size:11px;color:#9CA3AF;">© 2026 BookMyStyle · Beauty &amp; Wellness Platform</p>
+                  </div>
                 </div>
             ''',
             fail_silently=True,
