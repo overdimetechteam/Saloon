@@ -24,7 +24,9 @@ export default function AdminLayout() {
   const [drawerOpen, setDrawerOpen]       = useState(false);
   const [notifs, setNotifs]               = useState([]);
   const [showNotifs, setShowNotifs]       = useState(false);
-  const notifRef                          = useRef(null);
+  const [panelPos, setPanelPos]           = useState({ top: 0, left: 0 });
+  const bellRef                           = useRef(null);
+  const panelRef                          = useRef(null);
 
   const unreadCount = notifs.filter(n => !n.is_read).length;
 
@@ -39,10 +41,30 @@ export default function AdminLayout() {
   }, []);
 
   useEffect(() => {
-    const handler = (e) => { if (notifRef.current && !notifRef.current.contains(e.target)) setShowNotifs(false); };
+    const handler = (e) => {
+      if (
+        panelRef.current && !panelRef.current.contains(e.target) &&
+        bellRef.current && !bellRef.current.contains(e.target)
+      ) setShowNotifs(false);
+    };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
+
+  const toggleNotifs = () => {
+    if (!showNotifs && bellRef.current) {
+      const rect = bellRef.current.getBoundingClientRect();
+      // Position panel to the right of the bell (or above on mobile)
+      const panelW = 360;
+      let left = rect.right + 12;
+      let top  = Math.max(12, rect.top - 20);
+      // Clamp to viewport
+      if (left + panelW > window.innerWidth - 12) left = Math.max(12, rect.left - panelW - 8);
+      if (top + 480 > window.innerHeight) top = Math.max(12, window.innerHeight - 500);
+      setPanelPos({ top, left });
+    }
+    setShowNotifs(v => !v);
+  };
 
   const markRead = async (id) => {
     try { await api.patch(`/notifications/${id}/read/`, {}); } catch { /* noop */ }
@@ -90,7 +112,7 @@ export default function AdminLayout() {
             <button onClick={toggle} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 17, color: isDark ? '#5EEAD4' : '#0D9488', padding: '6px 8px' }}>
               {isDark ? '☀' : '☾'}
             </button>
-            <button onClick={() => setShowNotifs(v => !v)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, padding: '6px 8px', position: 'relative' }}>
+            <button ref={bellRef} onClick={toggleNotifs} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, padding: '6px 8px', position: 'relative' }}>
               🔔
               {unreadCount > 0 && (
                 <span style={{ ...s.notifBadge, top: 4, right: 4 }}>{unreadCount > 9 ? '9+' : unreadCount}</span>
@@ -161,10 +183,11 @@ export default function AdminLayout() {
           <div style={s.sidebarFooter}>
             <div style={s.divider} />
 
-            {/* Notification bell */}
-            <div ref={notifRef} style={{ position: 'relative', padding: '10px 12px 0' }}>
+            {/* Notification bell — panel renders at root level (fixed) */}
+            <div style={{ padding: '10px 12px 0' }}>
               <button
-                onClick={() => setShowNotifs(v => !v)}
+                ref={bellRef}
+                onClick={toggleNotifs}
                 style={{ ...s.notifBell, ...(showNotifs ? s.notifBellActive : {}) }}
               >
                 <span style={{ fontSize: 16 }}>🔔</span>
@@ -173,46 +196,6 @@ export default function AdminLayout() {
                   <span style={s.notifBadge}>{unreadCount > 9 ? '9+' : unreadCount}</span>
                 )}
               </button>
-
-              <AnimatePresence>
-                {showNotifs && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -8, scale: 0.97 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -8, scale: 0.97 }}
-                    transition={{ duration: 0.15 }}
-                    style={s.notifPanel}
-                  >
-                    <div style={s.notifHeader}>
-                      <span style={s.notifTitle}>Notifications</span>
-                      {unreadCount > 0 && (
-                        <button style={s.markAllBtn} onClick={markAllRead}>Mark all read</button>
-                      )}
-                    </div>
-                    <div style={s.notifList}>
-                      {notifs.length === 0 ? (
-                        <div style={s.notifEmpty}>No notifications yet</div>
-                      ) : (
-                        notifs.slice(0, 20).map(n => (
-                          <div
-                            key={n.id}
-                            style={{ ...s.notifItem, ...(n.is_read ? {} : s.notifItemUnread) }}
-                            onClick={() => { markRead(n.id); }}
-                          >
-                            <div style={s.notifDotWrap}>
-                              <span style={{ ...s.notifDot, ...(n.is_read ? s.notifDotRead : {}) }} />
-                            </div>
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                              <div style={s.notifMsg}>{n.message}</div>
-                              <div style={s.notifTime}>{fmtTime(n.created_at)}</div>
-                            </div>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
             </div>
 
             <div style={s.userRow}>
@@ -244,6 +227,56 @@ export default function AdminLayout() {
           <Outlet />
         </motion.div>
       </main>
+
+      {/* ── Notification popup — fixed, outside sidebar ── */}
+      <AnimatePresence>
+        {showNotifs && (
+          <motion.div
+            ref={panelRef}
+            initial={{ opacity: 0, scale: 0.95, y: 8 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 8 }}
+            transition={{ duration: 0.18, ease: 'easeOut' }}
+            style={{ ...s.notifPanel, top: panelPos.top, left: panelPos.left }}
+          >
+            <div style={s.notifHeader}>
+              <div>
+                <span style={s.notifTitle}>Notifications</span>
+                {unreadCount > 0 && (
+                  <span style={s.notifCountPill}>{unreadCount} unread</span>
+                )}
+              </div>
+              {unreadCount > 0 && (
+                <button style={s.markAllBtn} onClick={markAllRead}>Mark all read</button>
+              )}
+            </div>
+            <div style={s.notifList}>
+              {notifs.length === 0 ? (
+                <div style={s.notifEmpty}>
+                  <div style={{ fontSize: 28, marginBottom: 8 }}>🔔</div>
+                  No notifications yet
+                </div>
+              ) : (
+                notifs.slice(0, 25).map(n => (
+                  <div
+                    key={n.id}
+                    style={{ ...s.notifItem, ...(n.is_read ? {} : s.notifItemUnread) }}
+                    onClick={() => markRead(n.id)}
+                  >
+                    <div style={s.notifDotWrap}>
+                      <span style={{ ...s.notifDot, ...(n.is_read ? s.notifDotRead : {}) }} />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={s.notifMsg}>{n.message}</div>
+                      <div style={s.notifTime}>{fmtTime(n.created_at)}</div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ── Mobile bottom tab bar ── */}
       {isMobile && (
@@ -378,20 +411,28 @@ const s = {
     padding: '0 4px', border: '2px solid #0D0D16',
   },
   notifPanel: {
-    position: 'absolute', bottom: '110%', left: 0, right: 0,
-    background: '#1a1a2e', border: '1px solid rgba(13,148,136,.25)',
-    borderRadius: 14, boxShadow: '0 8px 32px rgba(0,0,0,.5)',
-    zIndex: 200, overflow: 'hidden',
-    minWidth: 320,
+    position: 'fixed', zIndex: 9999,
+    width: 360,
+    background: '#12121f',
+    border: '1px solid rgba(13,148,136,.3)',
+    borderRadius: 16,
+    boxShadow: '0 24px 64px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.04)',
+    overflow: 'hidden',
   },
   notifHeader: {
     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-    padding: '14px 16px 10px', borderBottom: '1px solid rgba(13,148,136,.15)',
+    padding: '16px 18px 12px', borderBottom: '1px solid rgba(13,148,136,.15)',
+    background: 'rgba(13,148,136,.06)',
   },
-  notifTitle: { color: '#fff', fontWeight: 700, fontSize: 13 },
+  notifTitle: { color: '#fff', fontWeight: 700, fontSize: 14, marginRight: 8 },
+  notifCountPill: {
+    display: 'inline-block', background: 'rgba(13,148,136,.2)', color: '#5EEAD4',
+    fontSize: 10, fontWeight: 700, borderRadius: 20, padding: '2px 8px',
+  },
   markAllBtn: {
-    background: 'none', border: 'none', color: '#0D9488', fontSize: 11,
-    cursor: 'pointer', fontWeight: 600, padding: 0,
+    background: 'rgba(13,148,136,.1)', border: '1px solid rgba(13,148,136,.25)',
+    color: '#5EEAD4', fontSize: 11, cursor: 'pointer', fontWeight: 600,
+    padding: '4px 10px', borderRadius: 8,
     fontFamily: "'DM Sans', sans-serif",
   },
   notifList: { maxHeight: 360, overflowY: 'auto' },
