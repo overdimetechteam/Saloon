@@ -10,6 +10,9 @@ class RegisterSerializer(serializers.ModelSerializer):
         fields = ['email', 'full_name', 'phone', 'password', 'role']
         extra_kwargs = {'role': {'required': False}}
 
+    def validate_email(self, value):
+        return value.strip().lower()
+
     def create(self, validated_data):
         password = validated_data.pop('password')
         validated_data.setdefault('role', 'client')

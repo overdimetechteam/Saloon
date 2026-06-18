@@ -68,7 +68,8 @@ export default function AdminCustomerDetail() {
   const [data, setData]       = useState(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr]         = useState('');
-  const [toggling, setToggling] = useState(false);
+  const [toggling, setToggling]   = useState(false);
+  const [deleting, setDeleting]   = useState(false);
 
   const load = () => {
     setLoading(true);
@@ -87,6 +88,18 @@ export default function AdminCustomerDetail() {
       setData(prev => ({ ...prev, profile: { ...prev.profile, is_active: r.data.is_active } }));
     } catch { /* noop */ }
     finally { setToggling(false); }
+  };
+
+  const deleteAccount = async () => {
+    if (!window.confirm('Permanently delete this account? This cannot be undone.')) return;
+    setDeleting(true);
+    try {
+      await api.delete(`/admin/customers/${id}/`);
+      navigate('/admin/customers');
+    } catch {
+      alert('Failed to delete account. Please try again.');
+      setDeleting(false);
+    }
   };
 
   if (loading) return <div style={s.loader}><div style={s.spin} /></div>;
@@ -132,13 +145,22 @@ export default function AdminCustomerDetail() {
             <div style={s.metaRow}><span style={s.metaLabel}>Last Login</span><span style={s.metaVal}>{fmtDateTime(profile.last_login)}</span></div>
             <div style={s.metaRow}><span style={s.metaLabel}>Customer ID</span><span style={s.metaVal}>#{profile.id}</span></div>
           </div>
-          <button
-            style={{ ...s.toggleBtn, ...(profile.is_active ? s.toggleBtnRed : s.toggleBtnGreen), opacity: toggling ? 0.7 : 1 }}
-            onClick={toggleActive}
-            disabled={toggling}
-          >
-            {toggling ? 'Updating…' : profile.is_active ? '⏸ Deactivate Account' : '▶ Activate Account'}
-          </button>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+            <button
+              style={{ ...s.toggleBtn, ...(profile.is_active ? s.toggleBtnRed : s.toggleBtnGreen), opacity: toggling ? 0.7 : 1 }}
+              onClick={toggleActive}
+              disabled={toggling}
+            >
+              {toggling ? 'Updating…' : profile.is_active ? '⏸ Deactivate' : '▶ Activate'}
+            </button>
+            <button
+              style={{ ...s.toggleBtn, background: 'rgba(220,38,38,.08)', color: '#DC2626', border: '1px solid rgba(220,38,38,.3)', opacity: deleting ? 0.7 : 1 }}
+              onClick={deleteAccount}
+              disabled={deleting}
+            >
+              {deleting ? 'Deleting…' : '🗑 Delete Account'}
+            </button>
+          </div>
         </div>
       </div>
 

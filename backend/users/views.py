@@ -215,20 +215,23 @@ class ResendVerificationView(APIView):
     throttle_classes   = [ResetThrottle]
 
     def post(self, request):
-        email = request.data.get('email', '').strip()
+        email = request.data.get('email', '').strip().lower()
         try:
-            user = CustomUser.objects.get(email=email)
+            # Use filter (not get) so duplicates don't crash with MultipleObjectsReturned.
+            # Among duplicates, always prefer the unverified account to resend to.
+            qs = CustomUser.objects.filter(email__iexact=email)
+            user = qs.filter(email_verified=False, role='client').first() \
+                or qs.filter(role='client').first()
+            if not user:
+                return Response({'message': 'If that email is registered and unverified, a new link has been sent.'})
             if user.email_verified:
                 return Response({'message': 'This email is already verified. You can log in.'})
             _send_verification_email(user)
             return Response({'message': 'Verification email sent! Check your inbox (and spam folder).'})
-        except CustomUser.DoesNotExist:
-            # Return same message to avoid email enumeration
-            return Response({'message': 'If that email is registered and unverified, a new link has been sent.'})
         except Exception as e:
             logger.error('Resend verification failed for %s: %s', email, e)
             return Response(
-                {'detail': 'Could not send verification email. Please check your email address or try again later.'},
+                {'detail': 'Could not send the verification email. Please try again later.'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -488,3 +491,13 @@ class AdminCustomerDetailView(APIView):
         user.is_active = not user.is_active
         user.save(update_fields=['is_active'])
         return Response({'id': user.id, 'is_active': user.is_active})
+
+    def delete(self, request, pk):
+        """Permanently delete a customer account (admin only)."""
+        from users.permissions import IsSystemAdmin
+        if not IsSystemAdmin().has_permission(request, self):
+            return Response({'detail': 'Forbidden.'}, status=403)
+
+        user = get_object_or_404(CustomUser, pk=pk, role='client')
+        user.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
