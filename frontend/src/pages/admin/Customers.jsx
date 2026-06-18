@@ -21,7 +21,7 @@ export default function AdminCustomers() {
   const [filter, setFilter]       = useState('all'); // all | active | inactive | unverified
 
   useEffect(() => {
-    api.get('/users/admin/customers/')
+    api.get('/admin/customers/')
       .then(r => setCustomers(r.data))
       .catch(() => setErr('Failed to load customers.'))
       .finally(() => setLoading(false));

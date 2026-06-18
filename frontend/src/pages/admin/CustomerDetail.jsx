@@ -72,7 +72,7 @@ export default function AdminCustomerDetail() {
 
   const load = () => {
     setLoading(true);
-    api.get(`/users/admin/customers/${id}/`)
+    api.get(`/admin/customers/${id}/`)
       .then(r => setData(r.data))
       .catch(() => setErr('Failed to load customer details.'))
       .finally(() => setLoading(false));
@@ -83,7 +83,7 @@ export default function AdminCustomerDetail() {
   const toggleActive = async () => {
     setToggling(true);
     try {
-      const r = await api.patch(`/users/admin/customers/${id}/`, {});
+      const r = await api.patch(`/admin/customers/${id}/`, {});
       setData(prev => ({ ...prev, profile: { ...prev.profile, is_active: r.data.is_active } }));
     } catch { /* noop */ }
     finally { setToggling(false); }

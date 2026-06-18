@@ -3,6 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from django.db.models import Avg, Count, Sum
 from rest_framework.throttling import AnonRateThrottle
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
@@ -305,7 +306,6 @@ class AdminCustomerListView(APIView):
             from rest_framework.response import Response as R
             return R({'detail': 'Forbidden.'}, status=403)
 
-        from django.db.models import Count
         customers = (
             CustomUser.objects
             .filter(role='client')
@@ -345,7 +345,6 @@ class AdminCustomerDetailView(APIView):
         if not IsSystemAdmin().has_permission(request, self):
             return Response({'detail': 'Forbidden.'}, status=403)
 
-        from django.db.models import Avg, Count
         from bookings.models import Booking, Review
         from salons.models import FavouriteSalon
         from inventory.models import CosmeticOrder
@@ -364,7 +363,7 @@ class AdminCustomerDetailView(APIView):
         total_reviews      = reviews_qs.count()
         avg_rating         = reviews_qs.aggregate(avg=Avg('rating'))['avg']
         total_orders       = orders_qs.count()
-        total_spent        = float(orders_qs.aggregate(s=__import__('django.db.models', fromlist=['Sum']).Sum('total'))['s'] or 0)
+        total_spent        = float(orders_qs.aggregate(s=Sum('total'))['s'] or 0)
 
         # Recent bookings (last 15)
         recent_bookings = []
