@@ -291,3 +291,155 @@ class NotificationMarkOneReadView(APIView):
         notif.is_read = True
         notif.save()
         return Response(NotificationSerializer(notif).data)
+
+
+# ── Admin: Customer management ─────────────────────────────────────────────────
+
+class AdminCustomerListView(APIView):
+    """GET /api/users/admin/customers/ — all clients with basic stats."""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        from users.permissions import IsSystemAdmin
+        if not IsSystemAdmin().has_permission(request, self):
+            from rest_framework.response import Response as R
+            return R({'detail': 'Forbidden.'}, status=403)
+
+        from django.db.models import Count
+        customers = (
+            CustomUser.objects
+            .filter(role='client')
+            .annotate(
+                total_bookings=Count('bookings', distinct=True),
+                total_reviews=Count('reviews', distinct=True),
+                total_orders=Count('cosmetic_orders', distinct=True),
+                total_favourites=Count('favourites', distinct=True),
+            )
+            .order_by('-id')
+        )
+
+        data = []
+        for u in customers:
+            data.append({
+                'id':               u.id,
+                'full_name':        u.full_name or '',
+                'email':            u.email,
+                'phone':            u.phone or '',
+                'is_active':        u.is_active,
+                'email_verified':   u.email_verified,
+                'last_login':       u.last_login,
+                'total_bookings':   u.total_bookings,
+                'total_reviews':    u.total_reviews,
+                'total_orders':     u.total_orders,
+                'total_favourites': u.total_favourites,
+            })
+        return Response(data)
+
+
+class AdminCustomerDetailView(APIView):
+    """GET /api/users/admin/customers/<pk>/ — full customer snapshot."""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        from users.permissions import IsSystemAdmin
+        if not IsSystemAdmin().has_permission(request, self):
+            return Response({'detail': 'Forbidden.'}, status=403)
+
+        from django.db.models import Avg, Count
+        from bookings.models import Booking, Review
+        from salons.models import FavouriteSalon
+        from inventory.models import CosmeticOrder
+
+        user = get_object_or_404(CustomUser, pk=pk, role='client')
+
+        # Aggregate stats
+        bookings_qs = Booking.objects.filter(client=user)
+        reviews_qs  = Review.objects.filter(client=user)
+        orders_qs   = CosmeticOrder.objects.filter(client=user)
+        favs_qs     = FavouriteSalon.objects.filter(client=user).select_related('salon')
+
+        total_bookings     = bookings_qs.count()
+        completed_bookings = bookings_qs.filter(status='confirmed').count()
+        cancelled_bookings = bookings_qs.filter(status='cancelled').count()
+        total_reviews      = reviews_qs.count()
+        avg_rating         = reviews_qs.aggregate(avg=Avg('rating'))['avg']
+        total_orders       = orders_qs.count()
+        total_spent        = float(orders_qs.aggregate(s=__import__('django.db.models', fromlist=['Sum']).Sum('total'))['s'] or 0)
+
+        # Recent bookings (last 15)
+        recent_bookings = []
+        for b in bookings_qs.select_related('salon', 'staff_member').prefetch_related('booking_services__service').order_by('-created_at')[:15]:
+            services = [bs.service.name for bs in b.booking_services.all()]
+            recent_bookings.append({
+                'id':                b.id,
+                'salon_name':        b.salon.name if b.salon else '—',
+                'services':          services,
+                'status':            b.status,
+                'requested_datetime': b.requested_datetime,
+                'created_at':        b.created_at,
+            })
+
+        # Reviews (last 10)
+        recent_reviews = []
+        for r in reviews_qs.select_related('salon').order_by('-created_at')[:10]:
+            recent_reviews.append({
+                'id':         r.id,
+                'salon_name': r.salon.name if r.salon else '—',
+                'rating':     r.rating,
+                'comment':    r.comment or '',
+                'created_at': r.created_at,
+            })
+
+        # Favourite salons
+        favourite_salons = [
+            {'id': f.salon.id, 'name': f.salon.name, 'status': f.salon.status}
+            for f in favs_qs
+        ]
+
+        # Recent cosmetic orders (last 10)
+        recent_orders = []
+        for o in orders_qs.select_related('salon').order_by('-created_at')[:10]:
+            recent_orders.append({
+                'id':         o.id,
+                'salon_name': o.salon.name if o.salon else '—',
+                'total':      float(o.total),
+                'status':     o.status,
+                'created_at': o.created_at,
+            })
+
+        return Response({
+            'profile': {
+                'id':             user.id,
+                'full_name':      user.full_name or '',
+                'email':          user.email,
+                'phone':          user.phone or '',
+                'is_active':      user.is_active,
+                'email_verified': user.email_verified,
+                'last_login':     user.last_login,
+            },
+            'stats': {
+                'total_bookings':     total_bookings,
+                'completed_bookings': completed_bookings,
+                'cancelled_bookings': cancelled_bookings,
+                'total_reviews':      total_reviews,
+                'avg_rating':         round(avg_rating, 1) if avg_rating else None,
+                'total_orders':       total_orders,
+                'total_spent':        round(total_spent, 2),
+                'total_favourites':   favs_qs.count(),
+            },
+            'recent_bookings':  recent_bookings,
+            'reviews':          recent_reviews,
+            'favourite_salons': favourite_salons,
+            'recent_orders':    recent_orders,
+        })
+
+    def patch(self, request, pk):
+        """Toggle is_active for a customer account."""
+        from users.permissions import IsSystemAdmin
+        if not IsSystemAdmin().has_permission(request, self):
+            return Response({'detail': 'Forbidden.'}, status=403)
+
+        user = get_object_or_404(CustomUser, pk=pk, role='client')
+        user.is_active = not user.is_active
+        user.save(update_fields=['is_active'])
+        return Response({'id': user.id, 'is_active': user.is_active})

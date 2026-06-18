@@ -32,6 +32,8 @@ import AdminSalonDetail from './pages/admin/SalonDetail';
 import PendingSalons from './pages/admin/PendingSalons';
 import AdminServices from './pages/admin/Services';
 import AdminSettings from './pages/admin/Settings';
+import AdminCustomers from './pages/admin/Customers';
+import AdminCustomerDetail from './pages/admin/CustomerDetail';
 
 import OwnerDashboard from './pages/owner/Dashboard';
 import OwnerBookingList from './pages/owner/BookingList';
@@ -249,6 +251,8 @@ export default function App() {
               <Route path="salons/:id" element={<AdminSalonDetail />} />
               <Route path="services" element={<AdminServices />} />
               <Route path="settings" element={<AdminSettings />} />
+              <Route path="customers" element={<AdminCustomers />} />
+              <Route path="customers/:id" element={<AdminCustomerDetail />} />
             </Route>
           </Route>
 

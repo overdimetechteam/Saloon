@@ -9,6 +9,7 @@ const NAV = [
   { to: '/admin/dashboard',      icon: '▤', label: 'Dashboard'         },
   { to: '/admin/salons',         icon: '◈', label: 'All Salons'        },
   { to: '/admin/salons/pending', icon: '◎', label: 'Pending Approvals' },
+  { to: '/admin/customers',      icon: '◉', label: 'Customers'         },
   { to: '/admin/services',       icon: '◇', label: 'Global Services'   },
   { to: '/admin/settings',       icon: '⚙', label: 'Settings'          },
 ];
