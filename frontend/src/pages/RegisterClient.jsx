@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useBreakpoint } from '../hooks/useMobile';
 import { checkPasswordStrength, PASSWORD_REQUIREMENT_TEXT } from '../utils/passwordStrength';
+import api from '../api/axios';
 
 export default function RegisterClient() {
   const { register } = useAuth();
@@ -13,7 +14,11 @@ export default function RegisterClient() {
   const [showPw, setShowPw]     = useState(false);
   const [error, setError]       = useState('');
   const [loading, setLoading]   = useState(false);
-  const [verifyEmail, setVerifyEmail] = useState(''); // set after successful registration
+  const [verifyEmail, setVerifyEmail]       = useState('');
+  const [emailSentOk, setEmailSentOk]       = useState(true);
+  const [resendLoading, setResendLoading]   = useState(false);
+  const [resendMsg, setResendMsg]           = useState('');
+  const [resendErr, setResendErr]           = useState('');
   const f = k => e => setForm({ ...form, [k]: e.target.value });
 
   const pwStrength = checkPasswordStrength(form.password);
@@ -26,6 +31,7 @@ export default function RegisterClient() {
       const result = await register({ ...form, role: 'client' });
       if (result.requires_verification) {
         setVerifyEmail(form.email);
+        setEmailSentOk(result.email_sent !== false);
         return;
       }
       navigate(searchParams.get('next') || '/user/dashboard');
@@ -35,22 +41,84 @@ export default function RegisterClient() {
     } finally { setLoading(false); }
   };
 
+  const handleResend = async () => {
+    setResendLoading(true); setResendMsg(''); setResendErr('');
+    try {
+      const r = await api.post('/auth/resend-verification/', { email: verifyEmail });
+      setResendMsg(r.data.message || 'Verification email sent!');
+      setEmailSentOk(true);
+    } catch (e) {
+      setResendErr(e.response?.data?.detail || 'Failed to send. Please try again.');
+    } finally { setResendLoading(false); }
+  };
+
   if (verifyEmail) return (
     <div style={s.page}>
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 32 }}>
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 22, padding: '48px 40px', maxWidth: 440, width: '100%', textAlign: 'center', boxShadow: '0 20px 56px rgba(13,148,136,.1)' }}>
-          <div style={{ fontSize: 48, marginBottom: 18 }}>📬</div>
-          <h2 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 30, fontWeight: 700, color: 'var(--text)', margin: '0 0 12px' }}>Check your email</h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: 15, lineHeight: 1.7, margin: '0 0 8px' }}>
-            We sent a verification link to
-          </p>
-          <p style={{ color: '#0D9488', fontWeight: 700, fontSize: 15, margin: '0 0 24px', wordBreak: 'break-all' }}>{verifyEmail}</p>
-          <p style={{ color: 'var(--text-muted)', fontSize: 13, lineHeight: 1.6, margin: '0 0 28px' }}>
-            Click the link in that email to activate your account. Check your spam folder if you don't see it.
-          </p>
-          <Link to="/login" style={{ display: 'inline-block', padding: '12px 32px', background: 'linear-gradient(135deg,#0D9488,#14B8A8)', color: '#fff', borderRadius: 12, textDecoration: 'none', fontWeight: 600, fontSize: 14 }}>
-            Go to Login
-          </Link>
+
+          <div style={{ fontSize: 48, marginBottom: 18 }}>{emailSentOk ? '📬' : '⚠️'}</div>
+          <h2 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 30, fontWeight: 700, color: 'var(--text)', margin: '0 0 12px' }}>
+            {emailSentOk ? 'Check your email' : 'Could not send email'}
+          </h2>
+
+          {emailSentOk ? (
+            <>
+              <p style={{ color: 'var(--text-muted)', fontSize: 15, lineHeight: 1.7, margin: '0 0 8px' }}>
+                We sent a verification link to
+              </p>
+              <p style={{ color: '#0D9488', fontWeight: 700, fontSize: 15, margin: '0 0 24px', wordBreak: 'break-all' }}>{verifyEmail}</p>
+              <p style={{ color: 'var(--text-muted)', fontSize: 13, lineHeight: 1.6, margin: '0 0 24px' }}>
+                Click the link in that email to activate your account. Check your spam folder if you don't see it.
+              </p>
+            </>
+          ) : (
+            <>
+              <p style={{ color: 'var(--text-muted)', fontSize: 14, lineHeight: 1.7, margin: '0 0 8px' }}>
+                Your account was created but we couldn't send the verification email to
+              </p>
+              <p style={{ color: '#0D9488', fontWeight: 700, fontSize: 15, margin: '0 0 16px', wordBreak: 'break-all' }}>{verifyEmail}</p>
+              <p style={{ color: 'var(--text-muted)', fontSize: 13, lineHeight: 1.6, margin: '0 0 24px' }}>
+                Click the button below to try sending it again.
+              </p>
+            </>
+          )}
+
+          {/* Resend section */}
+          {resendMsg && (
+            <div style={{ background: '#F0FDF4', border: '1px solid #86EFAC', borderRadius: 10, padding: '10px 14px', fontSize: 13, color: '#166534', marginBottom: 16 }}>
+              ✓ {resendMsg}
+            </div>
+          )}
+          {resendErr && (
+            <div style={{ background: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: 10, padding: '10px 14px', fontSize: 13, color: '#DC2626', marginBottom: 16 }}>
+              {resendErr}
+            </div>
+          )}
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {!emailSentOk && (
+              <button
+                onClick={handleResend}
+                disabled={resendLoading}
+                style={{ padding: '13px 32px', background: 'linear-gradient(135deg,#0D9488,#14B8A8)', color: '#fff', border: 'none', borderRadius: 12, fontWeight: 700, fontSize: 14, cursor: 'pointer', opacity: resendLoading ? 0.7 : 1, fontFamily: "'DM Sans', sans-serif" }}
+              >
+                {resendLoading ? 'Sending…' : '↺ Resend Verification Email'}
+              </button>
+            )}
+            {emailSentOk && !resendMsg && (
+              <button
+                onClick={handleResend}
+                disabled={resendLoading}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#0D9488', fontSize: 13, fontWeight: 600, padding: '4px 0', textDecoration: 'underline', fontFamily: "'DM Sans', sans-serif", opacity: resendLoading ? 0.6 : 1 }}
+              >
+                {resendLoading ? 'Sending…' : "Didn't receive it? Resend"}
+              </button>
+            )}
+            <Link to="/login" style={{ display: 'inline-block', padding: '12px 32px', background: emailSentOk ? 'linear-gradient(135deg,#0D9488,#14B8A8)' : 'transparent', color: emailSentOk ? '#fff' : '#0D9488', border: emailSentOk ? 'none' : '1.5px solid #0D9488', borderRadius: 12, textDecoration: 'none', fontWeight: 600, fontSize: 14 }}>
+              Go to Login
+            </Link>
+          </div>
         </div>
       </div>
     </div>

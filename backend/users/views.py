@@ -108,14 +108,22 @@ class RegisterView(APIView):
         if serializer.is_valid():
             user = serializer.save()
             if user.role == 'client':
+                email_sent = True
                 try:
                     _send_verification_email(user)
                 except Exception as e:
-                    print(f"[EMAIL ERROR] {e}")
-                return Response(
-                    {'message': 'Account created. Please check your email to verify your account.', 'requires_verification': True},
-                    status=status.HTTP_201_CREATED,
-                )
+                    logger.error('Verification email failed for %s: %s', user.email, e)
+                    email_sent = False
+                return Response({
+                    'message': (
+                        'Account created. Please check your email to verify your account.'
+                        if email_sent else
+                        'Account created, but we could not send the verification email. '
+                        'Please use the resend option on the login page.'
+                    ),
+                    'requires_verification': True,
+                    'email_sent': email_sent,
+                }, status=status.HTTP_201_CREATED)
             # Non-client roles (employees created internally etc.) — auto-login
             refresh = RefreshToken.for_user(user)
             return Response({
@@ -178,13 +186,19 @@ class ResendVerificationView(APIView):
         email = request.data.get('email', '').strip()
         try:
             user = CustomUser.objects.get(email=email)
-            if not user.email_verified:
-                _send_verification_email(user)
+            if user.email_verified:
+                return Response({'message': 'This email is already verified. You can log in.'})
+            _send_verification_email(user)
+            return Response({'message': 'Verification email sent! Check your inbox (and spam folder).'})
         except CustomUser.DoesNotExist:
-            pass
+            # Return same message to avoid email enumeration
+            return Response({'message': 'If that email is registered and unverified, a new link has been sent.'})
         except Exception as e:
-            print(f"[EMAIL ERROR] {e}")
-        return Response({'message': 'If that email is registered and unverified, a new link has been sent.'})
+            logger.error('Resend verification failed for %s: %s', email, e)
+            return Response(
+                {'detail': 'Could not send verification email. Please check your email address or try again later.'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
 
 class ForgotPasswordView(APIView):

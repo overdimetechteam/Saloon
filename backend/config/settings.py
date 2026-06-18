@@ -169,16 +169,25 @@ if not DEBUG:
 # Set in .env and in Render environment variables.
 FIELD_ENCRYPTION_KEY = os.getenv('FIELD_ENCRYPTION_KEY', '')
 
-# Email — Gmail SMTP (set EMAIL_HOST_USER + EMAIL_HOST_PASSWORD in .env / Render)
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER     = os.getenv('EMAIL_HOST_USER', '')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
-DEFAULT_FROM_EMAIL  = f'Saloon <{os.getenv("EMAIL_HOST_USER", "noreply@saloon.lk")}>'
+# Email — Gmail SMTP when credentials are present; console fallback otherwise
+# Required Render env vars: EMAIL_HOST_USER, EMAIL_HOST_PASSWORD, FRONTEND_URL
+_email_user = os.getenv('EMAIL_HOST_USER', '')
+if _email_user:
+    EMAIL_BACKEND       = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST          = 'smtp.gmail.com'
+    EMAIL_PORT          = 587
+    EMAIL_USE_TLS       = True
+    EMAIL_HOST_USER     = _email_user
+    EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+    DEFAULT_FROM_EMAIL  = f'Saloon <{_email_user}>'
+else:
+    # No SMTP credentials — print to console so dev logs show the email body.
+    # Set EMAIL_HOST_USER + EMAIL_HOST_PASSWORD on Render to enable real delivery.
+    EMAIL_BACKEND      = 'django.core.mail.backends.console.EmailBackend'
+    DEFAULT_FROM_EMAIL = 'noreply@saloon.lk'
 
-# Frontend base URL — used in email links
+# Frontend base URL — used in every email link. MUST be set on Render.
+# e.g. https://saloon-frontend-67z0.onrender.com
 FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:5173')
 
 # PayHere payment gateway
