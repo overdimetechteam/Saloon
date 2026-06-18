@@ -16,6 +16,7 @@ export default function RegisterClient() {
   const [loading, setLoading]   = useState(false);
   const [verifyEmail, setVerifyEmail]       = useState('');
   const [emailSentOk, setEmailSentOk]       = useState(true);
+  const [alreadyExists, setAlreadyExists]   = useState(false);
   const [resendLoading, setResendLoading]   = useState(false);
   const [resendMsg, setResendMsg]           = useState('');
   const [resendErr, setResendErr]           = useState('');
@@ -32,12 +33,17 @@ export default function RegisterClient() {
       if (result.requires_verification) {
         setVerifyEmail(form.email);
         setEmailSentOk(result.email_sent !== false);
+        setAlreadyExists(result.already_exists === true);
         return;
       }
       navigate(searchParams.get('next') || '/user/dashboard');
     } catch (err) {
       const data = err.response?.data;
-      setError(typeof data === 'string' ? data : Object.values(data || {}).flat().join(' '));
+      if (data?.email) {
+        setError(Array.isArray(data.email) ? data.email[0] : data.email);
+      } else {
+        setError(typeof data === 'string' ? data : Object.values(data || {}).flat().join(' '));
+      }
     } finally { setLoading(false); }
   };
 
@@ -59,13 +65,15 @@ export default function RegisterClient() {
 
           <div style={{ fontSize: 48, marginBottom: 18 }}>{emailSentOk ? '📬' : '⚠️'}</div>
           <h2 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 30, fontWeight: 700, color: 'var(--text)', margin: '0 0 12px' }}>
-            {emailSentOk ? 'Check your email' : 'Could not send email'}
+            {!emailSentOk ? 'Could not send email' : alreadyExists ? 'Verification resent' : 'Check your email'}
           </h2>
 
           {emailSentOk ? (
             <>
               <p style={{ color: 'var(--text-muted)', fontSize: 15, lineHeight: 1.7, margin: '0 0 8px' }}>
-                We sent a verification link to
+                {alreadyExists
+                  ? 'This email is already registered but not yet verified. We\'ve resent the link to'
+                  : 'We sent a verification link to'}
               </p>
               <p style={{ color: '#0D9488', fontWeight: 700, fontSize: 15, margin: '0 0 24px', wordBreak: 'break-all' }}>{verifyEmail}</p>
               <p style={{ color: 'var(--text-muted)', fontSize: 13, lineHeight: 1.6, margin: '0 0 24px' }}>

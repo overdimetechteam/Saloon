@@ -104,6 +104,38 @@ class RegisterView(APIView):
     throttle_classes   = [RegisterThrottle]
 
     def post(self, request):
+        email = request.data.get('email', '').strip().lower()
+
+        # Handle duplicate email before the serializer runs so we can give
+        # a meaningful response instead of a raw validation error.
+        existing = CustomUser.objects.filter(email__iexact=email).first()
+        if existing:
+            if not existing.email_verified and existing.role == 'client':
+                # Account exists but was never verified — resend the link.
+                email_sent = True
+                try:
+                    _send_verification_email(existing)
+                except Exception as e:
+                    logger.error('Verification resend failed for %s: %s', email, e)
+                    email_sent = False
+                return Response({
+                    'message': (
+                        'This email is already registered but not yet verified. '
+                        'We\'ve resent the verification link — check your inbox.'
+                        if email_sent else
+                        'This email is already registered but not yet verified. '
+                        'Please use the resend option to get a new link.'
+                    ),
+                    'requires_verification': True,
+                    'email_sent': email_sent,
+                    'already_exists': True,
+                }, status=status.HTTP_200_OK)
+            # Already fully registered and verified.
+            return Response(
+                {'email': ['An account with this email already exists. Please log in.']},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
