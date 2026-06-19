@@ -154,6 +154,49 @@ class InitiatePaymentView(APIView):
         })
 
 
+class MockSubscribeView(APIView):
+    """
+    POST /api/payments/mock-subscribe/
+    TEMPORARY — bypasses PayHere and directly activates a subscription.
+    Remove when real payment processing is re-enabled.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        from subscriptions.models import PLANS
+        plan_key = request.data.get('plan', '')
+        if plan_key not in PLANS or plan_key == 'free_trial':
+            return Response({'detail': 'Invalid plan.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        salon = Salon.objects.filter(owner=request.user).first()
+        if not salon:
+            return Response({'detail': 'Salon not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        plan_info = PLANS[plan_key]
+        order_id  = f"MOCK-{uuid.uuid4().hex[:10].upper()}"
+
+        payment = Payment.objects.create(
+            order_id=order_id,
+            payment_type='subscription',
+            amount=plan_info['price'],
+            plan=plan_key,
+            user=request.user,
+            salon=salon,
+            status='completed',
+        )
+        _activate_subscription(payment)
+
+        from subscriptions.models import Subscription
+        sub = Subscription.objects.filter(salon=salon).first()
+        return Response({
+            'detail': f'Subscribed to {plan_info["name"]} successfully.',
+            'plan': plan_key,
+            'expires_at': sub.expires_at.isoformat() if sub and sub.expires_at else None,
+        })
+
+
+# ── PayHere webhook (disabled while mock payments are active) ─────────────────
+
 @method_decorator(csrf_exempt, name='dispatch')
 class NotifyView(APIView):
     """

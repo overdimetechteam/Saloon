@@ -36,86 +36,140 @@ const FEATURE_ROWS = [
   { key: 'priority_support',       label: 'Priority Support',       fmt: v => v ? '✓' : '—' },
 ];
 
-/* ─── PayHere redirect helper ────────────────────────────────────────── */
-function submitToPayHere(data) {
-  const form = document.createElement('form');
-  form.method = 'POST';
-  form.action = data.checkout_url;
-  const fields = [
-    'merchant_id','return_url','cancel_url','notify_url',
-    'order_id','items','currency','amount',
-    'first_name','last_name','email','phone',
-    'address','city','country','hash',
-  ];
-  fields.forEach(k => {
-    const inp = document.createElement('input');
-    inp.type = 'hidden'; inp.name = k; inp.value = data[k] ?? '';
-    form.appendChild(inp);
-  });
-  document.body.appendChild(form);
-  form.submit();
+/* ─── Mock payment modal (PayHere disabled temporarily) ─────────────── */
+function formatCard(v) {
+  return v.replace(/\D/g, '').slice(0, 16).replace(/(.{4})/g, '$1 ').trim();
+}
+function formatExpiry(v) {
+  const d = v.replace(/\D/g, '').slice(0, 4);
+  return d.length > 2 ? d.slice(0, 2) + '/' + d.slice(2) : d;
 }
 
-/* ─── Payment modal ──────────────────────────────────────────────────── */
-function PaymentModal({ plan, planKey, onClose }) {
+function PaymentModal({ plan, planKey, onClose, onSuccess }) {
+  const [card,    setCard]    = useState('');
+  const [expiry,  setExpiry]  = useState('');
+  const [cvv,     setCvv]     = useState('');
+  const [name,    setName]    = useState('');
   const [error,   setError]   = useState('');
   const [loading, setLoading] = useState(false);
+  const [done,    setDone]    = useState(false);
   const color = PLAN_COLORS[planKey];
 
-  const handlePay = async () => {
-    setError(''); setLoading(true);
+  const handlePay = async (e) => {
+    e.preventDefault();
+    setError('');
+    if (card.replace(/\s/g, '').length < 16) { setError('Enter a valid 16-digit card number.'); return; }
+    if (expiry.length < 5) { setError('Enter a valid expiry date (MM/YY).'); return; }
+    if (cvv.length < 3)    { setError('Enter a valid CVV.'); return; }
+    if (!name.trim())      { setError('Enter the cardholder name.'); return; }
+
+    setLoading(true);
     try {
-      const r = await api.post('/payments/initiate/', { type: 'subscription', plan: planKey });
-      submitToPayHere(r.data);
-      // Page navigates away — no need to setLoading(false)
+      await api.post('/payments/mock-subscribe/', { plan: planKey });
+      setDone(true);
+      setTimeout(() => { onSuccess(); onClose(); }, 1800);
     } catch (err) {
-      setError(err.response?.data?.detail || 'Could not start payment. Please try again.');
+      setError(err.response?.data?.detail || 'Payment failed. Please try again.');
       setLoading(false);
     }
   };
 
   return createPortal(
-    <div style={pm.overlay} onClick={e => e.target === e.currentTarget && onClose()}>
+    <div style={pm.overlay} onClick={e => e.target === e.currentTarget && !done && onClose()}>
       <div style={pm.modal}>
         <div style={{ ...pm.header, background: `linear-gradient(135deg, ${color}22, ${color}08)`, borderBottom: `1px solid ${color}30` }}>
           <div>
             <div style={{ fontSize: 11, fontWeight: 700, color, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 4 }}>
-              Subscribe via PayHere
+              {PLAN_META[planKey]?.icon} {plan.name} Plan
             </div>
-            <div style={pm.title}>{PLAN_META[planKey]?.icon} {plan.name}</div>
             <div style={{ fontSize: 22, fontWeight: 900, color: 'var(--text)', marginTop: 4 }}>
               LKR {plan.price.toLocaleString()}
               <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-muted)' }}> / month</span>
             </div>
           </div>
-          <button style={pm.closeBtn} onClick={onClose}>✕</button>
+          <button style={pm.closeBtn} onClick={onClose} disabled={done}>✕</button>
         </div>
 
-        <div style={pm.form}>
-          {error && <div style={pm.error}>{error}</div>}
-
-          <div style={pm.summary}>
-            <div style={pm.summaryRow}><span>Plan</span><span style={{ fontWeight: 700 }}>{plan.name}</span></div>
-            <div style={pm.summaryRow}><span>Duration</span><span>30 days</span></div>
-            <div style={{ ...pm.summaryRow, borderTop: '1.5px solid var(--border)', paddingTop: 10, marginTop: 4 }}>
-              <span style={{ fontWeight: 700 }}>Total</span>
-              <span style={{ fontWeight: 900, fontSize: 17, color: 'var(--text)' }}>LKR {plan.price.toLocaleString()}</span>
+        {done ? (
+          <div style={{ padding: '40px 28px', textAlign: 'center' }}>
+            <div style={{ fontSize: 52, marginBottom: 12 }}>✅</div>
+            <div style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 22, fontWeight: 700, color: 'var(--text)', marginBottom: 8 }}>
+              Payment Successful!
             </div>
+            <div style={{ fontSize: 14, color: 'var(--text-muted)' }}>Activating your {plan.name} plan…</div>
           </div>
+        ) : (
+          <form style={pm.form} onSubmit={handlePay}>
+            {error && <div style={pm.error}>{error}</div>}
 
-          <div style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.7, marginBottom: 20, padding: '12px 14px', background: 'rgba(13,148,136,.06)', borderRadius: 10, border: '1px solid rgba(13,148,136,.15)' }}>
-            🔐 You'll be redirected to <strong style={{ color: 'var(--text)' }}>PayHere</strong> to complete your payment securely with your card, bank account, or mobile wallet.
-          </div>
+            <div style={pm.summary}>
+              <div style={pm.summaryRow}><span>Plan</span><span style={{ fontWeight: 700 }}>{plan.name}</span></div>
+              <div style={pm.summaryRow}><span>Duration</span><span>30 days</span></div>
+              <div style={{ ...pm.summaryRow, borderTop: '1.5px solid var(--border)', paddingTop: 10, marginTop: 4 }}>
+                <span style={{ fontWeight: 700 }}>Total</span>
+                <span style={{ fontWeight: 900, fontSize: 17, color: 'var(--text)' }}>LKR {plan.price.toLocaleString()}</span>
+              </div>
+            </div>
 
-          <button
-            style={{ ...pm.payBtn, background: `linear-gradient(135deg, ${color}, ${color}cc)`, opacity: loading ? 0.75 : 1 }}
-            onClick={handlePay}
-            disabled={loading}
-          >
-            {loading ? 'Redirecting to PayHere…' : `Pay LKR ${plan.price.toLocaleString()} via PayHere`}
-          </button>
-          <p style={pm.disclaimer}>🔒 Secured by PayHere · LKR · Sri Lanka</p>
-        </div>
+            {/* Mock card form */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div style={pm.fieldWrap}>
+                <label style={pm.label}>Card Number</label>
+                <input
+                  style={pm.input}
+                  placeholder="1234 5678 9012 3456"
+                  value={card}
+                  onChange={e => setCard(formatCard(e.target.value))}
+                  maxLength={19}
+                  inputMode="numeric"
+                />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div style={pm.fieldWrap}>
+                  <label style={pm.label}>Expiry Date</label>
+                  <input
+                    style={pm.input}
+                    placeholder="MM/YY"
+                    value={expiry}
+                    onChange={e => setExpiry(formatExpiry(e.target.value))}
+                    maxLength={5}
+                    inputMode="numeric"
+                  />
+                </div>
+                <div style={pm.fieldWrap}>
+                  <label style={pm.label}>CVV</label>
+                  <input
+                    style={pm.input}
+                    placeholder="123"
+                    value={cvv}
+                    onChange={e => setCvv(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                    maxLength={4}
+                    inputMode="numeric"
+                    type="password"
+                  />
+                </div>
+              </div>
+              <div style={pm.fieldWrap}>
+                <label style={pm.label}>Cardholder Name</label>
+                <input
+                  style={pm.input}
+                  placeholder="Name on card"
+                  value={name}
+                  onChange={e => setName(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              style={{ ...pm.payBtn, background: `linear-gradient(135deg, ${color}, ${color}cc)`, opacity: loading ? 0.75 : 1, marginTop: 20 }}
+              disabled={loading}
+            >
+              {loading ? 'Processing…' : `Pay LKR ${plan.price.toLocaleString()}`}
+            </button>
+            <p style={pm.disclaimer}>🔒 Secure payment · LKR · Sri Lanka</p>
+          </form>
+        )}
       </div>
     </div>,
     document.body
@@ -134,6 +188,9 @@ const pm = {
   summaryRow: { display: 'flex', justifyContent: 'space-between', fontSize: 14, color: 'var(--text)', marginBottom: 6 },
   payBtn:     { width: '100%', padding: '14px', border: 'none', borderRadius: 12, color: '#fff', fontSize: 15, fontWeight: 800, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", boxShadow: '0 6px 20px rgba(0,0,0,.2)' },
   disclaimer: { textAlign: 'center', fontSize: 11, color: 'var(--text-muted)', marginTop: 10 },
+  fieldWrap:  { display: 'flex', flexDirection: 'column', gap: 6 },
+  label:      { fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' },
+  input:      { padding: '11px 14px', border: '1.5px solid var(--border)', borderRadius: 10, fontSize: 14, background: 'var(--input-bg)', color: 'var(--text)', fontFamily: "'DM Sans', sans-serif", outline: 'none', width: '100%', boxSizing: 'border-box' },
 };
 
 /* ─── Cancel confirmation modal ─────────────────────────────────────── */
@@ -440,6 +497,10 @@ export default function OwnerSubscription() {
           plan={payModal.plan}
           planKey={payModal.key}
           onClose={() => setPayModal(null)}
+          onSuccess={() => {
+            load();
+            api.get('/owner/salon/').then(r => setSalon(r.data)).catch(() => {});
+          }}
         />
       )}
 
