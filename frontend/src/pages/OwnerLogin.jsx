@@ -26,7 +26,9 @@ export default function OwnerLogin() {
         setError('This portal is for salon owners only. Please use the Customer portal instead.');
         return;
       }
-      navigate('/owner/dashboard');
+      // Use full-page navigation so React re-initialises from sessionStorage —
+      // avoids the RequireRole timing race between setProfile and navigate().
+      window.location.href = '/owner/dashboard';
     } catch (err) {
       setError(err.response?.data?.detail || 'Invalid email or password');
     } finally { setLoading(false); }
@@ -42,7 +44,7 @@ export default function OwnerLogin() {
           return;
         }
         socialLogin(data);
-        navigate('/owner/dashboard');
+        window.location.href = '/owner/dashboard';
       } catch (err) {
         setError(err.response?.data?.detail || 'Google sign-in failed.');
       } finally { setGLoading(false); }

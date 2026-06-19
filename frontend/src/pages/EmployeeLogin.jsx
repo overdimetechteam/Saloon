@@ -23,7 +23,7 @@ export default function EmployeeLogin() {
         setError('This portal is for salon employees only.');
         return;
       }
-      navigate('/employee/profile');
+      window.location.href = '/employee/profile';
     } catch (err) {
       setError(err.response?.data?.detail || 'Invalid email or password');
     } finally { setLoading(false); }
