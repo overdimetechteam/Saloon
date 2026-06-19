@@ -62,7 +62,7 @@ export default function PortalSelect() {
             }}
             onMouseEnter={() => setHovered('owner')}
             onMouseLeave={() => setHovered(null)}
-            onClick={() => navigate('/owner/login')}
+            onClick={() => navigate('/salon-portal')}
           >
             <div style={{ ...s.cardIcon, background: 'linear-gradient(135deg,#92701a,#D4AF37)' }}>
               <span style={s.iconGlyph}>◉</span>
@@ -78,7 +78,7 @@ export default function PortalSelect() {
             </div>
             <button
               style={{ ...s.cardBtn, background: 'linear-gradient(135deg,#92701a,#D4AF37)', color: '#1a1200' }}
-              onClick={e => { e.stopPropagation(); navigate('/owner/login'); }}
+              onClick={e => { e.stopPropagation(); navigate('/salon-portal'); }}
             >
               Continue as Owner →
             </button>

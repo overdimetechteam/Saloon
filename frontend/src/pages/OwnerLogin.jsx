@@ -84,7 +84,7 @@ export default function OwnerLogin() {
         <div style={s.formWrap}>
 
           {/* Back link */}
-          <button style={s.backBtn} onClick={() => navigate('/portal')}>
+          <button style={s.backBtn} onClick={() => navigate('/salon-portal')}>
             ← Back to portal select
           </button>
 
