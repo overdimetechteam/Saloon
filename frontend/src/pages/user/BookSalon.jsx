@@ -57,6 +57,7 @@ export default function BookSalon() {
   const [hvCity, setHvCity] = useState('');
   const [hvDistrict, setHvDistrict] = useState('');
   const [hvPostal, setHvPostal] = useState('');
+  const [activeCat, setActiveCat] = useState('All');
 
   useEffect(() => {
     api.get(`/salons/${salonId}/`).then(r => setSalon(r.data)).catch(() => {});
@@ -193,7 +194,10 @@ export default function BookSalon() {
     </div>
   );
 
-  const displayServices = homeVisit ? services.filter(ss => ss.home_visit_available) : services;
+  const CAT_COLORS_BOOK = { Hair: '#0D9488', Nails: '#D4AF37', Skin: '#0B7A70', Makeup: '#C96B51', Bridal: '#BE123C', Other: '#6B7280' };
+  const allDisplayServices = homeVisit ? services.filter(ss => ss.home_visit_available) : services;
+  const availableCats = ['All', ...Array.from(new Set(allDisplayServices.map(ss => ss.service_category).filter(Boolean)))];
+  const displayServices = activeCat === 'All' ? allDisplayServices : allDisplayServices.filter(ss => ss.service_category === activeCat);
   const selectedDayName = date ? new Date(date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase() : null;
   const selectedCategories = [...new Set(services.filter(ss => selected.includes(ss.id)).map(ss => ss.service_category).filter(Boolean))];
   const displayStaff = (homeVisit ? staffList.filter(m => m.home_visit_available) : staffList)
@@ -204,6 +208,7 @@ export default function BookSalon() {
       return selectedCategories.some(cat => m.specialty_categories.includes(cat));
     });
   const selectedServices = services.filter(ss => selected.includes(ss.id));
+  const hasStartingFrom = selectedServices.some(ss => ss.is_price_starting_from);
   const total = selectedServices.reduce((sum, ss) => sum + Number(ss.effective_price), 0);
   const discount = promoResult?.valid ? Number(promoResult.discount_amount) : 0;
   const finalTotal = Math.max(0, total - discount);
@@ -330,9 +335,9 @@ export default function BookSalon() {
                   </svg>
                 </div>
                 <div>
-                  <div style={conf.detailLabel}>Total</div>
+                  <div style={conf.detailLabel}>{hasStartingFrom ? 'Approximately Total' : 'Total'}</div>
                   <div style={{ ...conf.detailVal, color: TL, fontWeight: 700 }}>
-                    LKR {finalTotal.toFixed(2)}
+                    {hasStartingFrom && '~ '}LKR {finalTotal.toFixed(2)}
                     {promoResult?.valid && (
                       <span style={{ fontSize: 11, color: TL, marginLeft: 8, fontWeight: 500 }}>(promo applied)</span>
                     )}
@@ -446,10 +451,37 @@ export default function BookSalon() {
                   🏠 Showing only services available for home visits
                 </div>
               )}
+              {/* Category tabs */}
+              {availableCats.length > 2 && (
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
+                  {availableCats.map(cat => {
+                    const catColor = cat === 'All' ? pal.main : (CAT_COLORS_BOOK[cat] || '#6B7280');
+                    const isOn = activeCat === cat;
+                    return (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={() => setActiveCat(cat)}
+                        style={{
+                          padding: '5px 14px', borderRadius: 20, cursor: 'pointer', fontSize: 12, fontWeight: 700,
+                          border: `1.5px solid ${isOn ? catColor : 'var(--border)'}`,
+                          background: isOn ? catColor : 'transparent',
+                          color: isOn ? '#fff' : catColor,
+                          transition: 'all .15s ease',
+                        }}
+                      >
+                        {cat}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
               <div style={s.serviceScrollBox}>
                 <div style={s.serviceGrid}>
                   {displayServices.map(ss => {
                     const on = selected.includes(ss.id);
+                    const catColor = CAT_COLORS_BOOK[ss.service_category] || pal.main;
                     return (
                       <label key={ss.id} style={{ ...s.serviceCard, ...(on ? { ...s.serviceCardOn, border: `2px solid ${pal.main}`, background: `linear-gradient(135deg, rgba(${R},.05) 0%, rgba(${R},.02) 100%)`, boxShadow: `0 3px 12px rgba(${R},.12)` } : {}) }}>
                         <input type="checkbox" checked={on} onChange={() => toggleService(ss.id)} style={{ display: 'none' }} />
@@ -457,7 +489,7 @@ export default function BookSalon() {
                           <div style={{ ...s.checkBox, ...(on ? { ...s.checkBoxOn, background: pal.main, borderColor: 'transparent' } : {}) }}>{on && '✓'}</div>
                         </div>
                         <div style={s.svcInfo}>
-                          <div style={s.svcName}>{ss.service_name}</div>
+                          <div style={{ ...s.svcName, color: catColor }}>{ss.service_name}</div>
                           {ss.description ? (
                             <div style={s.svcDesc}>{ss.description}</div>
                           ) : null}
@@ -718,8 +750,13 @@ export default function BookSalon() {
                   </div>
                 )}
                 <div style={{ ...s.sumTotal, borderTop: `1.5px solid rgba(${R},.15)` }}>
-                  <span style={{ fontWeight: 600, color: 'var(--text-sub)', fontSize: 13 }}>Total</span>
-                  <span style={s.sumTotalVal}>LKR {finalTotal.toFixed(2)}</span>
+                  <span style={{ fontWeight: 600, color: 'var(--text-sub)', fontSize: 13 }}>
+                    {hasStartingFrom ? 'Approximately Total' : 'Total'}
+                  </span>
+                  <span style={s.sumTotalVal}>
+                    {hasStartingFrom && <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-muted)', marginRight: 3 }}>~</span>}
+                    LKR {finalTotal.toFixed(2)}
+                  </span>
                 </div>
               </>
             )}

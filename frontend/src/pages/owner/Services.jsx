@@ -98,6 +98,7 @@ export default function OwnerServices() {
   const [showCreate, setShowCreate] = useState(false);
   const [form, setForm] = useState({ name: '', category: 'Hair', price: '', duration: '', description: '', is_price_starting_from: false });
   const [creating, setCreating] = useState(false);
+  const [sortOrder, setSortOrder] = useState('oldest');
   // Removal confirmation state
   const [removeTarget, setRemoveTarget] = useState(null); // { ss, assignedStaff[] }
   const [removing, setRemoving] = useState(false);
@@ -227,6 +228,15 @@ export default function OwnerServices() {
               Attach
             </button>
           </div>
+          <select
+            style={{ ...s.select, minWidth: 160 }}
+            value={sortOrder}
+            onChange={e => setSortOrder(e.target.value)}
+            title="Sort order"
+          >
+            <option value="oldest">Oldest First</option>
+            <option value="newest">Newest First</option>
+          </select>
           <button style={{ ...s.createBtn, width: isMobile ? '100%' : 'auto' }} onClick={() => setShowCreate(o => !o)}>
             {showCreate ? '✕ Cancel' : '+ Create Custom'}
           </button>
@@ -304,8 +314,9 @@ export default function OwnerServices() {
         </div>
       )}
 
-      {Object.entries(grouped).map(([cat, items]) => {
+      {Object.entries(grouped).map(([cat, rawItems]) => {
         const color = CAT_COLORS[cat] || '#0D9488';
+        const items = [...rawItems].sort((a, b) => sortOrder === 'newest' ? b.id - a.id : a.id - b.id);
         return (
           <div key={cat} style={s.catSection}>
             <div style={s.catHeader}>

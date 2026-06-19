@@ -118,10 +118,13 @@ export default function StaffManager() {
               <button style={s.closeBtn} onClick={() => setShowCreate(false)}>✕</button>
             </div>
             {createErr && <div style={s.errMsg}>{createErr}</div>}
-            <form onSubmit={handleCreate} style={s.form}>
+            <form onSubmit={handleCreate} style={s.form} autoComplete="off">
+              {/* Hidden honeypot fields — prevents browser from autofilling staff credentials with saved logins */}
+              <input type="text" style={{ display: 'none' }} aria-hidden="true" tabIndex={-1} />
+              <input type="password" style={{ display: 'none' }} aria-hidden="true" tabIndex={-1} />
               <div style={s.row2}>
                 <Field label="Full Name" required>
-                  <input style={s.input} value={createForm.full_name} onChange={e => setCreateForm({ ...createForm, full_name: e.target.value })} required />
+                  <input style={s.input} value={createForm.full_name} onChange={e => setCreateForm({ ...createForm, full_name: e.target.value })} required autoComplete="off" />
                 </Field>
                 <Field label="Role">
                   <select style={s.input} value={createForm.role} onChange={e => setCreateForm({ ...createForm, role: e.target.value })}>
@@ -130,7 +133,7 @@ export default function StaffManager() {
                 </Field>
               </div>
               <Field label="Phone">
-                <input style={s.input} value={createForm.phone} onChange={e => setCreateForm({ ...createForm, phone: e.target.value })} placeholder="+1 555 000 0000" />
+                <input style={s.input} value={createForm.phone} onChange={e => setCreateForm({ ...createForm, phone: e.target.value })} placeholder="+1 555 000 0000" autoComplete="off" />
               </Field>
               <Field label="Bio">
                 <textarea style={{ ...s.input, minHeight: 72, resize: 'vertical' }} value={createForm.bio} onChange={e => setCreateForm({ ...createForm, bio: e.target.value })} placeholder="Short introduction…" />
@@ -139,10 +142,10 @@ export default function StaffManager() {
               <p style={s.sectionLabel}>Login Credentials</p>
               <div style={s.row2}>
                 <Field label="Login Email" required>
-                  <input style={s.input} type="email" value={createForm.login_email} onChange={e => setCreateForm({ ...createForm, login_email: e.target.value })} required />
+                  <input style={s.input} type="email" name="staff-login-email" value={createForm.login_email} onChange={e => setCreateForm({ ...createForm, login_email: e.target.value })} required autoComplete="new-password" />
                 </Field>
                 <Field label="Password" required>
-                  <input style={s.input} type="password" value={createForm.password} onChange={e => setCreateForm({ ...createForm, password: e.target.value })} minLength={6} required />
+                  <input style={s.input} type="password" name="staff-password-new" value={createForm.password} onChange={e => setCreateForm({ ...createForm, password: e.target.value })} minLength={6} required autoComplete="new-password" />
                 </Field>
               </div>
               <div style={s.modalFooter}>
