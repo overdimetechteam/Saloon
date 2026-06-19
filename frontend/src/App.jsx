@@ -26,6 +26,7 @@ import SalonCosmetics from './pages/SalonCosmetics';
 import ProductDetail from './pages/ProductDetail';
 
 import AdminLogin from './pages/AdminLogin';
+import AdminEmailVerified from './pages/admin/AdminEmailVerified';
 import AdminDashboard from './pages/admin/Dashboard';
 import AdminSalons from './pages/admin/Salons';
 import AdminSalonDetail from './pages/admin/SalonDetail';
@@ -238,8 +239,9 @@ export default function App() {
             <RequireEmployee><EmployeeProfileEditor /></RequireEmployee>
           } />
 
-          {/* Admin login — standalone, no auth required */}
+          {/* Admin standalone pages — no auth required */}
           <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin/email-verified" element={<AdminEmailVerified />} />
 
           {/* Admin portal — /admin/* */}
           <Route path="/admin" element={<RequireRole roles={['system_admin']} />}>

@@ -56,6 +56,19 @@ class SalonRegisterView(APIView):
                 is_active=offer_data.get('is_active', True),
             )
 
+        # Create in-app notification for every admin about the new registration
+        try:
+            from users.models import CustomUser as _CU, Notification as _Notif
+            _admins = list(_CU.objects.filter(role='system_admin'))
+            for _admin in _admins:
+                _Notif.objects.create(
+                    recipient=_admin,
+                    message=f'New salon registration: "{salon.name}" by {salon.owner.full_name or salon.owner.email} — awaiting approval.',
+                    notif_type='new_salon_registration',
+                )
+        except Exception:
+            pass
+
         # Notify admin notification email if configured and verified
         try:
             from payments.models import PlatformSettings

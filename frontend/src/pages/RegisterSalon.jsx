@@ -193,8 +193,8 @@ export default function RegisterSalon() {
     </div>
   );
 
-  const STEP_LABELS = ['Salon Details', 'Location & Owner', 'Operating Hours', 'Services & Offers'];
-  const TOTAL_STEPS = 4;
+  const STEP_LABELS = ['Salon Details', 'Location & Owner', 'Operating Hours', 'Services & Offers', 'Your Account'];
+  const TOTAL_STEPS = 5;
 
   const toMinutes = t => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
 
@@ -208,9 +208,13 @@ export default function RegisterSalon() {
         return;
       }
     }
-    if (step === 2) {
+    if (step === 4) {
       if (!pwStrength.valid) {
         setError(PASSWORD_REQUIREMENT_TEXT);
+        return;
+      }
+      if (!form.email.trim()) {
+        setError('Please enter your email address.');
         return;
       }
     }
@@ -234,7 +238,7 @@ export default function RegisterSalon() {
           <h1 style={{ ...s.title, fontSize: isMobile ? 26 : 34 }}>Register Your Salon</h1>
           <p style={s.sub}>Step {step} of {TOTAL_STEPS} — {STEP_LABELS[step - 1]}</p>
           <div style={s.stepBar}>
-            {[1,2,3,4].map(n => (
+            {[1,2,3,4,5].map(n => (
               <div key={n} style={n <= step ? s.stepActive : s.step}>
                 {n < step ? '✓' : n}
               </div>
@@ -257,15 +261,9 @@ export default function RegisterSalon() {
                 <label style={s.label}>Business Registration Number</label>
                 <input style={s.input} placeholder="BR-12345" value={form.business_reg_number} onChange={f('business_reg_number')} required />
               </div>
-              <div style={s.row2}>
-                <div style={s.field}>
-                  <label style={s.label}>Contact Number</label>
-                  <input style={s.input} value={form.contact_number} onChange={f('contact_number')} required />
-                </div>
-                <div style={s.field}>
-                  <label style={s.label}>Salon Email</label>
-                  <input style={s.input} type="email" value={form.email} onChange={f('email')} autoComplete="off" required />
-                </div>
+              <div style={s.field}>
+                <label style={s.label}>Contact Number</label>
+                <input style={s.input} value={form.contact_number} onChange={f('contact_number')} required />
               </div>
 
               {/* Gender Focus */}
@@ -352,33 +350,14 @@ export default function RegisterSalon() {
                 )}
               </div>
 
-              <h4 style={{ ...s.sectionTitle, marginTop: 28 }}>Owner Account</h4>
+              <h4 style={{ ...s.sectionTitle, marginTop: 28 }}>Owner Details</h4>
               <div style={s.field}>
                 <label style={s.label}>Your Full Name</label>
                 <input style={s.input} value={form.full_name} onChange={f('full_name')} required />
               </div>
-              <div style={s.row2}>
-                <div style={s.field}>
-                  <label style={s.label}>Your Phone</label>
-                  <input style={s.input} value={form.phone} onChange={f('phone')} />
-                </div>
-                <div style={s.field}>
-                  <label style={s.label}>Password</label>
-                  <div style={{ position: 'relative' }}>
-                    <input style={{ ...s.input, paddingRight: 44 }} type={showPw ? 'text' : 'password'} value={form.password} onChange={f('password')} autoComplete="new-password" required minLength={8} />
-                    <button type="button" onClick={() => setShowPw(v => !v)} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, color: 'var(--text-muted)', padding: '2px 4px' }}>
-                      {showPw ? '🙈' : '👁'}
-                    </button>
-                  </div>
-                  {form.password && (
-                    <div>
-                      <div style={s.pwBarTrack}>
-                        <div style={{ ...s.pwBarFill, width: `${(pwStrength.score / 5) * 100}%`, background: pwStrength.color }} />
-                      </div>
-                      <div style={{ ...s.pwLabel, color: pwStrength.color }}>{pwStrength.label}</div>
-                    </div>
-                  )}
-                </div>
+              <div style={s.field}>
+                <label style={s.label}>Your Phone</label>
+                <input style={s.input} value={form.phone} onChange={f('phone')} />
               </div>
             </div>
           )}
@@ -523,6 +502,54 @@ export default function RegisterSalon() {
                       <label style={s.label}>Note (e.g. "Starting onwards from [date]")</label>
                       <input style={s.input} placeholder="Any fine print or special message" value={offer.note} onChange={offerF('note')} />
                     </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Step 5 — Account Credentials */}
+          {step === 5 && (
+            <div style={s.fields}>
+              <div style={{ textAlign: 'center', marginBottom: 8 }}>
+                <div style={{ fontSize: 32, marginBottom: 10 }}>🔐</div>
+                <h4 style={{ ...s.sectionTitle, fontSize: 20, textAlign: 'center', marginBottom: 4 }}>Create Your Account</h4>
+                <p style={{ ...s.hint, textAlign: 'center' }}>
+                  This will be your login to manage your salon.
+                </p>
+              </div>
+              <div style={s.field}>
+                <label style={s.label}>Email Address</label>
+                <input
+                  style={s.input} type="email"
+                  placeholder="you@example.com"
+                  value={form.email} onChange={f('email')}
+                  autoComplete="email" required
+                />
+              </div>
+              <div style={s.field}>
+                <label style={s.label}>Password</label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    style={{ ...s.input, paddingRight: 44 }}
+                    type={showPw ? 'text' : 'password'}
+                    placeholder="Min. 8 characters"
+                    value={form.password} onChange={f('password')}
+                    autoComplete="new-password" required minLength={8}
+                  />
+                  <button
+                    type="button" onClick={() => setShowPw(v => !v)}
+                    style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, color: 'var(--text-muted)', padding: '2px 4px' }}
+                  >
+                    {showPw ? '🙈' : '👁'}
+                  </button>
+                </div>
+                {form.password && (
+                  <div>
+                    <div style={s.pwBarTrack}>
+                      <div style={{ ...s.pwBarFill, width: `${(pwStrength.score / 5) * 100}%`, background: pwStrength.color }} />
+                    </div>
+                    <div style={{ ...s.pwLabel, color: pwStrength.color }}>{pwStrength.label}</div>
                   </div>
                 )}
               </div>

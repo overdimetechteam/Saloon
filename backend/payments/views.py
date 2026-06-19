@@ -438,4 +438,4 @@ class VerifyNotificationEmailView(APIView):
         ps.save()
 
         frontend_url = getattr(settings, 'FRONTEND_URL', 'http://localhost:5173')
-        return redirect(f'{frontend_url}/admin/settings?email_verified=1')
+        return redirect(f'{frontend_url}/admin/email-verified')
