@@ -13,7 +13,7 @@ export default function SalonPortalSelect() {
         <p style={s.sub}>Choose how you'd like to continue</p>
 
         <div style={s.options}>
-          <button style={s.optionBtn} onClick={() => navigate('/owner/dashboard')}>
+          <button style={s.optionBtn} onClick={() => navigate('/owner/login')}>
             <span style={s.optIcon}>◈</span>
             <div>
               <div style={s.optLabel}>Salon Owner Dashboard</div>

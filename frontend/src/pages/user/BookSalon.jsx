@@ -195,8 +195,11 @@ export default function BookSalon() {
   );
 
   const CAT_COLORS_BOOK = { Hair: '#0D9488', Nails: '#D4AF37', Skin: '#0B7A70', Makeup: '#C96B51', Bridal: '#BE123C', Other: '#6B7280' };
+  const CAT_ORDER = ['Hair', 'Skin', 'Nails', 'Makeup', 'Bridal', 'Other'];
   const allDisplayServices = homeVisit ? services.filter(ss => ss.home_visit_available) : services;
-  const availableCats = ['All', ...Array.from(new Set(allDisplayServices.map(ss => ss.service_category).filter(Boolean)))];
+  const rawCats = Array.from(new Set(allDisplayServices.map(ss => ss.service_category).filter(Boolean)));
+  const sortedCats = [...CAT_ORDER.filter(c => rawCats.includes(c)), ...rawCats.filter(c => !CAT_ORDER.includes(c))];
+  const availableCats = ['All', ...sortedCats];
   const displayServices = activeCat === 'All' ? allDisplayServices : allDisplayServices.filter(ss => ss.service_category === activeCat);
   const selectedDayName = date ? new Date(date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase() : null;
   const selectedCategories = [...new Set(services.filter(ss => selected.includes(ss.id)).map(ss => ss.service_category).filter(Boolean))];

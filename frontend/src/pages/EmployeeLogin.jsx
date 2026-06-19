@@ -1,14 +1,19 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export default function EmployeeLogin() {
-  const { login } = useAuth();
+  const { login, profile } = useAuth();
   const navigate  = useNavigate();
   const [form, setForm]     = useState({ email: '', password: '' });
   const [showPw, setShowPw] = useState(false);
   const [error, setError]   = useState('');
   const [loading, setLoading] = useState(false);
+
+  // If profile updates after login (state/navigation race), redirect automatically
+  useEffect(() => {
+    if (profile?.role === 'employee') navigate('/employee/profile', { replace: true });
+  }, [profile]);
 
   const handle = async e => {
     e.preventDefault(); setError(''); setLoading(true);
