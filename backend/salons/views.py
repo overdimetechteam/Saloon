@@ -169,6 +169,50 @@ class SalonApproveView(APIView):
         salon = get_object_or_404(Salon, pk=pk)
         salon.status = 'active'
         salon.save()
+
+        owner_email = getattr(salon.owner, 'email', None)
+        if owner_email:
+            send_mail(
+                subject=f'Your salon "{salon.name}" has been approved — BookMyStyle',
+                message='',
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[owner_email],
+                html_message=f'''
+                    <div style="font-family:'Helvetica Neue',Arial,sans-serif;max-width:560px;margin:40px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.08);">
+                      <div style="background:linear-gradient(135deg,#0D9488,#14B8A8);padding:32px;text-align:center;">
+                        <div style="font-size:22px;color:#fff;font-weight:900;letter-spacing:-0.02em;">✦ BookMyStyle</div>
+                        <div style="color:rgba(255,255,255,.8);font-size:11px;letter-spacing:0.2em;text-transform:uppercase;margin-top:6px;">Salon Approved</div>
+                      </div>
+                      <div style="padding:36px;">
+                        <h2 style="color:#0D9488;margin:0 0 14px;font-size:22px;font-family:Georgia,serif;">Congratulations — You're Live!</h2>
+                        <p style="color:#374151;line-height:1.7;margin:0 0 16px;">
+                          Your salon <strong>{salon.name}</strong> has been reviewed and <strong style="color:#0D9488;">approved</strong> by our team.
+                          Your profile is now publicly visible and customers can start booking appointments.
+                        </p>
+                        <div style="background:#F0FDF4;border:1px solid #86EFAC;border-radius:10px;padding:18px 22px;margin:20px 0;">
+                          <p style="margin:0 0 10px;font-weight:700;color:#166534;font-size:14px;">Next steps:</p>
+                          <ul style="margin:0;padding-left:18px;color:#374151;font-size:14px;line-height:1.8;">
+                            <li>Log in to your Owner Dashboard to complete your profile</li>
+                            <li>Add your services, pricing &amp; availability</li>
+                            <li>Upload photos of your salon</li>
+                            <li>Set up your team members</li>
+                          </ul>
+                        </div>
+                        <div style="text-align:center;margin-top:28px;">
+                          <a href="{settings.FRONTEND_URL}/owner/login"
+                             style="display:inline-block;padding:14px 36px;background:linear-gradient(135deg,#0D9488,#14B8A8);color:#fff;border-radius:10px;text-decoration:none;font-weight:700;font-size:15px;letter-spacing:0.01em;">
+                            Go to Owner Dashboard →
+                          </a>
+                        </div>
+                      </div>
+                      <div style="background:#F9FAFB;padding:14px 32px;text-align:center;border-top:1px solid #F3F4F6;">
+                        <p style="margin:0;font-size:11px;color:#9CA3AF;">© 2026 BookMyStyle · Beauty &amp; Wellness Platform</p>
+                      </div>
+                    </div>
+                ''',
+                fail_silently=True,
+            )
+
         return Response(SalonSerializer(salon).data)
 
 
@@ -179,6 +223,44 @@ class SalonRejectView(APIView):
         salon = get_object_or_404(Salon, pk=pk)
         salon.status = 'inactive'
         salon.save()
+
+        owner_email = getattr(salon.owner, 'email', None)
+        if owner_email:
+            send_mail(
+                subject=f'Update on your salon registration — BookMyStyle',
+                message='',
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[owner_email],
+                html_message=f'''
+                    <div style="font-family:'Helvetica Neue',Arial,sans-serif;max-width:560px;margin:40px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.08);">
+                      <div style="background:linear-gradient(135deg,#4B5563,#6B7280);padding:32px;text-align:center;">
+                        <div style="font-size:22px;color:#fff;font-weight:900;letter-spacing:-0.02em;">✦ BookMyStyle</div>
+                        <div style="color:rgba(255,255,255,.8);font-size:11px;letter-spacing:0.2em;text-transform:uppercase;margin-top:6px;">Registration Update</div>
+                      </div>
+                      <div style="padding:36px;">
+                        <h2 style="color:#374151;margin:0 0 14px;font-size:22px;font-family:Georgia,serif;">Registration Not Approved</h2>
+                        <p style="color:#374151;line-height:1.7;margin:0 0 16px;">
+                          Thank you for registering <strong>{salon.name}</strong> on BookMyStyle.
+                          After reviewing your application, we were unable to approve your salon at this time.
+                        </p>
+                        <div style="background:#FEF2F2;border:1px solid #FCA5A5;border-radius:10px;padding:18px 22px;margin:20px 0;">
+                          <p style="margin:0;color:#7F1D1D;font-size:14px;line-height:1.7;">
+                            If you believe this is an error or would like more information, please contact our support team.
+                            You are welcome to re-register once the issue is resolved.
+                          </p>
+                        </div>
+                        <p style="color:#6B7280;font-size:13px;line-height:1.65;margin-top:20px;">
+                          We appreciate your interest in BookMyStyle and hope to work with you in the future.
+                        </p>
+                      </div>
+                      <div style="background:#F9FAFB;padding:14px 32px;text-align:center;border-top:1px solid #F3F4F6;">
+                        <p style="margin:0;font-size:11px;color:#9CA3AF;">© 2026 BookMyStyle · Beauty &amp; Wellness Platform</p>
+                      </div>
+                    </div>
+                ''',
+                fail_silently=True,
+            )
+
         return Response(SalonSerializer(salon).data)
 
 
@@ -203,6 +285,41 @@ class SalonReactivateView(APIView):
             return Response({'detail': 'Salon is already active.'}, status=status.HTTP_400_BAD_REQUEST)
         salon.status = 'active'
         salon.save()
+
+        owner_email = getattr(salon.owner, 'email', None)
+        if owner_email:
+            send_mail(
+                subject=f'Your salon "{salon.name}" has been reactivated — BookMyStyle',
+                message='',
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[owner_email],
+                html_message=f'''
+                    <div style="font-family:'Helvetica Neue',Arial,sans-serif;max-width:560px;margin:40px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.08);">
+                      <div style="background:linear-gradient(135deg,#0D9488,#14B8A8);padding:32px;text-align:center;">
+                        <div style="font-size:22px;color:#fff;font-weight:900;letter-spacing:-0.02em;">✦ BookMyStyle</div>
+                        <div style="color:rgba(255,255,255,.8);font-size:11px;letter-spacing:0.2em;text-transform:uppercase;margin-top:6px;">Salon Reactivated</div>
+                      </div>
+                      <div style="padding:36px;">
+                        <h2 style="color:#0D9488;margin:0 0 14px;font-size:22px;font-family:Georgia,serif;">Your Salon is Active Again</h2>
+                        <p style="color:#374151;line-height:1.7;margin:0 0 16px;">
+                          Great news! Your salon <strong>{salon.name}</strong> has been <strong style="color:#0D9488;">reactivated</strong>
+                          by the platform administrator. Your salon is now visible to customers and can accept new bookings.
+                        </p>
+                        <div style="text-align:center;margin-top:28px;">
+                          <a href="{settings.FRONTEND_URL}/owner/dashboard"
+                             style="display:inline-block;padding:14px 36px;background:linear-gradient(135deg,#0D9488,#14B8A8);color:#fff;border-radius:10px;text-decoration:none;font-weight:700;font-size:15px;">
+                            Go to Owner Dashboard →
+                          </a>
+                        </div>
+                      </div>
+                      <div style="background:#F9FAFB;padding:14px 32px;text-align:center;border-top:1px solid #F3F4F6;">
+                        <p style="margin:0;font-size:11px;color:#9CA3AF;">© 2026 BookMyStyle · Beauty &amp; Wellness Platform</p>
+                      </div>
+                    </div>
+                ''',
+                fail_silently=True,
+            )
+
         return Response(SalonSerializer(salon).data)
 
 
