@@ -1,0 +1,8 @@
+# Render custom response headers
+# sw.js and workbox runtime must never be CDN-cached —
+# stale SW scripts prevent users from receiving updated app bundles.
+/sw.js
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/workbox-*.js
+  Cache-Control: no-cache, no-store, must-revalidate
