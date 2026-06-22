@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api/axios';
 import { looksEncrypted, safeInitials, sanitizeProfile } from '../../utils/profile';
 import { useBreakpoint } from '../../hooks/useMobile';
 
 export default function UserSettings() {
-  const { profile, updateProfile } = useAuth();
+  const { profile, updateProfile, logout } = useAuth();
   const { isMobile } = useBreakpoint();
+  const navigate = useNavigate();
   const [form, setForm]   = useState({ full_name: '', phone: '' });
   const [saving, setSaving] = useState(false);
   const [msg, setMsg]       = useState(null); // { type: 'ok'|'err', text }
@@ -97,6 +99,27 @@ export default function UserSettings() {
             </button>
           </div>
         </form>
+
+        {/* Sign out */}
+        <div style={{ marginTop: 24, paddingTop: 18, borderTop: '1px solid var(--border)' }}>
+          <button
+            onClick={() => { logout(); navigate('/login'); }}
+            style={{
+              width: '100%', padding: '13px', borderRadius: 12,
+              background: 'rgba(220,38,38,.06)', border: '1.5px solid rgba(220,38,38,.18)',
+              color: '#ef4444', fontSize: 14, fontWeight: 700,
+              cursor: 'pointer', fontFamily: "'DM Sans',sans-serif",
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+            Sign Out
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -108,7 +131,7 @@ const s = {
   title: { fontFamily: "'Cormorant Garamond',Georgia,serif", fontSize: 30, fontWeight: 700, color: 'var(--text)', margin: '0 0 6px', letterSpacing: '-0.02em' },
   sub: { fontSize: 14, color: 'var(--text-muted)', margin: 0 },
   card: { background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 18, padding: '28px 32px' },
-  avatarRow: { display: 'flex', alignItems: 'center', gap: 18, marginBottom: 24 },
+  avatarRow: { display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16 },
   avatar: {
     width: 64, height: 64, borderRadius: '50%',
     background: 'linear-gradient(135deg,#0D9488,#14B8A8)',
@@ -122,13 +145,13 @@ const s = {
     background: 'rgba(13,148,136,.14)', color: '#0D9488',
     borderRadius: 20, fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase',
   },
-  divider: { height: 1, background: 'var(--border)', margin: '8px 0 24px' },
-  sectionTitle: { fontSize: 14, fontWeight: 700, color: 'var(--text)', margin: '0 0 18px', textTransform: 'uppercase', letterSpacing: '0.08em' },
-  alert: { borderRadius: 10, padding: '11px 16px', fontSize: 13, marginBottom: 18, display: 'flex', alignItems: 'center', gap: 8 },
+  divider: { height: 1, background: 'var(--border)', margin: '4px 0 16px' },
+  sectionTitle: { fontSize: 12, fontWeight: 700, color: 'var(--text)', margin: '0 0 14px', textTransform: 'uppercase', letterSpacing: '0.08em' },
+  alert: { borderRadius: 10, padding: '10px 14px', fontSize: 13, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 },
   alertOk: { background: 'rgba(13,148,136,.1)', border: '1px solid rgba(13,148,136,.25)', color: '#0D9488' },
   alertErr: { background: 'rgba(220,38,38,.08)', border: '1px solid rgba(220,38,38,.2)', color: '#ef4444' },
-  form: { display: 'flex', flexDirection: 'column', gap: 20 },
-  row: { display: 'flex', gap: 16, flexWrap: 'wrap' },
+  form: { display: 'flex', flexDirection: 'column', gap: 14 },
+  row: { display: 'flex', gap: 12, flexWrap: 'wrap' },
   field: { display: 'flex', flexDirection: 'column', gap: 6, flex: '1 1 200px' },
   label: { fontSize: 12, fontWeight: 700, color: 'var(--text-sub)', textTransform: 'uppercase', letterSpacing: '0.06em' },
   input: {

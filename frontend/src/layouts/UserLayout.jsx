@@ -221,8 +221,8 @@ export default function UserLayout() {
           height: 64,
           maxWidth: 1320, margin: '0 auto', width: '100%',
         }}>
-          {/* Brand */}
-          <Link to="/salons" style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0, textDecoration: 'none' }}>
+          {/* Brand — display only, not a link */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
             <div style={{
               width: 36, height: 36, borderRadius: 10, flexShrink: 0,
               background: `linear-gradient(145deg, ${C} 0%, ${Clight} 100%)`,
@@ -234,7 +234,7 @@ export default function UserLayout() {
               <div style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontWeight: 700, fontSize: isMobile ? 18 : 20, color: 'var(--text)', lineHeight: 1, letterSpacing: '-0.01em' }}>BookMyStyle</div>
               {!isMobile && <div style={{ fontSize: 9, color: TL, letterSpacing: '0.18em', textTransform: 'uppercase', marginTop: 3, fontWeight: 500 }}>Beauty & Wellness</div>}
             </div>
-          </Link>
+          </div>
 
           {/* Desktop nav links */}
           {!isMobile && (
@@ -266,7 +266,11 @@ export default function UserLayout() {
               style={{ color: isDark ? TL : C }}>
               {isDark ? '☀' : '☾'}
             </button>
-            <div style={{ position: 'relative' }}>
+            <button
+              onClick={() => setDrawerOpen(v => !v)}
+              aria-label="Open menu"
+              style={{ position: 'relative', background: 'none', border: 'none', padding: 0, cursor: 'pointer', flexShrink: 0 }}
+            >
               <div style={{
                 width: 34, height: 34, borderRadius: '50%',
                 background: `linear-gradient(145deg, ${C} 0%, ${Clight} 100%)`,
@@ -278,7 +282,7 @@ export default function UserLayout() {
                 border: '2px solid var(--surface)',
                 position: 'absolute', bottom: 0, right: 0,
               }} />
-            </div>
+            </button>
             {!isMobile && (
               <>
                 <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>
@@ -291,21 +295,6 @@ export default function UserLayout() {
                   transition: 'border-color .18s ease',
                 }} onClick={handleLogout}>Sign Out</button>
               </>
-            )}
-            {isMobile && (
-              <button
-                onClick={() => setDrawerOpen(v => !v)}
-                aria-label="Open menu"
-                style={{
-                  background: 'none', border: 'none', cursor: 'pointer',
-                  fontSize: 20, color: 'var(--text)',
-                  padding: '6px 8px', borderRadius: 10, lineHeight: 1,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  transition: 'background .15s ease',
-                }}
-              >
-                ☰
-              </button>
             )}
           </div>
         </div>
@@ -448,8 +437,8 @@ export default function UserLayout() {
 
       <main style={{
         flex: 1,
-        padding: /^\/salons\/\d+/.test(location.pathname) ? 0 : (isMobile ? '24px 16px 80px' : '40px 40px'),
-        maxWidth: /^\/salons\/\d+/.test(location.pathname) ? 'none' : 1320,
+        padding: /^\/salons(\/\d+(\/services)?)?$/.test(location.pathname) ? 0 : (isMobile ? '24px 16px 80px' : '40px 40px'),
+        maxWidth: /^\/salons(\/\d+(\/services)?)?$/.test(location.pathname) ? 'none' : 1320,
         margin: '0 auto', width: '100%',
         boxSizing: 'border-box',
       }}>

@@ -146,13 +146,11 @@ export default function SalonList() {
   const [searchParams, setSearchParams] = useSearchParams();
   const search = searchParams.get('q') || '';
 
-  const [salons, setSalons]             = useState([]);
-  const [favIds, setFavIds]             = useState(new Set());
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [sort, setSort]                 = useState('default');
-  const [loading, setLoading]           = useState(true);
-  const [fetchError, setFetchError]     = useState(false);
-  const [quickSearch, setQS]            = useState(false);
+  const [salons, setSalons]   = useState([]);
+  const [favIds, setFavIds]   = useState(new Set());
+  const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(false);
+  const [quickSearch, setQS]  = useState(false);
 
   const fetchSalons = () => {
     setLoading(true);
@@ -175,24 +173,12 @@ export default function SalonList() {
   const isClient = profile?.role === 'client';
   const numCols  = isMobile ? 1 : isTablet ? 2 : 3;
 
-  const applySort = arr => [...arr].sort((a, b) => {
-    if (sort === 'az') return a.name.localeCompare(b.name);
-    if (sort === 'za') return b.name.localeCompare(a.name);
-    return 0;
-  });
-
-  const filtered       = salons.filter(sl => statusFilter === 'all' || sl.status === statusFilter);
-  const sortedFiltered = applySort(filtered);
-  const favGroup       = isClient ? sortedFiltered.filter(sl => favIds.has(sl.id))  : [];
-  const otherGroup     = isClient ? sortedFiltered.filter(sl => !favIds.has(sl.id)) : sortedFiltered;
+  const favGroup       = isClient ? salons.filter(sl => favIds.has(sl.id))  : [];
+  const otherGroup     = isClient ? salons.filter(sl => !favIds.has(sl.id)) : salons;
   const hasFavs        = favGroup.length > 0;
 
-  const openCount      = salons.filter(sl => sl.status === 'active').length;
-  const closedCount    = salons.length - openCount;
-  const isNarrow       = isMobile || isTablet;
   const displayedCount = favGroup.length + otherGroup.length;
   const gridCols    = isMobile ? '1fr' : isTablet ? 'repeat(2,1fr)' : 'repeat(3,1fr)';
-  const hPad        = isMobile ? '10px 14px' : isTablet ? '11px 20px' : '12px 40px';
 
   return (
     <div style={s.page}>
@@ -202,10 +188,7 @@ export default function SalonList() {
         <div
           style={{
             ...s.hero,
-            padding: isMobile ? '52px 20px 72px' : isTablet ? '72px 28px 96px' : '88px 40px 112px',
-            marginLeft: isMobile ? -16 : -40,
-            marginRight: isMobile ? -16 : -40,
-            marginTop: isMobile ? -24 : -40,
+            padding: isMobile ? '48px 16px 56px' : isTablet ? '64px 28px 80px' : '88px 40px 112px',
           }}
           className="anim-gradient noise-bg"
         >
@@ -244,10 +227,7 @@ export default function SalonList() {
       {profile && (
         <div style={{
           ...s.signedInBanner,
-          padding: isMobile ? '28px 16px 24px' : isTablet ? '32px 24px 28px' : '40px 40px 36px',
-          marginLeft: isMobile ? -16 : -40,
-          marginRight: isMobile ? -16 : -40,
-          marginTop: isMobile ? -24 : -40,
+          padding: isMobile ? '22px 16px 18px' : isTablet ? '28px 24px 24px' : '36px 40px 28px',
         }}
           className="anim-gradient">
           <div style={s.glow1} />
@@ -257,11 +237,11 @@ export default function SalonList() {
               <span style={{ color: '#D4AF37', fontSize: 10 }}>✦</span>
               {salons.length > 0 ? `${salons.length} salons available` : 'Discover · Book · Glow'}
             </div>
-            <h2 style={{ ...s.heroTitle, fontSize: isMobile ? 24 : isTablet ? 30 : 36, marginBottom: 20 }}>
+            <h2 style={{ ...s.heroTitle, fontSize: isMobile ? 20 : isTablet ? 26 : 32, marginBottom: 14 }}>
               Welcome back,{' '}
               <em style={s.heroItalic}>{safeFirstName(profile.full_name, profile.email)}</em>
             </h2>
-            <div style={{ ...s.heroSearch, maxWidth: isMobile ? '100%' : 500, margin: '0 auto' }} className="search-bar-wrap">
+            <div style={{ ...s.heroSearch, maxWidth: isMobile ? '100%' : 500, margin: '0 auto', padding: isMobile ? '9px 14px' : '11px 18px' }} className="search-bar-wrap">
               <span className="search-icon" style={{ color: '#0D9488', fontSize: 15, flexShrink: 0 }}>✦</span>
               <input
                 className="hero-search"
@@ -278,76 +258,34 @@ export default function SalonList() {
         </div>
       )}
 
-      {/* ── Sticky filter + sort strip ── */}
+      {/* ── Sticky strip — Book Now only ── */}
       <div style={{
-        ...s.filterStrip, padding: hPad,
-        ...(isMobile ? { flexDirection: 'column', gap: 8, padding: '10px 14px', marginLeft: -16, marginRight: -16 } : {}),
+        display: 'flex', justifyContent: 'center', alignItems: 'center',
+        padding: isMobile ? '9px 16px' : '10px 24px',
+        background: 'var(--surface)', borderBottom: '1px solid var(--border)',
+        position: 'sticky', top: 64, zIndex: 90,
       }}>
-        {/* Status chips + Book Now */}
-        <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', alignItems: 'center', justifyContent: isMobile ? 'center' : 'flex-start' }}>
-          {[
-            { key: 'all',      label: 'All',      count: null         },
-            { key: 'active',   label: '● Open',   count: openCount    },
-            { key: 'inactive', label: '○ Closed', count: closedCount  },
-          ].map(f => (
-            <button
-              key={f.key}
-              style={{ ...s.chip, ...(statusFilter === f.key ? s.chipOn : {}) }}
-              onClick={() => setStatusFilter(f.key)}
-            >
-              {f.label}
-              {f.count !== null && (
-                <span style={{ ...s.chipBadge, ...(statusFilter === f.key ? s.chipBadgeOn : {}) }}>
-                  {f.count}
-                </span>
-              )}
-            </button>
-          ))}
-
-          {!isMobile && <div style={{ width: 1, height: 18, background: 'var(--border)', margin: '0 2px' }} />}
-
-          {/* Book Now! — centered on mobile */}
-          <button
-            onClick={() => setQS(true)}
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: 6,
-              padding: isMobile ? '8px 22px' : '5px 13px',
-              borderRadius: 20, fontSize: isMobile ? 13 : 12, fontWeight: 700,
-              border: 'none',
-              background: 'linear-gradient(135deg, #0D9488 0%, #14B8A8 100%)',
-              color: '#fff', cursor: 'pointer',
-              fontFamily: "'DM Sans', sans-serif",
-              boxShadow: '0 2px 10px rgba(13,148,136,.35)',
-              transition: 'all .15s ease',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            <span style={{ fontSize: 11 }}>✦</span>
-            Book Now!
-          </button>
-        </div>
-
-        {/* Sort row */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 7, justifyContent: isMobile ? 'center' : 'flex-start' }}>
-          <span style={s.sortLabel}>SORT</span>
-          {[
-            { key: 'default', label: 'Default' },
-            { key: 'az',      label: 'A – Z'   },
-            { key: 'za',      label: 'Z – A'   },
-          ].map(opt => (
-            <button
-              key={opt.key}
-              style={{ ...s.chip, ...(sort === opt.key ? s.chipOn : {}) }}
-              onClick={() => setSort(opt.key)}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
+        <button
+          onClick={() => setQS(true)}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 7,
+            padding: isMobile ? '9px 28px' : '9px 28px',
+            borderRadius: 30, fontSize: 14, fontWeight: 700,
+            border: 'none',
+            background: 'linear-gradient(135deg, #0D9488 0%, #14B8A8 100%)',
+            color: '#fff', cursor: 'pointer',
+            fontFamily: "'DM Sans', sans-serif",
+            boxShadow: '0 3px 14px rgba(13,148,136,.4)',
+            letterSpacing: '0.01em',
+          }}
+        >
+          <span style={{ fontSize: 11 }}>✦</span>
+          Book Now!
+        </button>
       </div>
 
       {search && !loading && (
-        <p style={{ ...s.resultsNote, padding: isMobile ? '8px 14px 0' : '10px 40px 0' }}>
+        <p style={{ ...s.resultsNote, padding: isMobile ? '8px 12px 0' : '10px 40px 0' }}>
           {displayedCount} result{displayedCount !== 1 ? 's' : ''} for &ldquo;{search}&rdquo;
         </p>
       )}
