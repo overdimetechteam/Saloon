@@ -20,7 +20,68 @@ function SalonCard({ salon, i, isFav, col, numCols, isMobile }) {
   const [c1, c2] = PALETTE[i % PALETTE.length];
   const isOpen   = salon.status === 'active';
   const xInit    = numCols === 1 ? 0 : col === 0 ? -60 : col === numCols - 1 ? 60 : 0;
+  const coverPhoto = salon.cover_photo_url || salon.cover_photo || null;
 
+  if (isMobile) {
+    /* ── Mobile: horizontal list row (Fresha-style) ── */
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.38, ease: [0.16, 1, 0.3, 1], delay: i * 0.04 }}
+      >
+        <Link to={`/salons/${salon.id}`} style={{ ...s.rowCard, ...(isFav ? s.cardFav : {}) }}>
+          {/* Thumbnail */}
+          <div style={{ ...s.rowThumb, background: `linear-gradient(145deg, ${c1}, ${c2})`, overflow: 'hidden', flexShrink: 0 }}>
+            {coverPhoto
+              ? <img src={coverPhoto} alt={salon.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+              : salon.logo_url
+                ? <img src={salon.logo_url} alt={salon.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                : <span style={{ fontSize: 22, fontWeight: 700, color: '#fff', fontFamily: "'Cormorant Garamond',Georgia,serif" }}>{salon.name[0].toUpperCase()}</span>
+            }
+          </div>
+
+          {/* Info */}
+          <div style={{ flex: 1, minWidth: 0, padding: '10px 0' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 6 }}>
+              <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', margin: 0, lineHeight: 1.25, fontFamily: "'Cormorant Garamond',Georgia,serif", flex: 1, minWidth: 0 }}>
+                {salon.name}
+              </h3>
+              {isFav && <span style={{ fontSize: 12, color: '#D4AF37', flexShrink: 0 }}>★</span>}
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 4 }}>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: isOpen ? '#14B8A8' : '#9CA3AF', flexShrink: 0 }} />
+              <span style={{ fontSize: 11, color: isOpen ? '#0D9488' : 'var(--text-muted)', fontWeight: 600 }}>
+                {isOpen ? 'Open' : 'Closed'}
+              </span>
+              {salon.address_city && (
+                <>
+                  <span style={{ color: 'var(--border)', fontSize: 10 }}>·</span>
+                  <span style={{ fontSize: 11, color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    📍 {salon.address_city}{salon.address_district ? `, ${salon.address_district}` : ''}
+                  </span>
+                </>
+              )}
+            </div>
+
+            {salon.contact_number && salon.contact_number.length <= 20 && (
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
+                📞 {salon.contact_number}
+              </div>
+            )}
+          </div>
+
+          {/* Right arrow */}
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={c1} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, alignSelf: 'center' }}>
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </Link>
+      </motion.div>
+    );
+  }
+
+  /* ── Desktop: vertical photo card ── */
   return (
     <motion.div
       initial={{ opacity: 0, x: xInit }}
@@ -28,56 +89,53 @@ function SalonCard({ salon, i, isFav, col, numCols, isMobile }) {
       transition={{ duration: 0.52, ease: [0.16, 1, 0.3, 1] }}
       style={{ display: 'flex', flexDirection: 'column' }}
     >
-    <Link
-      to={`/salons/${salon.id}`}
-      style={{ ...s.card, ...(isFav ? s.cardFav : {}), flex: 1 }}
-    >
-      <div style={{ ...s.banner, background: `linear-gradient(135deg, ${c1}1F 0%, ${c2}0D 100%)`, ...(isMobile ? { height: 80 } : {}) }}>
-        <div style={{ ...s.orb, background: `radial-gradient(circle, ${c1}33 0%, transparent 70%)` }} />
-
-        {/* Logo or initial */}
-        <div style={{ ...s.avatar, background: `linear-gradient(145deg, ${c1} 0%, ${c2} 100%)`, boxShadow: `0 8px 28px ${c1}55`, overflow: 'hidden', padding: 0, ...(isMobile ? { width: 48, height: 48, borderRadius: 14, fontSize: 22 } : {}) }}>
-          {salon.logo_url
-            ? <img src={salon.logo_url} alt={salon.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-            : salon.name[0].toUpperCase()
+      <Link to={`/salons/${salon.id}`} style={{ ...s.card, ...(isFav ? s.cardFav : {}), flex: 1 }}>
+        {/* Photo banner */}
+        <div style={{ ...s.banner, overflow: 'hidden', position: 'relative', background: coverPhoto ? '#000' : `linear-gradient(135deg, ${c1}22 0%, ${c2}0F 100%)` }}>
+          {coverPhoto
+            ? <img src={coverPhoto} alt={salon.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', opacity: 0.88 }} />
+            : <div style={{ ...s.orb, background: `radial-gradient(circle, ${c1}33 0%, transparent 70%)` }} />
           }
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, position: 'relative', zIndex: 1 }}>
-          {isFav && (
-            <span style={s.favStar}>★ Saved</span>
+          {/* Status badge (top right) */}
+          <div style={{ position: 'absolute', top: 10, right: 10, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 5 }}>
+            {isFav && <span style={s.favStar}>★ Saved</span>}
+            <span style={{
+              ...s.statusBadge,
+              background: isOpen ? 'rgba(13,148,136,.85)' : 'rgba(30,30,30,.75)',
+              color: isOpen ? '#fff' : 'rgba(255,255,255,.65)',
+              border: 'none', backdropFilter: 'blur(8px)',
+            }}>
+              <span style={{ width: 5, height: 5, borderRadius: '50%', background: isOpen ? '#5EEAD4' : '#9CA3AF', display: 'inline-block', flexShrink: 0 }} />
+              {isOpen ? 'Open' : 'Closed'}
+            </span>
+          </div>
+          {/* Logo overlay (bottom left) */}
+          {salon.logo_url && (
+            <div style={{ position: 'absolute', bottom: 10, left: 14, width: 42, height: 42, borderRadius: 12, overflow: 'hidden', border: '2px solid rgba(255,255,255,.25)', background: '#fff' }}>
+              <img src={salon.logo_url} alt={salon.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+            </div>
           )}
-          <span style={{
-            ...s.statusBadge,
-            background: isOpen ? 'rgba(13,148,136,.15)' : 'rgba(107,114,128,.1)',
-            color:      isOpen ? '#0D9488' : '#6B7280',
-            border:     `1px solid ${isOpen ? 'rgba(13,148,136,.4)' : '#D1D5DB'}`,
-          }}>
-            <span style={{ width: 5, height: 5, borderRadius: '50%', background: isOpen ? '#14B8A8' : '#9CA3AF', display: 'inline-block', flexShrink: 0 }} />
-            {isOpen ? 'Open' : 'Closed'}
-          </span>
         </div>
-      </div>
 
-      <div style={{ ...s.cardBody, ...(isMobile ? { padding: '12px 14px 10px' } : {}) }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 3 }}>
-          <h3 style={{ ...s.salonName, marginBottom: 0, flex: 1, ...(isMobile ? { fontSize: 16 } : {}) }}>{salon.name}</h3>
-          {isFav && <span style={s.favStarInline}>★</span>}
+        <div style={{ ...s.cardBody }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 4 }}>
+            <h3 style={{ ...s.salonName, marginBottom: 0, flex: 1 }}>{salon.name}</h3>
+            {isFav && <span style={s.favStarInline}>★</span>}
+          </div>
+          <div style={s.salonLoc}>
+            <span style={{ color: c1, fontSize: 11 }}>◎</span>
+            {salon.address_city}{salon.address_district ? `, ${salon.address_district}` : ''}
+          </div>
+          {salon.contact_number && salon.contact_number.length <= 25 && (
+            <span style={s.phone}>📞 {salon.contact_number}</span>
+          )}
         </div>
-        <div style={{ ...s.salonLoc, ...(isMobile ? { fontSize: 12 } : {}) }}>
-          <span style={{ color: c1, fontSize: 11 }}>◎</span>
-          {salon.address_city}{salon.address_district ? `, ${salon.address_district}` : ''}
-        </div>
-        {salon.contact_number && salon.contact_number.length <= 25 && (
-          <span style={s.phone}>📞 {salon.contact_number}</span>
-        )}
-      </div>
 
-      <div style={{ ...s.cardCta, borderTopColor: `${c1}22`, color: c1 }}>
-        <span>Explore Salon</span>
-        <span style={{ fontSize: 16 }}>→</span>
-      </div>
-    </Link>
+        <div style={{ ...s.cardCta, borderTopColor: `${c1}22`, color: c1 }}>
+          <span>Explore Salon</span>
+          <span style={{ fontSize: 16 }}>→</span>
+        </div>
+      </Link>
     </motion.div>
   );
 }
@@ -298,11 +356,12 @@ export default function SalonList() {
       <div style={{
         ...s.grid,
         gridTemplateColumns: gridCols,
-        padding: isMobile ? '16px 12px 72px' : isTablet ? '20px 16px 72px' : '28px 40px 88px',
+        gap: isMobile ? 8 : 20,
+        padding: isMobile ? '12px 12px 72px' : isTablet ? '20px 16px 72px' : '28px 40px 88px',
       }}>
 
         {loading && [1,2,3,4,5,6].map(i => (
-          <div key={i} style={s.skeleton} className="shimmer" />
+          <div key={i} style={{ ...s.skeleton, height: isMobile ? 92 : 280, borderRadius: isMobile ? 16 : 20 }} className="shimmer" />
         ))}
 
         {!loading && fetchError && (
@@ -473,6 +532,19 @@ const s = {
   },
   skeleton: { height: 280, borderRadius: 20 },
 
+  /* Mobile row card */
+  rowCard: {
+    display: 'flex', alignItems: 'center', gap: 12,
+    background: 'var(--surface)', borderRadius: 16,
+    border: '1px solid var(--border)', textDecoration: 'none',
+    padding: '10px 14px 10px 10px',
+    transition: 'background .15s ease',
+  },
+  rowThumb: {
+    width: 72, height: 72, borderRadius: 12, flexShrink: 0,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+  },
+
   card: {
     background: 'var(--surface)', borderRadius: 20, overflow: 'hidden',
     border: '1px solid var(--border)',
@@ -481,7 +553,7 @@ const s = {
     transition: 'transform .22s cubic-bezier(.16,1,.3,1), box-shadow .22s ease, border-color .2s ease',
   },
   banner: {
-    height: 108, padding: '14px 16px',
+    height: 148, padding: '14px 16px',
     display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between',
     position: 'relative', overflow: 'hidden',
   },
