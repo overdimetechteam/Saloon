@@ -16,7 +16,7 @@ const PALETTE = [
   ['#0D9488', '#5EEAD4'],
 ];
 
-function SalonCard({ salon, i, isFav, col, numCols }) {
+function SalonCard({ salon, i, isFav, col, numCols, isMobile }) {
   const [c1, c2] = PALETTE[i % PALETTE.length];
   const isOpen   = salon.status === 'active';
   const xInit    = numCols === 1 ? 0 : col === 0 ? -60 : col === numCols - 1 ? 60 : 0;
@@ -32,11 +32,11 @@ function SalonCard({ salon, i, isFav, col, numCols }) {
       to={`/salons/${salon.id}`}
       style={{ ...s.card, ...(isFav ? s.cardFav : {}), flex: 1 }}
     >
-      <div style={{ ...s.banner, background: `linear-gradient(135deg, ${c1}1F 0%, ${c2}0D 100%)` }}>
+      <div style={{ ...s.banner, background: `linear-gradient(135deg, ${c1}1F 0%, ${c2}0D 100%)`, ...(isMobile ? { height: 80 } : {}) }}>
         <div style={{ ...s.orb, background: `radial-gradient(circle, ${c1}33 0%, transparent 70%)` }} />
 
         {/* Logo or initial */}
-        <div style={{ ...s.avatar, background: `linear-gradient(145deg, ${c1} 0%, ${c2} 100%)`, boxShadow: `0 8px 28px ${c1}55`, overflow: 'hidden', padding: 0 }}>
+        <div style={{ ...s.avatar, background: `linear-gradient(145deg, ${c1} 0%, ${c2} 100%)`, boxShadow: `0 8px 28px ${c1}55`, overflow: 'hidden', padding: 0, ...(isMobile ? { width: 48, height: 48, borderRadius: 14, fontSize: 22 } : {}) }}>
           {salon.logo_url
             ? <img src={salon.logo_url} alt={salon.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
             : salon.name[0].toUpperCase()
@@ -59,12 +59,12 @@ function SalonCard({ salon, i, isFav, col, numCols }) {
         </div>
       </div>
 
-      <div style={s.cardBody}>
+      <div style={{ ...s.cardBody, ...(isMobile ? { padding: '12px 14px 10px' } : {}) }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 3 }}>
-          <h3 style={{ ...s.salonName, marginBottom: 0, flex: 1 }}>{salon.name}</h3>
+          <h3 style={{ ...s.salonName, marginBottom: 0, flex: 1, ...(isMobile ? { fontSize: 16 } : {}) }}>{salon.name}</h3>
           {isFav && <span style={s.favStarInline}>★</span>}
         </div>
-        <div style={s.salonLoc}>
+        <div style={{ ...s.salonLoc, ...(isMobile ? { fontSize: 12 } : {}) }}>
           <span style={{ color: c1, fontSize: 11 }}>◎</span>
           {salon.address_city}{salon.address_district ? `, ${salon.address_district}` : ''}
         </div>
@@ -350,7 +350,7 @@ export default function SalonList() {
         )}
 
         {!loading && favGroup.map((salon, i) => (
-          <SalonCard key={salon.id} salon={salon} i={i} isFav={true} col={i % numCols} numCols={numCols} />
+          <SalonCard key={salon.id} salon={salon} i={i} isFav={true} col={i % numCols} numCols={numCols} isMobile={isMobile} />
         ))}
 
         {/* ── Divider between sections ── */}
@@ -363,7 +363,7 @@ export default function SalonList() {
         )}
 
         {!loading && otherGroup.map((salon, i) => (
-          <SalonCard key={salon.id} salon={salon} i={i + (hasFavs ? favGroup.length : 0)} isFav={false} col={i % numCols} numCols={numCols} />
+          <SalonCard key={salon.id} salon={salon} i={i + (hasFavs ? favGroup.length : 0)} isFav={false} col={i % numCols} numCols={numCols} isMobile={isMobile} />
         ))}
       </div>
 

@@ -241,7 +241,7 @@ export default function SalonDetail() {
 
       {/* ── MOBILE HERO (iOS-style, full-screen) ── */}
       {isMobile ? (
-        <div ref={heroRef} style={{ position: 'relative', minHeight: '100svh', overflow: 'hidden', background: '#0D0D16', display: 'flex', flexDirection: 'column' }}>
+        <div ref={heroRef} style={{ position: 'relative', minHeight: 'auto', overflow: 'hidden', background: '#0D0D16', display: 'flex', flexDirection: 'column' }}>
           {/* Cover photo + fade overlay */}
           <div style={{
             position: 'absolute', inset: 0,
@@ -461,7 +461,7 @@ export default function SalonDetail() {
               { label: 'Reviews',  ref: reviewsRef  },
               { label: 'Info',     ref: infoRef     },
             ].map(tab => (
-              <button key={tab.label} style={s.tabBtn}
+              <button key={tab.label} style={{ ...s.tabBtn, ...(isMobile ? { flex: 1, padding: '10px 0', fontSize: 12 } : {}) }}
                 onClick={() => tab.ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
                 {tab.label}
               </button>
@@ -482,7 +482,7 @@ export default function SalonDetail() {
 
       {/* PHOTOS */}
       <div style={s.photoStrip}>
-        <div style={{ position: 'relative', padding: '0 48px' }}>
+        <div style={{ position: 'relative', padding: isMobile ? '0 4px' : '0 48px' }}>
           {!isMobile && (
             <button style={{ ...s.carouselArrow, left: 4, boxShadow: '0 4px 18px rgba(0,0,0,.14)' }}
               onClick={() => photoScrollRef.current?.scrollBy({ left: -(isMobile ? 214 : 354), behavior: 'smooth' })}>‹</button>
@@ -596,7 +596,7 @@ export default function SalonDetail() {
         <section ref={servicesRef} style={s.sec} className="fade-up">
           <div style={{ marginBottom: 24 }}>
             <div style={s.eyebrowSm}>What We Offer</div>
-            <h2 style={s.secTitle}>Available Services</h2>
+            <h2 style={{ ...s.secTitle, ...(isMobile ? { fontSize: 20 } : {}) }}>Available Services</h2>
           </div>
 
           {cats.length === 0 ? (
@@ -612,6 +612,7 @@ export default function SalonDetail() {
                       onClick={() => setActiveServiceCat(cat)}
                       style={{
                         ...s.catTab,
+                        ...(isMobile ? { fontSize: 12, padding: '6px 12px' } : {}),
                         background: isActive ? (catColors[cat] || pal.main) : 'transparent',
                         color: isActive ? '#fff' : (catColors[cat] || pal.main),
                         border: `1px solid ${(catColors[cat] || pal.main)}40`,
@@ -628,10 +629,24 @@ export default function SalonDetail() {
                   <button style={{ ...s.carouselArrow, left: -20 }}
                     onClick={() => svcScrollRef.current?.scrollBy({ left: -290, behavior: 'smooth' })}>‹</button>
                 )}
-                <div ref={svcScrollRef} style={s.svcScroll}>
+                <div ref={svcScrollRef} style={{ ...s.svcScroll, ...(isMobile ? { flexDirection: 'column', overflowX: 'visible', paddingBottom: 0 } : {}) }}>
                   {(grouped[activeCat] || []).map(ss => {
-                    const inner = (
-                      <div style={{ ...s.svcCard, width: isMobile ? 230 : 268, flexShrink: 0, cursor: isClient ? 'pointer' : 'default' }}>
+                    const inner = isMobile ? (
+                      <div style={{ ...s.svcCard, width: '100%', flexDirection: 'row', alignItems: 'center', padding: '12px 14px', gap: 10 }}>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ ...s.svcName, fontSize: 14 }}>{ss.service_name}</div>
+                          <div style={{ ...s.svcDur, marginTop: 3 }}>⏱ {formatDuration(ss.effective_duration)}</div>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, flexShrink: 0 }}>
+                          <span style={{ ...s.svcPrice, background: `${activeCatColor}18`, color: activeCatColor, border: `1px solid ${activeCatColor}38`, padding: '3px 10px', borderRadius: 8, fontSize: 13 }}>
+                            {ss.is_price_starting_from && <span style={s.svcStarting}>From </span>}
+                            LKR {ss.effective_price}
+                          </span>
+                          {isClient && <div style={{ ...s.svcBookHint, color: pal.main, fontSize: 11 }}>Tap to book →</div>}
+                        </div>
+                      </div>
+                    ) : (
+                      <div style={{ ...s.svcCard, width: 268, flexShrink: 0, cursor: isClient ? 'pointer' : 'default' }}>
                         <div style={s.svcName}>{ss.service_name}</div>
                         {ss.description ? (
                           <div style={s.svcDesc}>{ss.description}</div>
@@ -647,11 +662,11 @@ export default function SalonDetail() {
                       </div>
                     );
                     return isClient ? (
-                      <Link key={ss.id} to={`/user/book/${id}?services=${ss.id}`} style={{ textDecoration: 'none', display: 'block', flexShrink: 0 }} className="lift-sm">
+                      <Link key={ss.id} to={`/user/book/${id}?services=${ss.id}`} style={{ textDecoration: 'none', display: 'block', ...(isMobile ? { width: '100%' } : { flexShrink: 0 }) }} className="lift-sm">
                         {inner}
                       </Link>
                     ) : (
-                      <div key={ss.id} style={{ flexShrink: 0 }} className="lift-sm">{inner}</div>
+                      <div key={ss.id} style={isMobile ? { width: '100%' } : { flexShrink: 0 }} className="lift-sm">{inner}</div>
                     );
                   })}
                 </div>
@@ -693,14 +708,14 @@ export default function SalonDetail() {
 
         {/* About Us — full width */}
         <section ref={infoRef} style={s.sec} className="fade-up d1">
-          <div style={s.eyebrowSm}>Our Story</div>
-          <h2 style={s.secTitle}>About {salon.name}</h2>
-          <div style={s.aboutCard}>
-            <p style={s.aboutText}>
+          <div style={{ ...s.eyebrowSm, ...(isMobile ? { fontSize: 11 } : {}) }}>Our Story</div>
+          <h2 style={{ ...s.secTitle, ...(isMobile ? { fontSize: 20 } : {}) }}>About {salon.name}</h2>
+          <div style={{ ...s.aboutCard, ...(isMobile ? { padding: '14px 16px', borderRadius: 14 } : {}) }}>
+            <p style={{ ...s.aboutText, ...(isMobile ? { fontSize: 13, lineHeight: 1.6 } : {}) }}>
               {salon.description ||
                 `Welcome to ${salon.name}, where beauty meets excellence. Nestled in the heart of ${salon.address_city}, we are dedicated to providing an unparalleled salon experience that combines artistry, expertise, and personalised care.`}
             </p>
-            <p style={s.aboutText}>
+            <p style={{ ...s.aboutText, ...(isMobile ? { fontSize: 13, lineHeight: 1.6 } : {}) }}>
               Our team of highly trained professionals is passionate about helping you look and feel your absolute best. Whether you're in for a fresh cut, a luxurious treatment, or a complete transformation, we promise results that exceed your expectations.
             </p>
             <div style={{ ...s.aboutStats, gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)' }}>

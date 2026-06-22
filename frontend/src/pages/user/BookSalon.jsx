@@ -167,7 +167,7 @@ export default function BookSalon() {
   const R    = pal.rgb;
   const TL   = pal.textLight;
   const s    = makeS(C, R, Cdark, Clight, TL);
-  const conf = makeConf(C, R, Clight, TL);
+  const conf = makeConf(C, R, Clight, TL, isMobile);
   const bookGate = makeBookGate(C, R, Clight);
 
   if (!salon) return (
@@ -265,7 +265,7 @@ export default function BookSalon() {
           <div style={conf.checkWrap} className="fade-in d1">
             <div style={conf.checkGlow} />
             <div style={{ ...conf.checkCircle, animation: 'checkmarkBounce .65s .2s cubic-bezier(.16,1,.3,1) backwards' }}>
-              <svg width="96" height="96" viewBox="0 0 96 96" fill="none" style={{ display: 'block' }}>
+              <svg width={isMobile ? 64 : 96} height={isMobile ? 64 : 96} viewBox="0 0 96 96" fill="none" style={{ display: 'block' }}>
                 <defs>
                   <linearGradient id="cGrad" x1="0" y1="0" x2="1" y2="1">
                     <stop offset="0%" stopColor={C} />
@@ -400,11 +400,11 @@ export default function BookSalon() {
 
           {/* ── Step 0: Services ── */}
           {step === 0 && (
-            <div style={s.stepCard} className="scale-in">
+            <div style={{ ...s.stepCard, ...(isMobile ? { padding: 14 } : {}) }} className="scale-in">
               <div style={s.stepHeader}>
-                <div style={{ ...s.stepIcon, background: pal.main, boxShadow: `0 6px 16px rgba(${R},.35)` }}>✂</div>
+                <div style={{ ...s.stepIcon, background: pal.main, boxShadow: `0 6px 16px rgba(${R},.35)`, ...(isMobile ? { width: 40, height: 40, fontSize: 16, borderRadius: 12 } : {}) }}>✂</div>
                 <div>
-                  <div style={s.stepTitle}>Select Services</div>
+                  <div style={{ ...s.stepTitle, ...(isMobile ? { fontSize: 18 } : {}) }}>Select Services</div>
                   <div style={s.stepSub}>Choose one or more services for your appointment</div>
                 </div>
               </div>
@@ -487,7 +487,7 @@ export default function BookSalon() {
                     const on = selected.includes(ss.id);
                     const catColor = CAT_COLORS_BOOK[ss.service_category] || pal.main;
                     return (
-                      <label key={ss.id} style={{ ...s.serviceCard, ...(on ? { ...s.serviceCardOn, border: `2px solid ${pal.main}`, background: `linear-gradient(135deg, rgba(${R},.05) 0%, rgba(${R},.02) 100%)`, boxShadow: `0 3px 12px rgba(${R},.12)` } : {}) }}>
+                      <label key={ss.id} style={{ ...s.serviceCard, ...(isMobile ? { padding: '12px 14px' } : {}), ...(on ? { ...s.serviceCardOn, border: `2px solid ${pal.main}`, background: `linear-gradient(135deg, rgba(${R},.05) 0%, rgba(${R},.02) 100%)`, boxShadow: `0 3px 12px rgba(${R},.12)` } : {}) }}>
                         <input type="checkbox" checked={on} onChange={() => toggleService(ss.id)} style={{ display: 'none' }} />
                         <div style={s.svcCheck}>
                           <div style={{ ...s.checkBox, ...(on ? { ...s.checkBoxOn, background: pal.main, borderColor: 'transparent' } : {}) }}>{on && '✓'}</div>
@@ -518,11 +518,11 @@ export default function BookSalon() {
 
           {/* ── Step 1: Date & Time (combined) + compact professional selector ── */}
           {step === 1 && (
-            <div style={s.stepCard} className="scale-in">
+            <div style={{ ...s.stepCard, ...(isMobile ? { padding: 14 } : {}) }} className="scale-in">
               <div style={s.stepHeader}>
-                <div style={{ ...s.stepIcon, background: pal.main, boxShadow: `0 6px 16px rgba(${R},.35)` }}>◷</div>
+                <div style={{ ...s.stepIcon, background: pal.main, boxShadow: `0 6px 16px rgba(${R},.35)`, ...(isMobile ? { width: 40, height: 40, fontSize: 16, borderRadius: 12 } : {}) }}>◷</div>
                 <div>
-                  <div style={s.stepTitle}>Choose Date & Time</div>
+                  <div style={{ ...s.stepTitle, ...(isMobile ? { fontSize: 18 } : {}) }}>Choose Date & Time</div>
                   <div style={s.stepSub}>Pick a date, then select an available time slot</div>
                 </div>
               </div>
@@ -538,7 +538,7 @@ export default function BookSalon() {
                         <button
                           key={m.id}
                           type="button"
-                          style={{ ...s.proChip, ...(staffId === m.id ? { ...s.proChipOn, background: `rgba(${R},.08)`, color: pal.main, borderColor: `${pal.main}50` } : {}) }}
+                          style={{ ...s.proChip, ...(isMobile ? { padding: '6px 10px', fontSize: 12 } : {}), ...(staffId === m.id ? { ...s.proChipOn, background: `rgba(${R},.08)`, color: pal.main, borderColor: `${pal.main}50` } : {}) }}
                           onClick={() => setStaffId(m.id)}
                           title={m.full_name}
                         >
@@ -604,17 +604,16 @@ export default function BookSalon() {
                     </div>
                   )}
                   {date && !slotsLoading && slots.length > 0 && (
-                    <div style={s.slotGrid}>
-                      {slots.map(sl => {
+                    <div style={{ ...s.slotGrid, ...(isMobile ? { display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 } : {}) }}>
+                      {slots.filter(sl => sl.available).map(sl => {
                         const time = sl.datetime.split('T')[1]?.substring(0, 5);
                         const isOn = slot === sl.datetime;
                         return (
                           <button
                             key={sl.datetime}
                             type="button"
-                            disabled={!sl.available}
                             onClick={() => setSlot(sl.datetime)}
-                            style={{ ...s.slotBtn, ...(isOn ? { ...s.slotOn, background: pal.main, boxShadow: `0 5px 14px rgba(${R},.38)` } : {}), ...(!sl.available ? s.slotOff : {}) }}
+                            style={{ ...s.slotBtn, ...(isMobile ? { padding: '8px 0', fontSize: 13, borderRadius: 10, minWidth: 0 } : {}), ...(isOn ? { ...s.slotOn, background: pal.main, boxShadow: `0 5px 14px rgba(${R},.38)` } : {}) }}
                           >
                             {time}
                           </button>
@@ -629,7 +628,7 @@ export default function BookSalon() {
 
           {/* ── Step 2: Notes + Promo + Confirm ── */}
           {step === 2 && (
-            <div style={s.stepCard} className="scale-in">
+            <div style={{ ...s.stepCard, ...(isMobile ? { padding: 14 } : {}) }} className="scale-in">
               <div style={s.stepHeader}>
                 <div style={{ ...s.stepIcon, background: pal.main, boxShadow: `0 6px 16px rgba(${R},.35)` }}>◈</div>
                 <div>
@@ -704,7 +703,7 @@ export default function BookSalon() {
             )}
             {step < 2 && (
               <button
-                style={{ ...s.nextBtn, background: `linear-gradient(135deg, ${pal.main} 0%, ${pal.light} 50%, ${pal.main} 100%)`, boxShadow: `0 6px 18px rgba(${R},.35)`, opacity: canAdvance ? 1 : 0.45 }}
+                style={{ ...s.nextBtn, background: `linear-gradient(135deg, ${pal.main} 0%, ${pal.light} 50%, ${pal.main} 100%)`, boxShadow: `0 6px 18px rgba(${R},.35)`, opacity: canAdvance ? 1 : 0.45, ...(isMobile ? { fontSize: 13, padding: '12px 16px' } : {}) }}
                 onClick={goNext}
                 disabled={!canAdvance}
               >
@@ -721,7 +720,7 @@ export default function BookSalon() {
           <div style={{ ...s.summaryCard, boxShadow: `0 4px 24px rgba(${R},.08)` }} className="fade-up d2">
             <div style={s.summaryHeader}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                <div style={{ ...s.summaryLogo, background: pal.main, boxShadow: `0 3px 10px rgba(${R},.3)` }}>
+                <div style={{ ...s.summaryLogo, background: pal.main, boxShadow: `0 3px 10px rgba(${R},.3)`, ...(isMobile ? { width: 36, height: 36 } : {}) }}>
                   {salon.logo_url
                     ? <img src={salon.logo_url} alt={salon.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                     : <span style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 18, fontWeight: 700, color: '#fff' }}>{salon.name[0]}</span>
@@ -986,34 +985,35 @@ function makeS(C, R, Cdark, Clight, TL) { return {
   hvAddressInput: { padding: '9px 12px', border: `1.5px solid rgba(${R},.3)`, borderRadius: 10, fontSize: 13, color: 'var(--text)', background: 'var(--input-bg)', fontFamily: "'DM Sans', sans-serif", outline: 'none', boxSizing: 'border-box' },
 }; }
 
-function makeConf(C, R, Clight, TL) { return {
+function makeConf(C, R, Clight, TL, isMobile = false) { return {
   overlay: {
     position: 'fixed', inset: 0, zIndex: 9999,
     background: 'linear-gradient(160deg, #060411 0%, #0D0721 45%, #17093A 100%)',
     display: 'flex', flexDirection: 'column',
     alignItems: 'center', justifyContent: 'flex-start',
-    overflowY: 'auto', padding: '72px 24px 60px',
+    overflowY: 'auto', overflowX: 'hidden',
+    padding: isMobile ? '48px 16px 60px' : '72px 24px 60px',
     animation: 'confirmReveal .45s cubic-bezier(.16,1,.3,1) both',
   },
-  bgGlow1: { position: 'absolute', width: 600, height: 600, borderRadius: '50%', background: `radial-gradient(circle, rgba(${R},.22) 0%, transparent 70%)`, top: '50%', left: '50%', transform: 'translate(-50%,-50%)', pointerEvents: 'none', filter: 'blur(60px)', animation: 'ambientDrift 24s ease-in-out infinite' },
+  bgGlow1: { position: 'absolute', width: isMobile ? 300 : 600, height: isMobile ? 300 : 600, borderRadius: '50%', background: `radial-gradient(circle, rgba(${R},.22) 0%, transparent 70%)`, top: '50%', left: '50%', transform: 'translate(-50%,-50%)', pointerEvents: 'none', filter: 'blur(60px)', animation: 'ambientDrift 24s ease-in-out infinite' },
   bgGlow2: { position: 'absolute', width: 360, height: 360, borderRadius: '50%', background: 'radial-gradient(circle, rgba(212,175,55,.14) 0%, transparent 70%)', top: '20%', right: '10%', pointerEvents: 'none', filter: 'blur(50px)' },
   bgGlow3: { position: 'absolute', width: 280, height: 280, borderRadius: '50%', background: 'radial-gradient(circle, rgba(212,175,55,.1) 0%, transparent 70%)', bottom: '15%', left: '8%', pointerEvents: 'none', filter: 'blur(60px)' },
-  content: { position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', maxWidth: 560, width: '100%' },
-  eyebrow: { fontSize: 11, fontWeight: 600, letterSpacing: '0.22em', textTransform: 'uppercase', color: TL, marginBottom: 36, display: 'inline-flex', alignItems: 'center', background: 'rgba(255,255,255,.05)', padding: '8px 20px', borderRadius: 30, border: '1px solid rgba(255,255,255,.09)' },
-  checkWrap:   { position: 'relative', marginBottom: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 96, height: 96 },
-  checkGlow:   { position: 'absolute', width: 160, height: 160, borderRadius: '50%', background: `radial-gradient(circle, rgba(${R},.35) 0%, transparent 70%)`, top: '50%', left: '50%', transform: 'translate(-50%,-50%)', animation: 'glowBreath 3s ease-in-out infinite' },
-  checkCircle: { width: 96, height: 96, borderRadius: '50%', background: `linear-gradient(135deg, rgba(${R},.2) 0%, rgba(212,175,55,.15) 100%)`, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 0 0 1px rgba(${R},.35), 0 12px 40px rgba(${R},.3)` },
-  salonName:   { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 'clamp(32px, 5vw, 58px)', fontWeight: 700, color: '#F0EAFF', margin: '0 0 10px', lineHeight: 1.1, letterSpacing: '-0.02em' },
-  salonSub:    { fontSize: 15, color: TL, margin: '0 0 28px', fontStyle: 'italic', fontFamily: "'Cormorant Garamond', Georgia, serif", letterSpacing: '0.02em' },
-  rule:        { width: 48, height: 1, background: `linear-gradient(90deg, transparent, ${TL}, transparent)`, marginBottom: 28 },
-  detailCard:  { width: '100%', borderRadius: 20, background: 'rgba(255,255,255,.04)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,.08)', padding: '8px 0', marginBottom: 32, boxShadow: '0 8px 32px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.06)' },
-  detailRow:   { display: 'flex', alignItems: 'flex-start', gap: 14, padding: '14px 24px', borderBottom: '1px solid rgba(255,255,255,.05)', marginBottom: 0, textAlign: 'left' },
-  detailIconWrap: { width: 30, height: 30, borderRadius: 9, flexShrink: 0, background: `rgba(${R},.15)`, border: '1px solid rgba(167,139,250,.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 2 },
-  detailLabel: { fontSize: 9, fontWeight: 700, color: 'rgba(167,139,250,.65)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 4 },
-  detailVal:   { fontSize: 14, fontWeight: 500, color: '#E9D5FF', lineHeight: 1.5 },
-  ctaRow:      { display: 'flex', flexDirection: 'column', gap: 12, width: '100%', maxWidth: 380 },
-  primaryCTA:  { width: '100%', padding: '15px', background: `linear-gradient(135deg, ${C} 0%, ${Clight} 50%, ${C} 100%)`, color: '#fff', border: 'none', borderRadius: 14, fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", boxShadow: `0 8px 28px rgba(${R},.45), inset 0 1px 0 rgba(255,255,255,.18)`, transition: 'transform .18s ease, box-shadow .18s ease', letterSpacing: '0.01em' },
-  ghostCTA:    { width: '100%', padding: '14px', background: 'rgba(255,255,255,.06)', color: TL, border: '1px solid rgba(255,255,255,.1)', borderRadius: 14, fontSize: 14, fontWeight: 500, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", transition: 'background .18s ease, border-color .18s ease', letterSpacing: '0.01em' },
+  content: { position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', maxWidth: 560, width: '100%', overflow: 'hidden' },
+  eyebrow: { fontSize: isMobile ? 9 : 11, fontWeight: 600, letterSpacing: isMobile ? '0.1em' : '0.22em', textTransform: 'uppercase', color: TL, marginBottom: isMobile ? 20 : 36, display: 'inline-flex', alignItems: 'center', background: 'rgba(255,255,255,.05)', padding: isMobile ? '6px 12px' : '8px 20px', borderRadius: 30, border: '1px solid rgba(255,255,255,.09)', maxWidth: '100%' },
+  checkWrap:   { position: 'relative', marginBottom: isMobile ? 20 : 36, display: 'flex', alignItems: 'center', justifyContent: 'center', width: isMobile ? 64 : 96, height: isMobile ? 64 : 96 },
+  checkGlow:   { position: 'absolute', width: isMobile ? 110 : 160, height: isMobile ? 110 : 160, borderRadius: '50%', background: `radial-gradient(circle, rgba(${R},.35) 0%, transparent 70%)`, top: '50%', left: '50%', transform: 'translate(-50%,-50%)', animation: 'glowBreath 3s ease-in-out infinite' },
+  checkCircle: { width: isMobile ? 64 : 96, height: isMobile ? 64 : 96, borderRadius: '50%', background: `linear-gradient(135deg, rgba(${R},.2) 0%, rgba(212,175,55,.15) 100%)`, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 0 0 1px rgba(${R},.35), 0 12px 40px rgba(${R},.3)` },
+  salonName:   { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: isMobile ? 'clamp(22px, 6vw, 32px)' : 'clamp(32px, 5vw, 58px)', fontWeight: 700, color: '#F0EAFF', margin: '0 0 8px', lineHeight: 1.1, letterSpacing: '-0.02em' },
+  salonSub:    { fontSize: isMobile ? 13 : 15, color: TL, margin: isMobile ? '0 0 16px' : '0 0 28px', fontStyle: 'italic', fontFamily: "'Cormorant Garamond', Georgia, serif", letterSpacing: '0.02em' },
+  rule:        { width: 48, height: 1, background: `linear-gradient(90deg, transparent, ${TL}, transparent)`, marginBottom: isMobile ? 16 : 28 },
+  detailCard:  { width: '100%', borderRadius: 20, background: 'rgba(255,255,255,.04)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,.08)', padding: '8px 0', marginBottom: isMobile ? 20 : 32, boxShadow: '0 8px 32px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.06)' },
+  detailRow:   { display: 'flex', alignItems: 'flex-start', gap: isMobile ? 10 : 14, padding: isMobile ? '10px 14px' : '14px 24px', borderBottom: '1px solid rgba(255,255,255,.05)', marginBottom: 0, textAlign: 'left' },
+  detailIconWrap: { width: isMobile ? 24 : 30, height: isMobile ? 24 : 30, borderRadius: 9, flexShrink: 0, background: `rgba(${R},.15)`, border: '1px solid rgba(167,139,250,.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 2 },
+  detailLabel: { fontSize: isMobile ? 8 : 9, fontWeight: 700, color: 'rgba(167,139,250,.65)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 4 },
+  detailVal:   { fontSize: isMobile ? 12 : 14, fontWeight: 500, color: '#E9D5FF', lineHeight: 1.5 },
+  ctaRow:      { display: 'flex', flexDirection: 'column', gap: 12, width: '100%', maxWidth: isMobile ? '100%' : 380 },
+  primaryCTA:  { width: '100%', padding: '14px', background: `linear-gradient(135deg, ${C} 0%, ${Clight} 50%, ${C} 100%)`, color: '#fff', border: 'none', borderRadius: 14, fontSize: isMobile ? 14 : 15, fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", boxShadow: `0 8px 28px rgba(${R},.45), inset 0 1px 0 rgba(255,255,255,.18)`, transition: 'transform .18s ease, box-shadow .18s ease', letterSpacing: '0.01em' },
+  ghostCTA:    { width: '100%', padding: '13px', background: 'rgba(255,255,255,.06)', color: TL, border: '1px solid rgba(255,255,255,.1)', borderRadius: 14, fontSize: isMobile ? 13 : 14, fontWeight: 500, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", transition: 'background .18s ease, border-color .18s ease', letterSpacing: '0.01em' },
 }; }
 
 function makeBookGate(C, R, Clight) { return {

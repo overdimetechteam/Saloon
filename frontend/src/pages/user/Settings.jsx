@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api/axios';
 import { looksEncrypted, safeInitials, sanitizeProfile } from '../../utils/profile';
+import { useBreakpoint } from '../../hooks/useMobile';
 
 export default function UserSettings() {
   const { profile, updateProfile } = useAuth();
+  const { isMobile } = useBreakpoint();
   const [form, setForm]   = useState({ full_name: '', phone: '' });
   const [saving, setSaving] = useState(false);
   const [msg, setMsg]       = useState(null); // { type: 'ok'|'err', text }
@@ -31,21 +33,21 @@ export default function UserSettings() {
   };
 
   return (
-    <div style={s.page}>
+    <div style={{ ...s.page, ...(isMobile ? { padding: '16px 0' } : {}) }}>
       <div style={s.header}>
-        <h1 style={s.title}>Account Settings</h1>
+        <h1 style={{ ...s.title, ...(isMobile ? { fontSize: 24 } : {}) }}>Account Settings</h1>
         <p style={s.sub}>Manage your personal information</p>
       </div>
 
-      <div style={s.card}>
+      <div style={{ ...s.card, ...(isMobile ? { padding: '20px 16px', borderRadius: 14 } : {}) }}>
         {/* Avatar */}
         <div style={s.avatarRow}>
-          <div style={s.avatar}>
+          <div style={{ ...s.avatar, ...(isMobile ? { width: 52, height: 52, fontSize: 22 } : {}) }}>
             {safeInitials(form.full_name || profile?.full_name, profile?.email)}
           </div>
-          <div>
+          <div style={{ minWidth: 0, flex: 1 }}>
             <div style={s.avatarName}>{form.full_name || profile?.email?.split('@')[0] || '—'}</div>
-            <div style={s.avatarEmail}>{profile?.email}</div>
+            <div style={{ ...s.avatarEmail, ...(isMobile ? { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 'calc(100% - 0px)' } : {}) }}>{profile?.email}</div>
             <div style={s.roleBadge}>Customer</div>
           </div>
         </div>
@@ -61,7 +63,7 @@ export default function UserSettings() {
         )}
 
         <form onSubmit={save} style={s.form}>
-          <div style={s.row}>
+          <div style={{ ...s.row, ...(isMobile ? { flexDirection: 'column' } : {}) }}>
             <div style={s.field}>
               <label style={s.label}>Full Name</label>
               <input
@@ -89,8 +91,8 @@ export default function UserSettings() {
             <span style={s.hint}>Email cannot be changed directly. Contact support.</span>
           </div>
 
-          <div style={s.actions}>
-            <button style={{ ...s.btn, opacity: saving ? 0.7 : 1 }} type="submit" disabled={saving}>
+          <div style={{ ...s.actions, ...(isMobile ? { justifyContent: 'stretch' } : {}) }}>
+            <button style={{ ...s.btn, opacity: saving ? 0.7 : 1, ...(isMobile ? { width: '100%' } : {}) }} type="submit" disabled={saving}>
               {saving ? 'Saving…' : 'Save Changes'}
             </button>
           </div>

@@ -614,6 +614,11 @@ button:disabled {
 /* Prevent horizontal scroll bleed — clip avoids breaking position:sticky */
 html, body { overflow-x: clip; }
 
+/* Mobile base font scale */
+@media (max-width: 768px) {
+  body { font-size: 14px; }
+}
+
 /* Minimum tap target for touch */
 button, a, [role="button"] { touch-action: manipulation; }
 
