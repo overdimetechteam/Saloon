@@ -242,6 +242,10 @@ export default function SalonDetail() {
       {/* ── MOBILE HERO (iOS-style, full-screen) ── */}
       {isMobile ? (
         <div ref={heroRef} style={{ position: 'relative', minHeight: 'auto', overflow: 'hidden', background: '#0D0D16', display: 'flex', flexDirection: 'column' }}>
+          {/* Back button */}
+          <button onClick={() => navigate('/salons')} style={{ position: 'absolute', top: 12, left: 12, zIndex: 10, width: 34, height: 34, borderRadius: 10, border: '1.5px solid rgba(255,255,255,.25)', background: 'rgba(0,0,0,.35)', backdropFilter: 'blur(8px)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
+          </button>
           {/* Cover photo + fade overlay */}
           <div style={{
             position: 'absolute', inset: 0,
@@ -374,12 +378,16 @@ export default function SalonDetail() {
       ) : (
         /* ── DESKTOP HERO ── */
         <div ref={heroRef} style={{
-          ...s.hero, padding: '52px 48px 44px',
+          ...s.hero, padding: '52px 48px 44px', position: 'relative',
           background: coverPhoto
             ? `linear-gradient(160deg,rgba(13,13,22,.78) 0%,rgba(13,13,22,.58) 35%,rgba(11,56,50,.38) 68%,rgba(${R},.15) 100%),url(${coverPhoto}) center/cover no-repeat`
             : `linear-gradient(145deg,#0D0D16 0%,${pal.darkBg} 40%,${pal.dark} 75%,${pal.main} 100%)`,
         }}>
           <div style={s.heroBg} />
+          {/* Desktop back button */}
+          <button onClick={() => navigate('/salons')} style={{ position: 'absolute', top: 16, left: 20, zIndex: 10, width: 34, height: 34, borderRadius: 10, border: '1.5px solid rgba(255,255,255,.25)', background: 'rgba(0,0,0,.3)', backdropFilter: 'blur(8px)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
+          </button>
           <div style={{ ...s.heroInner, flexDirection: 'row', gap: 24 }}>
             <div style={{ ...s.heroLeft, gap: 22 }}>
               <div style={{ ...s.salonInitial, width: 72, height: 72, fontSize: 34, padding: 0, overflow: 'hidden' }}>
@@ -630,7 +638,7 @@ export default function SalonDetail() {
                     onClick={() => svcScrollRef.current?.scrollBy({ left: -290, behavior: 'smooth' })}>‹</button>
                 )}
                 <div ref={svcScrollRef} style={{ ...s.svcScroll, ...(isMobile ? { flexDirection: 'column', overflowX: 'visible', paddingBottom: 0 } : {}) }}>
-                  {(grouped[activeCat] || []).map(ss => {
+                  {(grouped[activeCat] || []).slice(0, 4).map(ss => {
                     const inner = isMobile ? (
                       <div style={{ ...s.svcCard, width: '100%', flexDirection: 'row', alignItems: 'center', padding: '12px 14px', gap: 10 }}>
                         <div style={{ flex: 1, minWidth: 0 }}>
@@ -675,6 +683,27 @@ export default function SalonDetail() {
                     onClick={() => svcScrollRef.current?.scrollBy({ left: 290, behavior: 'smooth' })}>›</button>
                 )}
               </div>
+
+              {/* View All button — shown when there are more than 4 services */}
+              {(grouped[activeCat] || []).length > 4 && (
+                <div style={{ textAlign: 'center', marginTop: isMobile ? 12 : 16 }}>
+                  <Link
+                    to={`/salons/${id}/services`}
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 6,
+                      padding: isMobile ? '10px 20px' : '11px 24px',
+                      border: `1.5px solid ${pal.main}50`,
+                      borderRadius: 30, color: pal.main,
+                      fontSize: isMobile ? 13 : 14, fontWeight: 700,
+                      textDecoration: 'none', background: `${pal.main}08`,
+                      transition: 'background .15s ease',
+                    }}
+                  >
+                    View All {services.length} Services
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
+                  </Link>
+                </div>
+              )}
             </>
           )}
         </section>

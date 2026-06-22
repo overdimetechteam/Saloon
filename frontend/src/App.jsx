@@ -23,6 +23,7 @@ import RegisterSalon from './pages/RegisterSalon';
 import SalonList from './pages/SalonList';
 import SalonDetail from './pages/SalonDetail';
 import SalonCosmetics from './pages/SalonCosmetics';
+import SalonServices from './pages/SalonServices';
 import ProductDetail from './pages/ProductDetail';
 
 import AdminLogin from './pages/AdminLogin';
@@ -217,6 +218,7 @@ export default function App() {
           <Route element={<ClientAwareLayout />}>
             <Route path="/salons" element={<SalonList />} />
             <Route path="/salons/:id" element={<SalonDetail />} />
+            <Route path="/salons/:id/services" element={<SalonServices />} />
             <Route path="/salons/:id/cosmetics" element={<SalonCosmetics />} />
             <Route path="/salons/:id/cosmetics/:productId" element={<ProductDetail />} />
           </Route>
