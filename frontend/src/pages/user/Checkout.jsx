@@ -1,28 +1,45 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
+import { useBreakpoint } from '../../hooks/useMobile';
 import api from '../../api/axios';
 
-const TAX_RATE   = 0.15;
+const TAX_RATE     = 0.15;
 const DELIVERY_FEE = 350;
-const GIFT_FEE    = 150;
+const GIFT_FEE     = 150;
 
-const STEPS = ['Review Cart', 'Delivery & Contact', 'Payment & Extras', 'Confirm Order'];
+const STEPS       = ['Review Cart', 'Delivery & Contact', 'Payment & Extras', 'Confirm Order'];
+const STEPS_SHORT = ['Cart', 'Delivery', 'Payment', 'Confirm'];
 
 function StepBar({ step }) {
+  const { isMobile } = useBreakpoint();
   return (
-    <div style={sb.wrap}>
+    <div style={{ ...sb.wrap, marginBottom: isMobile ? 20 : 36 }}>
       {STEPS.map((label, i) => {
-        const done    = i < step;
-        const active  = i === step;
+        const done   = i < step;
+        const active = i === step;
         return (
-          <div key={i} style={sb.stepWrap}>
-            <div style={{ ...sb.dot, background: done ? '#0D9488' : active ? '#0D9488' : 'var(--border)', color: done || active ? '#fff' : 'var(--text-muted)' }}>
+          <div key={i} style={{ ...sb.stepWrap, flex: '1 1 0', minWidth: 0 }}>
+            <div style={{
+              ...sb.dot,
+              width: isMobile ? 24 : 32, height: isMobile ? 24 : 32,
+              fontSize: isMobile ? 10 : 13,
+              background: done || active ? '#0D9488' : 'var(--border)',
+              color: done || active ? '#fff' : 'var(--text-muted)',
+            }}>
               {done ? '✓' : i + 1}
             </div>
-            <div style={{ ...sb.label, color: active ? '#0D9488' : done ? '#0D9488' : 'var(--text-muted)', fontWeight: active ? 800 : 500 }}>{label}</div>
-            {i < STEPS.length - 1 && <div style={{ ...sb.line, background: done ? '#0D9488' : 'var(--border)' }} />}
+            <div style={{
+              ...sb.label,
+              fontSize: isMobile ? 9 : 11,
+              maxWidth: '100%',
+              color: active ? '#0D9488' : done ? '#0D9488' : 'var(--text-muted)',
+              fontWeight: active ? 800 : 500,
+            }}>{isMobile ? STEPS_SHORT[i] : label}</div>
+            {i < STEPS.length - 1 && (
+              <div style={{ ...sb.line, top: isMobile ? 12 : 16, background: done ? '#0D9488' : 'var(--border)' }} />
+            )}
           </div>
         );
       })}
@@ -31,70 +48,110 @@ function StepBar({ step }) {
 }
 
 const sb = {
-  wrap: { display: 'flex', alignItems: 'flex-start', justifyContent: 'center', gap: 0, marginBottom: 36, overflowX: 'auto', padding: '0 16px' },
-  stepWrap: { display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', minWidth: 80 },
-  dot: { width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 800, marginBottom: 6, zIndex: 1 },
-  label: { fontSize: 11, textAlign: 'center', lineHeight: 1.3, maxWidth: 70 },
-  line: { position: 'absolute', top: 16, left: '60%', width: 'calc(100% - 20px)', height: 2 },
+  wrap:     { display: 'flex', alignItems: 'flex-start', justifyContent: 'center', gap: 0, padding: '0 8px' },
+  stepWrap: { display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' },
+  dot:      { width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 800, marginBottom: 6, zIndex: 1 },
+  label:    { fontSize: 11, textAlign: 'center', lineHeight: 1.3, maxWidth: 70 },
+  line:     { position: 'absolute', top: 16, left: '60%', width: 'calc(100% - 20px)', height: 2 },
 };
 
 // Step 1 — Cart Review
-function Step1CartReview({ items, removeItem, updateQty, updateVariant, subtotal, goNext, goBack }) {
+function Step1CartReview({ items, removeItem, updateQty, updateVariant, subtotal, goNext }) {
   const navigate = useNavigate();
+  const { isMobile } = useBreakpoint();
 
   if (items.length === 0) return (
     <div style={{ textAlign: 'center', padding: '60px 20px' }}>
       <div style={{ fontSize: 48, marginBottom: 12 }}>🛍</div>
       <div style={c.sectionTitle}>Your cart is empty</div>
-      <button style={c.primaryBtn} onClick={() => navigate('/salons')}>Browse Salons</button>
+      <button style={{ ...c.primaryBtn, width: '100%' }} onClick={() => navigate('/salons')}>Browse Salons</button>
     </div>
   );
 
   return (
     <div>
-      <div style={c.sectionTitle}>Review Your Items</div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 24 }}>
-        {items.map(item => (
-          <div key={item._key} style={c.cartItem}>
-            {item.first_image_url ? (
-              <img src={item.first_image_url} alt={item.name} style={c.itemImg} />
-            ) : (
-              <div style={c.itemImgPlaceholder}>🛍</div>
-            )}
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={c.itemName}>{item.name}</div>
-              {item.brand && <div style={c.itemMeta}>{item.brand}</div>}
-              <div style={c.itemMeta}>{item.salonName}</div>
-              <div style={{ marginTop: 6 }}>
-                <label style={c.smallLabel}>Variant / Shade</label>
-                <input
-                  style={c.variantInput}
-                  value={item.variantNote || ''}
-                  placeholder={item.shade_variant ? `e.g. ${item.shade_variant}` : 'Optional'}
-                  onChange={e => updateVariant(item._key, e.target.value)}
-                />
+      <div style={{ ...c.sectionTitle, ...(isMobile ? { fontSize: 18, marginBottom: 14 } : {}) }}>Review Your Items</div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20 }}>
+        {items.map(item => {
+          const price = (Number(item.selling_price) * item.quantity).toLocaleString();
+          if (isMobile) {
+            return (
+              <div key={item._key} style={{ ...c.cartItem, gap: 10, padding: 12 }}>
+                {item.first_image_url
+                  ? <img src={item.first_image_url} alt={item.name} style={{ ...c.itemImg, width: 56, height: 56 }} />
+                  : <div style={{ ...c.itemImgPlaceholder, width: 56, height: 56, fontSize: 20 }}>🛍</div>
+                }
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 6, marginBottom: 3 }}>
+                    <div style={{ ...c.itemName, fontSize: 13, flex: 1, minWidth: 0, lineHeight: 1.35 }}>{item.name}</div>
+                    <div style={{ ...c.itemPrice, fontSize: 13, flexShrink: 0 }}>LKR {price}</div>
+                  </div>
+                  {item.brand && <div style={c.itemMeta}>{item.brand}</div>}
+                  <div style={c.itemMeta}>{item.salonName}</div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
+                    <div style={c.qtyRow}>
+                      <button style={c.qtyBtn} onClick={() => updateQty(item._key, item.quantity - 1)}>−</button>
+                      <span style={c.qty}>{item.quantity}</span>
+                      <button style={{ ...c.qtyBtn, opacity: item.quantity >= item.current_stock ? 0.4 : 1 }}
+                        onClick={() => item.quantity < item.current_stock && updateQty(item._key, item.quantity + 1)}>+</button>
+                    </div>
+                    <button style={c.removeBtn} onClick={() => removeItem(item._key)}>Remove</button>
+                  </div>
+                  <div style={{ marginTop: 8 }}>
+                    <label style={c.smallLabel}>Variant / Shade</label>
+                    <input
+                      style={c.variantInput}
+                      value={item.variantNote || ''}
+                      placeholder={item.shade_variant ? `e.g. ${item.shade_variant}` : 'Optional'}
+                      onChange={e => updateVariant(item._key, e.target.value)}
+                    />
+                  </div>
+                </div>
+              </div>
+            );
+          }
+          // Desktop layout
+          return (
+            <div key={item._key} style={c.cartItem}>
+              {item.first_image_url
+                ? <img src={item.first_image_url} alt={item.name} style={c.itemImg} />
+                : <div style={c.itemImgPlaceholder}>🛍</div>
+              }
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={c.itemName}>{item.name}</div>
+                {item.brand && <div style={c.itemMeta}>{item.brand}</div>}
+                <div style={c.itemMeta}>{item.salonName}</div>
+                <div style={{ marginTop: 6 }}>
+                  <label style={c.smallLabel}>Variant / Shade</label>
+                  <input
+                    style={c.variantInput}
+                    value={item.variantNote || ''}
+                    placeholder={item.shade_variant ? `e.g. ${item.shade_variant}` : 'Optional'}
+                    onChange={e => updateVariant(item._key, e.target.value)}
+                  />
+                </div>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
+                <div style={c.itemPrice}>LKR {price}</div>
+                <div style={c.qtyRow}>
+                  <button style={c.qtyBtn} onClick={() => updateQty(item._key, item.quantity - 1)}>−</button>
+                  <span style={c.qty}>{item.quantity}</span>
+                  <button style={{ ...c.qtyBtn, opacity: item.quantity >= item.current_stock ? 0.4 : 1 }}
+                    onClick={() => item.quantity < item.current_stock && updateQty(item._key, item.quantity + 1)}>+</button>
+                </div>
+                <button style={c.removeBtn} onClick={() => removeItem(item._key)}>Remove</button>
               </div>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
-              <div style={c.itemPrice}>LKR {(Number(item.selling_price) * item.quantity).toLocaleString()}</div>
-              <div style={c.qtyRow}>
-                <button style={c.qtyBtn} onClick={() => updateQty(item._key, item.quantity - 1)}>−</button>
-                <span style={c.qty}>{item.quantity}</span>
-                <button style={{ ...c.qtyBtn, opacity: item.quantity >= item.current_stock ? 0.4 : 1 }}
-                  onClick={() => item.quantity < item.current_stock && updateQty(item._key, item.quantity + 1)}>+</button>
-              </div>
-              <button style={c.removeBtn} onClick={() => removeItem(item._key)}>Remove</button>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
       <div style={c.subtotalRow}>
         <span>Subtotal ({items.reduce((s, i) => s + i.quantity, 0)} items)</span>
         <span style={{ fontWeight: 800 }}>LKR {subtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
       </div>
-      <div style={c.btnRow}>
-        <button style={c.outlineBtn} onClick={() => navigate(-1)}>← Back</button>
-        <button style={c.primaryBtn} onClick={goNext}>Continue →</button>
+      <div style={{ ...c.btnRow, ...(isMobile ? { gap: 8 } : {}) }}>
+        <button style={{ ...c.outlineBtn, ...(isMobile ? { flex: 1, padding: '12px 0', fontSize: 13 } : {}) }} onClick={() => navigate(-1)}>← Back</button>
+        <button style={{ ...c.primaryBtn, ...(isMobile ? { flex: 2, padding: '12px 0', fontSize: 13 } : {}) }} onClick={goNext}>Continue →</button>
       </div>
     </div>
   );
@@ -102,17 +159,17 @@ function Step1CartReview({ items, removeItem, updateQty, updateVariant, subtotal
 
 // Step 2 — Delivery & Contact
 function Step2Delivery({ form, setForm, goNext, goBack }) {
+  const { isMobile } = useBreakpoint();
   const set = k => e => setForm(p => ({ ...p, [k]: e.target.value }));
-  const setCheck = k => e => setForm(p => ({ ...p, [k]: e.target.checked }));
 
   const valid = form.client_name && form.client_email && form.client_phone
     && (form.delivery_type === 'pickup' || (form.delivery_address && form.delivery_city));
 
   return (
     <div>
-      <div style={c.sectionTitle}>Contact & Delivery</div>
+      <div style={{ ...c.sectionTitle, ...(isMobile ? { fontSize: 18, marginBottom: 14 } : {}) }}>Contact & Delivery</div>
 
-      <div style={c.twoCol}>
+      <div style={{ ...c.twoCol, ...(isMobile ? { gridTemplateColumns: '1fr' } : {}) }}>
         <Field label="Full Name *" value={form.client_name} onChange={set('client_name')} placeholder="Your full name" />
         <Field label="Email *" value={form.client_email} onChange={set('client_email')} placeholder="email@example.com" type="email" />
       </div>
@@ -123,7 +180,7 @@ function Step2Delivery({ form, setForm, goNext, goBack }) {
         {[['pickup', '🏪 Pickup from Salon'], ['delivery', '🚚 Home Delivery (+LKR 350)']].map(([val, lab]) => (
           <label key={val} style={c.radioRow}>
             <input type="radio" name="delivery_type" value={val} checked={form.delivery_type === val} onChange={set('delivery_type')} />
-            <span style={c.radioText}>{lab}</span>
+            <span style={{ ...c.radioText, ...(isMobile ? { fontSize: 13 } : {}) }}>{lab}</span>
           </label>
         ))}
       </div>
@@ -131,16 +188,17 @@ function Step2Delivery({ form, setForm, goNext, goBack }) {
       {form.delivery_type === 'delivery' && (
         <div>
           <Field label="Street Address *" value={form.delivery_address} onChange={set('delivery_address')} placeholder="No. 12, Main Street…" />
-          <div style={c.twoCol}>
+          <div style={{ ...c.twoCol, ...(isMobile ? { gridTemplateColumns: '1fr' } : {}) }}>
             <Field label="City *" value={form.delivery_city} onChange={set('delivery_city')} placeholder="Colombo" />
             <Field label="Postal Code" value={form.delivery_postal} onChange={set('delivery_postal')} placeholder="10001" />
           </div>
         </div>
       )}
 
-      <div style={c.btnRow}>
-        <button style={c.outlineBtn} onClick={goBack}>← Back</button>
-        <button style={{ ...c.primaryBtn, opacity: valid ? 1 : 0.5, cursor: valid ? 'pointer' : 'not-allowed' }}
+      <div style={{ ...c.btnRow, ...(isMobile ? { gap: 8 } : {}) }}>
+        <button style={{ ...c.outlineBtn, ...(isMobile ? { flex: 1, padding: '12px 0', fontSize: 13 } : {}) }} onClick={goBack}>← Back</button>
+        <button
+          style={{ ...c.primaryBtn, ...(isMobile ? { flex: 2, padding: '12px 0', fontSize: 13 } : {}), opacity: valid ? 1 : 0.5, cursor: valid ? 'pointer' : 'not-allowed' }}
           disabled={!valid} onClick={goNext}>Continue →</button>
       </div>
     </div>
@@ -149,6 +207,7 @@ function Step2Delivery({ form, setForm, goNext, goBack }) {
 
 // Step 3 — Payment & Extras
 function Step3Payment({ form, setForm, salonId, subtotal, goNext, goBack }) {
+  const { isMobile } = useBreakpoint();
   const set = k => e => setForm(p => ({ ...p, [k]: e.target.value }));
   const setCheck = k => e => setForm(p => ({ ...p, [k]: e.target.checked }));
 
@@ -161,10 +220,7 @@ function Step3Payment({ form, setForm, salonId, subtotal, goNext, goBack }) {
     if (!promoInput.trim()) return;
     setPromoLoading(true); setPromoMsg('');
     try {
-      const r = await api.post(`/salons/${salonId}/promo/validate/`, {
-        code: promoInput.trim(),
-        subtotal: subtotal.toFixed(2),
-      });
+      const r = await api.post(`/salons/${salonId}/promo/validate/`, { code: promoInput.trim(), subtotal: subtotal.toFixed(2) });
       if (r.data.valid) {
         setForm(p => ({ ...p, promo_code: promoInput.trim(), discount_amount: r.data.discount_amount, promo_label: r.data.label }));
         setPromoMsg(`✓ ${r.data.label} applied!`);
@@ -182,30 +238,27 @@ function Step3Payment({ form, setForm, salonId, subtotal, goNext, goBack }) {
   };
 
   const removePromo = () => {
-    setPromoInput('');
-    setPromoMsg('');
-    setPromoValid(false);
+    setPromoInput(''); setPromoMsg(''); setPromoValid(false);
     setForm(p => ({ ...p, promo_code: '', discount_amount: '0', promo_label: '' }));
   };
 
   return (
     <div>
-      <div style={c.sectionTitle}>Payment & Extras</div>
+      <div style={{ ...c.sectionTitle, ...(isMobile ? { fontSize: 18, marginBottom: 14 } : {}) }}>Payment & Extras</div>
 
       <div style={c.radioGroup}>
         <div style={c.radioLabel}>Payment Method</div>
         {[
           ['cash',    '💵 Cash on Delivery'],
-          ['payhere', '💳 Pay Online via PayHere (Card / Bank / Wallet)'],
+          ['payhere', '💳 Pay Online via PayHere'],
         ].map(([val, lab]) => (
           <label key={val} style={c.radioRow}>
             <input type="radio" name="payment_method" value={val} checked={form.payment_method === val} onChange={set('payment_method')} />
-            <span style={c.radioText}>{lab}</span>
+            <span style={{ ...c.radioText, ...(isMobile ? { fontSize: 13 } : {}) }}>{lab}</span>
           </label>
         ))}
       </div>
 
-      {/* Promo code */}
       <div style={{ marginBottom: 20 }}>
         <label style={c.fieldLabel}>Promo Code</label>
         {promoValid ? (
@@ -216,38 +269,33 @@ function Step3Payment({ form, setForm, salonId, subtotal, goNext, goBack }) {
         ) : (
           <div style={{ display: 'flex', gap: 10 }}>
             <input style={{ ...c.input, flex: 1 }} value={promoInput} onChange={e => setPromoInput(e.target.value)} placeholder="Enter promo code" />
-            <button style={c.applyBtn} onClick={applyPromo} disabled={promoLoading}>
-              {promoLoading ? '…' : 'Apply'}
-            </button>
+            <button style={c.applyBtn} onClick={applyPromo} disabled={promoLoading}>{promoLoading ? '…' : 'Apply'}</button>
           </div>
         )}
         {promoMsg && !promoValid && <div style={{ fontSize: 12, color: '#DC2626', marginTop: 5 }}>{promoMsg}</div>}
       </div>
 
-      {/* Gift wrap */}
       <div style={c.checkRow}>
         <input type="checkbox" id="giftwrap" checked={form.gift_wrap} onChange={setCheck('gift_wrap')} />
-        <label htmlFor="giftwrap" style={c.checkLabel}>🎁 Gift Wrapping (+LKR {GIFT_FEE})</label>
+        <label htmlFor="giftwrap" style={{ ...c.checkLabel, ...(isMobile ? { fontSize: 13 } : {}) }}>🎁 Gift Wrapping (+LKR {GIFT_FEE})</label>
       </div>
       {form.gift_wrap && (
         <div style={{ marginTop: 10, marginBottom: 16 }}>
           <label style={c.fieldLabel}>Gift Message (optional)</label>
           <textarea style={{ ...c.input, height: 80, resize: 'vertical' }}
-            value={form.gift_message} onChange={set('gift_message')}
-            placeholder="Write a message for the recipient…" />
+            value={form.gift_message} onChange={set('gift_message')} placeholder="Write a message for the recipient…" />
         </div>
       )}
 
-      {/* Order notes */}
       <div style={{ marginBottom: 20 }}>
         <label style={c.fieldLabel}>Order Notes (optional)</label>
         <textarea style={{ ...c.input, height: 70, resize: 'vertical' }}
           value={form.notes} onChange={set('notes')} placeholder="Any special instructions…" />
       </div>
 
-      <div style={c.btnRow}>
-        <button style={c.outlineBtn} onClick={goBack}>← Back</button>
-        <button style={c.primaryBtn} onClick={goNext}>Review Order →</button>
+      <div style={{ ...c.btnRow, ...(isMobile ? { gap: 8 } : {}) }}>
+        <button style={{ ...c.outlineBtn, ...(isMobile ? { flex: 1, padding: '12px 0', fontSize: 13 } : {}) }} onClick={goBack}>← Back</button>
+        <button style={{ ...c.primaryBtn, ...(isMobile ? { flex: 2, padding: '12px 0', fontSize: 13 } : {}) }} onClick={goNext}>Review Order →</button>
       </div>
     </div>
   );
@@ -271,6 +319,7 @@ function submitToPayHere(data) {
 // Step 4 — Order Summary + Confirm
 function Step4Confirm({ form, items, salonId, clearCart, setStep }) {
   const navigate = useNavigate();
+  const { isMobile } = useBreakpoint();
   const [placing, setPlacing] = useState(false);
   const [error, setError]     = useState('');
   const [success, setSuccess] = useState(false);
@@ -311,20 +360,12 @@ function Step4Confirm({ form, items, salonId, clearCart, setStep }) {
     try {
       const r = await api.post(`/salons/${salonId}/orders/`, buildPayload());
       const createdOrderId = r.data.id;
-
       if (form.payment_method === 'payhere') {
-        // Initiate PayHere — page will navigate away
-        const ph = await api.post('/payments/initiate/', {
-          type: 'cosmetics',
-          cosmetic_order_id: createdOrderId,
-          phone: form.client_phone,
-        });
+        const ph = await api.post('/payments/initiate/', { type: 'cosmetics', cosmetic_order_id: createdOrderId, phone: form.client_phone });
         clearCart();
         submitToPayHere(ph.data);
-        return; // browser navigates away
+        return;
       }
-
-      // Cash order — show success inline
       setOrderId(createdOrderId);
       clearCart();
       setSuccess(true);
@@ -336,12 +377,12 @@ function Step4Confirm({ form, items, salonId, clearCart, setStep }) {
   };
 
   if (success) return (
-    <div style={{ textAlign: 'center', padding: '40px 20px' }}>
-      <div style={{ fontSize: 64, marginBottom: 16 }}>🎉</div>
-      <div style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 30, fontWeight: 700, color: 'var(--text)', marginBottom: 8 }}>Order Placed!</div>
-      <div style={{ fontSize: 15, color: 'var(--text-muted)', marginBottom: 8 }}>Order #{orderId} has been confirmed.</div>
-      <div style={{ fontSize: 14, color: 'var(--text-muted)', marginBottom: 28 }}>We'll contact you at <strong>{form.client_email}</strong> with updates.</div>
-      <button style={c.primaryBtn} onClick={() => navigate('/salons')}>Continue Shopping</button>
+    <div style={{ textAlign: 'center', padding: isMobile ? '28px 8px' : '40px 20px' }}>
+      <div style={{ fontSize: 52, marginBottom: 12 }}>🎉</div>
+      <div style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: isMobile ? 24 : 30, fontWeight: 700, color: 'var(--text)', marginBottom: 8 }}>Order Placed!</div>
+      <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 6 }}>Order #{orderId} has been confirmed.</div>
+      <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 24 }}>We'll contact <strong>{form.client_email}</strong> with updates.</div>
+      <button style={{ ...c.primaryBtn, width: '100%' }} onClick={() => navigate('/salons')}>Continue Shopping</button>
     </div>
   );
 
@@ -354,31 +395,26 @@ function Step4Confirm({ form, items, salonId, clearCart, setStep }) {
 
   return (
     <div>
-      <div style={c.sectionTitle}>Order Summary</div>
+      <div style={{ ...c.sectionTitle, ...(isMobile ? { fontSize: 18, marginBottom: 14 } : {}) }}>Order Summary</div>
 
-      {/* Items */}
       <div style={c.summaryCard}>
         <div style={c.summaryLabel}>Items ({items.reduce((s, i) => s + i.quantity, 0)})</div>
         {items.map(item => (
-          <div key={item._key} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-            <span style={{ fontSize: 13, color: 'var(--text)' }}>{item.name} × {item.quantity}{item.variantNote ? ` (${item.variantNote})` : ''}</span>
-            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>LKR {(Number(item.selling_price) * item.quantity).toLocaleString()}</span>
+          <div key={item._key} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, gap: 8 }}>
+            <span style={{ fontSize: 13, color: 'var(--text)', flex: 1, minWidth: 0 }}>{item.name} × {item.quantity}{item.variantNote ? ` (${item.variantNote})` : ''}</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', flexShrink: 0 }}>LKR {(Number(item.selling_price) * item.quantity).toLocaleString()}</span>
           </div>
         ))}
       </div>
 
-      {/* Delivery */}
       <div style={c.summaryCard}>
         <div style={c.summaryLabel}>Delivery</div>
         <Line label="Method" val={form.delivery_type === 'pickup' ? 'Pickup from Salon' : 'Home Delivery'} />
-        {form.delivery_type === 'delivery' && (
-          <Line label="Address" val={`${form.delivery_address}, ${form.delivery_city}`} />
-        )}
+        {form.delivery_type === 'delivery' && <Line label="Address" val={`${form.delivery_address}, ${form.delivery_city}`} />}
         <Line label="Contact" val={`${form.client_name} · ${form.client_phone}`} />
         <Line label="Email" val={form.client_email} />
       </div>
 
-      {/* Pricing breakdown */}
       <div style={c.summaryCard}>
         <div style={c.summaryLabel}>Price Breakdown</div>
         <Line label="Subtotal" val={`LKR ${subtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}`} />
@@ -391,7 +427,6 @@ function Step4Confirm({ form, items, salonId, clearCart, setStep }) {
         </div>
       </div>
 
-      {/* Payment */}
       <div style={c.summaryCard}>
         <div style={c.summaryLabel}>Payment</div>
         <Line label="Method" val={{ cash: 'Cash on Delivery', payhere: 'PayHere (Card / Bank / Wallet)' }[form.payment_method] || form.payment_method} />
@@ -400,11 +435,13 @@ function Step4Confirm({ form, items, salonId, clearCart, setStep }) {
 
       {error && <div style={c.errorBox}>{error}</div>}
 
-      <div style={c.btnRow}>
-        <button style={c.outlineBtn} onClick={() => setStep(2)}>← Back</button>
-        <button style={{ ...c.primaryBtn, opacity: placing ? 0.7 : 1 }} onClick={placeOrder} disabled={placing}>
+      <div style={{ ...c.btnRow, ...(isMobile ? { gap: 8 } : {}) }}>
+        <button style={{ ...c.outlineBtn, ...(isMobile ? { flex: 1, padding: '12px 0', fontSize: 13 } : {}) }} onClick={() => setStep(2)}>← Back</button>
+        <button
+          style={{ ...c.primaryBtn, ...(isMobile ? { flex: 2, padding: '12px 0', fontSize: 13 } : {}), opacity: placing ? 0.7 : 1 }}
+          onClick={placeOrder} disabled={placing}>
           {placing
-            ? (form.payment_method === 'payhere' ? 'Redirecting to PayHere…' : 'Placing Order…')
+            ? (form.payment_method === 'payhere' ? 'Redirecting…' : 'Placing Order…')
             : (form.payment_method === 'payhere' ? '💳 Pay via PayHere' : '✓ Place Order')}
         </button>
       </div>
@@ -439,51 +476,39 @@ function LoginGate({ next, title, message }) {
 }
 
 const gate = {
-  wrap: { minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 20px' },
-  card: {
-    background: 'var(--surface)', borderRadius: 24, padding: '48px 40px',
-    maxWidth: 420, width: '100%', textAlign: 'center',
-    boxShadow: '0 8px 40px rgba(13,148,136,.1)', border: '1px solid var(--border)',
-  },
-  lock: { fontSize: 40, marginBottom: 16, display: 'block' },
-  heading: {
-    fontFamily: "'Cormorant Garamond', Georgia, serif",
-    fontSize: 28, fontWeight: 700, color: 'var(--text)', margin: '0 0 10px', letterSpacing: '-0.02em',
-  },
-  body: { fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.7, marginBottom: 28 },
-  btn: {
-    display: 'block', padding: '13px 0',
-    background: 'linear-gradient(135deg, #0D9488 0%, #14B8A8 50%, #0D9488 100%)',
-    color: '#fff', borderRadius: 12, fontWeight: 700, fontSize: 15,
-    textDecoration: 'none', marginBottom: 16,
-    boxShadow: '0 6px 20px rgba(13,148,136,.35)',
-  },
-  sub: { fontSize: 13, color: 'var(--text-muted)' },
-  subLink: { color: '#0D9488', fontWeight: 600, textDecoration: 'none' },
+  wrap:        { minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 20px' },
+  card:        { background: 'var(--surface)', borderRadius: 24, padding: '48px 40px', maxWidth: 420, width: '100%', textAlign: 'center', boxShadow: '0 8px 40px rgba(13,148,136,.1)', border: '1px solid var(--border)' },
+  lock:        { fontSize: 40, marginBottom: 16, display: 'block' },
+  heading:     { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 28, fontWeight: 700, color: 'var(--text)', margin: '0 0 10px', letterSpacing: '-0.02em' },
+  body:        { fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.7, marginBottom: 28 },
+  btn:         { display: 'block', padding: '13px 0', background: 'linear-gradient(135deg, #0D9488 0%, #14B8A8 50%, #0D9488 100%)', color: '#fff', borderRadius: 12, fontWeight: 700, fontSize: 15, textDecoration: 'none', marginBottom: 16, boxShadow: '0 6px 20px rgba(13,148,136,.35)' },
+  sub:         { fontSize: 13, color: 'var(--text-muted)' },
+  subLink:     { color: '#0D9488', fontWeight: 600, textDecoration: 'none' },
 };
 
 export default function Checkout() {
   const { items, removeItem, updateQty, updateVariant, clearCart, subtotal } = useCart();
   const { user, profile } = useAuth();
+  const { isMobile } = useBreakpoint();
   const [step, setStep] = useState(0);
 
   const salonId = items[0]?.salonId || null;
 
   const [form, setForm] = useState({
-    client_name: user?.full_name || '',
-    client_email: user?.email || '',
-    client_phone: '',
-    delivery_type: 'pickup',
-    delivery_address: '',
-    delivery_city: '',
+    client_name:     user?.full_name || '',
+    client_email:    user?.email || '',
+    client_phone:    '',
+    delivery_type:   'pickup',
+    delivery_address:'',
+    delivery_city:   '',
     delivery_postal: '',
-    payment_method: 'cash',
-    gift_wrap: false,
-    gift_message: '',
-    promo_code: '',
+    payment_method:  'cash',
+    gift_wrap:       false,
+    gift_message:    '',
+    promo_code:      '',
     discount_amount: '0',
-    promo_label: '',
-    notes: '',
+    promo_label:     '',
+    notes:           '',
   });
 
   const goNext = () => setStep(s => Math.min(s + 1, 3));
@@ -492,12 +517,8 @@ export default function Checkout() {
   if (!profile) {
     return (
       <div style={c.page}>
-        <div style={c.inner}>
-          <LoginGate
-            next="/user/checkout"
-            title="Sign in to Checkout"
-            message="To complete your purchase, please log in to your account."
-          />
+        <div style={{ ...c.inner, ...(isMobile ? { padding: '16px 12px' } : {}) }}>
+          <LoginGate next="/user/checkout" title="Sign in to Checkout" message="To complete your purchase, please log in to your account." />
         </div>
       </div>
     );
@@ -505,51 +526,28 @@ export default function Checkout() {
 
   return (
     <div style={c.page}>
-      <div style={c.inner}>
-        <div style={c.pageHeader}>
-          <h1 style={c.pageTitle}>Checkout</h1>
+      <div style={{ ...c.inner, ...(isMobile ? { padding: '16px 12px' } : {}) }}>
+        <div style={{ ...c.pageHeader, ...(isMobile ? { marginBottom: 16 } : {}) }}>
+          <h1 style={{ ...c.pageTitle, ...(isMobile ? { fontSize: 22 } : {}) }}>Checkout</h1>
           {items.length > 0 && salonId && (
-            <div style={c.salonNote}>
-              Ordering from <strong>{items[0].salonName}</strong>
-            </div>
+            <div style={c.salonNote}>Ordering from <strong>{items[0].salonName}</strong></div>
           )}
         </div>
 
         <StepBar step={step} />
 
-        <div style={c.card}>
+        <div style={{ ...c.card, ...(isMobile ? { padding: '16px 14px', borderRadius: 14 } : {}) }}>
           {step === 0 && (
-            <Step1CartReview
-              items={items}
-              removeItem={removeItem}
-              updateQty={updateQty}
-              updateVariant={updateVariant}
-              subtotal={subtotal}
-              goNext={goNext}
-              goBack={goBack}
-            />
+            <Step1CartReview items={items} removeItem={removeItem} updateQty={updateQty} updateVariant={updateVariant} subtotal={subtotal} goNext={goNext} goBack={goBack} />
           )}
           {step === 1 && (
             <Step2Delivery form={form} setForm={setForm} goNext={goNext} goBack={goBack} />
           )}
           {step === 2 && (
-            <Step3Payment
-              form={form}
-              setForm={setForm}
-              salonId={salonId}
-              subtotal={subtotal}
-              goNext={goNext}
-              goBack={goBack}
-            />
+            <Step3Payment form={form} setForm={setForm} salonId={salonId} subtotal={subtotal} goNext={goNext} goBack={goBack} />
           )}
           {step === 3 && (
-            <Step4Confirm
-              form={form}
-              items={items}
-              salonId={salonId}
-              clearCart={clearCart}
-              setStep={setStep}
-            />
+            <Step4Confirm form={form} items={items} salonId={salonId} clearCart={clearCart} setStep={setStep} />
           )}
         </div>
       </div>
@@ -558,51 +556,51 @@ export default function Checkout() {
 }
 
 const c = {
-  page: { background: 'var(--bg)', minHeight: '100vh', paddingBottom: 64 },
-  inner: { maxWidth: 680, margin: '0 auto', padding: '32px 20px' },
-  pageHeader: { marginBottom: 28 },
-  pageTitle: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 34, fontWeight: 700, color: 'var(--text)', margin: '0 0 4px' },
-  salonNote: { fontSize: 13, color: 'var(--text-muted)' },
+  page:         { background: 'var(--bg)', minHeight: '100vh', paddingBottom: 64 },
+  inner:        { maxWidth: 680, margin: '0 auto', padding: '32px 20px' },
+  pageHeader:   { marginBottom: 28 },
+  pageTitle:    { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 34, fontWeight: 700, color: 'var(--text)', margin: '0 0 4px' },
+  salonNote:    { fontSize: 13, color: 'var(--text-muted)' },
 
-  card: { background: 'var(--surface)', borderRadius: 18, border: '1px solid var(--border)', boxShadow: '0 4px 24px rgba(0,0,0,.07)', padding: '28px 32px' },
+  card:         { background: 'var(--surface)', borderRadius: 18, border: '1px solid var(--border)', boxShadow: '0 4px 24px rgba(0,0,0,.07)', padding: '28px 32px' },
   sectionTitle: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 22, fontWeight: 700, color: 'var(--text)', marginBottom: 20 },
 
-  cartItem: { display: 'flex', gap: 16, padding: '16px', borderRadius: 12, border: '1px solid var(--border)', background: 'var(--bg)', alignItems: 'flex-start' },
-  itemImg: { width: 72, height: 72, objectFit: 'cover', borderRadius: 10, flexShrink: 0 },
-  itemImgPlaceholder: { width: 72, height: 72, borderRadius: 10, background: 'rgba(13,148,136,.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, flexShrink: 0 },
-  itemName: { fontWeight: 700, fontSize: 14, color: 'var(--text)', marginBottom: 2 },
-  itemMeta: { fontSize: 11, color: 'var(--text-muted)', marginBottom: 2 },
-  itemPrice: { fontWeight: 800, fontSize: 15, color: '#0D9488' },
-  qtyRow: { display: 'flex', alignItems: 'center', gap: 8 },
-  qtyBtn: { width: 28, height: 28, border: '1.5px solid var(--border)', borderRadius: 6, background: 'var(--surface)', cursor: 'pointer', fontSize: 14, fontWeight: 700, color: 'var(--text)' },
-  qty: { fontSize: 14, fontWeight: 700, minWidth: 22, textAlign: 'center', color: 'var(--text)' },
-  removeBtn: { background: 'none', border: 'none', color: '#DC2626', fontSize: 12, cursor: 'pointer', fontWeight: 600, padding: 0 },
-  subtotalRow: { display: 'flex', justifyContent: 'space-between', padding: '14px 0', borderTop: '1.5px solid var(--border)', fontSize: 14, color: 'var(--text)', marginBottom: 20 },
+  cartItem:          { display: 'flex', gap: 16, padding: 16, borderRadius: 12, border: '1px solid var(--border)', background: 'var(--bg)', alignItems: 'flex-start' },
+  itemImg:           { width: 72, height: 72, objectFit: 'cover', borderRadius: 10, flexShrink: 0 },
+  itemImgPlaceholder:{ width: 72, height: 72, borderRadius: 10, background: 'rgba(13,148,136,.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, flexShrink: 0 },
+  itemName:          { fontWeight: 700, fontSize: 14, color: 'var(--text)', marginBottom: 2 },
+  itemMeta:          { fontSize: 11, color: 'var(--text-muted)', marginBottom: 2 },
+  itemPrice:         { fontWeight: 800, fontSize: 15, color: '#0D9488' },
+  qtyRow:            { display: 'flex', alignItems: 'center', gap: 8 },
+  qtyBtn:            { width: 28, height: 28, border: '1.5px solid var(--border)', borderRadius: 6, background: 'var(--surface)', cursor: 'pointer', fontSize: 14, fontWeight: 700, color: 'var(--text)' },
+  qty:               { fontSize: 14, fontWeight: 700, minWidth: 22, textAlign: 'center', color: 'var(--text)' },
+  removeBtn:         { background: 'none', border: 'none', color: '#DC2626', fontSize: 12, cursor: 'pointer', fontWeight: 600, padding: 0 },
+  subtotalRow:       { display: 'flex', justifyContent: 'space-between', padding: '14px 0', borderTop: '1.5px solid var(--border)', fontSize: 14, color: 'var(--text)', marginBottom: 20 },
 
-  twoCol: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 },
-  fieldLabel: { display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6 },
-  smallLabel: { display: 'block', fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 },
-  input: { width: '100%', padding: '10px 14px', border: '1.5px solid var(--border)', borderRadius: 10, fontSize: 13, color: 'var(--text)', background: 'var(--surface)', fontFamily: "'DM Sans', sans-serif", outline: 'none', boxSizing: 'border-box' },
-  variantInput: { width: '100%', padding: '7px 10px', border: '1.5px solid var(--border)', borderRadius: 8, fontSize: 12, color: 'var(--text)', background: 'var(--surface)', fontFamily: "'DM Sans', sans-serif", outline: 'none', boxSizing: 'border-box' },
+  twoCol:      { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 },
+  fieldLabel:  { display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6 },
+  smallLabel:  { display: 'block', fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 },
+  input:       { width: '100%', padding: '10px 14px', border: '1.5px solid var(--border)', borderRadius: 10, fontSize: 13, color: 'var(--text)', background: 'var(--surface)', fontFamily: "'DM Sans', sans-serif", outline: 'none', boxSizing: 'border-box' },
+  variantInput:{ width: '100%', padding: '7px 10px', border: '1.5px solid var(--border)', borderRadius: 8, fontSize: 12, color: 'var(--text)', background: 'var(--surface)', fontFamily: "'DM Sans', sans-serif", outline: 'none', boxSizing: 'border-box' },
 
-  radioGroup: { marginBottom: 20 },
-  radioLabel: { fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 10 },
-  radioRow: { display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8, cursor: 'pointer' },
-  radioText: { fontSize: 14, color: 'var(--text)', fontWeight: 500 },
+  radioGroup:  { marginBottom: 20 },
+  radioLabel:  { fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 10 },
+  radioRow:    { display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8, cursor: 'pointer' },
+  radioText:   { fontSize: 14, color: 'var(--text)', fontWeight: 500 },
 
-  checkRow: { display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8, cursor: 'pointer' },
-  checkLabel: { fontSize: 14, color: 'var(--text)', fontWeight: 500, cursor: 'pointer' },
+  checkRow:    { display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8, cursor: 'pointer' },
+  checkLabel:  { fontSize: 14, color: 'var(--text)', fontWeight: 500, cursor: 'pointer' },
 
-  promoApplied: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: 'rgba(13,148,136,.1)', border: '1.5px solid #0D9488', borderRadius: 10, fontSize: 13, color: '#0D9488', fontWeight: 700 },
+  promoApplied:{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: 'rgba(13,148,136,.1)', border: '1.5px solid #0D9488', borderRadius: 10, fontSize: 13, color: '#0D9488', fontWeight: 700 },
   promoRemove: { background: 'none', border: 'none', color: '#DC2626', cursor: 'pointer', fontWeight: 700, fontSize: 12 },
-  applyBtn: { padding: '10px 18px', background: 'linear-gradient(135deg, #0D9488, #14B8A8)', color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 700, fontSize: 13, whiteSpace: 'nowrap', fontFamily: "'DM Sans', sans-serif" },
+  applyBtn:    { padding: '10px 18px', background: 'linear-gradient(135deg, #0D9488, #14B8A8)', color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 700, fontSize: 13, whiteSpace: 'nowrap', fontFamily: "'DM Sans', sans-serif" },
 
-  summaryCard: { background: 'var(--bg)', borderRadius: 12, border: '1px solid var(--border)', padding: '16px 18px', marginBottom: 14 },
-  summaryLabel: { fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 },
+  summaryCard: { background: 'var(--bg)', borderRadius: 12, border: '1px solid var(--border)', padding: '14px 16px', marginBottom: 12 },
+  summaryLabel:{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 },
 
-  errorBox: { background: '#FEF2F2', border: '1px solid #FCA5A5', color: '#DC2626', borderRadius: 10, padding: '12px 16px', fontSize: 13, marginBottom: 16 },
+  errorBox:    { background: '#FEF2F2', border: '1px solid #FCA5A5', color: '#DC2626', borderRadius: 10, padding: '12px 16px', fontSize: 13, marginBottom: 16 },
 
-  btnRow: { display: 'flex', justifyContent: 'space-between', marginTop: 24, gap: 12 },
-  primaryBtn: { padding: '13px 28px', background: 'linear-gradient(135deg, #0D9488, #14B8A8)', color: '#fff', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 800, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" },
-  outlineBtn: { padding: '13px 22px', border: '1.5px solid var(--border)', borderRadius: 12, background: 'none', color: 'var(--text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" },
+  btnRow:      { display: 'flex', justifyContent: 'space-between', marginTop: 20, gap: 12 },
+  primaryBtn:  { padding: '13px 28px', background: 'linear-gradient(135deg, #0D9488, #14B8A8)', color: '#fff', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 800, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" },
+  outlineBtn:  { padding: '13px 22px', border: '1.5px solid var(--border)', borderRadius: 12, background: 'none', color: 'var(--text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" },
 };
