@@ -18,6 +18,8 @@ export default function StaffManager() {
   const [createForm, setCreateForm] = useState(blankCreate);
   const [creating, setCreating]   = useState(false);
   const [createErr, setCreateErr] = useState('');
+  const [showCreatePw, setShowCreatePw] = useState(false);
+  const [showResetPw, setShowResetPw]   = useState(false);
 
   const [editId, setEditId]       = useState(null);
   const [editForm, setEditForm]   = useState({});
@@ -145,7 +147,10 @@ export default function StaffManager() {
                   <input style={s.input} type="email" name="staff-login-email" value={createForm.login_email} onChange={e => setCreateForm({ ...createForm, login_email: e.target.value })} required autoComplete="new-password" />
                 </Field>
                 <Field label="Password" required>
-                  <input style={s.input} type="password" name="staff-password-new" value={createForm.password} onChange={e => setCreateForm({ ...createForm, password: e.target.value })} minLength={6} required autoComplete="new-password" />
+                  <div style={{ position: 'relative' }}>
+                    <input style={{ ...s.input, paddingRight: 40 }} type={showCreatePw ? 'text' : 'password'} name="staff-password-new" value={createForm.password} onChange={e => setCreateForm({ ...createForm, password: e.target.value })} minLength={6} required autoComplete="new-password" />
+                    <button type="button" onClick={() => setShowCreatePw(v => !v)} style={s.eyeBtn}>{showCreatePw ? '🙈' : '👁'}</button>
+                  </div>
                 </Field>
               </div>
               <div style={s.modalFooter}>
@@ -177,7 +182,10 @@ export default function StaffManager() {
                 <input style={s.input} type="email" value={resetForm.login_email} onChange={e => setResetForm({ ...resetForm, login_email: e.target.value })} />
               </Field>
               <Field label="New Password (optional)">
-                <input style={s.input} type="password" value={resetForm.password} onChange={e => setResetForm({ ...resetForm, password: e.target.value })} minLength={6} />
+                <div style={{ position: 'relative' }}>
+                  <input style={{ ...s.input, paddingRight: 40 }} type={showResetPw ? 'text' : 'password'} value={resetForm.password} onChange={e => setResetForm({ ...resetForm, password: e.target.value })} minLength={6} />
+                  <button type="button" onClick={() => setShowResetPw(v => !v)} style={s.eyeBtn}>{showResetPw ? '🙈' : '👁'}</button>
+                </div>
               </Field>
               <div style={s.modalFooter}>
                 <button type="button" style={s.cancelBtn} onClick={() => { setResetId(null); setResetMsg(''); }}>Close</button>
@@ -374,6 +382,11 @@ const s = {
   divider: { height: 1, background: 'var(--border)', margin: '4px 0' },
   sectionLabel: { fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 },
   modalFooter: { display: 'flex', justifyContent: 'flex-end', gap: 10, paddingTop: 4 },
+  eyeBtn: {
+    position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
+    background: 'none', border: 'none', cursor: 'pointer', fontSize: 14,
+    color: 'var(--text-muted)', padding: '2px 4px',
+  },
   cancelBtn: {
     padding: '10px 18px', background: 'transparent', border: '1px solid var(--border)',
     borderRadius: 8, cursor: 'pointer', fontSize: 13, color: 'var(--text-muted)',

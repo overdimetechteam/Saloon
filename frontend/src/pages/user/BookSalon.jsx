@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { createPortal } from 'react-dom';
 import api from '../../api/axios';
 import { useBreakpoint } from '../../hooks/useMobile';
+import { formatDuration } from '../../utils/format';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
 import { SALON_PALETTES } from '../../styles/theme';
@@ -496,7 +497,7 @@ export default function BookSalon() {
                           {ss.description ? (
                             <div style={s.svcDesc}>{ss.description}</div>
                           ) : null}
-                          <div style={s.svcMeta}>⏱ {ss.effective_duration} min</div>
+                          <div style={s.svcMeta}>⏱ {formatDuration(ss.effective_duration)}</div>
                         </div>
                         <div style={{ ...s.svcPrice, color: on ? pal.main : 'var(--text-sub)', textAlign: 'right' }}>
                           {ss.is_price_starting_from && <div style={s.svcStartingFrom}>Starting From</div>}

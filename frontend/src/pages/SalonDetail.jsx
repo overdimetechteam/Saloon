@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
+import { formatDuration } from '../utils/format';
 import { useTheme } from '../context/ThemeContext';
 import { useBreakpoint } from '../hooks/useMobile';
 import { SALON_PALETTES } from '../styles/theme';
@@ -636,7 +637,7 @@ export default function SalonDetail() {
                           <div style={s.svcDesc}>{ss.description}</div>
                         ) : null}
                         <div style={s.svcMeta}>
-                          <span style={s.svcDur}>⏱ {ss.effective_duration} min</span>
+                          <span style={s.svcDur}>⏱ {formatDuration(ss.effective_duration)}</span>
                           <span style={{ ...s.svcPrice, background: `${activeCatColor}18`, color: activeCatColor, border: `1px solid ${activeCatColor}38`, padding: '3px 10px', borderRadius: 8 }}>
                             {ss.is_price_starting_from && <span style={s.svcStarting}>Starting From </span>}
                             LKR {ss.effective_price}

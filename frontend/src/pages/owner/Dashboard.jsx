@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
 import { useOwner } from '../../context/OwnerContext';
 import { STATUS_META } from '../../styles/theme';
+import { formatDuration } from '../../utils/format';
 import { useBreakpoint } from '../../hooks/useMobile';
 import MapLocationPicker from '../../components/MapLocationPicker';
 
@@ -396,7 +397,7 @@ export default function OwnerDashboard() {
                   <div style={s.hvSvcPriceLine}>
                     {ss.is_price_starting_from && <span style={s.hvSvcStartingFrom}>Starting From </span>}
                     <span>LKR {ss.effective_price}</span>
-                    {ss.effective_duration && <span style={{ marginLeft: 8, opacity: 0.6 }}>· {ss.effective_duration} min</span>}
+                    {ss.effective_duration && <span style={{ marginLeft: 8, opacity: 0.6 }}>· {formatDuration(ss.effective_duration)}</span>}
                   </div>
                 </div>
                 <button

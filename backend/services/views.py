@@ -3,6 +3,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.shortcuts import get_object_or_404
+from django.db import transaction
+from django.db.models import Max
 from .models import Service, SalonService
 from salons.models import Salon
 from staff.models import StaffMember
@@ -71,7 +73,7 @@ class SalonServiceListCreateView(APIView):
 
     def get(self, request, salon_pk):
         salon = self._get_salon(salon_pk)
-        qs = SalonService.objects.filter(salon=salon, is_active=True).select_related('service').order_by('-id')
+        qs = SalonService.objects.filter(salon=salon, is_active=True).select_related('service').order_by('display_order', 'id')
         return Response(SalonServiceSerializer(qs, many=True).data)
 
     def post(self, request, salon_pk):
@@ -138,8 +140,29 @@ class OwnerCustomServiceView(APIView):
             is_private=True,
             owner_salon=salon,
         )
+        # Place new custom service at the end of the display order
+        max_order = SalonService.objects.filter(salon=salon).aggregate(
+            m=Max('display_order')
+        )['m'] or 0
         ss = SalonService.objects.create(
             salon=salon, service=service,
             description=description, is_price_starting_from=is_price_starting_from,
+            display_order=max_order + 1,
         )
         return Response(SalonServiceSerializer(ss).data, status=status.HTTP_201_CREATED)
+
+
+class SalonServiceReorderView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, salon_pk):
+        salon = get_object_or_404(Salon, pk=salon_pk)
+        if request.user.role == 'salon_owner' and salon.owner_id != request.user.id:
+            return Response({'detail': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
+        ordered_ids = request.data.get('ordered_ids', [])
+        if not isinstance(ordered_ids, list):
+            return Response({'detail': 'ordered_ids must be a list.'}, status=status.HTTP_400_BAD_REQUEST)
+        with transaction.atomic():
+            for idx, ss_id in enumerate(ordered_ids):
+                SalonService.objects.filter(pk=ss_id, salon=salon).update(display_order=idx)
+        return Response({'detail': 'Order saved.'})

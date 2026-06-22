@@ -38,6 +38,7 @@ class SalonService(models.Model):
     home_visit_available = models.BooleanField(default=False)
     description = models.TextField(blank=True, default='')
     is_active = models.BooleanField(default=True)
+    display_order = models.PositiveIntegerField(default=0)
 
     class Meta:
         unique_together = ('salon', 'service')
