@@ -23,7 +23,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.shortcuts import get_object_or_404
-from django.core.mail import send_mail
+from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
 from .models import CustomUser, Notification
 from .serializers import RegisterSerializer, UserSerializer, NotificationSerializer
@@ -31,69 +31,184 @@ from .serializers import RegisterSerializer, UserSerializer, NotificationSeriali
 
 # ── Email helpers ──────────────────────────────────────────────────────────────
 
-def _email_html(heading, body_html, cta_url, cta_label, footnote):
+def _email_html(heading, preheader, body_html, cta_url, cta_label, footnote):
+    """
+    Table-based HTML email layout. Uses solid colours (no CSS gradients),
+    no special Unicode characters, and a proper preheader — all of which
+    reduce the likelihood of the message being classified as spam.
+    """
     return f"""<!DOCTYPE html>
-<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="margin:0;padding:0;background:#f4f7f6;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif">
-  <div style="max-width:560px;margin:40px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.08)">
-    <div style="background:linear-gradient(135deg,#0D9488,#14B8A8);padding:40px 32px;text-align:center">
-      <div style="font-size:26px;color:#fff;font-weight:900;letter-spacing:-0.02em">✦ BookMyStyle</div>
-      <div style="color:rgba(255,255,255,.8);font-size:11px;letter-spacing:0.2em;text-transform:uppercase;margin-top:6px">Beauty &amp; Wellness</div>
-    </div>
-    <div style="padding:36px 32px">
-      <h2 style="margin:0 0 16px;font-size:22px;color:#1a1a2e;font-weight:700">{heading}</h2>
-      {body_html}
-      <div style="text-align:center;margin:32px 0">
-        <a href="{cta_url}" style="display:inline-block;padding:14px 40px;background:linear-gradient(135deg,#0D9488,#14B8A8);color:#fff;border-radius:12px;text-decoration:none;font-weight:700;font-size:15px">{cta_label}</a>
-      </div>
-      <p style="color:#9ca3af;font-size:12px;line-height:1.6;text-align:center;margin:0">{footnote}<br>This link expires in 24 hours.</p>
-      <div style="margin-top:20px;padding-top:20px;border-top:1px solid #f3f4f6">
-        <p style="color:#9ca3af;font-size:11px;text-align:center;margin:0">Or copy this URL:<br><span style="color:#0D9488;word-break:break-all">{cta_url}</span></p>
-      </div>
-    </div>
-    <div style="background:#f9fafb;padding:16px 32px;text-align:center;border-top:1px solid #f3f4f6">
-      <p style="margin:0;font-size:11px;color:#9ca3af">© 2026 BookMyStyle · Beauty &amp; Wellness Platform</p>
-    </div>
-  </div>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="x-apple-disable-message-reformatting">
+  <title>{heading}</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f3f4f6;font-family:Arial,Helvetica,sans-serif;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%">
+  <!--[if !mso]><!-->
+  <div style="display:none;max-height:0;overflow:hidden;mso-hide:all;font-size:1px;color:#f3f4f6">{preheader}&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;</div>
+  <!--<![endif]-->
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color:#f3f4f6">
+    <tr>
+      <td style="padding:32px 16px">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" width="100%" style="max-width:560px;margin:0 auto;background-color:#ffffff;border-radius:10px;overflow:hidden;border:1px solid #e5e7eb">
+          <!-- Header -->
+          <tr>
+            <td style="background-color:#0D9488;padding:28px 32px;text-align:center">
+              <p style="margin:0;font-size:20px;color:#ffffff;font-weight:700;font-family:Arial,Helvetica,sans-serif;letter-spacing:-0.01em">BookMyStyle</p>
+              <p style="margin:5px 0 0;font-size:11px;color:rgba(255,255,255,0.85);letter-spacing:0.12em;text-transform:uppercase;font-family:Arial,Helvetica,sans-serif">Beauty and Wellness</p>
+            </td>
+          </tr>
+          <!-- Body -->
+          <tr>
+            <td style="padding:32px 32px 24px">
+              <h1 style="margin:0 0 16px;font-size:20px;color:#111827;font-weight:700;font-family:Arial,Helvetica,sans-serif;line-height:1.3">{heading}</h1>
+              {body_html}
+              <!-- Button -->
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:28px auto 0">
+                <tr>
+                  <td style="background-color:#0D9488;border-radius:6px;text-align:center">
+                    <a href="{cta_url}" target="_blank" style="display:block;padding:13px 32px;color:#ffffff;text-decoration:none;font-weight:700;font-size:15px;font-family:Arial,Helvetica,sans-serif;white-space:nowrap">{cta_label}</a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <!-- Footnote -->
+          <tr>
+            <td style="padding:0 32px 24px">
+              <p style="margin:0 0 8px;font-size:13px;color:#6b7280;line-height:1.6;font-family:Arial,Helvetica,sans-serif">{footnote}</p>
+              <p style="margin:0;font-size:13px;color:#6b7280;line-height:1.6;font-family:Arial,Helvetica,sans-serif">This link is valid for 24 hours.</p>
+            </td>
+          </tr>
+          <!-- Fallback URL -->
+          <tr>
+            <td style="padding:16px 32px;background-color:#f9fafb;border-top:1px solid #e5e7eb">
+              <p style="margin:0 0 4px;font-size:11px;color:#9ca3af;font-family:Arial,Helvetica,sans-serif">If the button above does not work, open this link in your browser:</p>
+              <p style="margin:0;font-size:11px;color:#0D9488;word-break:break-word;font-family:Arial,Helvetica,sans-serif">{cta_url}</p>
+            </td>
+          </tr>
+          <!-- Footer -->
+          <tr>
+            <td style="padding:16px 32px;background-color:#f9fafb;border-top:1px solid #e5e7eb;text-align:center">
+              <p style="margin:0 0 2px;font-size:11px;color:#9ca3af;font-family:Arial,Helvetica,sans-serif">BookMyStyle - Beauty and Wellness Platform</p>
+              <p style="margin:0;font-size:11px;color:#9ca3af;font-family:Arial,Helvetica,sans-serif">Colombo, Sri Lanka</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
 </body></html>"""
+
+
+def _send_transactional(subject, plain_text, html, to_email):
+    """Send a transactional email using EmailMultiAlternatives for full header control."""
+    msg = EmailMultiAlternatives(
+        subject=subject,
+        body=plain_text,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        to=[to_email],
+        reply_to=[settings.DEFAULT_FROM_EMAIL],
+    )
+    msg.attach_alternative(html, 'text/html')
+    msg.extra_headers = {
+        'X-Mailer': 'BookMyStyle',
+        'X-Priority': '3',
+        'Precedence': 'bulk',
+    }
+    msg.send(fail_silently=False)
 
 
 def _send_verification_email(user):
     uid   = urlsafe_base64_encode(force_bytes(user.pk))
     token = default_token_generator.make_token(user)
     url   = f"{settings.FRONTEND_URL}/verify-email?uid={uid}&token={token}"
-    html  = _email_html(
-        heading=f"Hi {user.full_name or 'there'}, verify your email",
-        body_html='<p style="color:#6b7280;font-size:15px;line-height:1.6;margin:0 0 8px">Thanks for signing up! Click the button below to verify your email address and activate your BookMyStyle account.</p>',
+    name  = user.full_name or 'there'
+
+    html = _email_html(
+        heading=f"Hi {name}, please confirm your email",
+        preheader="You are one step away from accessing BookMyStyle. Confirm your email address to complete your registration.",
+        body_html=f"""
+          <p style="color:#374151;font-size:15px;line-height:1.7;margin:0 0 12px;font-family:Arial,Helvetica,sans-serif">
+            Thank you for creating a BookMyStyle account. To complete your registration, please confirm
+            your email address by clicking the button below.
+          </p>
+          <p style="color:#374151;font-size:15px;line-height:1.7;margin:0;font-family:Arial,Helvetica,sans-serif">
+            This is a one-time step to help keep your account secure.
+          </p>""",
         cta_url=url,
-        cta_label="Verify Email Address",
-        footnote="If you didn't create a BookMyStyle account, you can safely ignore this email.",
+        cta_label="Confirm Email Address",
+        footnote="You are receiving this message because someone used this email address to register for a BookMyStyle account. If that was not you, no action is required and your address will not be used.",
     )
-    send_mail(
-        subject="Verify your BookMyStyle account",
-        message=f"Verify your email: {url}",
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[user.email],
-        html_message=html,
-        fail_silently=False,
+
+    plain_text = f"""Hi {name},
+
+Thank you for creating a BookMyStyle account.
+
+To complete your registration, please open the link below in your browser:
+
+{url}
+
+This link will expire in 24 hours.
+
+If you did not create a BookMyStyle account, you can disregard this message. No changes will be made to any account.
+
+BookMyStyle - Beauty and Wellness Platform
+Colombo, Sri Lanka
+"""
+
+    _send_transactional(
+        subject=f"Please confirm your email address - BookMyStyle",
+        plain_text=plain_text,
+        html=html,
+        to_email=user.email,
     )
 
 
 def _send_password_reset_email(user, reset_url):
+    name = user.full_name or 'there'
+
     html = _email_html(
-        heading="Reset your password",
-        body_html='<p style="color:#6b7280;font-size:15px;line-height:1.6;margin:0 0 8px">We received a request to reset the password for your BookMyStyle account. Click the button below to choose a new password.</p>',
+        heading="Reset your BookMyStyle password",
+        preheader="We received a request to reset the password on your BookMyStyle account.",
+        body_html="""
+          <p style="color:#374151;font-size:15px;line-height:1.7;margin:0 0 12px;font-family:Arial,Helvetica,sans-serif">
+            We received a request to reset the password on your BookMyStyle account.
+            Click the button below to choose a new password.
+          </p>
+          <p style="color:#374151;font-size:15px;line-height:1.7;margin:0;font-family:Arial,Helvetica,sans-serif">
+            If you did not make this request, you can safely disregard this message.
+            Your password will not be changed.
+          </p>""",
         cta_url=reset_url,
-        cta_label="Reset Password",
-        footnote="If you didn't request a password reset, you can safely ignore this email.",
+        cta_label="Reset My Password",
+        footnote="For your security, this link will expire in 24 hours. If you did not request a password reset, no action is needed.",
     )
-    send_mail(
-        subject="Reset your BookMyStyle password",
-        message=f"Reset your password: {reset_url}",
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[user.email],
-        html_message=html,
-        fail_silently=False,
+
+    plain_text = f"""Hi {name},
+
+We received a request to reset the password on your BookMyStyle account.
+
+To set a new password, open the link below in your browser:
+
+{reset_url}
+
+This link will expire in 24 hours.
+
+If you did not request a password reset, you can disregard this message. Your password will remain unchanged.
+
+BookMyStyle - Beauty and Wellness Platform
+Colombo, Sri Lanka
+"""
+
+    _send_transactional(
+        subject="Password reset request - BookMyStyle",
+        plain_text=plain_text,
+        html=html,
+        to_email=user.email,
     )
 
 
