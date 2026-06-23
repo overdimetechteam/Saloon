@@ -65,8 +65,8 @@ export default function UserSettings() {
         )}
 
         <form onSubmit={save} style={s.form}>
-          <div style={{ ...s.row, ...(isMobile ? { flexDirection: 'column' } : {}) }}>
-            <div style={s.field}>
+          <div style={{ ...s.row, ...(isMobile ? { flexDirection: 'column', gap: 14 } : {}) }}>
+            <div style={{ ...s.field, ...(isMobile ? { flex: 'none', width: '100%' } : {}) }}>
               <label style={s.label}>Full Name</label>
               <input
                 style={s.input}
@@ -76,7 +76,7 @@ export default function UserSettings() {
                 required
               />
             </div>
-            <div style={s.field}>
+            <div style={{ ...s.field, ...(isMobile ? { flex: 'none', width: '100%' } : {}) }}>
               <label style={s.label}>Phone Number</label>
               <input
                 style={s.input}
@@ -152,7 +152,7 @@ const s = {
   alertErr: { background: 'rgba(220,38,38,.08)', border: '1px solid rgba(220,38,38,.2)', color: '#ef4444' },
   form: { display: 'flex', flexDirection: 'column', gap: 14 },
   row: { display: 'flex', gap: 12, flexWrap: 'wrap' },
-  field: { display: 'flex', flexDirection: 'column', gap: 6, flex: '1 1 200px' },
+  field: { display: 'flex', flexDirection: 'column', gap: 6, flex: '1 1 160px', minWidth: 0 },
   label: { fontSize: 12, fontWeight: 700, color: 'var(--text-sub)', textTransform: 'uppercase', letterSpacing: '0.06em' },
   input: {
     padding: '12px 14px', border: '1.5px solid var(--border)', borderRadius: 10,

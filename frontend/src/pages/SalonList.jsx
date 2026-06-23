@@ -207,10 +207,10 @@ export default function SalonList() {
               Browse curated premium salons and book your next beauty appointment in seconds.
             </p>
             <div style={{ ...s.heroSearch, maxWidth: isMobile ? '100%' : 480 }} className="fade-up d2 search-bar-wrap">
-              <span className="search-icon" style={{ color: '#0D9488', fontSize: 15, flexShrink: 0 }}>✦</span>
+              <span className="search-icon" style={{ color: '#0D9488', fontSize: isMobile ? 12 : 14, flexShrink: 0 }}>✦</span>
               <input
                 className="hero-search"
-                style={s.heroSearchInput}
+                style={{ ...s.heroSearchInput, fontSize: isMobile ? 13 : 15 }}
                 placeholder="Search by salon name…"
                 value={search}
                 onChange={e => setSearchParams(e.target.value ? { q: e.target.value } : {})}
@@ -237,15 +237,15 @@ export default function SalonList() {
               <span style={{ color: '#D4AF37', fontSize: 10 }}>✦</span>
               {salons.length > 0 ? `${salons.length} salons available` : 'Discover · Book · Glow'}
             </div>
-            <h2 style={{ ...s.heroTitle, fontSize: isMobile ? 20 : isTablet ? 26 : 32, marginBottom: 14 }}>
+            <h2 style={{ ...s.heroTitle, fontSize: isMobile ? 23 : isTablet ? 28 : 34, marginBottom: 14 }}>
               Welcome back,{' '}
               <em style={s.heroItalic}>{safeFirstName(profile.full_name, profile.email)}</em>
             </h2>
-            <div style={{ ...s.heroSearch, maxWidth: isMobile ? '100%' : 500, margin: '0 auto', padding: isMobile ? '9px 14px' : '11px 18px' }} className="search-bar-wrap">
-              <span className="search-icon" style={{ color: '#0D9488', fontSize: 15, flexShrink: 0 }}>✦</span>
+            <div style={{ ...s.heroSearch, maxWidth: isMobile ? '100%' : 500, margin: '0 auto', padding: isMobile ? '8px 12px' : '10px 16px' }} className="search-bar-wrap">
+              <span className="search-icon" style={{ color: '#0D9488', fontSize: isMobile ? 12 : 14, flexShrink: 0 }}>✦</span>
               <input
                 className="hero-search"
-                style={s.heroSearchInput}
+                style={{ ...s.heroSearchInput, fontSize: isMobile ? 13 : 15 }}
                 placeholder="Search by salon name…"
                 value={search}
                 onChange={e => setSearchParams(e.target.value ? { q: e.target.value } : {})}

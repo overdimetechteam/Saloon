@@ -72,7 +72,7 @@ export default function SalonServices() {
   );
 
   return (
-    <div style={{ background: 'var(--bg)', minHeight: '100vh', paddingBottom: selected.size > 0 ? 100 : 24 }}>
+    <div style={{ background: 'var(--bg)', minHeight: '100vh', paddingBottom: isClient ? 88 : 24 }}>
 
       {/* ── Header ── */}
       <div style={{
@@ -186,42 +186,63 @@ export default function SalonServices() {
         )}
       </div>
 
-      {/* ── Sticky bottom bar (when services selected) ── */}
-      {isClient && selected.size > 0 && (
+      {/* ── Sticky bottom bar — always visible for clients ── */}
+      {isClient && (
         <div style={{
           position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 90,
-          background: 'var(--surface)', borderTop: '1px solid var(--border)',
-          padding: isMobile ? '12px 16px' : '14px 24px',
+          background: 'var(--surface)', borderTop: `1.5px solid ${selected.size > 0 ? pal.main + '40' : 'var(--border)'}`,
+          padding: isMobile ? '10px 16px' : '12px 24px',
           display: 'flex', alignItems: 'center', gap: 12,
           boxShadow: '0 -4px 24px rgba(0,0,0,.12)',
+          transition: 'border-color .2s ease',
         }}>
           {/* Subtotal (left) */}
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-              {selected.size} service{selected.size !== 1 ? 's' : ''} selected
-            </div>
-            <div style={{ fontSize: isMobile ? 15 : 17, fontWeight: 800, color: 'var(--text)', marginTop: 1 }}>
-              LKR {subtotal.toLocaleString()}
-              {selectedList.some(s => s.is_price_starting_from) && (
-                <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-muted)', marginLeft: 4 }}>est.</span>
-              )}
-            </div>
+            {selected.size > 0 ? (
+              <>
+                <div style={{ fontSize: 10, color: pal.main, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                  {selected.size} service{selected.size !== 1 ? 's' : ''} selected
+                </div>
+                <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: 'var(--text)', marginTop: 1, lineHeight: 1 }}>
+                  LKR {subtotal.toLocaleString()}
+                  {selectedList.some(s => s.is_price_starting_from) && (
+                    <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-muted)', marginLeft: 4 }}>est.</span>
+                  )}
+                </div>
+              </>
+            ) : (
+              <>
+                <div style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                  Subtotal
+                </div>
+                <div style={{ fontSize: isMobile ? 15 : 17, fontWeight: 700, color: 'var(--text-muted)', marginTop: 1 }}>
+                  Select services
+                </div>
+              </>
+            )}
           </div>
 
-          {/* Continue button (right) */}
+          {/* Proceed button (right) */}
           <button
             onClick={handleContinue}
+            disabled={selected.size === 0}
             style={{
-              padding: isMobile ? '12px 20px' : '13px 28px',
-              background: `linear-gradient(135deg, ${pal.main}, ${pal.light || pal.main})`,
-              color: '#fff', border: 'none', borderRadius: 12,
-              fontSize: isMobile ? 14 : 15, fontWeight: 700, cursor: 'pointer',
+              padding: isMobile ? '11px 22px' : '13px 28px',
+              background: selected.size > 0
+                ? `linear-gradient(135deg, ${pal.main}, ${pal.light || pal.main})`
+                : 'var(--surface2)',
+              color: selected.size > 0 ? '#fff' : 'var(--text-muted)',
+              border: `1.5px solid ${selected.size > 0 ? 'transparent' : 'var(--border)'}`,
+              borderRadius: 12,
+              fontSize: isMobile ? 14 : 15, fontWeight: 700,
+              cursor: selected.size > 0 ? 'pointer' : 'not-allowed',
               fontFamily: "'DM Sans',sans-serif",
-              boxShadow: `0 4px 14px ${pal.main}50`,
+              boxShadow: selected.size > 0 ? `0 4px 14px ${pal.main}50` : 'none',
               flexShrink: 0,
+              transition: 'all .2s ease',
             }}
           >
-            Continue →
+            Proceed →
           </button>
         </div>
       )}
