@@ -10,7 +10,7 @@ from django.db.models import Q, F, Sum
 from django.http import HttpResponse
 
 from datetime import date as date_type
-from .models import Product, GRN, GRNItem, Sale, SaleItem, StockAdjustment, ProductImage, CosmeticOrder, ProductBatch
+from .models import Product, GRN, GRNItem, Sale, SaleItem, StockAdjustment, ProductImage, CosmeticOrder, ProductBatch, ProductReview, ProductReviewPhoto
 from .serializers import (
     ProductSerializer, GRNSerializer, SaleSerializer, StockAdjustmentSerializer,
     ProductImageSerializer, CosmeticOrderSerializer, ProductBatchSerializer,
@@ -586,6 +586,11 @@ class ProductPublicDetailView(APIView):
         image_urls = [
             request.build_absolute_uri(img.image.url) for img in images if img.image
         ]
+        from django.db.models import Avg
+        reviews_qs = product.reviews.all()
+        rating_avg   = reviews_qs.aggregate(avg=Avg('rating'))['avg']
+        rating_count = reviews_qs.count()
+
         return Response({
             'id': product.id,
             'salon_id': salon.id,
@@ -598,21 +603,23 @@ class ProductPublicDetailView(APIView):
             'shade_variant': product.shade_variant,
             'size': product.size,
             'unit_of_measure': product.unit_of_measure,
-            'cost_price': str(product.cost_price),
             'selling_price': str(product.selling_price),
             'current_stock': product.current_stock,
-            'reorder_level': product.reorder_level,
             'supplier': product.supplier,
             'manufacturing_date': str(product.manufacturing_date) if product.manufacturing_date else None,
             'expiry_date': str(product.expiry_date) if product.expiry_date else None,
             'pao': product.pao,
-            'barcode': product.barcode,
             'country_of_origin': product.country_of_origin,
             'certifications': product.certifications,
             'skin_type': product.skin_type,
+            'hair_type': product.hair_type,
+            'ingredients': product.ingredients,
+            'how_to_use': product.how_to_use,
             'notes': product.notes,
             'status': product.status,
             'images': image_urls,
+            'rating_avg': round(float(rating_avg), 1) if rating_avg else None,
+            'rating_count': rating_count,
         })
 
 
@@ -708,3 +715,76 @@ class ProductBatchListCreateView(APIView):
         product.current_stock += batch.quantity_received
         product.save()
         return Response(ProductBatchSerializer(batch).data, status=status.HTTP_201_CREATED)
+
+
+class ProductReviewListCreateView(APIView):
+    """
+    GET  — public, list reviews for a product (newest first, max 50).
+    POST — authenticated client, submit a review (multipart; attach photos as photo_1…photo_5).
+    """
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [AllowAny()]
+        return [IsAuthenticated()]
+
+    def get(self, request, salon_pk, product_pk):
+        salon   = get_object_or_404(Salon, pk=salon_pk, status='active', cosmetics_enabled=True)
+        product = get_object_or_404(Product, pk=product_pk, salon=salon, is_active=True)
+        reviews = product.reviews.select_related('client').prefetch_related('photos')[:50]
+        data = []
+        for rv in reviews:
+            photos = [
+                request.build_absolute_uri(ph.image.url)
+                for ph in rv.photos.all() if ph.image
+            ]
+            data.append({
+                'id':          rv.id,
+                'client_name': rv.client_name or (rv.client.full_name if rv.client else 'Anonymous'),
+                'rating':      rv.rating,
+                'comment':     rv.comment,
+                'photos':      photos,
+                'created_at':  rv.created_at,
+            })
+        return Response(data)
+
+    def post(self, request, salon_pk, product_pk):
+        if request.user.role not in ('client', 'salon_owner', 'system_admin'):
+            return Response({'detail': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
+        salon   = get_object_or_404(Salon, pk=salon_pk, status='active', cosmetics_enabled=True)
+        product = get_object_or_404(Product, pk=product_pk, salon=salon, is_active=True)
+
+        try:
+            rating = int(request.data.get('rating', 0))
+        except (ValueError, TypeError):
+            rating = 0
+        if not (1 <= rating <= 5):
+            return Response({'detail': 'Rating must be between 1 and 5.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        comment     = (request.data.get('comment') or '').strip()
+        client_name = getattr(request.user, 'full_name', '') or request.user.email.split('@')[0]
+
+        review = ProductReview.objects.create(
+            product=product,
+            client=request.user,
+            client_name=client_name,
+            rating=rating,
+            comment=comment,
+        )
+
+        for key in [f'photo_{i}' for i in range(1, 6)]:
+            f = request.FILES.get(key)
+            if f:
+                ProductReviewPhoto.objects.create(review=review, image=f)
+
+        photos = [
+            request.build_absolute_uri(ph.image.url)
+            for ph in review.photos.all() if ph.image
+        ]
+        return Response({
+            'id':          review.id,
+            'client_name': review.client_name,
+            'rating':      review.rating,
+            'comment':     review.comment,
+            'photos':      photos,
+            'created_at':  review.created_at,
+        }, status=status.HTTP_201_CREATED)

@@ -41,6 +41,9 @@ class Product(models.Model):
     country_of_origin = models.CharField(max_length=100, blank=True)
     certifications = models.TextField(blank=True)
     skin_type = models.CharField(max_length=100, blank=True)
+    hair_type = models.CharField(max_length=100, blank=True)
+    ingredients = models.TextField(blank=True)
+    how_to_use = models.TextField(blank=True)
     notes = models.TextField(blank=True)
     is_active = models.BooleanField(default=True)
 
@@ -219,3 +222,27 @@ class CosmeticOrderItem(models.Model):
 
     def __str__(self):
         return f"OrderItem #{self.pk} — {self.product_name} x{self.quantity}"
+
+
+class ProductReview(models.Model):
+    product    = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='reviews')
+    client     = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    client_name = models.CharField(max_length=150, blank=True)
+    rating     = models.PositiveSmallIntegerField()  # 1–5
+    comment    = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Review #{self.pk} — {self.product.name} ({self.rating}★)"
+
+
+class ProductReviewPhoto(models.Model):
+    review     = models.ForeignKey(ProductReview, on_delete=models.CASCADE, related_name='photos')
+    image      = models.ImageField(upload_to='product_review_photos/')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Photo for review #{self.review_id}"
