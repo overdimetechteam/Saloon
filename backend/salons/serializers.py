@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Salon, SalonCalendar, SalonStaff, Offer, SalonImage
+from .models import Salon, SalonCalendar, SalonStaff, Offer, SalonImage, CosmeticsGalleryImage
 from users.models import CustomUser
 
 
@@ -127,6 +127,22 @@ class OfferSerializer(serializers.ModelSerializer):
             'start_date', 'end_date', 'is_active', 'note', 'created_at',
         ]
         read_only_fields = ['salon', 'created_at']
+
+
+class CosmeticsGalleryImageSerializer(serializers.ModelSerializer):
+    image_url = serializers.SerializerMethodField()
+
+    def get_image_url(self, obj):
+        request = self.context.get('request')
+        if obj.image:
+            return request.build_absolute_uri(obj.image.url) if request else obj.image.url
+        return None
+
+    class Meta:
+        model = CosmeticsGalleryImage
+        fields = ['id', 'salon', 'image', 'image_url', 'caption', 'sort_order', 'created_at']
+        read_only_fields = ['salon', 'created_at', 'image_url']
+        extra_kwargs = {'image': {'write_only': True}}
 
 
 class SalonRegisterSerializer(serializers.ModelSerializer):

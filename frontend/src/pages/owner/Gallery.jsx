@@ -25,6 +25,15 @@ export default function OwnerGallery() {
   const logoFileRef = useRef(null);
   const coverFileRef = useRef(null);
 
+  /* ── Cosmetics gallery state ── */
+  const [cosGallery, setCosGallery] = useState([]);
+  const [cosFile, setCosFile] = useState(null);
+  const [cosPreview, setCosPreview] = useState(null);
+  const [cosCaption, setCosCaption] = useState('');
+  const [cosUploading, setCosUploading] = useState(false);
+  const [cosError, setCosError] = useState('');
+  const cosFileRef = useRef(null);
+
   const load = () => {
     if (!salon) return;
     setLoading(true);
@@ -34,7 +43,14 @@ export default function OwnerGallery() {
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { load(); }, [salon]);
+  const loadCosGallery = () => {
+    if (!salon) return;
+    api.get(`/salons/${salon.id}/cosmetics-gallery/`)
+      .then(r => setCosGallery(r.data))
+      .catch(() => {});
+  };
+
+  useEffect(() => { load(); loadCosGallery(); }, [salon]);
 
   /* ── Logo handlers ── */
   const pickLogo = e => {
@@ -182,6 +198,46 @@ export default function OwnerGallery() {
     } catch { load(); }
   };
 
+  /* ── Cosmetics gallery handlers ── */
+  const pickCosFile = e => {
+    const f = e.target.files[0];
+    if (!f) return;
+    setCosFile(f);
+    setCosPreview(URL.createObjectURL(f));
+  };
+
+  const clearCosUpload = () => {
+    setCosFile(null); setCosCaption(''); setCosError('');
+    if (cosPreview) { URL.revokeObjectURL(cosPreview); setCosPreview(null); }
+    if (cosFileRef.current) cosFileRef.current.value = '';
+  };
+
+  const uploadCosImage = async e => {
+    e.preventDefault();
+    if (!cosFile) return setCosError('Please select an image file');
+    setCosError(''); setCosUploading(true);
+    const fd = new FormData();
+    fd.append('image', cosFile);
+    fd.append('caption', cosCaption);
+    fd.append('sort_order', cosGallery.length);
+    try {
+      await api.post(`/salons/${salon.id}/cosmetics-gallery/`, fd, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      clearCosUpload(); loadCosGallery(); setMsg('Cosmetics gallery photo uploaded.');
+    } catch (err) {
+      setCosError(err.response?.data?.detail || 'Upload failed. Please try again.');
+    } finally { setCosUploading(false); }
+  };
+
+  const deleteCosImage = async img => {
+    if (!window.confirm('Remove this cosmetics gallery photo?')) return;
+    try {
+      await api.delete(`/salons/${salon.id}/cosmetics-gallery/${img.id}/`);
+      setMsg('Photo removed.'); loadCosGallery();
+    } catch { setMsg('Error removing photo.'); }
+  };
+
   if (!salon) return <div style={{ color: 'var(--text-muted)', padding: 40 }}>Loading salon…</div>;
 
   const currentLogo = logoPreview || salon.logo_url;
@@ -268,6 +324,7 @@ export default function OwnerGallery() {
       <input ref={logoFileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={pickLogo} />
       <input ref={coverFileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={pickCover} />
       <input ref={fileRef} type="file" accept="image/*,video/*" style={{ display: 'none' }} onChange={pickFile} />
+      <input ref={cosFileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={pickCosFile} />
 
       {/* ── COVER IMAGE SECTION ── */}
       <div style={s.logoCard} className="fade-up">
@@ -352,6 +409,94 @@ export default function OwnerGallery() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* ── COSMETICS GALLERY SECTION ── */}
+      {salon.cosmetics_enabled && (
+        <>
+          <div style={{ ...s.gallerySectionHead, marginTop: 36, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <div style={{ ...s.gallerySectionTitle, display: 'flex', alignItems: 'center', gap: 10 }}>
+                Cosmetics Gallery
+                <span style={{ fontSize: 10, fontWeight: 700, padding: '3px 9px', borderRadius: 20, background: 'rgba(201,107,81,.12)', color: '#C96B51', letterSpacing: '0.06em' }}>COSMETICS</span>
+              </div>
+              <div style={s.gallerySectionSub}>These images appear in the gallery slider on your cosmetics page — upload product lifestyle shots or promo banners</div>
+            </div>
+            <button
+              style={{ ...s.uploadBtn, background: 'linear-gradient(135deg, #C96B51, #D4AF37)', boxShadow: '0 6px 18px rgba(201,107,81,.35)', flexShrink: 0, marginLeft: 16 }}
+              onClick={() => cosFileRef.current?.click()}
+            >
+              + Add Image
+            </button>
+          </div>
+
+          {/* Cosmetics upload panel */}
+          {cosFile && (
+            <div style={{ ...s.uploadPanel, border: '1.5px solid rgba(201,107,81,.25)', marginBottom: 20 }} className="scale-in">
+              <div style={s.uploadPanelTitle}>New Cosmetics Photo</div>
+              {cosError && <div style={s.alert}>{cosError}</div>}
+              <div style={{ display: 'flex', gap: 18, flexDirection: isMobile ? 'column' : 'row', alignItems: 'flex-start' }}>
+                <div style={s.previewWrap}>
+                  <img src={cosPreview} alt="preview" style={s.previewImg} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={s.label}>Caption (optional)</label>
+                  <input
+                    style={s.input}
+                    placeholder="e.g. Summer skincare bundle"
+                    value={cosCaption}
+                    onChange={e => setCosCaption(e.target.value)}
+                    maxLength={150}
+                  />
+                  <div style={s.uploadActions}>
+                    <button style={s.cancelBtn} onClick={clearCosUpload} type="button">Cancel</button>
+                    <button
+                      style={{ ...s.saveBtn, background: 'linear-gradient(135deg, #C96B51, #D4AF37)', boxShadow: '0 4px 14px rgba(201,107,81,.35)', opacity: cosUploading ? 0.7 : 1 }}
+                      onClick={uploadCosImage}
+                      disabled={cosUploading}
+                    >
+                      {cosUploading ? 'Uploading…' : 'Upload Photo'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Cosmetics images grid */}
+          {cosGallery.length === 0 ? (
+            <div style={{ ...s.empty, padding: '40px 28px', marginBottom: 36 }} className="scale-in">
+              <div style={{ fontSize: 28, marginBottom: 10, opacity: 0.4 }}>🛍</div>
+              <h3 style={{ ...s.emptyTitle, fontSize: 18 }}>No cosmetics gallery images yet</h3>
+              <p style={{ color: 'var(--text-muted)', fontSize: 13, marginBottom: 18 }}>
+                Upload product lifestyle shots or promo banners — they'll display as a sliding gallery on your cosmetics page.
+              </p>
+              <button
+                style={{ ...s.uploadBtn, background: 'linear-gradient(135deg, #C96B51, #D4AF37)', boxShadow: '0 4px 14px rgba(201,107,81,.35)' }}
+                onClick={() => cosFileRef.current?.click()}
+              >
+                + Upload First Image
+              </button>
+            </div>
+          ) : (
+            <div style={{ ...s.grid, gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(auto-fill, minmax(200px, 1fr))', marginBottom: 36 }} className="fade-up">
+              {cosGallery.map((img, idx) => (
+                <div key={img.id} style={s.card}>
+                  <div style={{ ...s.imgWrap, aspectRatio: '16/9' }}>
+                    <img src={img.image_url} alt={img.caption || 'Gallery'} style={s.img} />
+                    <div style={{ position: 'absolute', top: 6, left: 6, background: 'rgba(201,107,81,.85)', color: '#fff', fontSize: 9, fontWeight: 700, padding: '2px 7px', borderRadius: 8 }}>
+                      #{idx + 1}
+                    </div>
+                  </div>
+                  <div style={s.cardBody}>
+                    {img.caption && <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 8, lineHeight: 1.4 }}>{img.caption}</div>}
+                    <button style={{ ...s.deleteBtn, width: '100%', textAlign: 'center' }} onClick={() => deleteCosImage(img)}>Remove</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
       )}
 
       {/* ── GALLERY PHOTOS ── */}

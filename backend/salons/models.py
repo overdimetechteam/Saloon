@@ -115,3 +115,17 @@ class SalonImage(models.Model):
 
     def __str__(self):
         return f"Image for {self.salon.name} #{self.pk}"
+
+
+class CosmeticsGalleryImage(models.Model):
+    salon = models.ForeignKey(Salon, on_delete=models.CASCADE, related_name='cosmetics_gallery')
+    image = models.FileField(upload_to='cosmetics_gallery/')
+    caption = models.CharField(max_length=150, blank=True)
+    sort_order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['sort_order', 'created_at']
+
+    def __str__(self):
+        return f"Cosmetics gallery #{self.pk} — {self.salon.name}"

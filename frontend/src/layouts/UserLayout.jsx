@@ -437,8 +437,8 @@ export default function UserLayout() {
 
       <main style={{
         flex: 1,
-        padding: /^\/salons(\/\d+(\/services)?)?$/.test(location.pathname) ? 0 : (isMobile ? '24px 16px 80px' : '40px 40px'),
-        maxWidth: /^\/salons(\/\d+(\/services)?)?$/.test(location.pathname) ? 'none' : 1320,
+        padding: location.pathname.startsWith('/salons') ? 0 : (isMobile ? '24px 16px 80px' : '40px 40px'),
+        maxWidth: location.pathname.startsWith('/salons') ? 'none' : 1320,
         margin: '0 auto', width: '100%',
         boxSizing: 'border-box',
       }}>

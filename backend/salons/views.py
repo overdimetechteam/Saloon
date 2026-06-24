@@ -11,8 +11,11 @@ from django.conf import settings
 from datetime import datetime, timedelta
 from collections import defaultdict
 
-from .models import Salon, SalonCalendar, SalonStaff, FavouriteSalon, Offer, SalonImage
-from .serializers import SalonSerializer, SalonRegisterSerializer, SalonStaffSerializer, OfferSerializer, SalonImageSerializer
+from .models import Salon, SalonCalendar, SalonStaff, FavouriteSalon, Offer, SalonImage, CosmeticsGalleryImage
+from .serializers import (
+    SalonSerializer, SalonRegisterSerializer, SalonStaffSerializer,
+    OfferSerializer, SalonImageSerializer, CosmeticsGalleryImageSerializer,
+)
 from users.permissions import IsSystemAdmin, IsSalonOwner
 from bookings.models import Booking
 
@@ -1391,3 +1394,38 @@ class AdminSalonDetailView(APIView):
             'bookings':            bookings_data,
             'payments':            payments_list,
         })
+
+
+class CosmeticsGalleryListCreateView(APIView):
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [AllowAny()]
+        return [IsAuthenticated()]
+
+    def get(self, request, pk):
+        salon = get_object_or_404(Salon, pk=pk)
+        images = salon.cosmetics_gallery.all()
+        return Response(CosmeticsGalleryImageSerializer(images, many=True, context={'request': request}).data)
+
+    def post(self, request, pk):
+        salon = get_object_or_404(Salon, pk=pk)
+        if request.user.role != 'salon_owner' or salon.owner_id != request.user.id:
+            return Response({'detail': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
+        serializer = CosmeticsGalleryImageSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save(salon=salon)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CosmeticsGalleryDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, pk, image_pk):
+        salon = get_object_or_404(Salon, pk=pk)
+        if request.user.role != 'salon_owner' or salon.owner_id != request.user.id:
+            return Response({'detail': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
+        image = get_object_or_404(CosmeticsGalleryImage, pk=image_pk, salon=salon)
+        image.image.delete(save=False)
+        image.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

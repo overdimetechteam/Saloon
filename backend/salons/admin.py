@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Salon, SalonCalendar
+from .models import Salon, SalonCalendar, CosmeticsGalleryImage
 
 
 @admin.register(Salon)
@@ -21,3 +21,9 @@ class SalonAdmin(admin.ModelAdmin):
 @admin.register(SalonCalendar)
 class SalonCalendarAdmin(admin.ModelAdmin):
     list_display = ['salon', 'slot_duration_minutes']
+
+
+@admin.register(CosmeticsGalleryImage)
+class CosmeticsGalleryImageAdmin(admin.ModelAdmin):
+    list_display = ['salon', 'caption', 'sort_order', 'created_at']
+    list_filter = ['salon']

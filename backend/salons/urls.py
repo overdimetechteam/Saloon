@@ -15,6 +15,7 @@ from .views import (
     QuickSearchView, AllServicesView,
     AdminSalonDetailView,
     OwnerRequestReactivationView,
+    CosmeticsGalleryListCreateView, CosmeticsGalleryDetailView,
 )
 
 urlpatterns = [
@@ -51,4 +52,6 @@ urlpatterns = [
     path('services/all/', AllServicesView.as_view(), name='all-services'),
     path('admin/salons/<int:pk>/detail/', AdminSalonDetailView.as_view(), name='admin-salon-detail'),
     path('owner/request-reactivation/', OwnerRequestReactivationView.as_view(), name='owner-request-reactivation'),
+    path('salons/<int:pk>/cosmetics-gallery/', CosmeticsGalleryListCreateView.as_view(), name='cosmetics-gallery'),
+    path('salons/<int:pk>/cosmetics-gallery/<int:image_pk>/', CosmeticsGalleryDetailView.as_view(), name='cosmetics-gallery-detail'),
 ]
