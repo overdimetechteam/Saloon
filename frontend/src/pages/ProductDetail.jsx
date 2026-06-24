@@ -290,6 +290,13 @@ export default function ProductDetail() {
             )}
           </div>
 
+          {/* Short description below price */}
+          {product.description && (
+            <p style={{ fontSize: 14, color: 'var(--text)', lineHeight: 1.7, margin: '0 0 20px', padding: '14px 16px', background: 'var(--surface)', borderLeft: `3px solid ${color}`, borderRadius: '0 10px 10px 0' }}>
+              {product.description}
+            </p>
+          )}
+
           {/* Attribute grid */}
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(auto-fill, minmax(155px,1fr))', gap: 8, marginBottom: 20 }}>
             {product.shade_variant       && <InfoRow label="Shade / Variant"      value={product.shade_variant} />}
@@ -407,10 +414,56 @@ export default function ProductDetail() {
               </div>
             )}
 
-            {/* ── Write a review form (clients only) ── */}
+            {/* ── Review list ── */}
+            {reviews.length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 28 }}>
+                {reviews.map((rv, i) => {
+                  const initials = (rv.client_name || 'A').trim().split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+                  const bg = avatarColors[i % avatarColors.length];
+                  return (
+                    <div key={rv.id} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, padding: isMobile ? 14 : '18px 20px' }}>
+                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: rv.comment ? 10 : 0 }}>
+                        <div style={{ width: 40, height: 40, borderRadius: '50%', background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
+                          {initials}
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 3 }}>
+                            <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>{rv.client_name || 'Anonymous'}</span>
+                            <StarPicker value={rv.rating} readonly size={13} />
+                          </div>
+                          <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                            {new Date(rv.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
+                          </div>
+                        </div>
+                      </div>
+                      {rv.comment && (
+                        <p style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.65, margin: '0 0 10px 52px' }}>
+                          "{rv.comment}"
+                        </p>
+                      )}
+                      {rv.photos?.length > 0 && (
+                        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginLeft: 52 }}>
+                          {rv.photos.map((src, j) => (
+                            <img
+                              key={j} src={src} alt=""
+                              style={{ width: 72, height: 72, objectFit: 'cover', borderRadius: 10, border: '1px solid var(--border)', cursor: 'pointer' }}
+                              onClick={() => window.open(src, '_blank')}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* ── Write a review form (clients only) — always below existing reviews ── */}
             {isClient && (
-              <div style={{ background: 'var(--surface)', border: `1.5px solid ${color}30`, borderRadius: 16, padding: isMobile ? 16 : '20px 24px', marginBottom: 28 }}>
-                <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', marginBottom: 16 }}>Write a Review</div>
+              <div style={{ background: 'var(--surface)', border: `1.5px solid ${color}30`, borderRadius: 16, padding: isMobile ? 16 : '20px 24px' }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', marginBottom: 16 }}>
+                  {reviews.length > 0 ? 'Add Your Review' : 'Be the First to Review'}
+                </div>
 
                 {reviewMsg && (
                   <div style={{ padding: '10px 14px', borderRadius: 10, marginBottom: 14, fontSize: 13, fontWeight: 600, background: reviewMsg.type === 'ok' ? 'rgba(13,148,136,.08)' : 'rgba(220,38,38,.06)', border: `1px solid ${reviewMsg.type === 'ok' ? 'rgba(13,148,136,.25)' : 'rgba(220,38,38,.2)'}`, color: reviewMsg.type === 'ok' ? '#0D9488' : '#ef4444' }}>
@@ -472,50 +525,6 @@ export default function ProductDetail() {
                     {submitting ? 'Submitting…' : 'Submit Review'}
                   </button>
                 </form>
-              </div>
-            )}
-
-            {/* ── Review list ── */}
-            {reviews.length > 0 && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                {reviews.map((rv, i) => {
-                  const initials = (rv.client_name || 'A').trim().split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
-                  const bg = avatarColors[i % avatarColors.length];
-                  return (
-                    <div key={rv.id} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, padding: isMobile ? 14 : '18px 20px' }}>
-                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: rv.comment ? 10 : 0 }}>
-                        <div style={{ width: 40, height: 40, borderRadius: '50%', background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
-                          {initials}
-                        </div>
-                        <div style={{ flex: 1 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 3 }}>
-                            <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>{rv.client_name || 'Anonymous'}</span>
-                            <StarPicker value={rv.rating} readonly size={13} />
-                          </div>
-                          <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                            {new Date(rv.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
-                          </div>
-                        </div>
-                      </div>
-                      {rv.comment && (
-                        <p style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.65, margin: '0 0 10px 52px' }}>
-                          "{rv.comment}"
-                        </p>
-                      )}
-                      {rv.photos?.length > 0 && (
-                        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginLeft: 52 }}>
-                          {rv.photos.map((src, j) => (
-                            <img
-                              key={j} src={src} alt=""
-                              style={{ width: 72, height: 72, objectFit: 'cover', borderRadius: 10, border: '1px solid var(--border)', cursor: 'pointer' }}
-                              onClick={() => window.open(src, '_blank')}
-                            />
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
               </div>
             )}
           </section>

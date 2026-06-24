@@ -44,7 +44,8 @@ class ProductSerializer(serializers.ModelSerializer):
             'shade_variant', 'size', 'unit_of_measure', 'cost_price', 'selling_price',
             'reorder_level', 'current_stock', 'valuation_method', 'supplier',
             'manufacturing_date', 'expiry_date', 'pao', 'barcode', 'country_of_origin',
-            'certifications', 'skin_type', 'notes', 'is_active', 'status',
+            'certifications', 'skin_type', 'hair_type', 'description',
+            'ingredients', 'how_to_use', 'notes', 'is_active', 'status',
             'images', 'first_image_url', 'batch_count',
         ]
         read_only_fields = ['salon', 'current_stock', 'status']

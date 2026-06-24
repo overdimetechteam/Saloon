@@ -597,6 +597,7 @@ class ProductPublicDetailView(APIView):
             'salon_name': salon.name,
             'name': product.name,
             'brand': product.brand,
+            'description': product.description,
             'sku': product.sku,
             'category': product.category,
             'subcategory': product.subcategory,

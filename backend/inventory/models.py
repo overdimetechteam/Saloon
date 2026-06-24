@@ -22,6 +22,7 @@ class Product(models.Model):
     salon = models.ForeignKey(Salon, on_delete=models.CASCADE, related_name='products')
     name = models.CharField(max_length=255)
     brand = models.CharField(max_length=255, blank=True)
+    description = models.TextField(blank=True)
     sku = models.CharField(max_length=100, blank=True)
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
     subcategory = models.CharField(max_length=100, blank=True)

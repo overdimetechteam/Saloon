@@ -19,7 +19,8 @@ const EMPTY_FORM = {
   size: '', unit_of_measure: '', cost_price: '', selling_price: '', reorder_level: 0,
   valuation_method: 'FIFO',
   supplier: '', manufacturing_date: '', pao: '', barcode: '',
-  country_of_origin: '', certifications: '', skin_type: '', notes: '',
+  country_of_origin: '', certifications: '', skin_type: '', hair_type: '',
+  description: '', ingredients: '', how_to_use: '', notes: '',
 };
 
 function SummaryCard({ label, value, color, icon }) {
@@ -178,6 +179,22 @@ function ProductModal({ product, onClose, onSaved, salonId }) {
               <MField label="Size" placeholder="e.g. 30ml" value={form.size} onChange={f('size')} />
               <MField label="Unit of Measure" required placeholder="ml, pcs, kg…" value={form.unit_of_measure} onChange={f('unit_of_measure')} />
               <MField label="Skin Type" placeholder="e.g. Oily, Dry, All" value={form.skin_type} onChange={f('skin_type')} />
+            </div>
+            <div style={s.mGrid3}>
+              <MField label="Hair Type" placeholder="e.g. Curly, Fine, All" value={form.hair_type} onChange={f('hair_type')} />
+            </div>
+
+            <div style={s.mSection}>Product Description</div>
+            <MField label="Description" placeholder="A short overview shown to customers below the price on the product page…">
+              <textarea style={{ ...s.mInput, height: 72, resize: 'vertical', marginTop: 0 }} placeholder="A short overview shown to customers below the price on the product page…" value={form.description || ''} onChange={f('description')} maxLength={600} />
+            </MField>
+            <div style={s.mGrid2}>
+              <MField label="Ingredients" placeholder="List key ingredients…">
+                <textarea style={{ ...s.mInput, height: 72, resize: 'vertical' }} placeholder="List key ingredients…" value={form.ingredients || ''} onChange={f('ingredients')} />
+              </MField>
+              <MField label="How to Use" placeholder="Step-by-step instructions…">
+                <textarea style={{ ...s.mInput, height: 72, resize: 'vertical' }} placeholder="Step-by-step instructions…" value={form.how_to_use || ''} onChange={f('how_to_use')} />
+              </MField>
             </div>
 
             <div style={s.mSection}>Pricing & Stock</div>
