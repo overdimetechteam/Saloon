@@ -128,6 +128,33 @@ class SalonRegisterView(APIView):
         except Exception:
             pass
 
+        # Acknowledgement email to the salon owner
+        try:
+            from utils.email import send_bms_email
+            owner = salon.owner
+            name = owner.full_name or 'there'
+            frontend_url = getattr(settings, 'FRONTEND_URL', 'http://localhost:5173')
+            send_bms_email(
+                subject=f'We received your application for "{salon.name}" — BookMyStyle',
+                to_email=owner.email,
+                heading='Application Received',
+                preheader='We have received your salon registration. Our team will review it shortly.',
+                body_html=f'''
+                  <p style="color:#374151;font-size:15px;line-height:1.7;margin:0 0 12px;font-family:Arial,Helvetica,sans-serif">
+                    Hi {name}, thank you for registering <strong>{salon.name}</strong> on BookMyStyle.
+                    Our team will review your application and get back to you within 1–3 business days.
+                  </p>
+                  <p style="color:#374151;font-size:15px;line-height:1.7;margin:0;font-family:Arial,Helvetica,sans-serif">
+                    You will receive an email once your salon is approved or if we need further information.
+                  </p>''',
+                cta_url=f'{frontend_url}/owner/dashboard',
+                cta_label='Go to Owner Dashboard',
+                plain_text=f'Hi {name},\n\nThank you for registering {salon.name}. We will review your application and respond within 1-3 business days.\n\nBookMyStyle Team',
+            )
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).error('Salon registration ack email failed: %s', e)
+
         return Response(SalonSerializer(salon).data, status=status.HTTP_201_CREATED)
 
 
@@ -337,6 +364,29 @@ class SalonRemoveView(APIView):
                 {'detail': 'Cannot remove salon with active bookings. Suspend it first and wait for bookings to resolve.'},
                 status=status.HTTP_409_CONFLICT,
             )
+        # Email owner before deleting
+        try:
+            from utils.email import send_bms_email
+            owner = salon.owner
+            name = owner.full_name or 'there'
+            send_bms_email(
+                subject=f'Your salon "{salon.name}" has been removed from BookMyStyle',
+                to_email=owner.email,
+                heading='Salon Removed',
+                preheader=f'Your salon {salon.name} has been permanently removed from BookMyStyle.',
+                body_html=f'''
+                  <p style="color:#374151;font-size:15px;line-height:1.7;margin:0 0 12px;font-family:Arial,Helvetica,sans-serif">
+                    Hi {name}, your salon <strong>{salon.name}</strong> has been permanently removed from the BookMyStyle platform by our admin team.
+                  </p>
+                  <p style="color:#374151;font-size:15px;line-height:1.7;margin:0;font-family:Arial,Helvetica,sans-serif">
+                    If you believe this is a mistake, please contact us at
+                    <a href="mailto:support@bookmystyle.lk" style="color:#0D9488">support@bookmystyle.lk</a>.
+                  </p>''',
+                plain_text=f'Hi {name},\n\nYour salon "{salon.name}" has been permanently removed from BookMyStyle. Contact support@bookmystyle.lk with any questions.\n\nBookMyStyle Team',
+            )
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).error('Salon removal email failed: %s', e)
         salon.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 

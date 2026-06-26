@@ -8,7 +8,7 @@ from .views import (
     BookingReviewView, BookingRebookView,
     PromotionValidateView,
     SalonPromotionListCreateView, SalonPromotionDetailView,
-    WalkInBookingView,
+    WalkInBookingView, BookingCompleteView,
 )
 
 urlpatterns = [
@@ -22,6 +22,7 @@ urlpatterns = [
     path('bookings/<int:pk>/assign-staff/', BookingAssignStaffView.as_view(), name='booking-assign-staff'),
     path('bookings/<int:pk>/review/', BookingReviewView.as_view(), name='booking-review'),
     path('bookings/<int:pk>/rebook/', BookingRebookView.as_view(), name='booking-rebook'),
+    path('bookings/<int:pk>/complete/', BookingCompleteView.as_view(), name='booking-complete'),
     path('promotions/validate/', PromotionValidateView.as_view(), name='promo-validate'),
     path('salons/<int:salon_pk>/bookings/', SalonBookingListView.as_view(), name='salon-bookings'),
     path('salons/<int:salon_pk>/bookings/pending/', SalonPendingBookingsView.as_view(), name='salon-pending-bookings'),

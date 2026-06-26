@@ -694,6 +694,39 @@ class BookingRejectView(APIView):
             notif_type='booking_awaiting',
             booking_id=booking.pk,
         )
+        # Email customer with alternative slots
+        try:
+            from utils.email import send_bms_email
+            client = booking.client
+            salon  = booking.salon
+            name   = client.full_name or 'there'
+            frontend_url = getattr(settings, 'FRONTEND_URL', 'http://localhost:5173')
+            booking_url  = f'{frontend_url}/bookings/{booking.pk}'
+            slots_html = ''.join(
+                f'<li style="color:#374151;font-size:14px;line-height:1.8;font-family:Arial,Helvetica,sans-serif">'
+                f'{dt.strftime("%A, %B %d, %Y at %I:%M %p")}</li>'
+                for dt in slot_datetimes
+            )
+            send_bms_email(
+                subject=f'Action needed: Choose a new time for your booking at {salon.name}',
+                to_email=client.email,
+                heading='Your booking needs rescheduling',
+                preheader=f'{salon.name} has proposed 3 alternative time slots for your appointment.',
+                body_html=f'''
+                  <p style="color:#374151;font-size:15px;line-height:1.7;margin:0 0 12px;font-family:Arial,Helvetica,sans-serif">
+                    Hi {name}, your requested time at <strong>{salon.name}</strong> was not available.
+                    The salon has proposed these alternative slots — please log in to select one:
+                  </p>
+                  <ul style="margin:0 0 16px 20px;padding:0">{slots_html}</ul>
+                  <p style="color:#6b7280;font-size:13px;line-height:1.6;margin:0;font-family:Arial,Helvetica,sans-serif">
+                    Ref: REF-{booking.pk:06d}
+                  </p>''',
+                cta_url=booking_url,
+                cta_label='Select a Time Slot',
+                plain_text=f'Hi {name},\n\nYour booking at {salon.name} needs rescheduling. Log in to select an alternative slot: {booking_url}\n\nBookMyStyle Team',
+            )
+        except Exception as e:
+            logger.error('[EMAIL] Booking rejection email failed for #%s: %s', booking.pk, e)
         logger.info(f"Booking #{booking.pk} rejected, {len(slot_datetimes)} alt slots proposed (round {round_num})")
         return Response(BookingSerializer(booking).data)
 
@@ -1042,3 +1075,61 @@ class SalonPromotionDetailView(APIView):
             return Response({'detail': 'Cannot delete a promo code that has been used.'}, status=status.HTTP_400_BAD_REQUEST)
         promo.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class BookingCompleteView(APIView):
+    """Salon owner marks a booking as completed — triggers review-request email to client."""
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        booking = get_object_or_404(Booking, pk=pk)
+        if request.user.role not in ('salon_owner', 'system_admin'):
+            return Response({'detail': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
+        if request.user.role == 'salon_owner' and booking.salon.owner_id != request.user.id:
+            return Response({'detail': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
+        if booking.status not in ('confirmed', 'pending', 'rescheduled'):
+            return Response({'detail': f"Cannot complete booking in status '{booking.status}'"}, status=status.HTTP_400_BAD_REQUEST)
+
+        booking.status = 'completed'
+        booking.save()
+
+        send_notification(
+            booking.client,
+            f"Your appointment at {booking.salon.name} is complete. We hope you loved it — leave a review!",
+            notif_type='booking_confirmed',
+            booking_id=booking.pk,
+        )
+
+        # Review-request email to client
+        try:
+            from utils.email import send_bms_email
+            client  = booking.client
+            salon   = booking.salon
+            name    = client.full_name or 'there'
+            dt_str  = booking.requested_datetime.strftime('%A, %B %d, %Y')
+            services = list(booking.booking_services.select_related('salon_service__service').all())
+            svc_list = ', '.join(bs.salon_service.service.name for bs in services) if services else 'your appointment'
+            frontend_url = getattr(settings, 'FRONTEND_URL', 'http://localhost:5173')
+            review_url   = f'{frontend_url}/salons/{salon.pk}/reviews'
+            send_bms_email(
+                subject=f'How was your visit to {salon.name}? Share your experience',
+                to_email=client.email,
+                heading=f'How was your experience, {name}?',
+                preheader=f'Your appointment at {salon.name} on {dt_str} is complete. Tell us what you thought!',
+                body_html=f'''
+                  <p style="color:#374151;font-size:15px;line-height:1.7;margin:0 0 12px;font-family:Arial,Helvetica,sans-serif">
+                    Your appointment for <strong>{svc_list}</strong> at <strong>{salon.name}</strong> on {dt_str} is now marked as complete.
+                    We hope you had a wonderful experience!
+                  </p>
+                  <p style="color:#374151;font-size:15px;line-height:1.7;margin:0;font-family:Arial,Helvetica,sans-serif">
+                    Your review helps other customers discover great salons. It takes less than a minute.
+                  </p>''',
+                cta_url=review_url,
+                cta_label='Leave a Review',
+                plain_text=f'Hi {name},\n\nYour appointment at {salon.name} on {dt_str} is complete. Leave a review at {review_url}\n\nThank you!\nBookMyStyle Team',
+            )
+        except Exception as e:
+            logger.error('[EMAIL] Booking complete email failed for #%s: %s', booking.pk, e)
+
+        logger.info(f"Booking #{booking.pk} marked completed by {request.user.email}")
+        return Response(BookingSerializer(booking).data)

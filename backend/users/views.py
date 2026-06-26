@@ -320,6 +320,30 @@ class VerifyEmailView(APIView):
                 return Response({'detail': 'Verification link is invalid or has expired.'}, status=status.HTTP_400_BAD_REQUEST)
             user.email_verified = True
             user.save(update_fields=['email_verified'])
+            # Welcome email now that the account is fully active
+            try:
+                from utils.email import send_bms_email
+                name = user.full_name or 'there'
+                frontend_url = getattr(settings, 'FRONTEND_URL', 'http://localhost:5173')
+                send_bms_email(
+                    subject='Welcome to BookMyStyle — you\'re all set!',
+                    to_email=user.email,
+                    heading=f'Welcome, {name}!',
+                    preheader='Your BookMyStyle account is verified and ready to use.',
+                    body_html=f'''
+                      <p style="color:#374151;font-size:15px;line-height:1.7;margin:0 0 12px;font-family:Arial,Helvetica,sans-serif">
+                        Your email has been verified and your BookMyStyle account is fully active.
+                        You can now discover and book appointments at the finest salons across Sri Lanka.
+                      </p>
+                      <p style="color:#374151;font-size:15px;line-height:1.7;margin:0;font-family:Arial,Helvetica,sans-serif">
+                        Explore top-rated salons, manage your bookings, and enjoy exclusive offers — all in one place.
+                      </p>''',
+                    cta_url=f'{frontend_url}/explore',
+                    cta_label='Explore Salons',
+                    plain_text=f'Hi {name},\n\nWelcome to BookMyStyle! Your account is now active.\n\nExplore salons at {frontend_url}/explore\n\nBookMyStyle Team',
+                )
+            except Exception as e:
+                logger.error('Welcome email failed for %s: %s', user.email, e)
             return Response({'message': 'Email verified successfully. You can now log in.'})
         except Exception:
             return Response({'detail': 'Invalid verification link.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -605,6 +629,42 @@ class AdminCustomerDetailView(APIView):
         user = get_object_or_404(CustomUser, pk=pk, role='client')
         user.is_active = not user.is_active
         user.save(update_fields=['is_active'])
+        try:
+            from utils.email import send_bms_email
+            name = user.full_name or 'there'
+            frontend_url = getattr(settings, 'FRONTEND_URL', 'http://localhost:5173')
+            if not user.is_active:
+                send_bms_email(
+                    subject='Your BookMyStyle account has been deactivated',
+                    to_email=user.email,
+                    heading='Account Deactivated',
+                    preheader='Your BookMyStyle account has been temporarily deactivated by our team.',
+                    body_html=f'''
+                      <p style="color:#374151;font-size:15px;line-height:1.7;margin:0 0 12px;font-family:Arial,Helvetica,sans-serif">
+                        Hi {name}, your BookMyStyle account has been temporarily deactivated by our support team.
+                      </p>
+                      <p style="color:#374151;font-size:15px;line-height:1.7;margin:0;font-family:Arial,Helvetica,sans-serif">
+                        If you believe this is a mistake, please contact us at
+                        <a href="mailto:support@bookmystyle.lk" style="color:#0D9488">support@bookmystyle.lk</a> and we will look into it promptly.
+                      </p>''',
+                    plain_text=f'Hi {name},\n\nYour BookMyStyle account has been deactivated. Contact support@bookmystyle.lk if you believe this is an error.\n\nBookMyStyle Team',
+                )
+            else:
+                send_bms_email(
+                    subject='Your BookMyStyle account has been reactivated',
+                    to_email=user.email,
+                    heading='Account Reactivated',
+                    preheader='Good news — your BookMyStyle account is active again.',
+                    body_html=f'''
+                      <p style="color:#374151;font-size:15px;line-height:1.7;margin:0 0 12px;font-family:Arial,Helvetica,sans-serif">
+                        Hi {name}, your BookMyStyle account has been reactivated. You can now log in and continue booking appointments.
+                      </p>''',
+                    cta_url=f'{frontend_url}/login',
+                    cta_label='Log In',
+                    plain_text=f'Hi {name},\n\nYour BookMyStyle account is reactivated. Log in at {frontend_url}/login\n\nBookMyStyle Team',
+                )
+        except Exception as e:
+            logger.error('Account status email failed for %s: %s', user.email, e)
         return Response({'id': user.id, 'is_active': user.is_active})
 
     def delete(self, request, pk):
@@ -614,5 +674,25 @@ class AdminCustomerDetailView(APIView):
             return Response({'detail': 'Forbidden.'}, status=403)
 
         user = get_object_or_404(CustomUser, pk=pk, role='client')
+        try:
+            from utils.email import send_bms_email
+            name = user.full_name or 'there'
+            send_bms_email(
+                subject='Your BookMyStyle account has been removed',
+                to_email=user.email,
+                heading='Account Removed',
+                preheader='Your BookMyStyle account has been permanently removed.',
+                body_html=f'''
+                  <p style="color:#374151;font-size:15px;line-height:1.7;margin:0 0 12px;font-family:Arial,Helvetica,sans-serif">
+                    Hi {name}, your BookMyStyle account has been permanently removed from our platform.
+                  </p>
+                  <p style="color:#374151;font-size:15px;line-height:1.7;margin:0;font-family:Arial,Helvetica,sans-serif">
+                    All your personal data has been deleted. If you have questions, contact us at
+                    <a href="mailto:support@bookmystyle.lk" style="color:#0D9488">support@bookmystyle.lk</a>.
+                  </p>''',
+                plain_text=f'Hi {name},\n\nYour BookMyStyle account has been permanently removed. Contact support@bookmystyle.lk with any questions.\n\nBookMyStyle Team',
+            )
+        except Exception as e:
+            logger.error('Account removal email failed for %s: %s', user.email, e)
         user.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

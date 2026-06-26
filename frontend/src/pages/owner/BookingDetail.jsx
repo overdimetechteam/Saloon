@@ -157,6 +157,12 @@ export default function OwnerBookingDetail() {
     catch (err) { setError(err.response?.data?.detail || 'Error'); }
   };
 
+  const complete = async () => {
+    if (!window.confirm('Mark this booking as completed? The customer will receive a review request email.')) return;
+    try { await api.post(`/bookings/${id}/complete/`); setMsg('Booking marked as completed!'); load(); }
+    catch (err) { setError(err.response?.data?.detail || 'Error'); }
+  };
+
   const assignStaff = async () => {
     setError('');
     if (!assignId) return setError('Assigning a specific stylist is required — "Any Available" is no longer supported.');
@@ -311,6 +317,9 @@ export default function OwnerBookingDetail() {
         </div>
 
         <div style={s.sideCol}>
+          {booking.status === 'confirmed' && (
+            <button style={s.completeBtn} onClick={complete}>✓ Mark as Completed</button>
+          )}
           {!['cancelled','completed'].includes(booking.status) && (
             <button style={s.cancelBtn} onClick={cancel}>Cancel Booking</button>
           )}
@@ -385,6 +394,7 @@ const s = {
   actTitle: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 17, fontWeight: 700, color: 'var(--text)', marginBottom: 6, letterSpacing: '-0.01em' },
   confirmBtn: { padding: '11px 26px', background: 'linear-gradient(135deg, #0D9488 0%, #0B7A70 100%)', color: '#fff', border: 'none', borderRadius: 12, cursor: 'pointer', fontWeight: 700, fontSize: 14, boxShadow: '0 4px 14px rgba(13,148,136,.3)', fontFamily: "'DM Sans', sans-serif" },
   divider:  { height: 1, background: 'var(--border)', margin: '20px 0' },
+  completeBtn: { display: 'block', width: '100%', padding: '13px 16px', background: 'linear-gradient(135deg, #059669 0%, #047857 100%)', color: '#fff', border: 'none', borderRadius: 14, cursor: 'pointer', fontWeight: 700, fontSize: 14, fontFamily: "'DM Sans', sans-serif", boxShadow: '0 4px 14px rgba(5,150,105,.3)', marginBottom: 12, textAlign: 'center' },
   rejectSection: {},
   rejectBtn: { padding: '11px 24px', background: '#FEF2F2', color: '#DC2626', border: '1px solid #FECACA', borderRadius: 12, cursor: 'pointer', fontWeight: 700, fontSize: 14, fontFamily: "'DM Sans', sans-serif", marginTop: 4 },
   cancelBtn: { width: '100%', padding: '11px', background: 'transparent', color: 'var(--text-muted)', border: '1.5px solid var(--border)', borderRadius: 12, cursor: 'pointer', fontWeight: 600, fontSize: 13, fontFamily: "'DM Sans', sans-serif" },

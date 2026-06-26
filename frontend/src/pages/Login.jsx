@@ -36,12 +36,7 @@ export default function Login() {
     navigate(roleRedirect(profile.role), { replace: true });
   }, [profile]);
 
-  // Show error if redirected back from Twitter with error
-  useEffect(() => {
-    const err = searchParams.get('error');
-    if (err === 'twitter_cancelled') setError('X sign-in was cancelled.');
-    if (err === 'twitter_failed') setError('X sign-in failed. Please try again.');
-  }, []);
+  useEffect(() => {}, []);
 
   const handle = async e => {
     e.preventDefault(); setError(''); setUnverifiedEmail(''); setResendMsg(''); setLoading(true);
@@ -119,18 +114,6 @@ export default function Login() {
         setError(err?.response?.data?.detail || 'Apple sign-in failed.');
       }
     } finally { setSocialLoading(''); }
-  };
-
-  // ── Twitter / X ───────────────────────────────────────────────────────────
-  const handleTwitter = async () => {
-    setSocialLoading('twitter');
-    try {
-      const { data } = await api.get('/auth/social/twitter/init/');
-      window.location.href = data.auth_url;
-    } catch (err) {
-      setSocialLoading('');
-      setError(err.response?.data?.detail || 'X/Twitter sign-in is not configured yet.');
-    }
   };
 
   const sendForgot = async e => {
@@ -276,19 +259,6 @@ export default function Login() {
               <span>Google</span>
             </button>
 
-            <button
-              style={{ ...s.socialBtn, opacity: socialLoading === 'twitter' ? 0.65 : 1 }}
-              onClick={() => { setError(''); handleTwitter(); }}
-              disabled={!!socialLoading}
-              title="Sign in with X"
-            >
-              {socialLoading === 'twitter' ? '…' : (
-                <svg width="16" height="16" viewBox="0 0 300 300" fill="currentColor">
-                  <path d="M178.57 127.15 290.27 0h-26.46l-97.03 110.38L89.34 0H0l117.13 166.93L0 300.25h26.46l102.4-116.59 81.8 116.59H300Zm-36.3 41.39-11.88-16.57L36.13 19.54h40.66l76.28 106.41 11.88 16.57 99.19 138.33h-40.66Z"/>
-                </svg>
-              )}
-              <span>X</span>
-            </button>
           </div>
 
           <div style={s.footer}>

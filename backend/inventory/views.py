@@ -677,6 +677,56 @@ class CosmeticOrderListCreateView(APIView):
                 salon=salon,
                 client=request.user if request.user.role == 'client' else None,
             )
+            # Notify salon owner about the new cosmetic order
+            try:
+                from utils.email import send_bms_email
+                from django.conf import settings
+                owner = salon.owner
+                items = order.items.select_related('product').all()
+                items_html = ''.join(
+                    f'<tr>'
+                    f'<td style="padding:6px 8px;font-size:14px;color:#374151;font-family:Arial,Helvetica,sans-serif;border-bottom:1px solid #f3f4f6">{item.product.name}</td>'
+                    f'<td style="padding:6px 8px;font-size:14px;color:#374151;font-family:Arial,Helvetica,sans-serif;border-bottom:1px solid #f3f4f6;text-align:center">{item.quantity}</td>'
+                    f'<td style="padding:6px 8px;font-size:14px;color:#374151;font-family:Arial,Helvetica,sans-serif;border-bottom:1px solid #f3f4f6;text-align:right">Rs. {item.unit_price:.2f}</td>'
+                    f'</tr>'
+                    for item in items
+                )
+                frontend_url = getattr(settings, 'FRONTEND_URL', 'http://localhost:5173')
+                customer_label = order.client.full_name if order.client else order.client_name or 'Walk-in customer'
+                send_bms_email(
+                    subject=f'New cosmetic order #{order.pk:06d} at {salon.name}',
+                    to_email=owner.email,
+                    heading=f'New Order Received #{order.pk:06d}',
+                    preheader=f'A customer just placed a cosmetic order at {salon.name}.',
+                    body_html=f'''
+                      <p style="color:#374151;font-size:15px;line-height:1.7;margin:0 0 16px;font-family:Arial,Helvetica,sans-serif">
+                        <strong>{customer_label}</strong> has placed an order at <strong>{salon.name}</strong>.
+                      </p>
+                      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"
+                             style="border:1px solid #e5e7eb;border-radius:6px;border-collapse:collapse;margin-bottom:16px">
+                        <thead>
+                          <tr style="background-color:#f9fafb">
+                            <th style="padding:8px;text-align:left;font-size:12px;color:#6b7280;font-family:Arial,Helvetica,sans-serif">Product</th>
+                            <th style="padding:8px;text-align:center;font-size:12px;color:#6b7280;font-family:Arial,Helvetica,sans-serif">Qty</th>
+                            <th style="padding:8px;text-align:right;font-size:12px;color:#6b7280;font-family:Arial,Helvetica,sans-serif">Price</th>
+                          </tr>
+                        </thead>
+                        <tbody>{items_html}</tbody>
+                        <tfoot>
+                          <tr>
+                            <td colspan="2" style="padding:8px;font-size:14px;font-weight:700;color:#111827;font-family:Arial,Helvetica,sans-serif;text-align:right">Total</td>
+                            <td style="padding:8px;font-size:14px;font-weight:700;color:#0D9488;font-family:Arial,Helvetica,sans-serif;text-align:right">Rs. {order.total_amount:.2f}</td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                      <p style="color:#6b7280;font-size:13px;margin:0;font-family:Arial,Helvetica,sans-serif">Order Ref: ORD-{order.pk:06d}</p>''',
+                    cta_url=f'{frontend_url}/owner/orders',
+                    cta_label='View All Orders',
+                    plain_text=f'New cosmetic order ORD-{order.pk:06d} from {customer_label} at {salon.name}.\nTotal: Rs. {order.total_amount:.2f}\n\nBookMyStyle',
+                )
+            except Exception as e:
+                import logging
+                logging.getLogger(__name__).error('[EMAIL] Cosmetic order email failed for order #%s: %s', order.pk, e)
             return Response(CosmeticOrderSerializer(order).data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
