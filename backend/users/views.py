@@ -555,8 +555,8 @@ class AdminCustomerDetailView(APIView):
 
         # Recent bookings (last 15)
         recent_bookings = []
-        for b in bookings_qs.select_related('salon', 'staff_member').prefetch_related('booking_services__service').order_by('-created_at')[:15]:
-            services = [bs.service.name for bs in b.booking_services.all()]
+        for b in bookings_qs.select_related('salon', 'staff_member').prefetch_related('booking_services__salon_service__service').order_by('-created_at')[:15]:
+            services = [bs.salon_service.service.name for bs in b.booking_services.all()]
             recent_bookings.append({
                 'id':                b.id,
                 'salon_name':        b.salon.name if b.salon else '—',
