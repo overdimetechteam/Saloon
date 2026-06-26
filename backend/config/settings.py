@@ -169,22 +169,22 @@ if not DEBUG:
 # Set in .env and in Render environment variables.
 FIELD_ENCRYPTION_KEY = os.getenv('FIELD_ENCRYPTION_KEY', '')
 
-# Email — Gmail SMTP when credentials are present; console fallback otherwise
-# Required Render env vars: EMAIL_HOST_USER, EMAIL_HOST_PASSWORD, FRONTEND_URL
-_email_user = os.getenv('EMAIL_HOST_USER', '')
-if _email_user:
+# Email — Resend SMTP when API key is present; console fallback for local dev
+# Required Render env vars: RESEND_API_KEY, FRONTEND_URL
+_resend_key = os.getenv('RESEND_API_KEY', '')
+if _resend_key:
     EMAIL_BACKEND       = 'django.core.mail.backends.smtp.EmailBackend'
-    EMAIL_HOST          = 'smtp.gmail.com'
+    EMAIL_HOST          = 'smtp.resend.com'
     EMAIL_PORT          = 587
     EMAIL_USE_TLS       = True
-    EMAIL_HOST_USER     = _email_user
-    EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
-    DEFAULT_FROM_EMAIL  = f'BookMyStyle <{_email_user}>'
+    EMAIL_HOST_USER     = 'resend'
+    EMAIL_HOST_PASSWORD = _resend_key
+    DEFAULT_FROM_EMAIL  = 'BookMyStyle <noreply@bookmystyle.lk>'
 else:
-    # No SMTP credentials — print to console so dev logs show the email body.
-    # Set EMAIL_HOST_USER + EMAIL_HOST_PASSWORD on Render to enable real delivery.
+    # No API key — print to console so dev logs show the email body.
+    # Set RESEND_API_KEY on Render to enable real delivery.
     EMAIL_BACKEND      = 'django.core.mail.backends.console.EmailBackend'
-    DEFAULT_FROM_EMAIL = 'noreply@saloon.lk'
+    DEFAULT_FROM_EMAIL = 'noreply@bookmystyle.lk'
 
 # Frontend base URL — used in every email link. MUST be set on Render.
 # e.g. https://saloon-frontend-67z0.onrender.com
