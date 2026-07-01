@@ -178,11 +178,14 @@ class CosmeticOrder(models.Model):
     DELIVERY_CHOICES = [('pickup', 'Pickup'), ('delivery', 'Delivery')]
     PAYMENT_CHOICES = [('cash', 'Cash on Delivery'), ('card', 'Card'), ('online', 'Online Transfer')]
     STATUS_CHOICES = [
-        ('pending', 'Pending'),
-        ('confirmed', 'Confirmed'),
-        ('shipped', 'Shipped'),
-        ('delivered', 'Delivered'),
-        ('cancelled', 'Cancelled'),
+        ('pending',          'Pending'),
+        ('confirmed',        'Confirmed'),
+        ('packing',          'Packing'),
+        ('ready_for_pickup', 'Ready for Pickup'),
+        ('picked_up',        'Picked Up'),
+        ('dispatched',       'Dispatched'),
+        ('delivered',        'Delivered'),
+        ('cancelled',        'Cancelled'),
     ]
 
     salon = models.ForeignKey(Salon, on_delete=models.CASCADE, related_name='cosmetic_orders')

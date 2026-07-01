@@ -147,7 +147,8 @@ class CosmeticOrderItemSerializer(serializers.ModelSerializer):
 
 
 class CosmeticOrderSerializer(serializers.ModelSerializer):
-    items = CosmeticOrderItemSerializer(many=True)
+    items        = CosmeticOrderItemSerializer(many=True)
+    status_label = serializers.CharField(source='get_status_display', read_only=True)
 
     class Meta:
         model = CosmeticOrder
@@ -156,9 +157,9 @@ class CosmeticOrderSerializer(serializers.ModelSerializer):
             'delivery_type', 'delivery_address', 'delivery_city', 'delivery_postal',
             'payment_method', 'gift_wrap', 'gift_message', 'promo_code',
             'subtotal', 'tax', 'delivery_fee', 'gift_fee', 'discount', 'total',
-            'notes', 'status', 'created_at', 'items',
+            'notes', 'status', 'status_label', 'created_at', 'items',
         ]
-        read_only_fields = ['salon', 'client', 'subtotal', 'tax', 'delivery_fee', 'gift_fee', 'discount', 'total', 'status', 'created_at']
+        read_only_fields = ['salon', 'client', 'subtotal', 'tax', 'delivery_fee', 'gift_fee', 'discount', 'total', 'status', 'status_label', 'created_at']
 
     def create(self, validated_data):
         from decimal import Decimal

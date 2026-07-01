@@ -18,6 +18,7 @@ const NAV = [
   { to: '/owner/gallery',               icon: '◫', label: 'Gallery',       group: 'main'  },
   { to: '/owner/analytics',             icon: '◱', label: 'Analytics',     group: 'main'  },
   { to: '/owner/subscription',          icon: '◆', label: 'Subscription',  group: 'main'  },
+  { to: '/owner/orders',                icon: '◫', label: 'Orders',        group: 'stock' },
   { to: '/owner/inventory',             icon: '▦', label: 'Products',      group: 'stock' },
   { to: '/owner/inventory/grn',         icon: '⊕', label: 'Receive Stock', group: 'stock' },
   { to: '/owner/inventory/sales',       icon: '⊘', label: 'Record Sales',  group: 'stock' },

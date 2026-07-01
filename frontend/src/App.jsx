@@ -71,6 +71,10 @@ import UserCosmetics from './pages/user/Cosmetics';
 import Checkout from './pages/user/Checkout';
 import UserSettings from './pages/user/Settings';
 import OwnerSettings from './pages/owner/Settings';
+import OwnerOrders from './pages/owner/Orders';
+import OwnerOrderDetail from './pages/owner/OrderDetail';
+import UserOrders from './pages/user/Orders';
+import UserOrderDetail from './pages/user/OrderDetail';
 
 // ── Session timeout ──────────────────────────────────────────────────────────
 // Placed inside BrowserRouter so useNavigate works, but above <Routes> so it
@@ -281,6 +285,8 @@ export default function App() {
               <Route path="inventory/adjustments" element={<OwnerAdjustments />} />
               <Route path="reports" element={<OwnerReports />} />
               <Route path="settings" element={<OwnerSettings />} />
+              <Route path="orders" element={<OwnerOrders />} />
+              <Route path="orders/:id" element={<OwnerOrderDetail />} />
             </Route>
           </Route>
 
@@ -295,6 +301,8 @@ export default function App() {
               <Route path="favourites" element={<UserFavourites />} />
               <Route path="cosmetics" element={<UserCosmetics />} />
               <Route path="checkout" element={<Checkout />} />
+              <Route path="orders" element={<UserOrders />} />
+              <Route path="orders/:id" element={<UserOrderDetail />} />
               <Route path="settings" element={<UserSettings />} />
             </Route>
           </Route>

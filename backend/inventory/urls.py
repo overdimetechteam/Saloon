@@ -5,7 +5,7 @@ from .views import (
     ProductSummaryView, SalonPublicCosmeticsView,
     ProductImageListCreateView, ProductImageDetailView,
     ProductPublicDetailView, ValidatePromoView,
-    CosmeticOrderListCreateView,
+    CosmeticOrderListCreateView, CosmeticOrderDetailView, MyOrdersView,
     GRNListCreateView, GRNConfirmView,
     SaleListCreateView,
     StockAdjustmentListCreateView,
@@ -16,6 +16,7 @@ from .views import (
 
 urlpatterns = [
     path('cosmetics/', AllCosmeticsView.as_view(), name='all-cosmetics'),
+    path('orders/mine/', MyOrdersView.as_view(), name='my-orders'),
 
     # Public per-salon cosmetics
     path('salons/<int:salon_pk>/cosmetics/', SalonPublicCosmeticsView.as_view(), name='salon-public-cosmetics'),
@@ -23,6 +24,7 @@ urlpatterns = [
     path('salons/<int:salon_pk>/cosmetics/<int:product_pk>/reviews/', ProductReviewListCreateView.as_view(), name='product-reviews'),
     path('salons/<int:salon_pk>/promo/validate/', ValidatePromoView.as_view(), name='promo-validate'),
     path('salons/<int:salon_pk>/orders/', CosmeticOrderListCreateView.as_view(), name='cosmetic-order-list'),
+    path('salons/<int:salon_pk>/orders/<int:order_pk>/', CosmeticOrderDetailView.as_view(), name='cosmetic-order-detail'),
 
     # Owner product management
     path('salons/<int:salon_pk>/products/', ProductListCreateView.as_view(), name='product-list'),

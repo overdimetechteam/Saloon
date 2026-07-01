@@ -742,6 +742,71 @@ class CosmeticOrderListCreateView(APIView):
         return Response(CosmeticOrderSerializer(orders, many=True).data)
 
 
+class MyOrdersView(APIView):
+    """GET /orders/mine/ — all orders placed by the authenticated client across all salons."""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        if request.user.role != 'client':
+            return Response({'detail': 'Clients only.'}, status=status.HTTP_403_FORBIDDEN)
+        orders = CosmeticOrder.objects.filter(client=request.user).prefetch_related('items').order_by('-created_at')
+        return Response(CosmeticOrderSerializer(orders, many=True).data)
+
+
+VALID_TRANSITIONS = {
+    'pending':          ['confirmed', 'cancelled'],
+    'confirmed':        ['packing',   'cancelled'],
+    'packing':          ['ready_for_pickup', 'cancelled'],
+    'ready_for_pickup': ['picked_up'],
+    'picked_up':        ['dispatched'],
+    'dispatched':       ['delivered'],
+    'delivered':        [],
+    'cancelled':        [],
+}
+
+
+class CosmeticOrderDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def _get_order(self, request, salon_pk, order_pk):
+        """Return (order, error_response). Owner or the client who placed the order."""
+        order = get_object_or_404(CosmeticOrder, pk=order_pk, salon_id=salon_pk)
+        if request.user.role == 'salon_owner':
+            salon, err = _get_salon_for_owner(request, salon_pk)
+            if err:
+                return None, err
+        elif request.user.role == 'client':
+            if order.client_id != request.user.id:
+                return None, Response({'detail': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
+        elif request.user.role != 'system_admin':
+            return None, Response({'detail': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
+        return order, None
+
+    def get(self, request, salon_pk, order_pk):
+        order, err = self._get_order(request, salon_pk, order_pk)
+        if err:
+            return err
+        return Response(CosmeticOrderSerializer(order).data)
+
+    def patch(self, request, salon_pk, order_pk):
+        """Owner advances the order status."""
+        if request.user.role not in ('salon_owner', 'system_admin'):
+            return Response({'detail': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
+        order, err = self._get_order(request, salon_pk, order_pk)
+        if err:
+            return err
+        new_status = request.data.get('status', '').strip()
+        allowed = VALID_TRANSITIONS.get(order.status, [])
+        if new_status not in allowed:
+            return Response(
+                {'detail': f"Cannot move from '{order.status}' to '{new_status}'. Allowed: {allowed}"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        order.status = new_status
+        order.save(update_fields=['status'])
+        return Response(CosmeticOrderSerializer(order).data)
+
+
 class ProductBatchListCreateView(APIView):
     permission_classes = [IsAuthenticated]
 
