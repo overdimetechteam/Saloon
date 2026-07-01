@@ -384,25 +384,27 @@ export default function QuickSearchModal({ onClose }) {
 function Overlay({ onClose, children }) {
   const isMobile = window.innerWidth < 640;
   return (
-    <>
-      <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 900, background: 'rgba(0,0,0,.45)', backdropFilter: 'blur(4px)', animation: 'backdropIn .22s ease both' }} />
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 900,
+      display: 'flex', alignItems: isMobile ? 'flex-start' : 'center', justifyContent: 'center',
+      padding: isMobile ? '72px 12px 12px' : '20px',
+      background: 'rgba(0,0,0,.45)', backdropFilter: 'blur(4px)',
+      animation: 'backdropIn .22s ease both',
+    }}>
+      <div onClick={onClose} style={{ position: 'absolute', inset: 0, zIndex: 0 }} />
       <div style={{
-        position: 'fixed',
-        top: isMobile ? 72 : '50%',
-        left: '50%',
-        transform: isMobile ? 'translateX(-50%)' : 'translate(-50%,-50%)',
-        zIndex: 901,
-        width: isMobile ? 'calc(100vw - 24px)' : 'min(520px, 96vw)',
+        position: 'relative', zIndex: 1,
+        width: isMobile ? '100%' : 'min(520px, 96vw)',
         background: 'var(--surface)', borderRadius: 20,
         boxShadow: '0 24px 64px rgba(13,148,136,.18), 0 8px 24px rgba(0,0,0,.12)',
         border: '1px solid var(--border)', overflow: 'hidden',
         display: 'flex', flexDirection: 'column',
-        maxHeight: isMobile ? 'calc(100dvh - 148px)' : '90vh',
+        maxHeight: isMobile ? 'calc(100dvh - 84px)' : '88vh',
         animation: 'scaleInBounce .28s cubic-bezier(.16,1,.3,1) both',
       }}>
         {children}
       </div>
-    </>
+    </div>
   );
 }
 
