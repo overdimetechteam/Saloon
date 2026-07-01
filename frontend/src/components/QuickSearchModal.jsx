@@ -105,6 +105,7 @@ export default function QuickSearchModal({ onClose }) {
   // step 0 — service
   const [services, setServices] = useState([]);
   const [selService, setSelSvc] = useState(null);
+  const [svcQuery, setSvcQuery] = useState('');
 
   // step 1 — time
   const [time, setTime] = useState(() => {
@@ -151,6 +152,14 @@ export default function QuickSearchModal({ onClose }) {
     (acc[s.category] = acc[s.category] || []).push(s);
     return acc;
   }, {});
+
+  const filteredByCategory = svcQuery.trim()
+    ? Object.fromEntries(
+        Object.entries(byCategory)
+          .map(([cat, svcs]) => [cat, svcs.filter(s => s.name.toLowerCase().includes(svcQuery.toLowerCase()))])
+          .filter(([, svcs]) => svcs.length > 0)
+      )
+    : byCategory;
 
   const STEPS = [
     { label: 'Service',  icon: '✦' },
@@ -245,28 +254,59 @@ export default function QuickSearchModal({ onClose }) {
         {step === 0 && (
           <div>
             <p style={m.hint}>What service are you looking for?</p>
-            <div
-              style={{ ...m.anyCard, border: !selService ? '2px solid #0D9488' : '2px solid var(--border)' }}
-              onClick={() => setSelSvc(null)}
-            >
-              <span style={{ fontSize: 18 }}>✦</span>
-              <span style={{ fontSize: 14, fontWeight: 600 }}>Any Service</span>
+
+            {/* Search bar */}
+            <div style={m.svcSearchWrap}>
+              <svg style={m.svcSearchIcon} viewBox="0 0 20 20" fill="none">
+                <circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" strokeWidth="1.6"/>
+                <path d="M13 13l3.5 3.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
+              </svg>
+              <input
+                style={m.svcSearchInput}
+                type="text"
+                placeholder="Search services…"
+                value={svcQuery}
+                onChange={e => setSvcQuery(e.target.value)}
+                autoComplete="off"
+              />
+              {svcQuery && (
+                <button style={m.svcSearchClear} onClick={() => setSvcQuery('')}>✕</button>
+              )}
             </div>
-            {Object.entries(byCategory).map(([cat, svcs]) => (
-              <div key={cat} style={{ marginBottom: 14 }}>
-                <div style={m.catLabel}>{CAT_ICON[cat] || '•'} {cat === 'Bridal' ? 'Bridal & Party' : cat}</div>
-                <div style={m.serviceGrid}>
-                  {svcs.map(svc => (
-                    <div key={svc.id}
-                      style={{ ...m.serviceChip, background: selService?.id === svc.id ? '#0D9488' : 'var(--surface2)', color: selService?.id === svc.id ? '#fff' : 'var(--text)', border: selService?.id === svc.id ? '2px solid #0D9488' : '2px solid var(--border)' }}
-                      onClick={() => setSelSvc(svc)}
-                    >
-                      {svc.name}
-                    </div>
-                  ))}
-                </div>
+
+            {/* Any Service chip — hidden while searching */}
+            {!svcQuery && (
+              <div
+                style={{ ...m.anyCard, border: !selService ? '2px solid #0D9488' : '2px solid var(--border)' }}
+                onClick={() => setSelSvc(null)}
+              >
+                <span style={{ fontSize: 18 }}>✦</span>
+                <span style={{ fontSize: 14, fontWeight: 600 }}>Any Service</span>
+                {!selService && <span style={{ marginLeft: 'auto', color: '#0D9488', fontSize: 14 }}>✓</span>}
               </div>
-            ))}
+            )}
+
+            {Object.keys(filteredByCategory).length === 0 && svcQuery ? (
+              <div style={{ textAlign: 'center', padding: '28px 0', color: 'var(--text-muted)', fontSize: 13 }}>
+                No services match "<strong>{svcQuery}</strong>"
+              </div>
+            ) : (
+              Object.entries(filteredByCategory).map(([cat, svcs]) => (
+                <div key={cat} style={{ marginBottom: 14 }}>
+                  <div style={m.catLabel}>{CAT_ICON[cat] || '•'} {cat === 'Bridal' ? 'Bridal & Party' : cat}</div>
+                  <div style={m.serviceGrid}>
+                    {svcs.map(svc => (
+                      <div key={svc.id}
+                        style={{ ...m.serviceChip, background: selService?.id === svc.id ? '#0D9488' : 'var(--surface2)', color: selService?.id === svc.id ? '#fff' : 'var(--text)', border: selService?.id === svc.id ? '2px solid #0D9488' : '2px solid var(--border)' }}
+                        onClick={() => setSelSvc(svc)}
+                      >
+                        {svc.name}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         )}
 
@@ -419,6 +459,24 @@ const m = {
   catLabel: { fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 },
   serviceGrid: { display: 'flex', flexWrap: 'wrap', gap: 8 },
   serviceChip: { padding: '7px 14px', borderRadius: 20, fontSize: 13, fontWeight: 500, cursor: 'pointer', transition: 'all .15s ease' },
+  svcSearchWrap: {
+    display: 'flex', alignItems: 'center', gap: 0,
+    border: '1.5px solid var(--border)', borderRadius: 12,
+    background: 'var(--surface2)', marginBottom: 14,
+    transition: 'border-color .15s ease',
+    overflow: 'hidden',
+  },
+  svcSearchIcon: { width: 16, height: 16, flexShrink: 0, marginLeft: 13, color: 'var(--text-muted)' },
+  svcSearchInput: {
+    flex: 1, border: 'none', outline: 'none', background: 'transparent',
+    padding: '10px 10px 10px 8px', fontSize: 14, color: 'var(--text)',
+    fontFamily: "'DM Sans', sans-serif",
+  },
+  svcSearchClear: {
+    background: 'none', border: 'none', cursor: 'pointer',
+    fontSize: 12, color: 'var(--text-muted)', padding: '0 12px',
+    lineHeight: 1, flexShrink: 0,
+  },
   anyCard:  { display: 'flex', alignItems: 'center', gap: 10, padding: '9px 14px', borderRadius: 12, marginBottom: 14, cursor: 'pointer', background: 'var(--surface2)', transition: 'all .15s ease' },
   locBtn:   { display: 'inline-flex', alignItems: 'center', gap: 8, padding: '11px 22px', borderRadius: 12, border: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 700, fontFamily: "'DM Sans', sans-serif", background: 'linear-gradient(135deg,#0D9488,#14B8A8)', color: '#fff', boxShadow: '0 2px 10px rgba(13,148,136,.3)' },
   locGranted: { display: 'flex', alignItems: 'center', gap: 8, padding: '12px 14px', borderRadius: 10, background: '#F0FDFA', border: '1px solid #99F6E4', fontSize: 13, color: '#0D9488' },
