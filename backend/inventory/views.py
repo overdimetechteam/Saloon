@@ -722,11 +722,63 @@ class CosmeticOrderListCreateView(APIView):
                       <p style="color:#6b7280;font-size:13px;margin:0;font-family:Arial,Helvetica,sans-serif">Order Ref: ORD-{order.pk:06d}</p>''',
                     cta_url=f'{frontend_url}/owner/orders',
                     cta_label='View All Orders',
-                    plain_text=f'New cosmetic order ORD-{order.pk:06d} from {customer_label} at {salon.name}.\nTotal: Rs. {order.total_amount:.2f}\n\nBookMyStyle',
+                    plain_text=f'New cosmetic order ORD-{order.pk:06d} from {customer_label} at {salon.name}.\nTotal: Rs. {float(order.total):.2f}\n\nBookMyStyle',
                 )
             except Exception as e:
                 import logging
-                logging.getLogger(__name__).error('[EMAIL] Cosmetic order email failed for order #%s: %s', order.pk, e)
+                logging.getLogger(__name__).error('[EMAIL] Cosmetic order owner email failed for order #%s: %s', order.pk, e)
+
+            # Order confirmation email to customer
+            try:
+                from utils.email import send_bms_email
+                from django.conf import settings as _settings
+                _frontend_url = getattr(_settings, 'FRONTEND_URL', 'http://localhost:5173')
+                track_url = f'{_frontend_url}/user/orders/{order.pk}?salon={salon.pk}'
+                items_list = ''.join(
+                    f'<tr>'
+                    f'<td style="padding:7px 8px;font-size:13px;color:#374151;font-family:Arial,Helvetica,sans-serif;border-bottom:1px solid #f3f4f6">{item.product_name}</td>'
+                    f'<td style="padding:7px 8px;font-size:13px;color:#374151;font-family:Arial,Helvetica,sans-serif;border-bottom:1px solid #f3f4f6;text-align:center">{item.quantity}</td>'
+                    f'<td style="padding:7px 8px;font-size:13px;color:#374151;font-family:Arial,Helvetica,sans-serif;border-bottom:1px solid #f3f4f6;text-align:right">Rs. {float(item.unit_price):.2f}</td>'
+                    f'</tr>'
+                    for item in order.items.all()
+                )
+                cname = order.client.full_name if order.client else order.client_name or 'there'
+                send_bms_email(
+                    subject=f'Your order ORD-{order.pk:06d} is confirmed — BookMyStyle',
+                    to_email=order.client_email,
+                    heading='Order Placed Successfully!',
+                    preheader=f'Your order from {salon.name} is confirmed. Track it anytime.',
+                    body_html=f'''
+                      <p style="color:#374151;font-size:15px;line-height:1.7;margin:0 0 16px;font-family:Arial,Helvetica,sans-serif">
+                        Hey {cname}! Your order from <strong>{salon.name}</strong> has been received and is being processed.
+                      </p>
+                      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"
+                             style="border:1px solid #e5e7eb;border-radius:6px;border-collapse:collapse;margin-bottom:16px">
+                        <thead>
+                          <tr style="background-color:#f9fafb">
+                            <th style="padding:8px;text-align:left;font-size:11px;color:#6b7280;font-family:Arial,Helvetica,sans-serif">Item</th>
+                            <th style="padding:8px;text-align:center;font-size:11px;color:#6b7280;font-family:Arial,Helvetica,sans-serif">Qty</th>
+                            <th style="padding:8px;text-align:right;font-size:11px;color:#6b7280;font-family:Arial,Helvetica,sans-serif">Price</th>
+                          </tr>
+                        </thead>
+                        <tbody>{items_list}</tbody>
+                        <tfoot>
+                          <tr>
+                            <td colspan="2" style="padding:8px;font-size:14px;font-weight:700;color:#111827;font-family:Arial,Helvetica,sans-serif;text-align:right">Total</td>
+                            <td style="padding:8px;font-size:14px;font-weight:700;color:#0D9488;font-family:Arial,Helvetica,sans-serif;text-align:right">Rs. {float(order.total):.2f}</td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                      <p style="color:#6b7280;font-size:13px;margin:0;font-family:Arial,Helvetica,sans-serif">
+                        Order Ref: <strong>ORD-{order.pk:06d}</strong> &nbsp;·&nbsp; You can track your order status using the button below.
+                      </p>''',
+                    cta_url=track_url,
+                    cta_label='Track My Order',
+                    plain_text=f'Hi {cname},\n\nYour order ORD-{order.pk:06d} from {salon.name} is confirmed.\nTotal: Rs. {float(order.total):.2f}\n\nTrack it here: {track_url}\n\nBookMyStyle',
+                )
+            except Exception as e:
+                import logging
+                logging.getLogger(__name__).error('[EMAIL] Order confirmation customer email failed for order #%s: %s', order.pk, e)
             return Response(CosmeticOrderSerializer(order).data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -804,6 +856,63 @@ class CosmeticOrderDetailView(APIView):
             )
         order.status = new_status
         order.save(update_fields=['status'])
+
+        # Trigger transactional emails on key status changes
+        if new_status in ('dispatched', 'delivered'):
+            try:
+                from utils.email import send_bms_email
+                from django.conf import settings as _s
+                _fe = getattr(_s, 'FRONTEND_URL', 'http://localhost:5173')
+                track_url = f'{_fe}/user/orders/{order.pk}?salon={order.salon_id}'
+                cname = order.client.full_name if order.client else order.client_name or 'there'
+
+                if new_status == 'dispatched':
+                    send_bms_email(
+                        subject=f'Your order ORD-{order.pk:06d} is on its way! 🚚',
+                        to_email=order.client_email,
+                        heading="Your order is on the way!",
+                        preheader=f'ORD-{order.pk:06d} has been dispatched and is heading to you.',
+                        body_html=f'''
+                          <p style="color:#374151;font-size:15px;line-height:1.7;margin:0 0 12px;font-family:Arial,Helvetica,sans-serif">
+                            Great news, {cname}! Your order <strong>ORD-{order.pk:06d}</strong> from <strong>{order.salon.name}</strong>
+                            has been dispatched and is on its way to you.
+                          </p>
+                          <p style="color:#374151;font-size:15px;line-height:1.7;margin:0;font-family:Arial,Helvetica,sans-serif">
+                            You can track your live order status using the button below.
+                          </p>''',
+                        cta_url=track_url,
+                        cta_label='Track My Order',
+                        plain_text=f'Hi {cname},\n\nYour order ORD-{order.pk:06d} has been dispatched!\n\nTrack it here: {track_url}\n\nBookMyStyle',
+                    )
+
+                elif new_status == 'delivered':
+                    send_bms_email(
+                        subject=f'Your order ORD-{order.pk:06d} has been delivered!',
+                        to_email=order.client_email,
+                        heading="Order Delivered Successfully!",
+                        preheader=f'Your order from {order.salon.name} has arrived. We hope you love it!',
+                        body_html=f'''
+                          <p style="color:#374151;font-size:15px;line-height:1.7;margin:0 0 12px;font-family:Arial,Helvetica,sans-serif">
+                            Hey {cname}! Your order <strong>ORD-{order.pk:06d}</strong> from <strong>{order.salon.name}</strong>
+                            has been delivered. We hope you love your products!
+                          </p>
+                          <p style="color:#374151;font-size:15px;line-height:1.7;margin:0 0 12px;font-family:Arial,Helvetica,sans-serif">
+                            Got a moment? We'd love to hear what you think — leave a quick review and help other customers discover great products.
+                          </p>
+                          <p style="color:#6b7280;font-size:13px;line-height:1.6;margin:0;font-family:Arial,Helvetica,sans-serif">
+                            Didn't receive your order or something doesn't look right?
+                            Reach out to us at
+                            <a href="mailto:info@bookmystyle.lk" style="color:#0D9488;font-weight:600">info@bookmystyle.lk</a>
+                            and we'll sort it out for you right away.
+                          </p>''',
+                        cta_url=f'{_fe}/salons/{order.salon_id}/cosmetics',
+                        cta_label='Leave a Review',
+                        plain_text=f'Hi {cname},\n\nYour order ORD-{order.pk:06d} from {order.salon.name} has been delivered!\n\nWe hope you love it. If anything is wrong, email us at info@bookmystyle.lk\n\nBookMyStyle',
+                    )
+            except Exception as e:
+                import logging
+                logging.getLogger(__name__).error('[EMAIL] Order status email failed for order #%s → %s: %s', order.pk, new_status, e)
+
         return Response(CosmeticOrderSerializer(order).data)
 
 
