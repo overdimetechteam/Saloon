@@ -3,10 +3,12 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useGoogleLogin } from '@react-oauth/google';
 import api from '../api/axios';
+import { useIsMobile } from '../hooks/useMobile';
 
 export default function OwnerLogin() {
   const { login, socialLogin, profile } = useAuth();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [form, setForm]       = useState({ email: '', password: '' });
   const [showPw, setShowPw]   = useState(false);
   const [error, setError]     = useState('');
@@ -53,9 +55,22 @@ export default function OwnerLogin() {
   });
 
   return (
-    <div style={s.page}>
-      {/* Left panel */}
-      <div style={s.left}>
+    <div style={{ ...s.page, flexDirection: isMobile ? 'column' : 'row' }}>
+
+      {/* Mobile branded header */}
+      {isMobile && (
+        <div style={s.mobileHeader}>
+          <div style={s.mobileHeaderBlob} />
+          <div style={{ position: 'relative', zIndex: 2, textAlign: 'center' }}>
+            <div style={{ fontSize: 32, color: GOLD, marginBottom: 10, filter: 'drop-shadow(0 0 14px rgba(212,175,55,.5))' }}>◉</div>
+            <div style={s.mobileTitle}>Owner Portal</div>
+            <div style={s.mobileSub}>SALON MANAGEMENT SUITE</div>
+          </div>
+        </div>
+      )}
+
+      {/* Left panel — desktop only */}
+      {!isMobile && <div style={s.left}>
         <div style={s.leftInner}>
           <div style={s.leftMark}>◉</div>
           <div style={s.leftTitle}>Owner Portal</div>
@@ -79,10 +94,10 @@ export default function OwnerLogin() {
         </div>
         <div style={s.leftBlob1} />
         <div style={s.leftBlob2} />
-      </div>
+      </div>}
 
       {/* Right panel */}
-      <div style={s.right}>
+      <div style={{ ...s.right, padding: isMobile ? '32px 20px 48px' : '60px 40px' }}>
         <div style={s.formWrap}>
 
           {/* Back link */}
@@ -188,6 +203,27 @@ const GOLD = '#D4AF37';
 
 const s = {
   page: { minHeight: '100vh', display: 'flex', background: 'var(--bg)' },
+
+  mobileHeader: {
+    background: 'linear-gradient(145deg, #0D0D16, #1a1400, #2a1f00)',
+    padding: '32px 24px 28px',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    position: 'relative', overflow: 'hidden',
+  },
+  mobileHeaderBlob: {
+    position: 'absolute', inset: 0,
+    background: 'radial-gradient(circle at 70% 30%, rgba(212,175,55,.2) 0%, transparent 60%)',
+    pointerEvents: 'none',
+  },
+  mobileTitle: {
+    fontFamily: "'Cormorant Garamond', Georgia, serif",
+    fontSize: 28, fontWeight: 700, color: '#fff',
+    letterSpacing: '-0.02em', lineHeight: 1, marginBottom: 4,
+  },
+  mobileSub: {
+    fontSize: 10, color: `rgba(212,175,55,.7)`,
+    letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 500,
+  },
 
   /* ── Left panel ── */
   left: {

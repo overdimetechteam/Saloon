@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useIsMobile } from '../hooks/useMobile';
 
 export default function AdminLogin() {
   const { login, profile } = useAuth();
-  const navigate = useNavigate();
+  const navigate  = useNavigate();
+  const isMobile  = useIsMobile();
   const [form, setForm]       = useState({ email: '', password: '' });
   const [showPw, setShowPw]   = useState(false);
   const [error, setError]     = useState('');
@@ -29,9 +31,26 @@ export default function AdminLogin() {
   };
 
   return (
-    <div style={s.page}>
-      {/* Left panel */}
-      <div style={s.left}>
+    <div style={{ ...s.page, flexDirection: isMobile ? 'column' : 'row' }}>
+
+      {/* Mobile branded header (replaces left panel) */}
+      {isMobile && (
+        <div style={s.mobileHeader}>
+          <div style={s.mobileHeaderBlob} />
+          <div style={{ position: 'relative', zIndex: 2, textAlign: 'center' }}>
+            <svg width="36" height="36" viewBox="0 0 48 48" fill="none" style={{ marginBottom: 10 }}>
+              <path d="M24 4L6 12v14c0 10.5 7.6 20.3 18 23 10.4-2.7 18-12.5 18-23V12L24 4z"
+                fill="rgba(99,102,241,.3)" stroke="#A5B4FC" strokeWidth="1.5" strokeLinejoin="round"/>
+              <path d="M17 24l5 5 9-9" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            <div style={s.mobileTitle}>Admin Portal</div>
+            <div style={s.mobileSub}>SYSTEM ADMINISTRATION</div>
+          </div>
+        </div>
+      )}
+
+      {/* Left panel — desktop only */}
+      {!isMobile && <div style={s.left}>
         <div style={s.leftInner}>
           <div style={s.shield}>
             <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
@@ -61,10 +80,10 @@ export default function AdminLogin() {
         </div>
         <div style={s.leftBlob1} />
         <div style={s.leftBlob2} />
-      </div>
+      </div>}
 
       {/* Right panel */}
-      <div style={s.right}>
+      <div style={{ ...s.right, padding: isMobile ? '32px 20px 48px' : '60px 40px' }}>
         <div style={s.formWrap}>
 
           <Link to="/" style={s.backBtn}>← Back to home</Link>
@@ -136,6 +155,27 @@ const INDIGO_LIGHT = '#A5B4FC';
 
 const s = {
   page: { minHeight: '100vh', display: 'flex', background: 'var(--bg)' },
+
+  mobileHeader: {
+    background: 'linear-gradient(145deg, #05080F, #0D1130, #1a1a3a)',
+    padding: '32px 24px 28px',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    position: 'relative', overflow: 'hidden',
+  },
+  mobileHeaderBlob: {
+    position: 'absolute', inset: 0,
+    background: 'radial-gradient(circle at 70% 30%, rgba(99,102,241,.25) 0%, transparent 60%)',
+    pointerEvents: 'none',
+  },
+  mobileTitle: {
+    fontFamily: "'Cormorant Garamond', Georgia, serif",
+    fontSize: 28, fontWeight: 700, color: '#fff',
+    letterSpacing: '-0.02em', lineHeight: 1, marginBottom: 4,
+  },
+  mobileSub: {
+    fontSize: 10, color: 'rgba(165,180,252,.7)',
+    letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 500,
+  },
 
   left: {
     flex: '0 0 42%', maxWidth: 520,
