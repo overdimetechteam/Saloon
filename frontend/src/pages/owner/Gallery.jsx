@@ -114,69 +114,159 @@ function ProfilePreview({ salon, logoSrc, coverSrc }) {
   const logo  = logoSrc  || salon.logo_url;
   const name  = salon.name;
 
+  const LogoEl = ({ size, radius, borderColor = 'rgba(255,255,255,.25)', fontSize }) => (
+    <div style={{ width: size, height: size, borderRadius: radius, border: `2px solid ${borderColor}`, overflow: 'hidden', background: '#1a0a2e', flexShrink: 0, boxShadow: '0 4px 14px rgba(0,0,0,.4)' }}>
+      {logo
+        ? <img src={logo} alt="logo" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+        : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize, fontWeight: 700, color: '#a78bfa' }}>{name[0]}</div>
+      }
+    </div>
+  );
+
+  /* Stars row reused in both previews */
+  const Stars = ({ size = 8 }) => (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+      {[1,2,3,4,5].map(i => <span key={i} style={{ color: '#D4AF37', fontSize: size }}>★</span>)}
+      <span style={{ color: 'rgba(255,255,255,.6)', fontSize: size, marginLeft: 3 }}>0.0 (0 reviews)</span>
+    </div>
+  );
+
+  /* ── Desktop browser frame ── */
   const DesktopFrame = () => (
-    <div style={{ flex: '0 0 auto', width: '100%', maxWidth: 480 }}>
-      <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 8 }}>Desktop View</div>
-      {/* Browser chrome */}
-      <div style={{ border: '1.5px solid var(--border)', borderRadius: 14, overflow: 'hidden', boxShadow: '0 8px 28px rgba(0,0,0,.12)' }}>
-        <div style={{ background: 'var(--surface2)', padding: '8px 12px', display: 'flex', alignItems: 'center', gap: 8, borderBottom: '1px solid var(--border)' }}>
-          <div style={{ display: 'flex', gap: 5 }}>
-            {['#FF5F57','#FFBD2E','#28CA41'].map(c => <div key={c} style={{ width: 10, height: 10, borderRadius: '50%', background: c }} />)}
+    <div style={{ flex: '1 1 0', minWidth: 0 }}>
+      <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 8 }}>Desktop View</div>
+      <div style={{ border: '1.5px solid var(--border)', borderRadius: 12, overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,0,0,.15)' }}>
+
+        {/* Browser chrome */}
+        <div style={{ background: '#18181b', padding: '7px 10px', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ display: 'flex', gap: 4 }}>
+            {['#FF5F57','#FFBD2E','#28CA41'].map(c => <div key={c} style={{ width: 8, height: 8, borderRadius: '50%', background: c }} />)}
           </div>
-          <div style={{ flex: 1, background: 'var(--bg)', borderRadius: 6, padding: '3px 10px', fontSize: 10, color: 'var(--text-muted)', fontFamily: 'monospace' }}>
+          <div style={{ flex: 1, background: '#27272a', borderRadius: 5, padding: '3px 8px', fontSize: 9, color: '#71717a', fontFamily: 'monospace' }}>
             bookmystyle.lk/salons/{salon.id}
           </div>
         </div>
-        {/* Hero section */}
-        <div style={{ position: 'relative', height: 130, background: cover ? 'transparent' : 'linear-gradient(135deg, #0D9488, #14B8A8)', overflow: 'hidden' }}>
-          {cover && <img src={cover} alt="cover" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />}
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,.1) 0%, rgba(0,0,0,.45) 100%)' }} />
-          <div style={{ position: 'absolute', bottom: 12, left: 14, display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 40, height: 40, borderRadius: 10, border: '2px solid rgba(255,255,255,.7)', overflow: 'hidden', background: 'var(--surface)', flexShrink: 0 }}>
-              {logo ? <img src={logo} alt="logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 700, color: '#0D9488' }}>{name[0]}</div>}
+
+        {/* Navbar */}
+        <div style={{ background: '#0f0b1e', padding: '6px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,.06)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+            <div style={{ width: 14, height: 14, borderRadius: 4, background: 'linear-gradient(135deg, #7C3AED, #6D28D9)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ color: '#fff', fontSize: 7, fontWeight: 900 }}>✦</span>
             </div>
-            <div>
-              <div style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 14, fontWeight: 700, color: '#fff', lineHeight: 1.1, textShadow: '0 1px 4px rgba(0,0,0,.5)' }}>{name}</div>
-              <div style={{ fontSize: 9, color: 'rgba(255,255,255,.7)', marginTop: 2 }}>{salon.address_city || 'Colombo'}</div>
+            <span style={{ color: '#fff', fontSize: 9, fontWeight: 700, letterSpacing: '0.02em' }}>BookMyStyle</span>
+          </div>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <span style={{ color: 'rgba(255,255,255,.5)', fontSize: 8 }}>Browse Salons</span>
+            <span style={{ color: 'rgba(255,255,255,.5)', fontSize: 8 }}>Sign In</span>
+            <div style={{ background: '#7C3AED', borderRadius: 6, padding: '3px 8px' }}>
+              <span style={{ color: '#fff', fontSize: 8, fontWeight: 700 }}>Get Started</span>
             </div>
           </div>
         </div>
-        {/* Content stub */}
-        <div style={{ background: 'var(--bg)', padding: '12px 14px', display: 'flex', gap: 8 }}>
-          {['Services','Gallery','Reviews','Book'].map((t, i) => (
-            <div key={t} style={{ padding: '4px 10px', borderRadius: 20, fontSize: 9, fontWeight: 700, background: i === 3 ? '#0D9488' : 'var(--surface2)', color: i === 3 ? '#fff' : 'var(--text-muted)', border: '1px solid var(--border)' }}>{t}</div>
-          ))}
+
+        {/* Hero */}
+        <div style={{ position: 'relative', height: 150, background: cover ? 'transparent' : 'linear-gradient(135deg, #1a0a2e, #2d1b69)', overflow: 'hidden' }}>
+          {cover && <img src={cover} alt="cover" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />}
+          {/* Dark overlay matching real page — left side heavier */}
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(0,0,0,.72) 0%, rgba(0,0,0,.45) 50%, rgba(0,0,0,.2) 100%)' }} />
+
+          {/* Content over hero */}
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, maxWidth: '65%' }}>
+              <LogoEl size={38} radius={8} fontSize={16} />
+              <div>
+                <div style={{ fontSize: 8, fontWeight: 700, color: 'rgba(255,255,255,.55)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 3 }}>FEATURED SALON</div>
+                <div style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 14, fontWeight: 700, color: '#fff', lineHeight: 1.1, marginBottom: 5, textShadow: '0 1px 6px rgba(0,0,0,.6)' }}>{name}</div>
+                <Stars size={7} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 5 }}>
+                  <span style={{ fontSize: 7 }}>📍</span>
+                  <span style={{ color: 'rgba(255,255,255,.65)', fontSize: 7 }}>{salon.address || 'Colombo'}</span>
+                </div>
+              </div>
+            </div>
+            {/* CTA buttons on right */}
+            <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+              <div style={{ background: '#7C3AED', borderRadius: 8, padding: '6px 12px', display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span style={{ color: '#fff', fontSize: 8, fontWeight: 700 }}>✦ Book Now</span>
+              </div>
+              <div style={{ background: 'linear-gradient(135deg, #D97706, #D4AF37)', borderRadius: 8, padding: '6px 10px', display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span style={{ color: '#fff', fontSize: 8, fontWeight: 700 }}>✿ Cosmetics</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   );
 
+  /* ── Mobile phone frame ── */
   const MobileFrame = () => (
-    <div style={{ flex: '0 0 auto' }}>
-      <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 8 }}>Mobile View</div>
-      {/* Phone frame */}
-      <div style={{ width: 160, border: '3px solid var(--border)', borderRadius: 22, overflow: 'hidden', boxShadow: '0 8px 28px rgba(0,0,0,.15)', position: 'relative', background: 'var(--bg)' }}>
-        {/* Notch */}
-        <div style={{ background: 'var(--surface2)', padding: '8px 0 6px', display: 'flex', justifyContent: 'center', borderBottom: '1px solid var(--border)' }}>
-          <div style={{ width: 36, height: 5, borderRadius: 10, background: 'var(--border)' }} />
+    <div style={{ flexShrink: 0 }}>
+      <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 8 }}>Mobile View</div>
+
+      {/* Phone outer shell */}
+      <div style={{ width: 155, background: '#18181b', border: '2.5px solid #3f3f46', borderRadius: 24, overflow: 'hidden', boxShadow: '0 10px 36px rgba(0,0,0,.28)', position: 'relative' }}>
+
+        {/* Status bar + notch */}
+        <div style={{ background: '#0f0b1e', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '5px 10px 3px' }}>
+          <span style={{ color: 'rgba(255,255,255,.4)', fontSize: 7 }}>9:41</span>
+          <div style={{ width: 30, height: 4, borderRadius: 10, background: '#27272a' }} />
+          <span style={{ color: 'rgba(255,255,255,.4)', fontSize: 7 }}>◈◈◈</span>
         </div>
-        {/* Hero */}
-        <div style={{ position: 'relative', height: 80, background: cover ? 'transparent' : 'linear-gradient(135deg, #0D9488, #14B8A8)', overflow: 'hidden' }}>
-          {cover && <img src={cover} alt="cover" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />}
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,.05) 0%, rgba(0,0,0,.5) 100%)' }} />
-        </div>
-        {/* Logo + name */}
-        <div style={{ padding: '0 10px 10px', position: 'relative' }}>
-          <div style={{ width: 32, height: 32, borderRadius: 8, border: '2px solid var(--surface)', overflow: 'hidden', background: 'var(--surface2)', marginTop: -16, marginBottom: 6, boxShadow: '0 2px 8px rgba(0,0,0,.15)' }}>
-            {logo ? <img src={logo} alt="logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#0D9488' }}>{name[0]}</div>}
+
+        {/* Navbar */}
+        <div style={{ background: '#0f0b1e', padding: '4px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,.06)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <div style={{ width: 11, height: 11, borderRadius: 3, background: 'linear-gradient(135deg, #7C3AED, #6D28D9)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ color: '#fff', fontSize: 6, fontWeight: 900 }}>✦</span>
+            </div>
+            <span style={{ color: '#fff', fontSize: 7, fontWeight: 700 }}>BookMyStyle</span>
           </div>
-          <div style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 11, fontWeight: 700, color: 'var(--text)', lineHeight: 1.2, marginBottom: 6 }}>{name}</div>
-          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-            {['Book','Gallery'].map((t, i) => (
-              <div key={t} style={{ padding: '3px 8px', borderRadius: 20, fontSize: 8, fontWeight: 700, background: i === 0 ? '#0D9488' : 'var(--surface2)', color: i === 0 ? '#fff' : 'var(--text-muted)', border: '1px solid var(--border)' }}>{t}</div>
-            ))}
+          <div style={{ display: 'flex', gap: 5 }}>
+            <span style={{ color: 'rgba(255,255,255,.5)', fontSize: 7 }}>Sign In</span>
+            <span style={{ color: 'rgba(255,255,255,.35)', fontSize: 7 }}>☰</span>
           </div>
         </div>
+
+        {/* Hero — cover fills top half, logo centered large */}
+        <div style={{ position: 'relative', background: cover ? 'transparent' : '#1a0a2e', overflow: 'hidden' }}>
+          {cover && <img src={cover} alt="cover" style={{ width: '100%', height: 110, objectFit: 'cover', display: 'block' }} />}
+          {!cover && <div style={{ height: 110, background: 'linear-gradient(135deg, #1a0a2e, #2d1b69)' }} />}
+          <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,.45)' }} />
+
+          {/* Logo centered */}
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+            <LogoEl size={44} radius={12} fontSize={20} />
+            <div style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 12, fontWeight: 700, color: '#fff', textShadow: '0 1px 6px rgba(0,0,0,.7)', textAlign: 'center', lineHeight: 1.2 }}>{name}</div>
+            <div style={{ background: 'rgba(13,148,136,.85)', borderRadius: 10, padding: '2px 7px' }}>
+              <span style={{ color: '#fff', fontSize: 7, fontWeight: 700 }}>● Open Now</span>
+            </div>
+            <Stars size={6} />
+          </div>
+        </div>
+
+        {/* Info rows */}
+        <div style={{ background: '#0f0b1e', padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: 5 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+            <span style={{ fontSize: 7 }}>📍</span>
+            <span style={{ color: 'rgba(255,255,255,.6)', fontSize: 7 }}>{salon.address || 'Colombo'}</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+            <span style={{ fontSize: 7 }}>📞</span>
+            <span style={{ color: 'rgba(255,255,255,.6)', fontSize: 7 }}>{salon.phone || '–'}</span>
+          </div>
+        </div>
+
+        {/* CTA Buttons */}
+        <div style={{ padding: '6px 8px 10px', display: 'flex', flexDirection: 'column', gap: 5, background: '#0f0b1e' }}>
+          <div style={{ background: '#7C3AED', borderRadius: 10, padding: '7px 0', textAlign: 'center' }}>
+            <span style={{ color: '#fff', fontSize: 9, fontWeight: 700 }}>✦ Book Now</span>
+          </div>
+          <div style={{ background: 'linear-gradient(135deg, #D97706, #D4AF37)', borderRadius: 10, padding: '7px 0', textAlign: 'center' }}>
+            <span style={{ color: '#fff', fontSize: 9, fontWeight: 700 }}>✿ Shop Cosmetics</span>
+          </div>
+        </div>
+
       </div>
     </div>
   );
@@ -186,13 +276,13 @@ function ProfilePreview({ salon, logoSrc, coverSrc }) {
       <div style={{ padding: '18px 24px 14px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <div style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 18, fontWeight: 700, color: 'var(--text)', marginBottom: 3 }}>Profile Page Preview</div>
-          <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Live preview updates when you save logo or cover image</div>
+          <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Updates live as you pick a new logo or cover image</div>
         </div>
         <Link to={`/salons/${salon.id}`} target="_blank" style={{ fontSize: 12, fontWeight: 700, color: '#0D9488', textDecoration: 'none', padding: '6px 14px', borderRadius: 10, background: 'rgba(13,148,136,.08)', border: '1px solid rgba(13,148,136,.2)' }}>
           View Live →
         </Link>
       </div>
-      <div style={{ padding: '20px 24px', display: 'flex', gap: 24, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+      <div style={{ padding: '20px 24px', display: 'flex', gap: 20, alignItems: 'flex-start', flexWrap: 'wrap' }}>
         <DesktopFrame />
         <MobileFrame />
       </div>
