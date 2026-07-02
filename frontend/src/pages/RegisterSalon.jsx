@@ -251,8 +251,8 @@ export default function RegisterSalon() {
                 <input style={s.input} placeholder="Glam Studio" value={form.name} onChange={f('name')} required />
               </div>
               <div style={s.field}>
-                <label style={s.label}>Business Registration Number</label>
-                <input style={s.input} placeholder="BR-12345" value={form.business_reg_number} onChange={f('business_reg_number')} required />
+                <label style={s.label}>BR / NIC Number</label>
+                <input style={s.input} placeholder="BR-12345 or NIC" value={form.business_reg_number} onChange={f('business_reg_number')} />
               </div>
               <div style={s.field}>
                 <label style={s.label}>Contact Number</label>
