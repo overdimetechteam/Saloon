@@ -436,6 +436,28 @@ export default function UserLayout() {
         </>
       )}
 
+      {/* Owner-browsing-as-customer banner */}
+      {profile?.role === 'salon_owner' && (
+        <div style={{
+          background: 'linear-gradient(135deg, #92701a, #D4AF37)',
+          padding: '8px 24px',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16,
+          fontSize: 13, color: '#1a1200', fontWeight: 600,
+        }}>
+          <span>◉ You're browsing as a customer</span>
+          <button
+            onClick={() => window.location.href = '/owner/dashboard'}
+            style={{
+              background: 'rgba(0,0,0,.15)', border: 'none', borderRadius: 8,
+              padding: '4px 14px', fontSize: 12, fontWeight: 700,
+              color: '#1a1200', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif",
+            }}
+          >
+            Switch to Owner Portal →
+          </button>
+        </div>
+      )}
+
       <main style={{
         flex: 1,
         padding: location.pathname.startsWith('/salons') ? 0 : (isMobile ? '24px 16px 80px' : '40px 40px'),

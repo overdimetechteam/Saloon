@@ -9,6 +9,10 @@ export default function RequireRole({ roles }) {
     if (roles?.includes('system_admin')) dest = '/admin/login';
     return <Navigate to={dest} replace />;
   }
-  if (roles && !roles.includes(profile.role)) return <Navigate to="/login" replace />;
+  // salon_owner can also browse client routes (dual-portal access)
+  if (roles && !roles.includes(profile.role)) {
+    if (roles.includes('client') && profile.role === 'salon_owner') return <Outlet />;
+    return <Navigate to="/login" replace />;
+  }
   return <Outlet />;
 }

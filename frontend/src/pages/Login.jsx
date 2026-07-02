@@ -23,16 +23,17 @@ export default function Login() {
   const [forgotEmail, setForgotEmail] = useState('');
   const [forgotLoading, setForgotLoading] = useState(false);
   const [forgotMsg, setForgotMsg] = useState('');
+  const [ownerPicker, setOwnerPicker] = useState(false);
 
   const roleRedirect = (role) => {
     if (role === 'system_admin') return '/admin/salons';
-    if (role === 'salon_owner') return '/salon-portal';
     if (role === 'employee') return '/employee/profile';
     return nextPath || '/user/dashboard';
   };
 
   useEffect(() => {
     if (!profile) return;
+    if (profile.role === 'salon_owner') { setOwnerPicker(true); return; }
     navigate(roleRedirect(profile.role), { replace: true });
   }, [profile]);
 
@@ -42,6 +43,7 @@ export default function Login() {
     e.preventDefault(); setError(''); setUnverifiedEmail(''); setResendMsg(''); setLoading(true);
     try {
       const user = await login(form.email, form.password);
+      if (user.role === 'salon_owner') { setOwnerPicker(true); return; }
       navigate(roleRedirect(user.role));
     } catch (err) {
       if (err.response?.data?.code === 'email_not_verified') {
@@ -68,6 +70,7 @@ export default function Login() {
       try {
         const { data } = await api.post('/auth/social/google/', { access_token });
         const user = socialLogin(data);
+        if (user.role === 'salon_owner') { setOwnerPicker(true); return; }
         navigate(roleRedirect(user.role));
       } catch (err) {
         setError(err.response?.data?.detail || 'Google sign-in failed.');
@@ -125,6 +128,42 @@ export default function Login() {
       setForgotMsg('If that email is registered, a reset link has been sent.');
     } finally { setForgotLoading(false); }
   };
+
+  if (ownerPicker) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', padding: '24px 20px' }}>
+        <div style={{ maxWidth: 400, width: '100%', background: 'var(--surface)', borderRadius: 24, padding: '44px 36px', border: '1px solid var(--border)', boxShadow: '0 20px 60px rgba(0,0,0,.12)', textAlign: 'center' }}>
+          <div style={{ fontSize: 40, marginBottom: 16 }}>✦</div>
+          <h2 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 28, fontWeight: 700, color: 'var(--text)', margin: '0 0 8px', letterSpacing: '-0.02em' }}>
+            Welcome back!
+          </h2>
+          <p style={{ fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.65, margin: '0 0 32px' }}>
+            You have a salon owner account. Where would you like to go?
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <button
+              onClick={() => window.location.href = '/owner/dashboard'}
+              style={{ padding: '13px', background: 'linear-gradient(135deg, #92701a, #D4AF37)', color: '#1a1200', border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", boxShadow: '0 6px 20px rgba(212,175,55,.3)' }}
+            >
+              ◉ Go to Owner Portal
+            </button>
+            <button
+              onClick={() => navigate('/user/dashboard')}
+              style={{ padding: '13px', background: 'linear-gradient(135deg, #0D9488, #14B8A8)', color: '#fff', border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", boxShadow: '0 6px 20px rgba(13,148,136,.3)' }}
+            >
+              ✦ Browse as Customer
+            </button>
+            <button
+              onClick={() => setOwnerPicker(false)}
+              style={{ padding: '11px', background: 'transparent', border: '1px solid var(--border)', borderRadius: 12, fontSize: 14, color: 'var(--text-muted)', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}
+            >
+              ← Back to Login
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ ...s.page, flexDirection: (isMobile || isTablet) ? 'column' : 'row' }}>
