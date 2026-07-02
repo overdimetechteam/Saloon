@@ -213,19 +213,20 @@ export default function QuickSearchModal({ onClose }) {
   return (
     <Overlay onClose={onClose}>
       {/* Header */}
-      <div style={m.header}>
-        <span style={m.title}>Book Now!</span>
+      <div style={{ ...m.header, padding: narrow ? '12px 16px 10px' : '20px 24px 16px' }}>
+        <span style={{ ...m.title, fontSize: narrow ? 17 : 20 }}>Book Now!</span>
         <button style={m.closeBtn} onClick={onClose}>✕</button>
       </div>
 
       {/* Step indicator */}
-      <div style={m.steps}>
+      <div style={{ ...m.steps, padding: narrow ? '8px 16px' : '14px 24px' }}>
         {STEPS.map((s, i) => (
           <div key={i} style={{ display: 'flex', alignItems: 'center', flex: i < STEPS.length - 1 ? '1 1 auto' : '0 0 auto' }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, flexShrink: 0 }}>
               <div
                 style={{
                   ...m.stepDot,
+                  width: narrow ? 24 : 28, height: narrow ? 24 : 28, fontSize: narrow ? 10 : 12,
                   background: i <= step ? '#0D9488' : 'var(--border)',
                   color: i <= step ? '#fff' : 'var(--text-muted)',
                   cursor: i < step ? 'pointer' : 'default',
@@ -241,28 +242,28 @@ export default function QuickSearchModal({ onClose }) {
               )}
             </div>
             {i < STEPS.length - 1 && (
-              <div style={{ flex: 1, height: 1.5, background: i < step ? '#0D9488' : 'var(--border)', margin: narrow ? '0 6px' : '0 8px', marginBottom: narrow ? 0 : 14 }} />
+              <div style={{ flex: 1, height: 1.5, background: i < step ? '#0D9488' : 'var(--border)', margin: narrow ? '0 5px' : '0 8px', marginBottom: narrow ? 0 : 14 }} />
             )}
           </div>
         ))}
       </div>
 
       {/* Step content */}
-      <div style={{ padding: '16px 24px 8px', overflowY: 'auto', flex: 1 }}>
+      <div style={{ padding: narrow ? '10px 14px 6px' : '16px 24px 8px', overflowY: 'auto', flex: 1 }}>
 
         {/* ── Step 0: Service ── */}
         {step === 0 && (
           <div>
-            <p style={m.hint}>What service are you looking for?</p>
+            <p style={{ ...m.hint, fontSize: narrow ? 13 : 15, marginBottom: narrow ? 8 : 14 }}>What service are you looking for?</p>
 
             {/* Search bar */}
-            <div style={m.svcSearchWrap}>
+            <div style={{ ...m.svcSearchWrap, marginBottom: narrow ? 8 : 14 }}>
               <svg style={m.svcSearchIcon} viewBox="0 0 20 20" fill="none">
                 <circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" strokeWidth="1.6"/>
                 <path d="M13 13l3.5 3.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
               </svg>
               <input
-                style={m.svcSearchInput}
+                style={{ ...m.svcSearchInput, padding: narrow ? '7px 8px 7px 6px' : '10px 10px 10px 8px', fontSize: narrow ? 13 : 14 }}
                 type="text"
                 placeholder="Search services…"
                 value={svcQuery}
@@ -277,27 +278,27 @@ export default function QuickSearchModal({ onClose }) {
             {/* Any Service chip — hidden while searching */}
             {!svcQuery && (
               <div
-                style={{ ...m.anyCard, border: !selService ? '2px solid #0D9488' : '2px solid var(--border)' }}
+                style={{ ...m.anyCard, padding: narrow ? '6px 12px' : '9px 14px', marginBottom: narrow ? 8 : 14, border: !selService ? '2px solid #0D9488' : '2px solid var(--border)' }}
                 onClick={() => setSelSvc(null)}
               >
-                <span style={{ fontSize: 18 }}>✦</span>
-                <span style={{ fontSize: 14, fontWeight: 600 }}>Any Service</span>
-                {!selService && <span style={{ marginLeft: 'auto', color: '#0D9488', fontSize: 14 }}>✓</span>}
+                <span style={{ fontSize: narrow ? 14 : 18 }}>✦</span>
+                <span style={{ fontSize: narrow ? 12 : 14, fontWeight: 600 }}>Any Service</span>
+                {!selService && <span style={{ marginLeft: 'auto', color: '#0D9488', fontSize: 13 }}>✓</span>}
               </div>
             )}
 
             {Object.keys(filteredByCategory).length === 0 && svcQuery ? (
-              <div style={{ textAlign: 'center', padding: '28px 0', color: 'var(--text-muted)', fontSize: 13 }}>
+              <div style={{ textAlign: 'center', padding: '20px 0', color: 'var(--text-muted)', fontSize: 13 }}>
                 No services match "<strong>{svcQuery}</strong>"
               </div>
             ) : (
               Object.entries(filteredByCategory).map(([cat, svcs]) => (
-                <div key={cat} style={{ marginBottom: 14 }}>
-                  <div style={m.catLabel}>{CAT_ICON[cat] || '•'} {cat === 'Bridal' ? 'Bridal & Party' : cat}</div>
-                  <div style={m.serviceGrid}>
+                <div key={cat} style={{ marginBottom: narrow ? 8 : 14 }}>
+                  <div style={{ ...m.catLabel, marginBottom: narrow ? 5 : 8 }}>{CAT_ICON[cat] || '•'} {cat === 'Bridal' ? 'Bridal & Party' : cat}</div>
+                  <div style={{ ...m.serviceGrid, gap: narrow ? 5 : 8 }}>
                     {svcs.map(svc => (
                       <div key={svc.id}
-                        style={{ ...m.serviceChip, background: selService?.id === svc.id ? '#0D9488' : 'var(--surface2)', color: selService?.id === svc.id ? '#fff' : 'var(--text)', border: selService?.id === svc.id ? '2px solid #0D9488' : '2px solid var(--border)' }}
+                        style={{ ...m.serviceChip, padding: narrow ? '5px 10px' : '7px 14px', fontSize: narrow ? 11 : 13, background: selService?.id === svc.id ? '#0D9488' : 'var(--surface2)', color: selService?.id === svc.id ? '#fff' : 'var(--text)', border: selService?.id === svc.id ? '2px solid #0D9488' : '2px solid var(--border)' }}
                         onClick={() => setSelSvc(svc)}
                       >
                         {svc.name}
@@ -405,14 +406,14 @@ export default function QuickSearchModal({ onClose }) {
       </div>
 
       {/* Footer */}
-      <div style={m.footer}>
+      <div style={{ ...m.footer, padding: narrow ? '10px 14px' : '14px 24px' }}>
         {step > 0 && (
-          <button style={m.backBtn} onClick={() => setStep(s => s - 1)}>← Back</button>
+          <button style={{ ...m.backBtn, padding: narrow ? '8px 14px' : '10px 20px', fontSize: narrow ? 13 : 14 }} onClick={() => setStep(s => s - 1)}>← Back</button>
         )}
         {step < 3 ? (
-          <button style={m.nextBtn} onClick={() => setStep(s => s + 1)}>Next →</button>
+          <button style={{ ...m.nextBtn, padding: narrow ? '8px 20px' : '10px 28px', fontSize: narrow ? 13 : 14 }} onClick={() => setStep(s => s + 1)}>Next →</button>
         ) : (
-          <button style={{ ...m.nextBtn, minWidth: 160 }} onClick={runSearch} disabled={searching}>
+          <button style={{ ...m.nextBtn, minWidth: 140, padding: narrow ? '8px 20px' : '10px 28px', fontSize: narrow ? 13 : 14 }} onClick={runSearch} disabled={searching}>
             {searching ? 'Searching…' : '✦ Find Salons'}
           </button>
         )}
@@ -427,7 +428,7 @@ function Overlay({ onClose, children }) {
     <div style={{
       position: 'fixed', inset: 0, zIndex: 900,
       display: 'flex', alignItems: isMobile ? 'flex-start' : 'center', justifyContent: 'center',
-      padding: isMobile ? '72px 12px 12px' : '20px',
+      padding: isMobile ? '60px 10px 10px' : '20px',
       background: 'rgba(0,0,0,.45)', backdropFilter: 'blur(4px)',
       animation: 'backdropIn .22s ease both',
     }}>
