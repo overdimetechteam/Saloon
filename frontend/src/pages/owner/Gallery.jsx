@@ -173,30 +173,30 @@ function LivePreviewModal({ salon, onClose }) {
           </div>
         )}
 
-        {/* ── Mobile: iPhone 12 shell (390×844) ── */}
+        {/* ── Mobile: iPhone shell (scaled to 300px viewport) ── */}
         {view === 'mobile' && (
           <div style={{ display: 'flex', justifyContent: 'center' }}>
-            <div style={{ background: '#1c1c1e', border: '3px solid #3a3a3c', borderRadius: 50, overflow: 'hidden', padding: '0 10px', boxShadow: '0 28px 80px rgba(0,0,0,.65)', display: 'inline-flex', flexDirection: 'column' }}>
+            <div style={{ background: '#1c1c1e', border: '3px solid #3a3a3c', borderRadius: 40, overflow: 'hidden', padding: '0 8px', boxShadow: '0 20px 60px rgba(0,0,0,.65)', display: 'inline-flex', flexDirection: 'column' }}>
               {/* Dynamic Island / status bar */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 10px 6px' }}>
-                <span style={{ color: 'rgba(255,255,255,.55)', fontSize: 12, fontWeight: 600, letterSpacing: '0.02em' }}>9:41</span>
-                <div style={{ width: 108, height: 30, borderRadius: 20, background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                  <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#1c1c1e', border: '1.5px solid #3a3a3c' }} />
-                  <div style={{ width: 30, height: 10, borderRadius: 5, background: '#1c1c1e', border: '1.5px solid #3a3a3c' }} />
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 8px 5px' }}>
+                <span style={{ color: 'rgba(255,255,255,.55)', fontSize: 11, fontWeight: 600, letterSpacing: '0.02em' }}>9:41</span>
+                <div style={{ width: 88, height: 24, borderRadius: 16, background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#1c1c1e', border: '1.5px solid #3a3a3c' }} />
+                  <div style={{ width: 24, height: 8, borderRadius: 4, background: '#1c1c1e', border: '1.5px solid #3a3a3c' }} />
                 </div>
-                <span style={{ color: 'rgba(255,255,255,.55)', fontSize: 11 }}>▲ ▲ ▲</span>
+                <span style={{ color: 'rgba(255,255,255,.55)', fontSize: 10 }}>▲ ▲ ▲</span>
               </div>
-              {/* The actual iframe clipped to 390×740 (shows top of the 844px page) */}
-              <div style={{ width: 390, height: 740, overflow: 'hidden', borderRadius: 6, background: '#0d0b18' }}>
+              {/* Iframe clipped to 300×570 — 390px iframe scaled down to 300px wide */}
+              <div style={{ width: 300, height: 570, overflow: 'hidden', borderRadius: 6, background: '#0d0b18' }}>
                 <iframe
                   src={SALON_URL}
                   title="Salon profile mobile preview"
-                  style={{ width: 390, height: 844, border: 'none', display: 'block', pointerEvents: 'none' }}
+                  style={{ width: 390, height: 844, border: 'none', display: 'block', transform: 'scale(0.769)', transformOrigin: 'top left', pointerEvents: 'none' }}
                 />
               </div>
               {/* Home indicator */}
-              <div style={{ display: 'flex', justifyContent: 'center', padding: '10px 0 14px' }}>
-                <div style={{ width: 120, height: 5, borderRadius: 10, background: 'rgba(255,255,255,.22)' }} />
+              <div style={{ display: 'flex', justifyContent: 'center', padding: '8px 0 12px' }}>
+                <div style={{ width: 96, height: 4, borderRadius: 10, background: 'rgba(255,255,255,.22)' }} />
               </div>
             </div>
           </div>
