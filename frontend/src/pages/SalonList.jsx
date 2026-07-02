@@ -20,7 +20,7 @@ function SalonCard({ salon, i, isFav, col, numCols, isMobile }) {
   const [c1, c2] = PALETTE[i % PALETTE.length];
   const isOpen   = salon.status === 'active';
   const xInit    = numCols === 1 ? 0 : col === 0 ? -60 : col === numCols - 1 ? 60 : 0;
-  const coverPhoto = salon.cover_photo_url || salon.cover_photo || null;
+  const coverPhoto = salon.cover_image_url || null;
 
   if (isMobile) {
     /* ── Mobile: horizontal list row (Fresha-style) ── */
