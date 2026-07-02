@@ -91,11 +91,13 @@ function SalonCard({ salon, i, isFav, col, numCols, isMobile }) {
     >
       <Link to={`/salons/${salon.id}`} style={{ ...s.card, ...(isFav ? s.cardFav : {}), flex: 1 }}>
         {/* Photo banner */}
-        <div style={{ ...s.banner, overflow: 'hidden', position: 'relative', background: coverPhoto ? '#000' : `linear-gradient(135deg, ${c1}22 0%, ${c2}0F 100%)` }}>
+        <div style={{ ...s.banner, overflow: 'hidden', position: 'relative', background: coverPhoto ? '#000' : `linear-gradient(135deg, ${c1}33 0%, ${c2}18 100%)` }}>
           {coverPhoto
-            ? <img src={coverPhoto} alt={salon.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', opacity: 0.88 }} />
-            : <div style={{ ...s.orb, background: `radial-gradient(circle, ${c1}33 0%, transparent 70%)` }} />
+            ? <img src={coverPhoto} alt={salon.name} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+            : <div style={{ ...s.orb, background: `radial-gradient(circle, ${c1}44 0%, transparent 70%)` }} />
           }
+          {/* Subtle bottom scrim so logo + badge stay readable over any cover */}
+          {coverPhoto && <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,.52) 0%, rgba(0,0,0,.08) 55%, transparent 100%)' }} />}
           {/* Status badge (top right) */}
           <div style={{ position: 'absolute', top: 10, right: 10, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 5 }}>
             {isFav && <span style={s.favStar}>★ Saved</span>}
@@ -111,7 +113,7 @@ function SalonCard({ salon, i, isFav, col, numCols, isMobile }) {
           </div>
           {/* Logo overlay (bottom left) */}
           {salon.logo_url && (
-            <div style={{ position: 'absolute', bottom: 10, left: 14, width: 42, height: 42, borderRadius: 12, overflow: 'hidden', border: '2px solid rgba(255,255,255,.25)', background: '#fff' }}>
+            <div style={{ position: 'absolute', bottom: 10, left: 14, width: 42, height: 42, borderRadius: 12, overflow: 'hidden', border: '2px solid rgba(255,255,255,.3)', background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,.3)' }}>
               <img src={salon.logo_url} alt={salon.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
             </div>
           )}
@@ -491,7 +493,7 @@ const s = {
     transition: 'transform .22s cubic-bezier(.16,1,.3,1), box-shadow .22s ease, border-color .2s ease',
   },
   banner: {
-    height: 148, padding: '14px 16px',
+    height: 200, padding: '14px 16px',
     display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between',
     position: 'relative', overflow: 'hidden',
   },

@@ -108,593 +108,127 @@ function UploadModal({ onClose, onUpload, uploading, error, accentGradient, acce
   );
 }
 
-/* ── Live Preview Modal ───────────────────────────────────────────── */
-function LivePreviewModal({ salon, cover, logo, onClose }) {
+/* ── Live Preview Modal (iframe-based) ───────────────────────────── */
+function LivePreviewModal({ salon, onClose }) {
   const [view, setView] = useState('desktop');
-  const name  = salon.name;
-  const addr  = [salon.address_street, salon.address_city, salon.address_postal].filter(Boolean).join(', ') || null;
-  const phone = salon.contact_number || null;
-  const email = salon.email || null;
+  const containerRef    = useRef(null);
+  const [scale, setScale] = useState(0.72);
 
-  const LogoEl = ({ size, radius }) => (
-    <div style={{ width: size, height: size, borderRadius: radius, border: '2px solid rgba(255,255,255,.22)', overflow: 'hidden', background: '#1a0a2e', flexShrink: 0, boxShadow: '0 6px 24px rgba(0,0,0,.55)' }}>
-      {logo
-        ? <img src={logo} alt="logo" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-        : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: size * 0.38, fontWeight: 700, color: '#a78bfa' }}>{name[0]}</div>
-      }
-    </div>
-  );
+  const IFRAME_W  = 1280;
+  const IFRAME_H  = 900;
+  const SALON_URL = `/salons/${salon.id}`;
 
-  const StarRow = ({ sz = 13 }) => (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-      {[1,2,3,4,5].map(i => <span key={i} style={{ color: '#D4AF37', fontSize: sz }}>★</span>)}
-      <span style={{ color: 'rgba(255,255,255,.6)', fontSize: sz - 1, marginLeft: 4 }}>0.0</span>
-      <span style={{ color: 'rgba(255,255,255,.3)', fontSize: sz - 1 }}> (0 reviews)</span>
-    </span>
-  );
+  /* Measure the desktop container so we can scale the iframe to fill it */
+  useEffect(() => {
+    const measure = () => {
+      if (containerRef.current) setScale(containerRef.current.offsetWidth / IFRAME_W);
+    };
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [view]);
 
-  const OpenBadge = ({ sz = 11 }) => (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: 'rgba(16,185,129,.15)', border: '1px solid rgba(16,185,129,.3)', borderRadius: 10, padding: '3px 10px' }}>
-      <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10B981', display: 'inline-block', boxShadow: '0 0 6px #10B981' }} />
-      <span style={{ color: '#10B981', fontSize: sz, fontWeight: 700 }}>Open Now</span>
-    </span>
-  );
-
-  /* Shared site navbar */
-  const SiteNav = ({ scale = 1 }) => (
-    <div style={{ background: '#100d20', padding: `${8 * scale}px ${20 * scale}px`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 * scale }}>
-        <div style={{ width: 28 * scale, height: 28 * scale, borderRadius: 7 * scale, background: 'linear-gradient(135deg, #7C3AED, #5B21B6)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-          <span style={{ color: '#fff', fontSize: 13 * scale, fontWeight: 900 }}>✦</span>
-        </div>
-        <div>
-          <div style={{ color: '#fff', fontSize: 15 * scale, fontWeight: 800, letterSpacing: '0.01em', lineHeight: 1 }}>BookMyStyle</div>
-          <div style={{ color: 'rgba(167,139,250,.6)', fontSize: 8 * scale, fontWeight: 600, letterSpacing: '0.14em' }}>BEAUTY &amp; WELLNESS</div>
-        </div>
-      </div>
-      <div style={{ display: 'flex', gap: 16 * scale, alignItems: 'center' }}>
-        <span style={{ color: 'rgba(255,255,255,.45)', fontSize: 12 * scale }}>Browse Salons</span>
-        <span style={{ color: 'rgba(255,255,255,.45)', fontSize: 12 * scale }}>Sign In</span>
-        <div style={{ background: 'linear-gradient(135deg, #7C3AED, #6D28D9)', borderRadius: 9 * scale, padding: `${6 * scale}px ${14 * scale}px`, boxShadow: '0 3px 12px rgba(124,58,237,.4)' }}>
-          <span style={{ color: '#fff', fontSize: 12 * scale, fontWeight: 700 }}>Get Started</span>
-        </div>
-      </div>
-    </div>
-  );
-
-  /* Service stub cards */
-  const ServiceStubs = () => (
-    <div style={{ padding: '24px 28px' }}>
-      <div style={{ fontSize: 18, fontFamily: "'Cormorant Garamond', Georgia, serif", fontWeight: 700, color: '#fff', marginBottom: 16 }}>Our Services</div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
-        {['Haircut & Style','Beard Trim','Hair Coloring','Facial Treatment','Scalp Massage','Blow Dry'].map(t => (
-          <div key={t} style={{ background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.08)', borderRadius: 12, padding: '14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <div style={{ color: '#fff', fontSize: 12, fontWeight: 600, marginBottom: 4 }}>{t}</div>
-              <div style={{ color: 'rgba(255,255,255,.35)', fontSize: 11 }}>from LKR —</div>
-            </div>
-            <div style={{ background: 'rgba(124,58,237,.2)', border: '1px solid rgba(124,58,237,.3)', borderRadius: 8, padding: '5px 12px' }}>
-              <span style={{ color: '#a78bfa', fontSize: 11, fontWeight: 700 }}>Book</span>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-
-  /* Gallery stub */
-  const GalleryStub = () => (
-    <div style={{ padding: '0 28px 28px' }}>
-      <div style={{ fontSize: 18, fontFamily: "'Cormorant Garamond', Georgia, serif", fontWeight: 700, color: '#fff', marginBottom: 14 }}>Gallery</div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
-        {[1,2,3,4].map(i => (
-          <div key={i} style={{ aspectRatio: '1', borderRadius: 10, background: `rgba(124,58,237,${0.04 + i * 0.04})`, border: '1px solid rgba(255,255,255,.06)' }} />
-        ))}
-      </div>
-    </div>
-  );
-
-  /* ── Desktop view ── */
-  const DesktopView = () => (
-    <div style={{ border: '1.5px solid rgba(255,255,255,.08)', borderRadius: 12, overflow: 'hidden', boxShadow: '0 16px 64px rgba(0,0,0,.5)', background: '#0d0b18' }}>
-      {/* Browser chrome */}
-      <div style={{ background: '#18181b', padding: '8px 12px', display: 'flex', alignItems: 'center', gap: 10 }}>
-        <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-          {['#FF5F57','#FFBD2E','#28CA41'].map(c => <div key={c} style={{ width: 11, height: 11, borderRadius: '50%', background: c }} />)}
-        </div>
-        <div style={{ flex: 1, background: '#27272a', borderRadius: 6, padding: '4px 14px', fontSize: 12, color: '#71717a', fontFamily: 'monospace' }}>
-          bookmystyle.lk/salons/{salon.id}
-        </div>
-      </div>
-
-      <SiteNav scale={1} />
-
-      {/* Hero */}
-      <div style={{ position: 'relative', height: 280, overflow: 'hidden', background: '#1a0a2e' }}>
-        {cover
-          ? <img src={cover} alt="cover" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-          : <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, #1a0a2e 0%, #2d1b69 60%, #1e3a5f 100%)' }} />
-        }
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(100deg, rgba(10,6,22,.94) 0%, rgba(10,6,22,.82) 32%, rgba(10,6,22,.48) 58%, rgba(10,6,22,.15) 100%)' }} />
-
-        {/* Back button */}
-        <div style={{ position: 'absolute', top: 18, left: 18, width: 30, height: 30, background: 'rgba(255,255,255,.1)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }}>
-          <span style={{ color: '#fff', fontSize: 16, fontWeight: 700, lineHeight: 1 }}>‹</span>
-        </div>
-
-        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', padding: '0 32px', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 20, maxWidth: '60%' }}>
-            <LogoEl size={88} radius={18} />
-            <div style={{ paddingTop: 4 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,.45)', letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: 6 }}>FEATURED SALON</div>
-              <div style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 38, fontWeight: 700, color: '#fff', lineHeight: 1.05, marginBottom: 10, textShadow: '0 2px 12px rgba(0,0,0,.6)' }}>{name}</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, flexWrap: 'wrap' }}>
-                <StarRow sz={13} />
-                <span style={{ color: 'rgba(255,255,255,.3)' }}>·</span>
-                <OpenBadge sz={11} />
-              </div>
-              {addr && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-                  <span style={{ fontSize: 13 }}>📍</span>
-                  <span style={{ color: 'rgba(255,255,255,.65)', fontSize: 13 }}>{addr}</span>
-                  <span style={{ color: '#a78bfa', fontSize: 13, fontWeight: 600, marginLeft: 4 }}>See Location ↗</span>
-                </div>
-              )}
-              <div style={{ display: 'flex', gap: 20 }}>
-                {phone && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span style={{ fontSize: 13 }}>📞</span>
-                    <span style={{ color: 'rgba(255,255,255,.55)', fontSize: 12 }}>{phone}</span>
-                  </div>
-                )}
-                {email && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span style={{ fontSize: 13 }}>✉️</span>
-                    <span style={{ color: 'rgba(255,255,255,.55)', fontSize: 12 }}>{email}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-          <div style={{ display: 'flex', gap: 12, flexShrink: 0 }}>
-            <div style={{ background: '#7C3AED', borderRadius: 28, padding: '14px 28px', boxShadow: '0 6px 24px rgba(124,58,237,.5)', whiteSpace: 'nowrap' }}>
-              <span style={{ color: '#fff', fontSize: 14, fontWeight: 800 }}>✦ Book Now</span>
-            </div>
-            <div style={{ background: 'linear-gradient(135deg, #D97706, #B45309)', borderRadius: 28, padding: '14px 24px', boxShadow: '0 6px 24px rgba(217,119,6,.4)', whiteSpace: 'nowrap' }}>
-              <span style={{ color: '#fff', fontSize: 14, fontWeight: 800 }}>✿ Cosmetics</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Tab bar */}
-      <div style={{ background: '#100d20', borderTop: '1px solid rgba(255,255,255,.06)', display: 'flex', justifyContent: 'center', gap: 40, padding: '12px 0' }}>
-        {['Services','Team','Reviews','Info'].map((t, i) => (
-          <span key={t} style={{ fontSize: 13, fontWeight: i === 0 ? 700 : 500, color: i === 0 ? '#a78bfa' : 'rgba(255,255,255,.35)', borderBottom: i === 0 ? '2px solid #7C3AED' : '2px solid transparent', paddingBottom: 4 }}>{t}</span>
-        ))}
-      </div>
-
-      {/* Services + gallery stubs */}
-      <div style={{ background: '#0d0b18' }}>
-        <ServiceStubs />
-        <GalleryStub />
-      </div>
-    </div>
-  );
-
-  /* ── Mobile view ── */
-  const MobileView = () => (
-    <div style={{ display: 'flex', justifyContent: 'center', padding: '8px 0 16px' }}>
-      <div style={{ width: 320, background: '#0d0b18', border: '4px solid #2a2a35', borderRadius: 40, overflow: 'hidden', boxShadow: '0 20px 64px rgba(0,0,0,.55)' }}>
-
-        {/* Status bar */}
-        <div style={{ background: '#100d20', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 20px 6px' }}>
-          <span style={{ color: 'rgba(255,255,255,.45)', fontSize: 12, fontWeight: 600 }}>9:41</span>
-          <div style={{ width: 44, height: 6, borderRadius: 10, background: '#2a2a35' }} />
-          <span style={{ color: 'rgba(255,255,255,.3)', fontSize: 12 }}>▲ ▲ ▲</span>
-        </div>
-
-        {/* Navbar */}
-        <div style={{ background: '#100d20', padding: '8px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,.05)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ width: 22, height: 22, borderRadius: 6, background: 'linear-gradient(135deg, #7C3AED, #5B21B6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ color: '#fff', fontSize: 11, fontWeight: 900 }}>✦</span>
-            </div>
-            <span style={{ color: '#fff', fontSize: 13, fontWeight: 800 }}>BookMyStyle</span>
-          </div>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <span style={{ color: 'rgba(255,255,255,.45)', fontSize: 12 }}>Sign In</span>
-            {[1,2].map(i => (
-              <div key={i} style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(255,255,255,.07)', border: '1px solid rgba(255,255,255,.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <span style={{ color: 'rgba(255,255,255,.45)', fontSize: i === 1 ? 11 : 13 }}>{i === 1 ? '✦' : '≡'}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Hero */}
-        <div style={{ position: 'relative', height: 300, overflow: 'hidden', background: '#1a0a2e' }}>
-          {cover
-            ? <img src={cover} alt="cover" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-            : <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(160deg, #1a0a2e 0%, #2d1b69 60%, #1e3a5f 100%)' }} />
-          }
-          <div style={{ position: 'absolute', inset: 0, background: 'rgba(8,5,18,.52)' }} />
-
-          {/* Back button */}
-          <div style={{ position: 'absolute', top: 14, left: 14, width: 32, height: 32, background: 'rgba(255,255,255,.14)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }}>
-            <span style={{ color: '#fff', fontSize: 16, fontWeight: 700, lineHeight: 1 }}>‹</span>
-          </div>
-
-          {/* Centered content */}
-          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, padding: '0 24px' }}>
-            <LogoEl size={90} radius={20} />
-            <div style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 26, fontWeight: 700, color: '#fff', textAlign: 'center', lineHeight: 1.15, textShadow: '0 2px 10px rgba(0,0,0,.7)' }}>{name}</div>
-            <OpenBadge sz={11} />
-            <StarRow sz={12} />
-          </div>
-        </div>
-
-        {/* Info rows */}
-        <div style={{ background: '#100d20', padding: '14px 18px 10px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {addr && (
-            <div>
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-                <span style={{ fontSize: 14, lineHeight: 1.5 }}>📍</span>
-                <span style={{ color: 'rgba(255,255,255,.65)', fontSize: 12, lineHeight: 1.5 }}>{addr}</span>
-              </div>
-              <div style={{ paddingLeft: 22 }}><span style={{ color: '#a78bfa', fontSize: 11.5, fontWeight: 600 }}>See on Maps ↗</span></div>
-            </div>
-          )}
-          {phone && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 14 }}>📞</span>
-              <span style={{ color: 'rgba(255,255,255,.65)', fontSize: 12 }}>{phone}</span>
-            </div>
-          )}
-          {email && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 14 }}>✉️</span>
-              <span style={{ color: 'rgba(255,255,255,.65)', fontSize: 11.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 240 }}>{email}</span>
-            </div>
-          )}
-        </div>
-
-        {/* CTA buttons */}
-        <div style={{ padding: '8px 16px 18px', display: 'flex', flexDirection: 'column', gap: 10, background: '#100d20' }}>
-          <div style={{ background: '#7C3AED', borderRadius: 18, padding: '14px 0', textAlign: 'center', boxShadow: '0 6px 20px rgba(124,58,237,.45)' }}>
-            <span style={{ color: '#fff', fontSize: 15, fontWeight: 800 }}>✦ Book Now</span>
-          </div>
-          <div style={{ background: '#150f03', border: '1px solid rgba(212,175,55,.28)', borderRadius: 18, padding: '14px 0', textAlign: 'center' }}>
-            <span style={{ color: '#D4AF37', fontSize: 15, fontWeight: 700 }}>✿ Shop Cosmetics</span>
-          </div>
-        </div>
-
-        {/* Service stubs */}
-        <div style={{ background: '#0d0b18', padding: '16px 16px 6px' }}>
-          <div style={{ fontSize: 16, fontFamily: "'Cormorant Garamond', Georgia, serif", fontWeight: 700, color: '#fff', marginBottom: 12 }}>Our Services</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {['Haircut & Style','Beard Trim','Hair Coloring'].map(t => (
-              <div key={t} style={{ background: 'rgba(255,255,255,.04)', border: '1px solid rgba(255,255,255,.07)', borderRadius: 10, padding: '10px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <div style={{ color: '#fff', fontSize: 12, fontWeight: 600 }}>{t}</div>
-                  <div style={{ color: 'rgba(255,255,255,.3)', fontSize: 10, marginTop: 2 }}>from LKR —</div>
-                </div>
-                <div style={{ background: 'rgba(124,58,237,.18)', border: '1px solid rgba(124,58,237,.28)', borderRadius: 7, padding: '5px 12px' }}>
-                  <span style={{ color: '#a78bfa', fontSize: 11, fontWeight: 700 }}>Book</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Bottom home indicator */}
-        <div style={{ background: '#0d0b18', padding: '14px 0 10px', display: 'flex', justifyContent: 'center' }}>
-          <div style={{ width: 56, height: 4, borderRadius: 10, background: 'rgba(255,255,255,.18)' }} />
-        </div>
-      </div>
-    </div>
-  );
+  const scaledContainerH = Math.round(IFRAME_H * scale);
 
   return createPortal(
-    <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', background: 'rgba(0,0,0,.72)', backdropFilter: 'blur(10px)', padding: '20px 16px', overflowY: 'auto' }}>
+    <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', background: 'rgba(0,0,0,.85)', backdropFilter: 'blur(14px)', padding: '20px 16px', overflowY: 'auto' }}>
       <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 0 }} />
-      <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: view === 'mobile' ? 400 : 920 }}>
-        {/* Modal header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-          <div style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 20, fontWeight: 700, color: '#fff' }}>
-            Customer Profile Preview
-          </div>
+      <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: view === 'mobile' ? 450 : 980 }}>
+
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+          <div style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 22, fontWeight: 700, color: '#fff' }}>Customer Profile Preview</div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            {/* Toggle */}
-            <div style={{ display: 'flex', background: 'rgba(255,255,255,.08)', borderRadius: 12, padding: 3, border: '1px solid rgba(255,255,255,.1)' }}>
-              {['desktop','mobile'].map(v => (
-                <button
-                  key={v}
-                  onClick={() => setView(v)}
-                  style={{ padding: '7px 18px', borderRadius: 9, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: "'DM Sans', sans-serif", transition: 'all .18s', background: view === v ? '#7C3AED' : 'transparent', color: view === v ? '#fff' : 'rgba(255,255,255,.5)', boxShadow: view === v ? '0 2px 10px rgba(124,58,237,.4)' : 'none' }}
-                >
-                  {v === 'desktop' ? '🖥 Desktop' : '📱 Mobile'}
+            <div style={{ display: 'flex', background: 'rgba(255,255,255,.07)', borderRadius: 12, padding: 3, border: '1px solid rgba(255,255,255,.1)' }}>
+              {[['desktop','🖥 Desktop'],['mobile','📱 Mobile']].map(([v, label]) => (
+                <button key={v} onClick={() => setView(v)} style={{ padding: '7px 20px', borderRadius: 9, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 700, fontFamily: "'DM Sans', sans-serif", background: view === v ? '#7C3AED' : 'transparent', color: view === v ? '#fff' : 'rgba(255,255,255,.45)', boxShadow: view === v ? '0 2px 12px rgba(124,58,237,.4)' : 'none', transition: 'all .15s' }}>
+                  {label}
                 </button>
               ))}
             </div>
-            <button onClick={onClose} style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.12)', cursor: 'pointer', color: 'rgba(255,255,255,.7)', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+            <button onClick={onClose} style={{ width: 38, height: 38, borderRadius: 10, background: 'rgba(255,255,255,.07)', border: '1px solid rgba(255,255,255,.12)', cursor: 'pointer', color: 'rgba(255,255,255,.65)', fontSize: 17, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
           </div>
         </div>
 
-        {/* Preview */}
-        {view === 'desktop' ? <DesktopView /> : <MobileView />}
+        {/* ── Desktop: browser chrome + scaled iframe at 1280px viewport ── */}
+        {view === 'desktop' && (
+          <div style={{ border: '1.5px solid rgba(255,255,255,.1)', borderRadius: 12, overflow: 'hidden', boxShadow: '0 20px 64px rgba(0,0,0,.55)' }}>
+            {/* macOS browser chrome */}
+            <div style={{ background: '#18181b', padding: '8px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                {['#FF5F57','#FFBD2E','#28CA41'].map(c => <div key={c} style={{ width: 12, height: 12, borderRadius: '50%', background: c }} />)}
+              </div>
+              <div style={{ flex: 1, background: '#27272a', borderRadius: 7, padding: '5px 14px', fontSize: 12, color: '#71717a', fontFamily: 'monospace' }}>
+                bookmystyle.lk/salons/{salon.id}
+              </div>
+            </div>
+            {/* Iframe container — clips to scaled height */}
+            <div ref={containerRef} style={{ width: '100%', height: scaledContainerH, overflow: 'hidden', position: 'relative', background: '#0d0b18' }}>
+              <iframe
+                src={SALON_URL}
+                title="Salon profile desktop preview"
+                style={{ width: IFRAME_W, height: IFRAME_H, border: 'none', display: 'block', transform: `scale(${scale})`, transformOrigin: 'top left', pointerEvents: 'none' }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* ── Mobile: iPhone 12 shell (390×844) ── */}
+        {view === 'mobile' && (
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <div style={{ background: '#1c1c1e', border: '3px solid #3a3a3c', borderRadius: 50, overflow: 'hidden', padding: '0 10px', boxShadow: '0 28px 80px rgba(0,0,0,.65)', display: 'inline-flex', flexDirection: 'column' }}>
+              {/* Dynamic Island / status bar */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 10px 6px' }}>
+                <span style={{ color: 'rgba(255,255,255,.55)', fontSize: 12, fontWeight: 600, letterSpacing: '0.02em' }}>9:41</span>
+                <div style={{ width: 108, height: 30, borderRadius: 20, background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                  <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#1c1c1e', border: '1.5px solid #3a3a3c' }} />
+                  <div style={{ width: 30, height: 10, borderRadius: 5, background: '#1c1c1e', border: '1.5px solid #3a3a3c' }} />
+                </div>
+                <span style={{ color: 'rgba(255,255,255,.55)', fontSize: 11 }}>▲ ▲ ▲</span>
+              </div>
+              {/* The actual iframe clipped to 390×740 (shows top of the 844px page) */}
+              <div style={{ width: 390, height: 740, overflow: 'hidden', borderRadius: 6, background: '#0d0b18' }}>
+                <iframe
+                  src={SALON_URL}
+                  title="Salon profile mobile preview"
+                  style={{ width: 390, height: 844, border: 'none', display: 'block', pointerEvents: 'none' }}
+                />
+              </div>
+              {/* Home indicator */}
+              <div style={{ display: 'flex', justifyContent: 'center', padding: '10px 0 14px' }}>
+                <div style={{ width: 120, height: 5, borderRadius: 10, background: 'rgba(255,255,255,.22)' }} />
+              </div>
+            </div>
+          </div>
+        )}
+
       </div>
     </div>,
     document.body
   );
 }
 
-/* ── Profile Preview ──────────────────────────────────────────────── */
-function ProfilePreview({ salon, logoSrc, coverSrc }) {
+/* ── Profile Preview card (View Live button only) ─────────────────── */
+function ProfilePreview({ salon }) {
   const [showLive, setShowLive] = useState(false);
-  const cover = coverSrc || salon.cover_image_url;
-  const logo  = logoSrc  || salon.logo_url;
-  const name  = salon.name;
-  const addr  = [salon.address_street, salon.address_city, salon.address_postal].filter(Boolean).join(', ') || null;
-  const phone = salon.contact_number || null;
-  const email = salon.email || null;
-
-  /* Shared logo thumbnail */
-  const LogoEl = ({ size, radius }) => (
-    <div style={{
-      width: size, height: size, borderRadius: radius,
-      border: '2px solid rgba(255,255,255,.22)',
-      overflow: 'hidden', flexShrink: 0,
-      background: '#1a0a2e',
-      boxShadow: '0 4px 18px rgba(0,0,0,.5)',
-    }}>
-      {logo
-        ? <img src={logo} alt="logo" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-        : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: size * 0.4, fontWeight: 700, color: '#a78bfa' }}>{name[0]}</div>
-      }
-    </div>
-  );
-
-  const StarRow = ({ sz = 7 }) => (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}>
-      {[1,2,3,4,5].map(i => <span key={i} style={{ color: '#D4AF37', fontSize: sz }}>★</span>)}
-      <span style={{ color: 'rgba(255,255,255,.55)', fontSize: sz, marginLeft: 3 }}>0.0</span>
-      <span style={{ color: 'rgba(255,255,255,.35)', fontSize: sz }}> · </span>
-      <span style={{ color: 'rgba(255,255,255,.45)', fontSize: sz }}>(0 reviews)</span>
-    </span>
-  );
-
-  /* ── Desktop browser mockup ── */
-  const DesktopFrame = () => (
-    <div style={{ flex: '1 1 0', minWidth: 0 }}>
-      <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 8 }}>Desktop View</div>
-      <div style={{ border: '1.5px solid rgba(255,255,255,.08)', borderRadius: 10, overflow: 'hidden', boxShadow: '0 12px 48px rgba(0,0,0,.35)', background: '#0d0b18' }}>
-
-        {/* Browser chrome bar */}
-        <div style={{ background: '#18181b', padding: '6px 10px', display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
-            {['#FF5F57','#FFBD2E','#28CA41'].map(c => <div key={c} style={{ width: 8, height: 8, borderRadius: '50%', background: c }} />)}
-          </div>
-          <div style={{ flex: 1, background: '#27272a', borderRadius: 5, padding: '2px 10px', fontSize: 8.5, color: '#71717a', fontFamily: 'monospace', letterSpacing: '0.01em', overflow: 'hidden', whiteSpace: 'nowrap' }}>
-            bookmystyle.lk/salons/{salon.id}
-          </div>
-        </div>
-
-        {/* Site navbar */}
-        <div style={{ background: '#100d20', padding: '7px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <div style={{ width: 18, height: 18, borderRadius: 5, background: 'linear-gradient(135deg, #7C3AED, #5B21B6)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <span style={{ color: '#fff', fontSize: 8, fontWeight: 900, lineHeight: 1 }}>✦</span>
-            </div>
-            <div>
-              <div style={{ color: '#fff', fontSize: 9.5, fontWeight: 800, letterSpacing: '0.01em', lineHeight: 1 }}>BookMyStyle</div>
-              <div style={{ color: 'rgba(167,139,250,.6)', fontSize: 6.5, fontWeight: 600, letterSpacing: '0.12em', lineHeight: 1.2 }}>BEAUTY &amp; WELLNESS</div>
-            </div>
-          </div>
-          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-            <span style={{ color: 'rgba(255,255,255,.45)', fontSize: 8 }}>Browse Salons</span>
-            <span style={{ color: 'rgba(255,255,255,.45)', fontSize: 8 }}>Sign In</span>
-            <div style={{ background: 'linear-gradient(135deg, #7C3AED, #6D28D9)', borderRadius: 6, padding: '4px 10px', boxShadow: '0 2px 8px rgba(124,58,237,.4)' }}>
-              <span style={{ color: '#fff', fontSize: 8, fontWeight: 700 }}>Get Started</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Hero area */}
-        <div style={{ position: 'relative', height: 185, overflow: 'hidden', background: '#1a0a2e' }}>
-          {cover
-            ? <img src={cover} alt="cover" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-            : <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, #1a0a2e 0%, #2d1b69 60%, #1e3a5f 100%)' }} />
-          }
-          {/* Gradient overlay — strong dark left, fades right (matches real page) */}
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(100deg, rgba(10,6,22,.92) 0%, rgba(10,6,22,.78) 35%, rgba(10,6,22,.45) 60%, rgba(10,6,22,.18) 100%)' }} />
-
-          {/* Back arrow */}
-          <div style={{ position: 'absolute', top: 12, left: 12, width: 20, height: 20, background: 'rgba(255,255,255,.12)', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }}>
-            <span style={{ color: '#fff', fontSize: 10, fontWeight: 700, lineHeight: 1 }}>‹</span>
-          </div>
-
-          {/* Left content */}
-          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', padding: '0 18px', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, maxWidth: '62%' }}>
-              <LogoEl size={52} radius={11} />
-              <div style={{ paddingTop: 2 }}>
-                <div style={{ fontSize: 7.5, fontWeight: 700, color: 'rgba(255,255,255,.5)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 4 }}>FEATURED SALON</div>
-                <div style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 20, fontWeight: 700, color: '#fff', lineHeight: 1.1, marginBottom: 6, textShadow: '0 2px 8px rgba(0,0,0,.6)' }}>{name}</div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8, flexWrap: 'wrap' }}>
-                  <StarRow sz={7} />
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, background: 'rgba(16,185,129,.18)', border: '1px solid rgba(16,185,129,.35)', borderRadius: 8, padding: '2px 7px' }}>
-                    <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#10B981', display: 'inline-block', boxShadow: '0 0 4px #10B981' }} />
-                    <span style={{ color: '#10B981', fontSize: 7, fontWeight: 700 }}>Open Now</span>
-                  </span>
-                </div>
-                {addr && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 3 }}>
-                    <span style={{ fontSize: 7.5 }}>📍</span>
-                    <span style={{ color: 'rgba(255,255,255,.6)', fontSize: 7.5 }}>{addr}</span>
-                    <span style={{ color: '#a78bfa', fontSize: 7.5 }}>See Location ↗</span>
-                  </div>
-                )}
-                <div style={{ display: 'flex', gap: 12 }}>
-                  {phone && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <span style={{ fontSize: 7.5 }}>📞</span>
-                      <span style={{ color: 'rgba(255,255,255,.55)', fontSize: 7.5 }}>{phone}</span>
-                    </div>
-                  )}
-                  {email && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <span style={{ fontSize: 7.5 }}>✉️</span>
-                      <span style={{ color: 'rgba(255,255,255,.55)', fontSize: 7.5 }}>{email}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Right: CTA pill buttons */}
-            <div style={{ display: 'flex', gap: 8, flexShrink: 0, alignItems: 'center' }}>
-              <div style={{ background: '#7C3AED', borderRadius: 20, padding: '8px 16px', boxShadow: '0 4px 16px rgba(124,58,237,.5)', whiteSpace: 'nowrap' }}>
-                <span style={{ color: '#fff', fontSize: 9, fontWeight: 700 }}>✦ Book Now</span>
-              </div>
-              <div style={{ background: 'linear-gradient(135deg, #D97706, #B45309)', borderRadius: 20, padding: '8px 14px', boxShadow: '0 4px 16px rgba(217,119,6,.45)', whiteSpace: 'nowrap' }}>
-                <span style={{ color: '#fff', fontSize: 9, fontWeight: 700 }}>✿ Cosmetics</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Tab bar */}
-        <div style={{ background: '#100d20', borderTop: '1px solid rgba(255,255,255,.06)', display: 'flex', justifyContent: 'center', gap: 28, padding: '8px 0' }}>
-          {['Services','Team','Reviews','Info'].map((t, i) => (
-            <span key={t} style={{ fontSize: 8.5, fontWeight: i === 0 ? 700 : 500, color: i === 0 ? '#a78bfa' : 'rgba(255,255,255,.35)', borderBottom: i === 0 ? '1.5px solid #7C3AED' : 'none', paddingBottom: i === 0 ? 2 : 0 }}>{t}</span>
-          ))}
-        </div>
-
-      </div>
-    </div>
-  );
-
-  /* ── Mobile phone mockup ── */
-  const MobileFrame = () => (
-    <div style={{ flexShrink: 0 }}>
-      <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 8 }}>Mobile View</div>
-
-      {/* Phone shell */}
-      <div style={{ width: 168, background: '#0d0b18', border: '3px solid #2a2a35', borderRadius: 28, overflow: 'hidden', boxShadow: '0 16px 52px rgba(0,0,0,.45)', position: 'relative' }}>
-
-        {/* Status bar */}
-        <div style={{ background: '#100d20', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 12px 4px' }}>
-          <span style={{ color: 'rgba(255,255,255,.45)', fontSize: 7, fontWeight: 600 }}>9:41</span>
-          <div style={{ width: 28, height: 4, borderRadius: 10, background: '#2a2a35' }} />
-          <span style={{ color: 'rgba(255,255,255,.3)', fontSize: 7 }}>▲▲▲</span>
-        </div>
-
-        {/* Site navbar */}
-        <div style={{ background: '#100d20', padding: '5px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,.05)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-            <div style={{ width: 14, height: 14, borderRadius: 4, background: 'linear-gradient(135deg, #7C3AED, #5B21B6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ color: '#fff', fontSize: 7, fontWeight: 900 }}>✦</span>
-            </div>
-            <span style={{ color: '#fff', fontSize: 8, fontWeight: 800 }}>BookMyStyle</span>
-          </div>
-          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-            <span style={{ color: 'rgba(255,255,255,.45)', fontSize: 7.5 }}>Sign In</span>
-            <div style={{ width: 18, height: 18, borderRadius: '50%', background: 'rgba(255,255,255,.07)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ color: 'rgba(255,255,255,.5)', fontSize: 8 }}>✦</span>
-            </div>
-            <div style={{ width: 18, height: 18, borderRadius: '50%', background: 'rgba(255,255,255,.07)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ color: 'rgba(255,255,255,.5)', fontSize: 8 }}>≡</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Hero — cover image with dark overlay + back button + logo centered */}
-        <div style={{ position: 'relative', height: 185, overflow: 'hidden', background: '#1a0a2e' }}>
-          {cover
-            ? <img src={cover} alt="cover" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-            : <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(160deg, #1a0a2e 0%, #2d1b69 60%, #1e3a5f 100%)' }} />
-          }
-          <div style={{ position: 'absolute', inset: 0, background: 'rgba(8,5,18,.5)' }} />
-
-          {/* Back button */}
-          <div style={{ position: 'absolute', top: 10, left: 10, width: 22, height: 22, background: 'rgba(255,255,255,.14)', borderRadius: 7, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }}>
-            <span style={{ color: '#fff', fontSize: 11, fontWeight: 700, lineHeight: 1 }}>‹</span>
-          </div>
-
-          {/* Centered hero content */}
-          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 7, padding: '0 14px' }}>
-            <LogoEl size={54} radius={14} />
-            <div style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 15, fontWeight: 700, color: '#fff', textAlign: 'center', lineHeight: 1.15, textShadow: '0 2px 8px rgba(0,0,0,.7)' }}>{name}</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(16,185,129,.16)', border: '1px solid rgba(16,185,129,.3)', borderRadius: 10, padding: '3px 9px' }}>
-              <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#10B981', display: 'inline-block', boxShadow: '0 0 4px #10B981' }} />
-              <span style={{ color: '#10B981', fontSize: 8, fontWeight: 700 }}>Open Now</span>
-            </div>
-            <StarRow sz={7.5} />
-          </div>
-        </div>
-
-        {/* Info rows (dark bg, below hero — matches real page) */}
-        <div style={{ background: '#100d20', padding: '9px 12px 6px', display: 'flex', flexDirection: 'column', gap: 6 }}>
-          {addr && (
-            <div>
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 5 }}>
-                <span style={{ fontSize: 8, lineHeight: 1.4 }}>📍</span>
-                <span style={{ color: 'rgba(255,255,255,.65)', fontSize: 7.5, lineHeight: 1.4 }}>{addr}</span>
-              </div>
-              <div style={{ paddingLeft: 13 }}>
-                <span style={{ color: '#a78bfa', fontSize: 7, fontWeight: 600 }}>See on Maps ↗</span>
-              </div>
-            </div>
-          )}
-          {phone && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-              <span style={{ fontSize: 8 }}>📞</span>
-              <span style={{ color: 'rgba(255,255,255,.65)', fontSize: 7.5 }}>{phone}</span>
-            </div>
-          )}
-          {email && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-              <span style={{ fontSize: 8 }}>✉️</span>
-              <span style={{ color: 'rgba(255,255,255,.65)', fontSize: 7.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 120 }}>{email}</span>
-            </div>
-          )}
-        </div>
-
-        {/* CTA buttons */}
-        <div style={{ padding: '6px 10px 12px', display: 'flex', flexDirection: 'column', gap: 6, background: '#100d20' }}>
-          <div style={{ background: '#7C3AED', borderRadius: 14, padding: '9px 0', textAlign: 'center', boxShadow: '0 4px 14px rgba(124,58,237,.45)' }}>
-            <span style={{ color: '#fff', fontSize: 10, fontWeight: 800 }}>✦ Book Now</span>
-          </div>
-          <div style={{ background: '#1a1208', border: '1px solid rgba(212,175,55,.25)', borderRadius: 14, padding: '9px 0', textAlign: 'center' }}>
-            <span style={{ color: '#D4AF37', fontSize: 10, fontWeight: 700 }}>✿ Shop Cosmetics</span>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  );
-
   return (
-    <div style={{ background: 'var(--surface)', borderRadius: 20, border: '1.5px solid rgba(13,148,136,.15)', marginBottom: 28, overflow: 'hidden', boxShadow: '0 4px 20px rgba(13,148,136,.07)' }}>
-      <div style={{ padding: '18px 24px 14px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <div style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 18, fontWeight: 700, color: 'var(--text)', marginBottom: 3 }}>Profile Page Preview</div>
-          <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Updates live as you pick a new logo or cover image</div>
+    <>
+      <div style={{ background: 'var(--surface)', borderRadius: 20, border: '1.5px solid rgba(13,148,136,.15)', marginBottom: 28, boxShadow: '0 4px 20px rgba(13,148,136,.07)' }}>
+        <div style={{ padding: '18px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <div style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 18, fontWeight: 700, color: 'var(--text)', marginBottom: 3 }}>Profile Page Preview</div>
+            <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>See exactly how customers view your salon — desktop &amp; mobile</div>
+          </div>
+          <button
+            onClick={() => setShowLive(true)}
+            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 22px', background: 'linear-gradient(135deg, #0D9488, #14B8A8)', color: '#fff', border: 'none', borderRadius: 13, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 700, boxShadow: '0 4px 16px rgba(13,148,136,.38)', whiteSpace: 'nowrap' }}
+          >
+            View Live Preview →
+          </button>
         </div>
-        <button onClick={() => setShowLive(true)} style={{ fontSize: 12, fontWeight: 700, color: '#0D9488', background: 'rgba(13,148,136,.08)', border: '1px solid rgba(13,148,136,.2)', padding: '6px 14px', borderRadius: 10, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>
-          View Live →
-        </button>
       </div>
-      <div style={{ padding: '20px 24px', display: 'flex', gap: 20, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-        <DesktopFrame />
-        <MobileFrame />
-      </div>
-
-      {showLive && (
-        <LivePreviewModal salon={salon} cover={cover} logo={logo} onClose={() => setShowLive(false)} />
-      )}
-    </div>
+      {showLive && <LivePreviewModal salon={salon} onClose={() => setShowLive(false)} />}
+    </>
   );
 }
 
@@ -912,7 +446,7 @@ export default function OwnerGallery() {
       )}
 
       {/* ── PROFILE PREVIEW ── */}
-      <ProfilePreview salon={salon} logoSrc={currentLogo} coverSrc={currentCover} />
+      <ProfilePreview salon={salon} />
 
       {/* ── LOGO SECTION ── */}
       <div style={s.logoCard} className="fade-up">
