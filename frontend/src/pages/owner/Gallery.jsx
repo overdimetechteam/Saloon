@@ -108,8 +108,330 @@ function UploadModal({ onClose, onUpload, uploading, error, accentGradient, acce
   );
 }
 
+/* ── Live Preview Modal ───────────────────────────────────────────── */
+function LivePreviewModal({ salon, cover, logo, onClose }) {
+  const [view, setView] = useState('desktop');
+  const name  = salon.name;
+  const addr  = [salon.address_street, salon.address_city, salon.address_postal].filter(Boolean).join(', ') || null;
+  const phone = salon.contact_number || null;
+  const email = salon.email || null;
+
+  const LogoEl = ({ size, radius }) => (
+    <div style={{ width: size, height: size, borderRadius: radius, border: '2px solid rgba(255,255,255,.22)', overflow: 'hidden', background: '#1a0a2e', flexShrink: 0, boxShadow: '0 6px 24px rgba(0,0,0,.55)' }}>
+      {logo
+        ? <img src={logo} alt="logo" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+        : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: size * 0.38, fontWeight: 700, color: '#a78bfa' }}>{name[0]}</div>
+      }
+    </div>
+  );
+
+  const StarRow = ({ sz = 13 }) => (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+      {[1,2,3,4,5].map(i => <span key={i} style={{ color: '#D4AF37', fontSize: sz }}>★</span>)}
+      <span style={{ color: 'rgba(255,255,255,.6)', fontSize: sz - 1, marginLeft: 4 }}>0.0</span>
+      <span style={{ color: 'rgba(255,255,255,.3)', fontSize: sz - 1 }}> (0 reviews)</span>
+    </span>
+  );
+
+  const OpenBadge = ({ sz = 11 }) => (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: 'rgba(16,185,129,.15)', border: '1px solid rgba(16,185,129,.3)', borderRadius: 10, padding: '3px 10px' }}>
+      <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10B981', display: 'inline-block', boxShadow: '0 0 6px #10B981' }} />
+      <span style={{ color: '#10B981', fontSize: sz, fontWeight: 700 }}>Open Now</span>
+    </span>
+  );
+
+  /* Shared site navbar */
+  const SiteNav = ({ scale = 1 }) => (
+    <div style={{ background: '#100d20', padding: `${8 * scale}px ${20 * scale}px`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 * scale }}>
+        <div style={{ width: 28 * scale, height: 28 * scale, borderRadius: 7 * scale, background: 'linear-gradient(135deg, #7C3AED, #5B21B6)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <span style={{ color: '#fff', fontSize: 13 * scale, fontWeight: 900 }}>✦</span>
+        </div>
+        <div>
+          <div style={{ color: '#fff', fontSize: 15 * scale, fontWeight: 800, letterSpacing: '0.01em', lineHeight: 1 }}>BookMyStyle</div>
+          <div style={{ color: 'rgba(167,139,250,.6)', fontSize: 8 * scale, fontWeight: 600, letterSpacing: '0.14em' }}>BEAUTY &amp; WELLNESS</div>
+        </div>
+      </div>
+      <div style={{ display: 'flex', gap: 16 * scale, alignItems: 'center' }}>
+        <span style={{ color: 'rgba(255,255,255,.45)', fontSize: 12 * scale }}>Browse Salons</span>
+        <span style={{ color: 'rgba(255,255,255,.45)', fontSize: 12 * scale }}>Sign In</span>
+        <div style={{ background: 'linear-gradient(135deg, #7C3AED, #6D28D9)', borderRadius: 9 * scale, padding: `${6 * scale}px ${14 * scale}px`, boxShadow: '0 3px 12px rgba(124,58,237,.4)' }}>
+          <span style={{ color: '#fff', fontSize: 12 * scale, fontWeight: 700 }}>Get Started</span>
+        </div>
+      </div>
+    </div>
+  );
+
+  /* Service stub cards */
+  const ServiceStubs = () => (
+    <div style={{ padding: '24px 28px' }}>
+      <div style={{ fontSize: 18, fontFamily: "'Cormorant Garamond', Georgia, serif", fontWeight: 700, color: '#fff', marginBottom: 16 }}>Our Services</div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+        {['Haircut & Style','Beard Trim','Hair Coloring','Facial Treatment','Scalp Massage','Blow Dry'].map(t => (
+          <div key={t} style={{ background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.08)', borderRadius: 12, padding: '14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <div style={{ color: '#fff', fontSize: 12, fontWeight: 600, marginBottom: 4 }}>{t}</div>
+              <div style={{ color: 'rgba(255,255,255,.35)', fontSize: 11 }}>from LKR —</div>
+            </div>
+            <div style={{ background: 'rgba(124,58,237,.2)', border: '1px solid rgba(124,58,237,.3)', borderRadius: 8, padding: '5px 12px' }}>
+              <span style={{ color: '#a78bfa', fontSize: 11, fontWeight: 700 }}>Book</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  /* Gallery stub */
+  const GalleryStub = () => (
+    <div style={{ padding: '0 28px 28px' }}>
+      <div style={{ fontSize: 18, fontFamily: "'Cormorant Garamond', Georgia, serif", fontWeight: 700, color: '#fff', marginBottom: 14 }}>Gallery</div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+        {[1,2,3,4].map(i => (
+          <div key={i} style={{ aspectRatio: '1', borderRadius: 10, background: `rgba(124,58,237,${0.04 + i * 0.04})`, border: '1px solid rgba(255,255,255,.06)' }} />
+        ))}
+      </div>
+    </div>
+  );
+
+  /* ── Desktop view ── */
+  const DesktopView = () => (
+    <div style={{ border: '1.5px solid rgba(255,255,255,.08)', borderRadius: 12, overflow: 'hidden', boxShadow: '0 16px 64px rgba(0,0,0,.5)', background: '#0d0b18' }}>
+      {/* Browser chrome */}
+      <div style={{ background: '#18181b', padding: '8px 12px', display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+          {['#FF5F57','#FFBD2E','#28CA41'].map(c => <div key={c} style={{ width: 11, height: 11, borderRadius: '50%', background: c }} />)}
+        </div>
+        <div style={{ flex: 1, background: '#27272a', borderRadius: 6, padding: '4px 14px', fontSize: 12, color: '#71717a', fontFamily: 'monospace' }}>
+          bookmystyle.lk/salons/{salon.id}
+        </div>
+      </div>
+
+      <SiteNav scale={1} />
+
+      {/* Hero */}
+      <div style={{ position: 'relative', height: 280, overflow: 'hidden', background: '#1a0a2e' }}>
+        {cover
+          ? <img src={cover} alt="cover" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+          : <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, #1a0a2e 0%, #2d1b69 60%, #1e3a5f 100%)' }} />
+        }
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(100deg, rgba(10,6,22,.94) 0%, rgba(10,6,22,.82) 32%, rgba(10,6,22,.48) 58%, rgba(10,6,22,.15) 100%)' }} />
+
+        {/* Back button */}
+        <div style={{ position: 'absolute', top: 18, left: 18, width: 30, height: 30, background: 'rgba(255,255,255,.1)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }}>
+          <span style={{ color: '#fff', fontSize: 16, fontWeight: 700, lineHeight: 1 }}>‹</span>
+        </div>
+
+        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', padding: '0 32px', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 20, maxWidth: '60%' }}>
+            <LogoEl size={88} radius={18} />
+            <div style={{ paddingTop: 4 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,.45)', letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: 6 }}>FEATURED SALON</div>
+              <div style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 38, fontWeight: 700, color: '#fff', lineHeight: 1.05, marginBottom: 10, textShadow: '0 2px 12px rgba(0,0,0,.6)' }}>{name}</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, flexWrap: 'wrap' }}>
+                <StarRow sz={13} />
+                <span style={{ color: 'rgba(255,255,255,.3)' }}>·</span>
+                <OpenBadge sz={11} />
+              </div>
+              {addr && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                  <span style={{ fontSize: 13 }}>📍</span>
+                  <span style={{ color: 'rgba(255,255,255,.65)', fontSize: 13 }}>{addr}</span>
+                  <span style={{ color: '#a78bfa', fontSize: 13, fontWeight: 600, marginLeft: 4 }}>See Location ↗</span>
+                </div>
+              )}
+              <div style={{ display: 'flex', gap: 20 }}>
+                {phone && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ fontSize: 13 }}>📞</span>
+                    <span style={{ color: 'rgba(255,255,255,.55)', fontSize: 12 }}>{phone}</span>
+                  </div>
+                )}
+                {email && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ fontSize: 13 }}>✉️</span>
+                    <span style={{ color: 'rgba(255,255,255,.55)', fontSize: 12 }}>{email}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 12, flexShrink: 0 }}>
+            <div style={{ background: '#7C3AED', borderRadius: 28, padding: '14px 28px', boxShadow: '0 6px 24px rgba(124,58,237,.5)', whiteSpace: 'nowrap' }}>
+              <span style={{ color: '#fff', fontSize: 14, fontWeight: 800 }}>✦ Book Now</span>
+            </div>
+            <div style={{ background: 'linear-gradient(135deg, #D97706, #B45309)', borderRadius: 28, padding: '14px 24px', boxShadow: '0 6px 24px rgba(217,119,6,.4)', whiteSpace: 'nowrap' }}>
+              <span style={{ color: '#fff', fontSize: 14, fontWeight: 800 }}>✿ Cosmetics</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Tab bar */}
+      <div style={{ background: '#100d20', borderTop: '1px solid rgba(255,255,255,.06)', display: 'flex', justifyContent: 'center', gap: 40, padding: '12px 0' }}>
+        {['Services','Team','Reviews','Info'].map((t, i) => (
+          <span key={t} style={{ fontSize: 13, fontWeight: i === 0 ? 700 : 500, color: i === 0 ? '#a78bfa' : 'rgba(255,255,255,.35)', borderBottom: i === 0 ? '2px solid #7C3AED' : '2px solid transparent', paddingBottom: 4 }}>{t}</span>
+        ))}
+      </div>
+
+      {/* Services + gallery stubs */}
+      <div style={{ background: '#0d0b18' }}>
+        <ServiceStubs />
+        <GalleryStub />
+      </div>
+    </div>
+  );
+
+  /* ── Mobile view ── */
+  const MobileView = () => (
+    <div style={{ display: 'flex', justifyContent: 'center', padding: '8px 0 16px' }}>
+      <div style={{ width: 320, background: '#0d0b18', border: '4px solid #2a2a35', borderRadius: 40, overflow: 'hidden', boxShadow: '0 20px 64px rgba(0,0,0,.55)' }}>
+
+        {/* Status bar */}
+        <div style={{ background: '#100d20', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 20px 6px' }}>
+          <span style={{ color: 'rgba(255,255,255,.45)', fontSize: 12, fontWeight: 600 }}>9:41</span>
+          <div style={{ width: 44, height: 6, borderRadius: 10, background: '#2a2a35' }} />
+          <span style={{ color: 'rgba(255,255,255,.3)', fontSize: 12 }}>▲ ▲ ▲</span>
+        </div>
+
+        {/* Navbar */}
+        <div style={{ background: '#100d20', padding: '8px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,.05)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ width: 22, height: 22, borderRadius: 6, background: 'linear-gradient(135deg, #7C3AED, #5B21B6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ color: '#fff', fontSize: 11, fontWeight: 900 }}>✦</span>
+            </div>
+            <span style={{ color: '#fff', fontSize: 13, fontWeight: 800 }}>BookMyStyle</span>
+          </div>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <span style={{ color: 'rgba(255,255,255,.45)', fontSize: 12 }}>Sign In</span>
+            {[1,2].map(i => (
+              <div key={i} style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(255,255,255,.07)', border: '1px solid rgba(255,255,255,.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <span style={{ color: 'rgba(255,255,255,.45)', fontSize: i === 1 ? 11 : 13 }}>{i === 1 ? '✦' : '≡'}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Hero */}
+        <div style={{ position: 'relative', height: 300, overflow: 'hidden', background: '#1a0a2e' }}>
+          {cover
+            ? <img src={cover} alt="cover" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+            : <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(160deg, #1a0a2e 0%, #2d1b69 60%, #1e3a5f 100%)' }} />
+          }
+          <div style={{ position: 'absolute', inset: 0, background: 'rgba(8,5,18,.52)' }} />
+
+          {/* Back button */}
+          <div style={{ position: 'absolute', top: 14, left: 14, width: 32, height: 32, background: 'rgba(255,255,255,.14)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }}>
+            <span style={{ color: '#fff', fontSize: 16, fontWeight: 700, lineHeight: 1 }}>‹</span>
+          </div>
+
+          {/* Centered content */}
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, padding: '0 24px' }}>
+            <LogoEl size={90} radius={20} />
+            <div style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 26, fontWeight: 700, color: '#fff', textAlign: 'center', lineHeight: 1.15, textShadow: '0 2px 10px rgba(0,0,0,.7)' }}>{name}</div>
+            <OpenBadge sz={11} />
+            <StarRow sz={12} />
+          </div>
+        </div>
+
+        {/* Info rows */}
+        <div style={{ background: '#100d20', padding: '14px 18px 10px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {addr && (
+            <div>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                <span style={{ fontSize: 14, lineHeight: 1.5 }}>📍</span>
+                <span style={{ color: 'rgba(255,255,255,.65)', fontSize: 12, lineHeight: 1.5 }}>{addr}</span>
+              </div>
+              <div style={{ paddingLeft: 22 }}><span style={{ color: '#a78bfa', fontSize: 11.5, fontWeight: 600 }}>See on Maps ↗</span></div>
+            </div>
+          )}
+          {phone && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 14 }}>📞</span>
+              <span style={{ color: 'rgba(255,255,255,.65)', fontSize: 12 }}>{phone}</span>
+            </div>
+          )}
+          {email && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 14 }}>✉️</span>
+              <span style={{ color: 'rgba(255,255,255,.65)', fontSize: 11.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 240 }}>{email}</span>
+            </div>
+          )}
+        </div>
+
+        {/* CTA buttons */}
+        <div style={{ padding: '8px 16px 18px', display: 'flex', flexDirection: 'column', gap: 10, background: '#100d20' }}>
+          <div style={{ background: '#7C3AED', borderRadius: 18, padding: '14px 0', textAlign: 'center', boxShadow: '0 6px 20px rgba(124,58,237,.45)' }}>
+            <span style={{ color: '#fff', fontSize: 15, fontWeight: 800 }}>✦ Book Now</span>
+          </div>
+          <div style={{ background: '#150f03', border: '1px solid rgba(212,175,55,.28)', borderRadius: 18, padding: '14px 0', textAlign: 'center' }}>
+            <span style={{ color: '#D4AF37', fontSize: 15, fontWeight: 700 }}>✿ Shop Cosmetics</span>
+          </div>
+        </div>
+
+        {/* Service stubs */}
+        <div style={{ background: '#0d0b18', padding: '16px 16px 6px' }}>
+          <div style={{ fontSize: 16, fontFamily: "'Cormorant Garamond', Georgia, serif", fontWeight: 700, color: '#fff', marginBottom: 12 }}>Our Services</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {['Haircut & Style','Beard Trim','Hair Coloring'].map(t => (
+              <div key={t} style={{ background: 'rgba(255,255,255,.04)', border: '1px solid rgba(255,255,255,.07)', borderRadius: 10, padding: '10px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <div style={{ color: '#fff', fontSize: 12, fontWeight: 600 }}>{t}</div>
+                  <div style={{ color: 'rgba(255,255,255,.3)', fontSize: 10, marginTop: 2 }}>from LKR —</div>
+                </div>
+                <div style={{ background: 'rgba(124,58,237,.18)', border: '1px solid rgba(124,58,237,.28)', borderRadius: 7, padding: '5px 12px' }}>
+                  <span style={{ color: '#a78bfa', fontSize: 11, fontWeight: 700 }}>Book</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Bottom home indicator */}
+        <div style={{ background: '#0d0b18', padding: '14px 0 10px', display: 'flex', justifyContent: 'center' }}>
+          <div style={{ width: 56, height: 4, borderRadius: 10, background: 'rgba(255,255,255,.18)' }} />
+        </div>
+      </div>
+    </div>
+  );
+
+  return createPortal(
+    <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', background: 'rgba(0,0,0,.72)', backdropFilter: 'blur(10px)', padding: '20px 16px', overflowY: 'auto' }}>
+      <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 0 }} />
+      <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: view === 'mobile' ? 400 : 920 }}>
+        {/* Modal header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+          <div style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 20, fontWeight: 700, color: '#fff' }}>
+            Customer Profile Preview
+          </div>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            {/* Toggle */}
+            <div style={{ display: 'flex', background: 'rgba(255,255,255,.08)', borderRadius: 12, padding: 3, border: '1px solid rgba(255,255,255,.1)' }}>
+              {['desktop','mobile'].map(v => (
+                <button
+                  key={v}
+                  onClick={() => setView(v)}
+                  style={{ padding: '7px 18px', borderRadius: 9, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: "'DM Sans', sans-serif", transition: 'all .18s', background: view === v ? '#7C3AED' : 'transparent', color: view === v ? '#fff' : 'rgba(255,255,255,.5)', boxShadow: view === v ? '0 2px 10px rgba(124,58,237,.4)' : 'none' }}
+                >
+                  {v === 'desktop' ? '🖥 Desktop' : '📱 Mobile'}
+                </button>
+              ))}
+            </div>
+            <button onClick={onClose} style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.12)', cursor: 'pointer', color: 'rgba(255,255,255,.7)', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+          </div>
+        </div>
+
+        {/* Preview */}
+        {view === 'desktop' ? <DesktopView /> : <MobileView />}
+      </div>
+    </div>,
+    document.body
+  );
+}
+
 /* ── Profile Preview ──────────────────────────────────────────────── */
 function ProfilePreview({ salon, logoSrc, coverSrc }) {
+  const [showLive, setShowLive] = useState(false);
   const cover = coverSrc || salon.cover_image_url;
   const logo  = logoSrc  || salon.logo_url;
   const name  = salon.name;
@@ -360,14 +682,18 @@ function ProfilePreview({ salon, logoSrc, coverSrc }) {
           <div style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 18, fontWeight: 700, color: 'var(--text)', marginBottom: 3 }}>Profile Page Preview</div>
           <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Updates live as you pick a new logo or cover image</div>
         </div>
-        <Link to={`/salons/${salon.id}`} target="_blank" style={{ fontSize: 12, fontWeight: 700, color: '#0D9488', textDecoration: 'none', padding: '6px 14px', borderRadius: 10, background: 'rgba(13,148,136,.08)', border: '1px solid rgba(13,148,136,.2)' }}>
+        <button onClick={() => setShowLive(true)} style={{ fontSize: 12, fontWeight: 700, color: '#0D9488', background: 'rgba(13,148,136,.08)', border: '1px solid rgba(13,148,136,.2)', padding: '6px 14px', borderRadius: 10, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>
           View Live →
-        </Link>
+        </button>
       </div>
       <div style={{ padding: '20px 24px', display: 'flex', gap: 20, alignItems: 'flex-start', flexWrap: 'wrap' }}>
         <DesktopFrame />
         <MobileFrame />
       </div>
+
+      {showLive && (
+        <LivePreviewModal salon={salon} cover={cover} logo={logo} onClose={() => setShowLive(false)} />
+      )}
     </div>
   );
 }
