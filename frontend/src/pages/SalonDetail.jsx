@@ -79,6 +79,7 @@ export default function SalonDetail() {
   const [salonImages, setSalonImages] = useState([]);
   const [teamMembers, setTeamMembers] = useState([]);
   const [lightboxIdx, setLightboxIdx] = useState(null);
+  const [svcImgPopup, setSvcImgPopup] = useState(null); // { url, name }
   const [activeServiceCat, setActiveServiceCat] = useState(null);
   const [reviewRating, setReviewRating] = useState(0);
   const [reviewText, setReviewText] = useState('');
@@ -567,6 +568,24 @@ export default function SalonDetail() {
         document.body
       )}
 
+      {/* SERVICE IMAGE POPUP */}
+      {svcImgPopup && createPortal(
+        <div
+          style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
+          onClick={() => setSvcImgPopup(null)}
+        >
+          <div style={{ position: 'relative', maxWidth: 520, width: '100%' }} onClick={e => e.stopPropagation()}>
+            <button
+              onClick={() => setSvcImgPopup(null)}
+              style={{ position: 'absolute', top: -14, right: -14, zIndex: 1, width: 36, height: 36, borderRadius: '50%', background: 'var(--surface)', border: '1.5px solid var(--border)', color: 'var(--text)', fontSize: 16, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 16px rgba(0,0,0,.4)' }}
+            >✕</button>
+            <img src={svcImgPopup.url} alt={svcImgPopup.name} style={{ width: '100%', borderRadius: 16, display: 'block', maxHeight: '80vh', objectFit: 'contain', boxShadow: '0 24px 60px rgba(0,0,0,.6)' }} />
+            <div style={{ textAlign: 'center', marginTop: 12, color: 'rgba(255,255,255,.8)', fontSize: 14, fontWeight: 600 }}>{svcImgPopup.name}</div>
+          </div>
+        </div>,
+        document.body
+      )}
+
       {/* EMPLOYEE MODAL */}
       {selectedMember && createPortal(
         <div style={lb.overlay} onClick={() => setSelectedMember(null)}>
@@ -659,26 +678,34 @@ export default function SalonDetail() {
                         </div>
                       </div>
                     ) : (
-                      <div style={{ ...s.svcCard, width: 268, flexShrink: 0, cursor: isClient ? 'pointer' : 'default', padding: ss.image_url ? '0' : undefined, overflow: 'hidden' }}>
-                        {ss.image_url && (
-                          <div style={{ width: '100%', height: 160, overflow: 'hidden', borderRadius: '13px 13px 0 0', flexShrink: 0 }}>
-                            <img src={ss.image_url} alt={ss.service_name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                          </div>
-                        )}
-                        <div style={{ padding: ss.image_url ? '14px 18px 14px' : undefined, display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}>
+                      <div style={{ ...s.svcCard, width: 268, flexShrink: 0, cursor: isClient ? 'pointer' : 'default' }}>
+                        {/* Top row: name + image thumbnail */}
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
                           <div style={s.svcName}>{ss.service_name}</div>
-                          {ss.description ? (
-                            <div style={s.svcDesc}>{ss.description}</div>
-                          ) : null}
-                          <div style={s.svcMeta}>
-                            <span style={s.svcDur}>⏱ {formatDuration(ss.effective_duration)}</span>
-                            <span style={{ ...s.svcPrice, background: `${activeCatColor}18`, color: activeCatColor, border: `1px solid ${activeCatColor}38`, padding: '3px 10px', borderRadius: 8 }}>
-                              {ss.is_price_starting_from && <span style={s.svcStarting}>Starting From </span>}
-                              LKR {ss.effective_price}
-                            </span>
-                          </div>
-                          {isClient && <div style={{ ...s.svcBookHint, color: pal.main }}>Tap to book →</div>}
+                          {ss.image_url && (
+                            <button
+                              onClick={e => { e.preventDefault(); e.stopPropagation(); setSvcImgPopup({ url: ss.image_url, name: ss.service_name }); }}
+                              style={{
+                                flexShrink: 0, width: 56, height: 56, borderRadius: 10, overflow: 'hidden',
+                                border: `1.5px solid var(--border)`, padding: 0, cursor: 'zoom-in',
+                                marginLeft: 'auto', marginTop: -2,
+                              }}
+                            >
+                              <img src={ss.image_url} alt={ss.service_name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                            </button>
+                          )}
                         </div>
+                        {ss.description ? (
+                          <div style={s.svcDesc}>{ss.description}</div>
+                        ) : null}
+                        <div style={s.svcMeta}>
+                          <span style={s.svcDur}>⏱ {formatDuration(ss.effective_duration)}</span>
+                          <span style={{ ...s.svcPrice, background: `${activeCatColor}18`, color: activeCatColor, border: `1px solid ${activeCatColor}38`, padding: '3px 10px', borderRadius: 8 }}>
+                            {ss.is_price_starting_from && <span style={s.svcStarting}>Starting From </span>}
+                            LKR {ss.effective_price}
+                          </span>
+                        </div>
+                        {isClient && <div style={{ ...s.svcBookHint, color: pal.main }}>Tap to book →</div>}
                       </div>
                     );
                     return isClient ? (
