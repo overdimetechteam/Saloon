@@ -678,31 +678,48 @@ export default function SalonDetail() {
                         </div>
                       </div>
                     ) : (
-                      <div style={{ ...s.svcCard, width: 268, flexShrink: 0, cursor: isClient ? 'pointer' : 'default' }}>
-                        {/* Name + duration at top */}
-                        <div>
+                      <div style={{
+                        ...s.svcCard,
+                        width: 268, flexShrink: 0, cursor: isClient ? 'pointer' : 'default',
+                        ...(ss.image_url ? { padding: 0, overflow: 'hidden', flexDirection: 'row', gap: 0 } : {}),
+                      }}>
+                        {/* Left column: name / duration / tap-to-book */}
+                        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 8, padding: ss.image_url ? '16px 10px 14px 16px' : undefined }}>
                           <div style={s.svcName}>{ss.service_name}</div>
-                          <div style={{ ...s.svcDur, marginTop: 4 }}>⏱ {formatDuration(ss.effective_duration)}</div>
-                        </div>
-                        {ss.description ? (
-                          <div style={s.svcDesc}>{ss.description}</div>
-                        ) : null}
-                        {/* Price + image thumbnail on same row */}
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                          <span style={{ ...s.svcPrice, background: `${activeCatColor}18`, color: activeCatColor, border: `1px solid ${activeCatColor}38`, padding: '3px 10px', borderRadius: 8 }}>
-                            {ss.is_price_starting_from && <span style={s.svcStarting}>Starting From </span>}
-                            LKR {ss.effective_price}
-                          </span>
+                          {ss.description ? <div style={s.svcDesc}>{ss.description}</div> : null}
+                          {!ss.image_url && (
+                            <div style={s.svcMeta}>
+                              <span style={s.svcDur}>⏱ {formatDuration(ss.effective_duration)}</span>
+                              <span style={{ ...s.svcPrice, background: `${activeCatColor}18`, color: activeCatColor, border: `1px solid ${activeCatColor}38`, padding: '3px 10px', borderRadius: 8 }}>
+                                {ss.is_price_starting_from && <span style={s.svcStarting}>Starting From </span>}
+                                LKR {ss.effective_price}
+                              </span>
+                            </div>
+                          )}
                           {ss.image_url && (
+                            <div style={{ ...s.svcDur, marginTop: 2 }}>⏱ {formatDuration(ss.effective_duration)}</div>
+                          )}
+                          <div style={{ flex: 1 }} />
+                          {isClient && <div style={{ ...s.svcBookHint, color: pal.main }}>Tap to book →</div>}
+                        </div>
+
+                        {/* Right column: price at top, image fills rest */}
+                        {ss.image_url && (
+                          <div style={{ width: 100, flexShrink: 0, display: 'flex', flexDirection: 'column' }}>
+                            <div style={{ padding: '16px 12px 8px 6px' }}>
+                              <span style={{ ...s.svcPrice, background: `${activeCatColor}18`, color: activeCatColor, border: `1px solid ${activeCatColor}38`, padding: '3px 7px', borderRadius: 8, display: 'inline-block', fontSize: 12, whiteSpace: 'nowrap' }}>
+                                {ss.is_price_starting_from && <span style={s.svcStarting}>From </span>}
+                                LKR {ss.effective_price}
+                              </span>
+                            </div>
                             <button
                               onClick={e => { e.preventDefault(); e.stopPropagation(); setSvcImgPopup({ url: ss.image_url, name: ss.service_name }); }}
-                              style={{ flexShrink: 0, width: 56, height: 56, borderRadius: 10, overflow: 'hidden', border: '1.5px solid var(--border)', padding: 0, cursor: 'zoom-in' }}
+                              style={{ flex: 1, padding: 0, border: 'none', cursor: 'zoom-in', overflow: 'hidden', display: 'block', borderRadius: '0 0 13px 0' }}
                             >
                               <img src={ss.image_url} alt={ss.service_name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                             </button>
-                          )}
-                        </div>
-                        {isClient && <div style={{ ...s.svcBookHint, color: pal.main }}>Tap to book →</div>}
+                          </div>
+                        )}
                       </div>
                     );
                     return isClient ? (
