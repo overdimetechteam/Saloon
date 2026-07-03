@@ -661,9 +661,12 @@ export default function SalonDetail() {
                     const inner = isMobile ? (
                       <div style={{ ...s.svcCard, width: '100%', flexDirection: 'row', alignItems: 'center', padding: '12px 14px', gap: 10 }}>
                         {ss.image_url && (
-                          <div style={{ width: 58, height: 58, borderRadius: 10, overflow: 'hidden', flexShrink: 0, border: '1px solid var(--border)' }}>
+                          <button
+                            onClick={e => { e.preventDefault(); e.stopPropagation(); setSvcImgPopup({ url: ss.image_url, name: ss.service_name }); }}
+                            style={{ width: 58, height: 58, borderRadius: 10, overflow: 'hidden', flexShrink: 0, border: '1px solid var(--border)', padding: 0, cursor: 'zoom-in' }}
+                          >
                             <img src={ss.image_url} alt={ss.service_name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                          </div>
+                          </button>
                         )}
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ ...s.svcName, fontSize: 14 }}>{ss.service_name}</div>
