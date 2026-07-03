@@ -641,6 +641,11 @@ export default function SalonDetail() {
                   {(grouped[activeCat] || []).slice(0, 4).map(ss => {
                     const inner = isMobile ? (
                       <div style={{ ...s.svcCard, width: '100%', flexDirection: 'row', alignItems: 'center', padding: '12px 14px', gap: 10 }}>
+                        {ss.image_url && (
+                          <div style={{ width: 58, height: 58, borderRadius: 10, overflow: 'hidden', flexShrink: 0, border: '1px solid var(--border)' }}>
+                            <img src={ss.image_url} alt={ss.service_name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                          </div>
+                        )}
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ ...s.svcName, fontSize: 14 }}>{ss.service_name}</div>
                           <div style={{ ...s.svcDur, marginTop: 3 }}>⏱ {formatDuration(ss.effective_duration)}</div>
@@ -654,19 +659,26 @@ export default function SalonDetail() {
                         </div>
                       </div>
                     ) : (
-                      <div style={{ ...s.svcCard, width: 268, flexShrink: 0, cursor: isClient ? 'pointer' : 'default' }}>
-                        <div style={s.svcName}>{ss.service_name}</div>
-                        {ss.description ? (
-                          <div style={s.svcDesc}>{ss.description}</div>
-                        ) : null}
-                        <div style={s.svcMeta}>
-                          <span style={s.svcDur}>⏱ {formatDuration(ss.effective_duration)}</span>
-                          <span style={{ ...s.svcPrice, background: `${activeCatColor}18`, color: activeCatColor, border: `1px solid ${activeCatColor}38`, padding: '3px 10px', borderRadius: 8 }}>
-                            {ss.is_price_starting_from && <span style={s.svcStarting}>Starting From </span>}
-                            LKR {ss.effective_price}
-                          </span>
+                      <div style={{ ...s.svcCard, width: 268, flexShrink: 0, cursor: isClient ? 'pointer' : 'default', padding: ss.image_url ? '0' : undefined, overflow: 'hidden' }}>
+                        {ss.image_url && (
+                          <div style={{ width: '100%', height: 160, overflow: 'hidden', borderRadius: '13px 13px 0 0', flexShrink: 0 }}>
+                            <img src={ss.image_url} alt={ss.service_name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                          </div>
+                        )}
+                        <div style={{ padding: ss.image_url ? '14px 18px 14px' : undefined, display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}>
+                          <div style={s.svcName}>{ss.service_name}</div>
+                          {ss.description ? (
+                            <div style={s.svcDesc}>{ss.description}</div>
+                          ) : null}
+                          <div style={s.svcMeta}>
+                            <span style={s.svcDur}>⏱ {formatDuration(ss.effective_duration)}</span>
+                            <span style={{ ...s.svcPrice, background: `${activeCatColor}18`, color: activeCatColor, border: `1px solid ${activeCatColor}38`, padding: '3px 10px', borderRadius: 8 }}>
+                              {ss.is_price_starting_from && <span style={s.svcStarting}>Starting From </span>}
+                              LKR {ss.effective_price}
+                            </span>
+                          </div>
+                          {isClient && <div style={{ ...s.svcBookHint, color: pal.main }}>Tap to book →</div>}
                         </div>
-                        {isClient && <div style={{ ...s.svcBookHint, color: pal.main }}>Tap to book →</div>}
                       </div>
                     );
                     return isClient ? (
