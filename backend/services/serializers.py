@@ -14,13 +14,20 @@ class SalonServiceSerializer(serializers.ModelSerializer):
     service_is_private = serializers.BooleanField(source='service.is_private', read_only=True)
     effective_price = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
     effective_duration = serializers.IntegerField(read_only=True)
+    image_url = serializers.SerializerMethodField()
+
+    def get_image_url(self, obj):
+        request = self.context.get('request')
+        if obj.image:
+            return request.build_absolute_uri(obj.image.url) if request else obj.image.url
+        return None
 
     class Meta:
         model = SalonService
         fields = [
             'id', 'salon', 'service', 'service_name', 'service_category', 'service_is_private',
             'custom_price', 'custom_duration', 'is_price_starting_from', 'home_visit_available',
-            'description', 'is_active', 'effective_price', 'effective_duration', 'display_order',
+            'description', 'image_url', 'is_active', 'effective_price', 'effective_duration', 'display_order',
         ]
         read_only_fields = ['salon']
 
@@ -34,4 +41,4 @@ class SalonServiceCreateSerializer(serializers.ModelSerializer):
 class SalonServiceUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = SalonService
-        fields = ['custom_price', 'custom_duration', 'is_price_starting_from', 'home_visit_available', 'description', 'display_order']
+        fields = ['custom_price', 'custom_duration', 'is_price_starting_from', 'home_visit_available', 'description', 'image', 'display_order']

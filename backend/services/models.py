@@ -37,6 +37,7 @@ class SalonService(models.Model):
     is_price_starting_from = models.BooleanField(default=False)
     home_visit_available = models.BooleanField(default=False)
     description = models.TextField(blank=True, default='')
+    image = models.ImageField(upload_to='service_images/', null=True, blank=True)
     is_active = models.BooleanField(default=True)
     display_order = models.PositiveIntegerField(default=0)
 

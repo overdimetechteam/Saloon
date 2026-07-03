@@ -74,7 +74,7 @@ class SalonServiceListCreateView(APIView):
     def get(self, request, salon_pk):
         salon = self._get_salon(salon_pk)
         qs = SalonService.objects.filter(salon=salon, is_active=True).select_related('service').order_by('display_order', 'id')
-        return Response(SalonServiceSerializer(qs, many=True).data)
+        return Response(SalonServiceSerializer(qs, many=True, context={'request': request}).data)
 
     def post(self, request, salon_pk):
         salon = self._get_salon(salon_pk)
@@ -83,7 +83,7 @@ class SalonServiceListCreateView(APIView):
         serializer = SalonServiceCreateSerializer(data=request.data)
         if serializer.is_valid():
             ss = serializer.save(salon=salon)
-            return Response(SalonServiceSerializer(ss).data, status=status.HTTP_201_CREATED)
+            return Response(SalonServiceSerializer(ss, context={'request': request}).data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -98,7 +98,7 @@ class SalonServiceDetailView(APIView):
         serializer = SalonServiceUpdateSerializer(ss, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
-            return Response(SalonServiceSerializer(ss).data)
+            return Response(SalonServiceSerializer(ss, context={'request': request}).data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, salon_pk, pk):
@@ -132,6 +132,7 @@ class OwnerCustomServiceView(APIView):
             return Response({'detail': 'name, category, price and duration are required.'}, status=status.HTTP_400_BAD_REQUEST)
         description = request.data.get('description', '')
         is_price_starting_from = bool(request.data.get('is_price_starting_from', False))
+        image = request.FILES.get('image')
         service = Service.objects.create(
             name=name,
             category=category,
@@ -148,8 +149,9 @@ class OwnerCustomServiceView(APIView):
             salon=salon, service=service,
             description=description, is_price_starting_from=is_price_starting_from,
             display_order=max_order + 1,
+            **({"image": image} if image else {}),
         )
-        return Response(SalonServiceSerializer(ss).data, status=status.HTTP_201_CREATED)
+        return Response(SalonServiceSerializer(ss, context={'request': request}).data, status=status.HTTP_201_CREATED)
 
 
 class SalonServiceReorderView(APIView):

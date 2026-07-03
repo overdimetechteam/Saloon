@@ -56,8 +56,11 @@ class SalonStaffListCreate(APIView):
         ser = StaffMemberCreateSerializer(data=request.data, context={'salon': salon, 'request': request})
         ser.is_valid(raise_exception=True)
         staff = ser.save()
+        data = StaffMemberOwnerSerializer(staff, context={'request': request}).data
+        if getattr(staff, '_generated_password', None):
+            data['generated_password'] = staff._generated_password
         return Response(
-            StaffMemberOwnerSerializer(staff, context={'request': request}).data,
+            data,
             status=status.HTTP_201_CREATED,
         )
 

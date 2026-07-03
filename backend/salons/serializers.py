@@ -123,7 +123,7 @@ class OfferSerializer(serializers.ModelSerializer):
         model  = Offer
         fields = [
             'id', 'salon', 'salon_name', 'title', 'description',
-            'discount_type', 'discount_value',
+            'offer_type', 'discount_type', 'discount_value', 'custom_terms',
             'start_date', 'end_date', 'is_active', 'note', 'created_at',
         ]
         read_only_fields = ['salon', 'created_at']

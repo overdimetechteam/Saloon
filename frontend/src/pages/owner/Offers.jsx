@@ -1,30 +1,70 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import api from '../../api/axios';
 
 const DISC_LABEL = { percentage: '%', fixed: 'LKR' };
-const EMPTY = { title: '', description: '', discount_type: 'percentage', discount_value: '', start_date: '', end_date: '', note: '', is_active: true };
+const EMPTY = {
+  title: '', description: '', offer_type: 'discount',
+  discount_type: 'percentage', discount_value: '', custom_terms: '',
+  start_date: '', end_date: '', note: '', is_active: true,
+};
 
 function OfferForm({ init, onSave, onCancel, loading }) {
   const [f, setF] = useState({ ...EMPTY, ...init });
-  const field = k => e => setF(p => ({ ...p, [k]: e.target.value }));
+  const field  = k => e => setF(p => ({ ...p, [k]: e.target.value }));
   const toggle = k => setF(p => ({ ...p, [k]: !p[k] }));
 
   return (
     <div style={fm.card} className="scale-in">
       <div style={fm.title}>{init ? 'Edit Offer' : 'Create New Offer'}</div>
+
+      {/* Offer type selector */}
+      <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
+        {[['discount', '🏷 Discount'], ['custom', '✦ Custom Deal']].map(([v, label]) => (
+          <button
+            key={v} type="button"
+            onClick={() => setF(p => ({ ...p, offer_type: v }))}
+            style={{
+              flex: 1, padding: '10px 14px', borderRadius: 11, border: 'none', cursor: 'pointer',
+              fontWeight: 700, fontSize: 13, fontFamily: "'DM Sans', sans-serif", transition: 'all .15s',
+              background: f.offer_type === v ? 'linear-gradient(135deg, #0D9488, #14B8A8)' : 'var(--surface2)',
+              color: f.offer_type === v ? '#fff' : 'var(--text-muted)',
+              boxShadow: f.offer_type === v ? '0 4px 12px rgba(13,148,136,.3)' : 'none',
+              border: f.offer_type === v ? 'none' : '1.5px solid var(--border)',
+            }}
+          >{label}</button>
+        ))}
+      </div>
+
       <div style={fm.grid}>
         <label style={fm.label}>Title *
           <input style={fm.input} value={f.title} onChange={field('title')} placeholder="e.g. Summer Glow Deal" required />
         </label>
-        <label style={fm.label}>Discount Type
-          <select style={fm.input} value={f.discount_type} onChange={field('discount_type')}>
-            <option value="percentage">Percentage (%)</option>
-            <option value="fixed">Fixed Amount (LKR)</option>
-          </select>
-        </label>
-        <label style={fm.label}>Discount Value *
-          <input style={fm.input} type="number" min="0" value={f.discount_value} onChange={field('discount_value')} placeholder={f.discount_type === 'percentage' ? '20' : '500'} required />
-        </label>
+
+        {f.offer_type === 'discount' ? (
+          <>
+            <label style={fm.label}>Discount Type
+              <select style={fm.input} value={f.discount_type} onChange={field('discount_type')}>
+                <option value="percentage">Percentage (%)</option>
+                <option value="fixed">Fixed Amount (LKR)</option>
+              </select>
+            </label>
+            <label style={fm.label}>Discount Value *
+              <input style={fm.input} type="number" min="0" value={f.discount_value} onChange={field('discount_value')}
+                placeholder={f.discount_type === 'percentage' ? '20' : '500'} required />
+            </label>
+          </>
+        ) : (
+          <label style={{ ...fm.label, gridColumn: '1 / -1' }}>Deal Terms *
+            <textarea
+              style={{ ...fm.input, minHeight: 80, resize: 'vertical' }}
+              value={f.custom_terms}
+              onChange={field('custom_terms')}
+              placeholder="e.g. Get your hair coloured with one of three colours (Colour 1, 2 or 3) for LKR 20,000"
+              required={f.offer_type === 'custom'}
+            />
+          </label>
+        )}
+
         <label style={fm.label}>Start Date *
           <input style={fm.input} type="date" value={f.start_date} onChange={field('start_date')} required />
         </label>
@@ -37,12 +77,14 @@ function OfferForm({ init, onSave, onCancel, loading }) {
           </button>
         </label>
       </div>
+
       <label style={{ ...fm.label, marginTop: 4 }}>Description
         <textarea style={{ ...fm.input, minHeight: 64, resize: 'vertical' }} value={f.description} onChange={field('description')} placeholder="What's this offer about?" />
       </label>
       <label style={{ ...fm.label, marginTop: 4 }}>Note (e.g. "Starting from [date]")
         <input style={fm.input} value={f.note} onChange={field('note')} placeholder="Any fine print or special message" />
       </label>
+
       <div style={fm.btnRow}>
         <button style={fm.cancelBtn} onClick={onCancel}>Cancel</button>
         <button style={{ ...fm.saveBtn, opacity: loading ? 0.7 : 1 }} onClick={() => onSave(f)} disabled={loading}>
@@ -54,12 +96,12 @@ function OfferForm({ init, onSave, onCancel, loading }) {
 }
 
 export default function OwnerOffers() {
-  const [offers, setOffers]   = useState([]);
+  const [offers, setOffers]     = useState([]);
   const [creating, setCreating] = useState(false);
-  const [editId, setEditId]   = useState(null);
-  const [saveLoading, setSave] = useState(false);
-  const [msg, setMsg]         = useState('');
-  const [err, setErr]         = useState('');
+  const [editId, setEditId]     = useState(null);
+  const [saveLoading, setSave]  = useState(false);
+  const [msg, setMsg]           = useState('');
+  const [err, setErr]           = useState('');
 
   const load = () => api.get('/owner/offers/').then(r => setOffers(r.data)).catch(() => {});
   useEffect(() => { load(); }, []);
@@ -71,8 +113,12 @@ export default function OwnerOffers() {
 
   const validateOffer = data => {
     if (!data.title.trim()) return 'Title is required.';
-    if (!data.discount_value || Number(data.discount_value) <= 0) return 'Discount value must be greater than 0.';
-    if (data.discount_type === 'percentage' && Number(data.discount_value) > 100) return 'Percentage discount cannot exceed 100%.';
+    if (data.offer_type === 'discount') {
+      if (!data.discount_value || Number(data.discount_value) <= 0) return 'Discount value must be greater than 0.';
+      if (data.discount_type === 'percentage' && Number(data.discount_value) > 100) return 'Percentage discount cannot exceed 100%.';
+    } else {
+      if (!data.custom_terms.trim()) return 'Deal terms are required for a Custom Deal.';
+    }
     if (!data.start_date) return 'Start date is required.';
     if (!data.end_date) return 'End date is required.';
     if (data.end_date < data.start_date) return 'End date must be on or after the start date.';
@@ -80,8 +126,8 @@ export default function OwnerOffers() {
   };
 
   const handleCreate = async data => {
-    const err = validateOffer(data);
-    if (err) { flash(err, true); return; }
+    const e = validateOffer(data);
+    if (e) { flash(e, true); return; }
     setSave(true);
     try {
       await api.post('/owner/offers/', data);
@@ -91,8 +137,8 @@ export default function OwnerOffers() {
   };
 
   const handleEdit = async data => {
-    const err = validateOffer(data);
-    if (err) { flash(err, true); return; }
+    const e = validateOffer(data);
+    if (e) { flash(e, true); return; }
     setSave(true);
     try {
       await api.patch(`/owner/offers/${editId}/`, data);
@@ -151,6 +197,7 @@ export default function OwnerOffers() {
           const live  = isLive(offer);
           const color = live ? '#0D9488' : offer.is_active ? '#D4AF37' : '#94A3B8';
           const bg    = live ? 'rgba(13,148,136,.08)' : offer.is_active ? 'rgba(212,175,55,.08)' : 'rgba(148,163,184,.08)';
+          const isCustom = offer.offer_type === 'custom';
 
           if (editId === offer.id) {
             return (
@@ -172,17 +219,37 @@ export default function OwnerOffers() {
                 <div style={s.cardTop}>
                   <div>
                     <div style={s.offerTitle}>{offer.title}</div>
-                    <span style={{ ...s.liveTag, color, background: bg }}>
-                      {live ? '● Live' : offer.is_active ? '◌ Scheduled' : '○ Inactive'}
-                    </span>
+                    <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap', marginBottom: 4 }}>
+                      <span style={{ ...s.liveTag, color, background: bg }}>
+                        {live ? '● Live' : offer.is_active ? '◌ Scheduled' : '○ Inactive'}
+                      </span>
+                      {isCustom && (
+                        <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: 'rgba(212,175,55,.1)', color: '#D4AF37', border: '1px solid rgba(212,175,55,.25)' }}>
+                          Custom Deal
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <div style={s.discountBadge}>
-                    <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 28, fontWeight: 800, color }}>
-                      {offer.discount_value}{DISC_LABEL[offer.discount_type]}
-                    </span>
-                    <span style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 1 }}>off</span>
-                  </div>
+                  {isCustom ? (
+                    <div style={{ ...s.discountBadge, alignItems: 'flex-end' }}>
+                      <span style={{ fontSize: 22, color: '#D4AF37' }}>✦</span>
+                      <span style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>deal</span>
+                    </div>
+                  ) : (
+                    <div style={s.discountBadge}>
+                      <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 28, fontWeight: 800, color }}>
+                        {offer.discount_value}{DISC_LABEL[offer.discount_type]}
+                      </span>
+                      <span style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 1 }}>off</span>
+                    </div>
+                  )}
                 </div>
+
+                {isCustom && offer.custom_terms && (
+                  <div style={{ ...s.desc, color: 'var(--text)', fontStyle: 'italic', borderLeft: `3px solid ${color}`, paddingLeft: 10, marginBottom: 12 }}>
+                    "{offer.custom_terms}"
+                  </div>
+                )}
 
                 {offer.description && (
                   <p style={s.desc}>{offer.description}</p>

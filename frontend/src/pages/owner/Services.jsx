@@ -4,6 +4,46 @@ import { useOwner } from '../../context/OwnerContext';
 import { useBreakpoint } from '../../hooks/useMobile';
 import { formatDuration } from '../../utils/format';
 
+function ImgUpload({ current, onChange, label = 'Service Image' }) {
+  const ref = useRef(null);
+  const [preview, setPreview] = useState(current || null);
+  const pick = e => {
+    const f = e.target.files[0];
+    if (!f) return;
+    setPreview(URL.createObjectURL(f));
+    onChange(f);
+  };
+  return (
+    <div>
+      <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>{label}</div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        {preview ? (
+          <div style={{ position: 'relative', width: 72, height: 72, borderRadius: 10, overflow: 'hidden', border: '1.5px solid var(--border)', flexShrink: 0 }}>
+            <img src={preview} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <button
+              type="button"
+              onClick={() => { setPreview(null); onChange(null); if (ref.current) ref.current.value = ''; }}
+              style={{ position: 'absolute', top: 3, right: 3, width: 18, height: 18, borderRadius: '50%', background: 'rgba(0,0,0,.6)', border: 'none', color: '#fff', fontSize: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            >✕</button>
+          </div>
+        ) : (
+          <div
+            onClick={() => ref.current?.click()}
+            style={{ width: 72, height: 72, borderRadius: 10, border: '2px dashed var(--border)', background: 'var(--surface2)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0, gap: 4 }}
+          >
+            <span style={{ fontSize: 20, color: 'var(--text-muted)', opacity: 0.5 }}>⊕</span>
+            <span style={{ fontSize: 9, color: 'var(--text-muted)', fontWeight: 600 }}>ADD IMG</span>
+          </div>
+        )}
+        <button type="button" onClick={() => ref.current?.click()} style={{ padding: '7px 14px', background: 'var(--surface2)', border: '1.5px solid var(--border)', borderRadius: 9, cursor: 'pointer', fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', fontFamily: "'DM Sans', sans-serif" }}>
+          {preview ? '↺ Change' : '+ Upload'}
+        </button>
+        <input ref={ref} type="file" accept="image/*" style={{ display: 'none' }} onChange={pick} />
+      </div>
+    </div>
+  );
+}
+
 const CAT_COLORS = { Hair: '#0D9488', Nails: '#D4AF37', Skin: '#0B7A70', Makeup: '#C96B51', Bridal: '#BE123C', Other: '#0D9488' };
 const BASE_CATS  = ['Hair', 'Nails', 'Skin', 'Makeup'];
 const BRIDAL_CAT = 'Bridal';
@@ -47,6 +87,7 @@ function EditModal({ ss, onSave, onClose }) {
   const [durTotal, setDurTotal]     = useState(ss.custom_duration ?? ss.effective_duration ?? 30);
   const [startingFrom, setStartingFrom] = useState(ss.is_price_starting_from ?? false);
   const [description, setDescription]  = useState(ss.description ?? '');
+  const [imageFile, setImageFile]   = useState(null);
   const [loading, setLoading]       = useState(false);
   const [err, setErr]               = useState('');
 
@@ -55,12 +96,13 @@ function EditModal({ ss, onSave, onClose }) {
     if (Number(durTotal) < 1) { setErr('Duration must be at least 1 minute.'); return; }
     setLoading(true); setErr('');
     try {
-      await onSave(ss.id, {
-        custom_price: Number(price),
-        custom_duration: Number(durTotal),
-        is_price_starting_from: startingFrom,
-        description,
-      });
+      const fd = new FormData();
+      fd.append('custom_price', Number(price));
+      fd.append('custom_duration', Number(durTotal));
+      fd.append('is_price_starting_from', startingFrom);
+      fd.append('description', description);
+      if (imageFile) fd.append('image', imageFile);
+      await onSave(ss.id, fd);
       onClose();
     } catch (e) {
       setErr(e.response?.data?.detail || 'Failed to save.');
@@ -111,6 +153,10 @@ function EditModal({ ss, onSave, onClose }) {
           />
         </label>
 
+        <div style={{ marginTop: 14 }}>
+          <ImgUpload current={ss.image_url} onChange={setImageFile} />
+        </div>
+
         <div style={m.btnRow}>
           <button style={m.cancelBtn} onClick={onClose}>Cancel</button>
           <button style={m.saveBtn} onClick={save} disabled={loading}>{loading ? 'Saving…' : 'Save Changes'}</button>
@@ -132,6 +178,7 @@ export default function OwnerServices() {
   const [editTarget, setEditTarget] = useState(null);
   const [showCreate, setShowCreate] = useState(false);
   const [form, setForm] = useState({ name: '', category: 'Hair', price: '', durTotal: 30, description: '', is_price_starting_from: false });
+  const [createImageFile, setCreateImageFile] = useState(null);
   const [creating, setCreating] = useState(false);
   const [removeTarget, setRemoveTarget] = useState(null);
   const [removing, setRemoving] = useState(false);
@@ -203,8 +250,8 @@ export default function OwnerServices() {
     } finally { setRemoving(false); }
   };
 
-  const saveEdit = async (ssId, data) => {
-    await api.patch(`/salons/${salon.id}/services/${ssId}/`, data);
+  const saveEdit = async (ssId, formData) => {
+    await api.patch(`/salons/${salon.id}/services/${ssId}/`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
     reload();
     flash('Service updated.');
   };
@@ -215,15 +262,19 @@ export default function OwnerServices() {
     if (Number(form.price) < 1) return setError('Price must be at least LKR 1.');
     setCreating(true); setError('');
     try {
-      await api.post(`/salons/${salon.id}/services/custom/`, {
-        name: form.name, category: form.category,
-        price: Number(form.price), duration: Number(form.durTotal),
-        description: form.description,
-        is_price_starting_from: form.is_price_starting_from,
-      });
+      const fd = new FormData();
+      fd.append('name', form.name);
+      fd.append('category', form.category);
+      fd.append('price', Number(form.price));
+      fd.append('duration', Number(form.durTotal));
+      fd.append('description', form.description);
+      fd.append('is_price_starting_from', form.is_price_starting_from);
+      if (createImageFile) fd.append('image', createImageFile);
+      await api.post(`/salons/${salon.id}/services/custom/`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
       reload();
       flash('Custom service created!');
       setForm({ name: '', category: 'Hair', price: '', durTotal: 30, description: '', is_price_starting_from: false });
+      setCreateImageFile(null);
       setShowCreate(false);
     } catch (e) {
       setError(e.response?.data?.detail || 'Failed to create service.');
@@ -362,6 +413,10 @@ export default function OwnerServices() {
             />
           </label>
 
+          <div style={{ marginTop: 14 }}>
+            <ImgUpload onChange={setCreateImageFile} />
+          </div>
+
           <button style={{ ...s.addBtn, opacity: creating ? 0.7 : 1, marginTop: 14 }} onClick={createCustom} disabled={creating}>
             {creating ? 'Creating…' : '✦ Create Service'}
           </button>
@@ -416,6 +471,12 @@ export default function OwnerServices() {
                     className="fade-up"
                   >
                     <div style={{ ...s.cardAccent, background: `linear-gradient(90deg, ${color}, ${color}44)` }} />
+                    {ss.image_url && (
+                      <div style={{ height: 100, overflow: 'hidden', position: 'relative' }}>
+                        <img src={ss.image_url} alt={ss.service_name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,.35) 0%, transparent 60%)' }} />
+                      </div>
+                    )}
                     <div style={s.cardBody}>
                       <div style={s.cardTop}>
                         <div>

@@ -72,12 +72,15 @@ class FavouriteSalon(models.Model):
 
 class Offer(models.Model):
     DISCOUNT_CHOICES = [('percentage', 'Percentage'), ('fixed', 'Fixed')]
+    OFFER_TYPE_CHOICES = [('discount', 'Discount'), ('custom', 'Custom Deal')]
 
     salon          = models.ForeignKey(Salon, on_delete=models.CASCADE, related_name='offers')
     title          = models.CharField(max_length=200)
     description    = models.TextField(blank=True)
-    discount_type  = models.CharField(max_length=20, choices=DISCOUNT_CHOICES, default='percentage')
-    discount_value = models.DecimalField(max_digits=10, decimal_places=2)
+    offer_type     = models.CharField(max_length=20, choices=OFFER_TYPE_CHOICES, default='discount')
+    discount_type  = models.CharField(max_length=20, choices=DISCOUNT_CHOICES, blank=True, default='percentage')
+    discount_value = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    custom_terms   = models.TextField(blank=True)
     start_date     = models.DateField()
     end_date       = models.DateField()
     is_active      = models.BooleanField(default=True)

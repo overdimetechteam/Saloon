@@ -1,3 +1,5 @@
+import secrets
+import string
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from rest_framework import serializers
@@ -82,28 +84,46 @@ class StaffMemberSelfSerializer(serializers.ModelSerializer):
 
 
 class StaffMemberCreateSerializer(serializers.Serializer):
-    """Owner creates a staff member + employee login account atomically."""
-    full_name  = serializers.CharField(max_length=255)
-    role       = serializers.ChoiceField(choices=StaffMember.ROLE_CHOICES)
-    bio        = serializers.CharField(required=False, allow_blank=True)
-    phone      = serializers.CharField(required=False, allow_blank=True)
+    """Owner creates a staff member + employee login account atomically.
+
+    password is optional — if omitted a random 8-char password is generated
+    and returned as generated_password in the response.
+    """
+    full_name   = serializers.CharField(max_length=255)
+    role        = serializers.ChoiceField(choices=StaffMember.ROLE_CHOICES)
+    bio         = serializers.CharField(required=False, allow_blank=True)
+    phone       = serializers.CharField(required=False, allow_blank=True)
     login_email = serializers.EmailField()
-    password   = serializers.CharField(min_length=6, write_only=True)
+    password    = serializers.CharField(min_length=6, write_only=True, required=False, allow_blank=True)
 
     def validate_login_email(self, value):
-        if User.objects.filter(email=value).exists():
-            raise serializers.ValidationError('An account with this email already exists.')
+        # Only block if this email already belongs to an employee account
+        if User.objects.filter(email=value, role='employee').exists():
+            raise serializers.ValidationError('This email is already used by another staff account.')
+        # Also block if the email belongs to a salon owner or admin
+        if User.objects.filter(email=value).exclude(role='client').exists():
+            raise serializers.ValidationError('This email belongs to an existing owner or admin account.')
         return value
+
+    @staticmethod
+    def _make_password():
+        alphabet = string.ascii_letters + string.digits
+        return ''.join(secrets.choice(alphabet) for _ in range(10))
 
     @transaction.atomic
     def create(self, validated_data):
         salon = self.context['salon']
+        raw_password = validated_data.get('password') or ''
+        generated = None
+        if not raw_password:
+            raw_password = self._make_password()
+            generated = raw_password
         user = User.objects.create_user(
             email=validated_data['login_email'],
             full_name=validated_data['full_name'],
             phone=validated_data.get('phone', ''),
             role='employee',
-            password=validated_data['password'],
+            password=raw_password,
         )
         staff = StaffMember.objects.create(
             salon=salon,
@@ -113,6 +133,7 @@ class StaffMemberCreateSerializer(serializers.Serializer):
             bio=validated_data.get('bio', ''),
             phone=validated_data.get('phone', ''),
         )
+        staff._generated_password = generated
         return staff
 
 
