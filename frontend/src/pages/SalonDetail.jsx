@@ -714,9 +714,11 @@ export default function SalonDetail() {
                             </div>
                             <button
                               onClick={e => { e.preventDefault(); e.stopPropagation(); setSvcImgPopup({ url: ss.image_url, name: ss.service_name }); }}
-                              style={{ flex: 1, padding: 0, border: 'none', cursor: 'zoom-in', overflow: 'hidden', display: 'block', borderRadius: '0 0 13px 0' }}
+                              style={{ padding: '0 10px 12px 4px', border: 'none', background: 'none', cursor: 'zoom-in', display: 'block' }}
                             >
-                              <img src={ss.image_url} alt={ss.service_name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                              <div style={{ width: 80, height: 80, borderRadius: 12, overflow: 'hidden', border: '1.5px solid var(--border)' }}>
+                                <img src={ss.image_url} alt={ss.service_name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                              </div>
                             </button>
                           </div>
                         )}
