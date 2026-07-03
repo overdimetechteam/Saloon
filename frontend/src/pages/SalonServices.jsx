@@ -154,6 +154,19 @@ export default function SalonServices() {
                           </div>
                         )}
 
+                        {/* Service image thumbnail */}
+                        {svc.image_url && (
+                          <div style={{
+                            width: isMobile ? 52 : 60, height: isMobile ? 52 : 60,
+                            borderRadius: 10, overflow: 'hidden', flexShrink: 0,
+                            border: `1.5px solid ${on ? catColor + '50' : 'var(--border)'}`,
+                            boxShadow: on ? `0 0 0 2px ${catColor}20` : 'none',
+                            transition: 'border-color .15s ease',
+                          }}>
+                            <img src={svc.image_url} alt={svc.service_name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                          </div>
+                        )}
+
                         {/* Name + duration */}
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ fontSize: isMobile ? 14 : 15, fontWeight: 600, color: on ? catColor : 'var(--text)', marginBottom: 2, lineHeight: 1.3 }}>
