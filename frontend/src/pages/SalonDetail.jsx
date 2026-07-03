@@ -679,31 +679,28 @@ export default function SalonDetail() {
                       </div>
                     ) : (
                       <div style={{ ...s.svcCard, width: 268, flexShrink: 0, cursor: isClient ? 'pointer' : 'default' }}>
-                        {/* Top row: name + image thumbnail */}
-                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                        {/* Name + duration at top */}
+                        <div>
                           <div style={s.svcName}>{ss.service_name}</div>
-                          {ss.image_url && (
-                            <button
-                              onClick={e => { e.preventDefault(); e.stopPropagation(); setSvcImgPopup({ url: ss.image_url, name: ss.service_name }); }}
-                              style={{
-                                flexShrink: 0, width: 56, height: 56, borderRadius: 10, overflow: 'hidden',
-                                border: `1.5px solid var(--border)`, padding: 0, cursor: 'zoom-in',
-                                marginLeft: 'auto', marginTop: -2,
-                              }}
-                            >
-                              <img src={ss.image_url} alt={ss.service_name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                            </button>
-                          )}
+                          <div style={{ ...s.svcDur, marginTop: 4 }}>⏱ {formatDuration(ss.effective_duration)}</div>
                         </div>
                         {ss.description ? (
                           <div style={s.svcDesc}>{ss.description}</div>
                         ) : null}
-                        <div style={s.svcMeta}>
-                          <span style={s.svcDur}>⏱ {formatDuration(ss.effective_duration)}</span>
+                        {/* Price + image thumbnail on same row */}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
                           <span style={{ ...s.svcPrice, background: `${activeCatColor}18`, color: activeCatColor, border: `1px solid ${activeCatColor}38`, padding: '3px 10px', borderRadius: 8 }}>
                             {ss.is_price_starting_from && <span style={s.svcStarting}>Starting From </span>}
                             LKR {ss.effective_price}
                           </span>
+                          {ss.image_url && (
+                            <button
+                              onClick={e => { e.preventDefault(); e.stopPropagation(); setSvcImgPopup({ url: ss.image_url, name: ss.service_name }); }}
+                              style={{ flexShrink: 0, width: 56, height: 56, borderRadius: 10, overflow: 'hidden', border: '1.5px solid var(--border)', padding: 0, cursor: 'zoom-in' }}
+                            >
+                              <img src={ss.image_url} alt={ss.service_name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                            </button>
+                          )}
                         </div>
                         {isClient && <div style={{ ...s.svcBookHint, color: pal.main }}>Tap to book →</div>}
                       </div>
