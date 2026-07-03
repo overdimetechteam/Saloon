@@ -131,62 +131,66 @@ export default function SalonServices() {
                           width: '100%', textAlign: 'left', cursor: isClient ? 'pointer' : 'default',
                           background: on ? `${catColor}0D` : 'var(--surface)',
                           border: `1.5px solid ${on ? catColor : 'var(--border)'}`,
-                          borderRadius: 12, padding: isMobile ? '12px 14px' : '14px 18px',
-                          display: 'flex', alignItems: 'center', gap: 12,
+                          borderRadius: 12, padding: 0, overflow: 'hidden',
+                          display: 'flex', flexDirection: svc.image_url ? 'column' : 'row',
+                          alignItems: svc.image_url ? 'stretch' : 'center',
+                          gap: svc.image_url ? 0 : 12,
                           transition: 'border-color .15s ease, background .15s ease',
                           boxShadow: on ? `0 0 0 3px ${catColor}14` : 'none',
                         }}
                       >
-                        {/* Checkbox */}
-                        {isClient && (
-                          <div style={{
-                            width: 20, height: 20, borderRadius: 6, flexShrink: 0,
-                            border: `2px solid ${on ? catColor : 'var(--border)'}`,
-                            background: on ? catColor : 'transparent',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            transition: 'all .15s ease',
-                          }}>
-                            {on && (
-                              <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
-                                <polyline points="2,6 5,9 10,3" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                              </svg>
-                            )}
-                          </div>
-                        )}
-
-                        {/* Service image thumbnail */}
+                        {/* Image banner — shown when image exists */}
                         {svc.image_url && (
-                          <div style={{
-                            width: isMobile ? 52 : 60, height: isMobile ? 52 : 60,
-                            borderRadius: 10, overflow: 'hidden', flexShrink: 0,
-                            border: `1.5px solid ${on ? catColor + '50' : 'var(--border)'}`,
-                            boxShadow: on ? `0 0 0 2px ${catColor}20` : 'none',
-                            transition: 'border-color .15s ease',
-                          }}>
+                          <div style={{ width: '100%', height: isMobile ? 140 : 160, flexShrink: 0, position: 'relative' }}>
                             <img src={svc.image_url} alt={svc.service_name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                            {/* bottom scrim so text below reads cleanly */}
+                            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,.18) 0%, transparent 60%)' }} />
                           </div>
                         )}
 
-                        {/* Name + duration */}
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: isMobile ? 14 : 15, fontWeight: 600, color: on ? catColor : 'var(--text)', marginBottom: 2, lineHeight: 1.3 }}>
-                            {svc.service_name}
-                          </div>
-                          {svc.description && (
-                            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 3, lineHeight: 1.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: isMobile ? 160 : 360 }}>
-                              {svc.description}
+                        {/* Row: checkbox + name/duration + price */}
+                        <div style={{
+                          display: 'flex', alignItems: 'center', gap: 12,
+                          padding: isMobile ? '12px 14px' : '14px 18px', flex: 1,
+                        }}>
+                          {/* Checkbox */}
+                          {isClient && (
+                            <div style={{
+                              width: 20, height: 20, borderRadius: 6, flexShrink: 0,
+                              border: `2px solid ${on ? catColor : 'var(--border)'}`,
+                              background: on ? catColor : 'transparent',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              transition: 'all .15s ease',
+                            }}>
+                              {on && (
+                                <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
+                                  <polyline points="2,6 5,9 10,3" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
+                              )}
                             </div>
                           )}
-                          <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                            ⏱ {formatDuration(svc.effective_duration)}
-                          </div>
-                        </div>
 
-                        {/* Price */}
-                        <div style={{ flexShrink: 0, textAlign: 'right' }}>
-                          <div style={{ fontSize: isMobile ? 13 : 14, fontWeight: 700, color: on ? catColor : 'var(--text)' }}>
-                            {svc.is_price_starting_from && <span style={{ fontSize: 10, fontWeight: 500, color: 'var(--text-muted)' }}>From </span>}
-                            LKR {Number(svc.effective_price).toLocaleString()}
+                          {/* Name + duration */}
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: isMobile ? 14 : 15, fontWeight: 600, color: on ? catColor : 'var(--text)', marginBottom: 2, lineHeight: 1.3 }}>
+                              {svc.service_name}
+                            </div>
+                            {svc.description && (
+                              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 3, lineHeight: 1.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: isMobile ? 160 : 360 }}>
+                                {svc.description}
+                              </div>
+                            )}
+                            <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                              ⏱ {formatDuration(svc.effective_duration)}
+                            </div>
+                          </div>
+
+                          {/* Price */}
+                          <div style={{ flexShrink: 0, textAlign: 'right' }}>
+                            <div style={{ fontSize: isMobile ? 13 : 14, fontWeight: 700, color: on ? catColor : 'var(--text)' }}>
+                              {svc.is_price_starting_from && <span style={{ fontSize: 10, fontWeight: 500, color: 'var(--text-muted)' }}>From </span>}
+                              LKR {Number(svc.effective_price).toLocaleString()}
+                            </div>
                           </div>
                         </div>
                       </button>
