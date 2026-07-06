@@ -16,6 +16,18 @@ const FAV_PALETTE = [
   'linear-gradient(135deg, #D4AF37 0%, #0D9488 100%)',
 ];
 
+const HERO_SYMBOLS = [
+  { e: '✂', top: '10%', right: '2%',  sz: 22, dur: 24, del: 0    },
+  { e: '✦', top: '30%', right: '8%',  sz: 17, dur: 20, del: -6   },
+  { e: '✿', top: '55%', right: '3%',  sz: 19, dur: 26, del: -10  },
+  { e: '♡', top: '75%', right: '12%', sz: 16, dur: 22, del: -14  },
+  { e: '✧', top: '15%', right: '20%', sz: 14, dur: 30, del: -4   },
+  { e: '◇', top: '40%', right: '26%', sz: 18, dur: 18, del: -8   },
+  { e: '✽', top: '65%', right: '16%', sz: 15, dur: 21, del: -12  },
+  { e: '✸', top: '20%', right: '36%', sz: 12, dur: 17, del: -3   },
+  { e: '✂', top: '85%', right: '20%', sz: 20, dur: 28, del: -18  },
+];
+
 export default function UserDashboard() {
   const { profile } = useAuth();
   const navigate = useNavigate();
@@ -52,6 +64,11 @@ export default function UserDashboard() {
       <div style={{ ...s.hero, padding: isMobile ? '28px 20px 24px' : '44px 44px 32px', flexDirection: isMobile ? 'column' : 'row' }} className="anim-gradient noise-bg">
         <div style={s.heroGlow1} />
         <div style={s.heroGlow2} />
+        <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 1 }}>
+          {HERO_SYMBOLS.map((em, i) => (
+            <span key={i} style={{ position: 'absolute', top: em.top, right: em.right, fontSize: em.sz, color: '#fff', animation: `salonEmojiFloat ${em.dur}s linear ${em.del}s infinite`, userSelect: 'none' }}>{em.e}</span>
+          ))}
+        </div>
         <div style={s.heroContent} className="fade-up">
           <div style={s.greeting}>{GREETING}</div>
           <h1 style={s.heroName}>
@@ -316,7 +333,7 @@ const s = {
     background: 'radial-gradient(circle, rgba(212,175,55,.12) 0%, transparent 70%)',
     bottom: -60, left: 40, pointerEvents: 'none', filter: 'blur(50px)',
   },
-  heroContent: { position: 'relative', zIndex: 2, flex: 1 },
+  heroContent: { position: 'relative', zIndex: 2, flex: 1, minWidth: 0 },
   greeting: { fontSize: 12, color: 'rgba(153,246,228,.75)', letterSpacing: '0.14em', marginBottom: 10, textTransform: 'uppercase', fontWeight: 500 },
   heroName: { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 'clamp(34px, 4vw, 52px)', fontWeight: 700, color: '#fff', margin: '0 0 10px', lineHeight: 1.05, display: 'flex', alignItems: 'center', gap: 14, letterSpacing: '-0.02em' },
   wave:    { fontSize: 20, color: '#C9A96E', animation: 'floatBob 3s ease-in-out infinite' },
@@ -326,7 +343,7 @@ const s = {
   ghostBtn:   { padding: '12px 20px', background: 'rgba(255,255,255,.1)', color: 'rgba(255,255,255,.8)', borderRadius: 12, fontWeight: 500, fontSize: 14, textDecoration: 'none', border: '1px solid rgba(255,255,255,.14)', transition: 'background .18s ease' },
   /* Desktop: stats column on right side of hero */
   heroStatsCol: {
-    position: 'relative', zIndex: 2, flexShrink: 0,
+    position: 'relative', zIndex: 2, flexShrink: 0, minWidth: 0,
     display: 'flex', flexDirection: 'column',
     background: 'rgba(255,255,255,.06)', backdropFilter: 'blur(12px)',
     border: '1px solid rgba(255,255,255,.1)',

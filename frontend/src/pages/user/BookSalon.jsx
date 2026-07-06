@@ -73,7 +73,7 @@ export default function BookSalon() {
   useEffect(() => {
     if (!date) return;
     const dayName = new Date(date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
-    if (staffId !== null) {
+    if (staffId !== null && staffId !== 0) {
       const staff = staffList.find(m => m.id === staffId);
       if (staff && staff.working_days?.length && !staff.working_days.includes(dayName)) {
         setStaffId(null);
@@ -84,7 +84,7 @@ export default function BookSalon() {
     const totalDuration = services
       .filter(s => selected.includes(s.id))
       .reduce((sum, s) => sum + (s.effective_duration || 0), 0);
-    const staffParam    = staffId !== null ? `&staff_id=${staffId}` : '';
+    const staffParam    = staffId !== null && staffId !== 0 ? `&staff_id=${staffId}` : '';
     const durationParam = totalDuration > 0 ? `&duration=${totalDuration}` : '';
     api.get(`/salons/${salonId}/calendar/available-slots/?date=${date}${staffParam}${durationParam}`)
       .then(r => { if (slotReqId.current === reqId) setSlots(r.data.slots || []); })
@@ -112,7 +112,7 @@ export default function BookSalon() {
         const ss = services.find(s => s.id === id);
         return ss?.home_visit_available;
       }));
-      if (staffId !== null) {
+      if (staffId !== null && staffId !== 0) {
         const currentStaff = staffList.find(m => m.id === staffId);
         if (!currentStaff?.home_visit_available) setStaffId(null);
       }
@@ -137,7 +137,7 @@ export default function BookSalon() {
     e.preventDefault(); setError('');
     if (selected.length === 0) return setError('Please select at least one service');
     if (!slot) return setError('Please select a time slot');
-    if (staffId === null) return setError('Please select a specific professional — "Any Available" is no longer supported.');
+    if (staffId === null) return setError('Please select a professional to continue.');
     if (homeVisit && (!hvStreet.trim() || !hvCity.trim() || !hvDistrict.trim() || !hvPostal.trim())) return setError('Please fill in all address fields for the home visit');
     setSubmitting(true);
     const hvAddress = homeVisit ? `${hvStreet.trim()}, ${hvCity.trim()}, ${hvDistrict.trim()} ${hvPostal.trim()}` : '';
@@ -149,7 +149,7 @@ export default function BookSalon() {
         notes,
         home_visit: homeVisit,
         home_visit_address: hvAddress,
-        ...(staffId !== null ? { staff_member_id: staffId } : {}),
+        ...(staffId !== null && staffId !== 0 ? { staff_member_id: staffId } : {}),
         ...(promoResult?.valid ? { promo_id: promoResult.promo_id } : {}),
       };
       const res = await api.post('/bookings/', payload);
@@ -216,8 +216,8 @@ export default function BookSalon() {
   const total = selectedServices.reduce((sum, ss) => sum + Number(ss.effective_price), 0);
   const discount = promoResult?.valid ? Number(promoResult.discount_amount) : 0;
   const finalTotal = Math.max(0, total - discount);
-  const selectedStaffMember = staffId === null ? null : staffList.find(m => m.id === staffId);
-  const selectedStaffName = selectedStaffMember ? `${selectedStaffMember.full_name} · ${selectedStaffMember.role?.charAt(0).toUpperCase()}${selectedStaffMember.role?.slice(1) || ''}` : '';
+  const selectedStaffMember = (staffId === null || staffId === 0) ? null : staffList.find(m => m.id === staffId);
+  const selectedStaffName = staffId === 0 ? 'Any Available' : (selectedStaffMember ? `${selectedStaffMember.full_name} · ${selectedStaffMember.role?.charAt(0).toUpperCase()}${selectedStaffMember.role?.slice(1) || ''}` : '');
 
   const hvAddressFilled = !homeVisit || (hvStreet.trim() && hvCity.trim() && hvDistrict.trim() && hvPostal.trim());
   const stepDone = [selected.length > 0 && hvAddressFilled, !!date && !!slot && staffId !== null, true];
@@ -326,7 +326,7 @@ export default function BookSalon() {
                 </div>
                 <div>
                   <div style={conf.detailLabel}>Professional</div>
-                  <div style={conf.detailVal}>{(() => { const m = staffList.find(x => x.id === staffId); return m ? `${m.full_name} · ${m.role?.charAt(0).toUpperCase()}${m.role?.slice(1) || ''}` : ''; })()}</div>
+                  <div style={conf.detailVal}>{staffId === 0 ? 'Any Available' : (() => { const m = staffList.find(x => x.id === staffId); return m ? `${m.full_name} · ${m.role?.charAt(0).toUpperCase()}${m.role?.slice(1) || ''}` : ''; })()}</div>
                 </div>
               </div>
             )}
@@ -530,8 +530,19 @@ export default function BookSalon() {
               {/* Compact professional selector */}
               {!staffLoading && (
                 <div style={s.proRow}>
-                  <span style={s.proLabel}>★ Professional{homeVisit ? ' (Home Visit)' : ''} * <span style={{ color: '#DC2626' }}>Required</span></span>
+                  <span style={s.proLabel}>★ Professional{homeVisit ? ' (Home Visit)' : ''}</span>
                   <div style={s.proChips}>
+                    {/* Any Available option */}
+                    {displayStaff.length > 0 && (
+                      <button
+                        type="button"
+                        style={{ ...s.proChip, ...(isMobile ? { padding: '6px 10px', fontSize: 12 } : {}), ...(staffId === 0 ? { ...s.proChipOn, background: `rgba(${R},.08)`, color: pal.main, borderColor: `${pal.main}50` } : {}) }}
+                        onClick={() => setStaffId(0)}
+                      >
+                        Any Available
+                        <span style={{ fontSize: 10, opacity: 0.7, marginLeft: 4 }}>· assign me one</span>
+                      </button>
+                    )}
                     {displayStaff.map((m, i) => {
                       const roleLabel = m.role ? m.role.charAt(0).toUpperCase() + m.role.slice(1) : '';
                       return (
