@@ -777,9 +777,15 @@ export default function SalonDetail() {
                 const daysLeft = Math.ceil((new Date(o.end_date) - new Date()) / 86400000);
                 return (
                   <div key={o.id} style={{ ...s.offerCard, borderLeft: `4px solid ${oc}` }}>
-                    <div style={{ ...s.offerDiscount, color: oc }}>
-                      {o.discount_value}{o.discount_type === 'percentage' ? '%' : ' LKR'} off
-                    </div>
+                    {o.offer_type === 'custom' ? (
+                      <div style={{ ...s.offerDiscount, fontSize: 13, fontWeight: 700, color: oc, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
+                        Custom Deal
+                      </div>
+                    ) : (
+                      <div style={{ ...s.offerDiscount, color: oc }}>
+                        {o.discount_value}{o.discount_type === 'percentage' ? '%' : ' LKR'} off
+                      </div>
+                    )}
                     <div style={s.offerCardTitle}>{o.title}</div>
                     {o.description && <p style={s.offerDesc}>{o.description}</p>}
                     {o.note && <div style={s.offerNote}>💬 {o.note}</div>}
