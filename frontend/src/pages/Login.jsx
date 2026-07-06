@@ -1,16 +1,24 @@
 ﻿import { useState, useEffect } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { useBreakpoint } from '../hooks/useMobile';
 import { useGoogleLogin } from '@react-oauth/google';
 import api from '../api/axios';
 
 export default function Login() {
   const { login, socialLogin, profile } = useAuth();
+  const { setForcedLight } = useTheme();
   const navigate  = useNavigate();
   const [searchParams] = useSearchParams();
   const nextPath = searchParams.get('next') || null;
   const { isMobile, isTablet } = useBreakpoint();
+
+  // Force light mode on this page; restore user preference when leaving
+  useEffect(() => {
+    setForcedLight(true);
+    return () => setForcedLight(false);
+  }, [setForcedLight]);
   const [form, setForm]         = useState({ email: '', password: '' });
   const [showPw, setShowPw]     = useState(false);
   const [error, setError]       = useState('');
