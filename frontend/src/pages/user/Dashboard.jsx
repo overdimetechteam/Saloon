@@ -1,5 +1,5 @@
 ﻿import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
 import { STATUS_META } from '../../styles/theme';
@@ -18,6 +18,7 @@ const FAV_PALETTE = [
 
 export default function UserDashboard() {
   const { profile } = useAuth();
+  const navigate = useNavigate();
   const { isMobile, isTablet } = useBreakpoint();
   const [bookings,   setBookings]   = useState([]);
   const [favourites, setFavourites] = useState([]);
@@ -246,7 +247,7 @@ export default function UserDashboard() {
             const meta = STATUS_META[b.status] || { label: b.status, color: '#888', bg: '#f0f0f0' };
             const dt   = new Date(b.requested_datetime.slice(0, 19));
             return (
-              <div key={b.id} style={s.card} className={`lift lift-purple card-glow fade-up d${Math.min(i + 1, 5)}`}>
+              <div key={b.id} style={{ ...s.card, cursor: 'pointer' }} className={`lift lift-purple card-glow fade-up d${Math.min(i + 1, 5)}`} onClick={() => navigate(`/user/bookings/${b.id}`)}>
                 <div style={{ ...s.cardAccent, background: `linear-gradient(90deg, ${meta.color}, ${meta.color}66)` }} />
 
                 <div style={s.cardInner}>
@@ -281,9 +282,14 @@ export default function UserDashboard() {
                   </div>
                 )}
 
-                <Link to={`/user/bookings/${b.id}`} style={s.cardLink}>
-                  View Details <span style={s.linkArrow}>→</span>
-                </Link>
+                <div style={{ display: 'flex', borderTop: '1px solid var(--border)' }}>
+                  <button
+                    style={{ flex: 1, padding: '11px 22px', fontSize: 13, fontWeight: 600, color: '#0D9488', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}
+                    onClick={e => { e.stopPropagation(); navigate(`/salons/${b.salon}`); }}
+                  >
+                    ↗ Go to Salon
+                  </button>
+                </div>
               </div>
             );
           })}

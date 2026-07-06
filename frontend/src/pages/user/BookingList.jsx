@@ -118,8 +118,9 @@ export default function UserBookingList() {
           return (
             <div
               key={b.id}
-              style={{ ...s.card, flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'stretch' : 'center' }}
+              style={{ ...s.card, flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'stretch' : 'center', cursor: 'pointer' }}
               className={`lift-sm fade-up d${Math.min(i + 1, 5)}`}
+              onClick={() => navigate(`/user/bookings/${b.id}`)}
             >
               {/* Top color accent bar (mobile) / Left bar (desktop) */}
               <div style={isMobile
@@ -161,19 +162,19 @@ export default function UserBookingList() {
                       <span style={s.roundTag}>Round {b.negotiation_round}/5</span>
                     )}
                     {b.status === 'completed' && (
-                      <button style={s.rebookBtn} onClick={() => rebook(b.id)}>↩ Book Again</button>
+                      <button style={s.rebookBtn} onClick={e => { e.stopPropagation(); rebook(b.id); }}>↩ Book Again</button>
                     )}
                     {!['cancelled','completed','flagged'].includes(b.status) && (
                       cancelId === b.id ? (
                         <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                          <button style={{ ...s.cancelBtn, background: '#DC2626', color: '#fff', border: 'none', fontSize: 11, padding: '4px 10px' }} onClick={() => cancelBooking(b.id)}>Confirm</button>
-                          <button style={{ ...s.cancelBtn, fontSize: 11, padding: '4px 10px' }} onClick={() => setCancelId(null)}>No</button>
+                          <button style={{ ...s.cancelBtn, background: '#DC2626', color: '#fff', border: 'none', fontSize: 11, padding: '4px 10px' }} onClick={e => { e.stopPropagation(); cancelBooking(b.id); }}>Confirm</button>
+                          <button style={{ ...s.cancelBtn, fontSize: 11, padding: '4px 10px' }} onClick={e => { e.stopPropagation(); setCancelId(null); }}>No</button>
                         </div>
                       ) : (
-                        <button style={s.cancelBtn} onClick={() => setCancelId(b.id)}>✕ Cancel</button>
+                        <button style={s.cancelBtn} onClick={e => { e.stopPropagation(); setCancelId(b.id); }}>✕ Cancel</button>
                       )
                     )}
-                    <Link to={`/user/bookings/${b.id}`} style={s.detailBtn}>Details →</Link>
+                    <button style={s.goSalonBtn} onClick={e => { e.stopPropagation(); navigate(`/salons/${b.salon}`); }}>↗ Go to Salon</button>
                   </div>
                 )}
               </div>
@@ -185,19 +186,19 @@ export default function UserBookingList() {
                   </span>
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                     {b.status === 'completed' && (
-                      <button style={s.rebookBtn} onClick={() => rebook(b.id)}>↩ Book Again</button>
+                      <button style={s.rebookBtn} onClick={e => { e.stopPropagation(); rebook(b.id); }}>↩ Book Again</button>
                     )}
                     {!['cancelled','completed','flagged'].includes(b.status) && (
                       cancelId === b.id ? (
                         <>
-                          <button style={{ ...s.cancelBtn, background: '#DC2626', color: '#fff', border: 'none', fontSize: 11, padding: '5px 10px' }} onClick={() => cancelBooking(b.id)}>Confirm Cancel</button>
-                          <button style={{ ...s.cancelBtn, fontSize: 11, padding: '5px 10px' }} onClick={() => setCancelId(null)}>No</button>
+                          <button style={{ ...s.cancelBtn, background: '#DC2626', color: '#fff', border: 'none', fontSize: 11, padding: '5px 10px' }} onClick={e => { e.stopPropagation(); cancelBooking(b.id); }}>Confirm Cancel</button>
+                          <button style={{ ...s.cancelBtn, fontSize: 11, padding: '5px 10px' }} onClick={e => { e.stopPropagation(); setCancelId(null); }}>No</button>
                         </>
                       ) : (
-                        <button style={s.cancelBtn} onClick={() => setCancelId(b.id)}>✕ Cancel</button>
+                        <button style={s.cancelBtn} onClick={e => { e.stopPropagation(); setCancelId(b.id); }}>✕ Cancel</button>
                       )
                     )}
-                    <Link to={`/user/bookings/${b.id}`} style={s.detailBtn}>Details →</Link>
+                    <button style={s.goSalonBtn} onClick={e => { e.stopPropagation(); navigate(`/salons/${b.salon}`); }}>↗ Go to Salon</button>
                   </div>
                 </div>
               )}
@@ -336,5 +337,11 @@ const s = {
     fontSize: 12, color: '#DC2626', fontWeight: 600,
     padding: '5px 12px', background: '#FEF2F2', border: '1px solid #FECACA',
     borderRadius: 8, cursor: 'pointer', transition: 'background .15s ease',
+  },
+  goSalonBtn: {
+    fontSize: 12, color: '#0D9488', fontWeight: 700,
+    padding: '5px 12px', background: 'rgba(13,148,136,.08)', border: '1px solid rgba(13,148,136,.2)',
+    borderRadius: 8, cursor: 'pointer', transition: 'background .15s ease',
+    textDecoration: 'none',
   },
 };

@@ -1,5 +1,5 @@
 ﻿import { useState, useEffect, useRef } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
@@ -65,6 +65,7 @@ function Stars({ rating, size = 14 }) {
 export default function SalonDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { profile } = useAuth();
   const { setNavPalette } = useTheme();
   const { isMobile, isTablet } = useBreakpoint();
@@ -121,6 +122,15 @@ export default function SalonDetail() {
     obs.observe(el);
     return () => obs.disconnect();
   }, [salon]);
+
+  // Auto-scroll to reviews when navigated via email link /salons/:id/reviews
+  useEffect(() => {
+    if (!salon || !reviewsRef.current) return;
+    if (location.pathname.endsWith('/reviews')) {
+      const t = setTimeout(() => reviewsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 400);
+      return () => clearTimeout(t);
+    }
+  }, [salon, location.pathname]);
 
   const toggleFav = async () => {
     if (!profile || profile.role !== 'client') return;
@@ -930,7 +940,7 @@ export default function SalonDetail() {
             </div>
           ) : (
             <div style={{ ...s.reviewGrid, gridTemplateColumns: isMobile ? '1fr' : isTablet ? 'repeat(2,1fr)' : 'repeat(auto-fill,minmax(290px,1fr))' }}>
-              {(showAllReviews ? reviews : reviews.slice(0, 5)).map((r, i) => (
+              {reviews.slice(0, 5).map((r, i) => (
                 <div key={r.id} style={s.reviewCard} className={`lift-sm fade-up d${i + 1}`}>
                   <div style={s.reviewTop}>
                     <div style={{ ...s.reviewAvatar, background: pal.main }}>{(r.client_name || 'A')[0].toUpperCase()}</div>
@@ -949,12 +959,54 @@ export default function SalonDetail() {
           {reviews.length > 5 && (
             <div style={{ textAlign: 'center', marginTop: 20 }}>
               <button
-                style={{ padding: '9px 22px', background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600, color: 'var(--text-muted)', fontFamily: "'DM Sans', sans-serif" }}
-                onClick={() => setShowAllReviews(v => !v)}
+                style={{ padding: '9px 22px', background: `rgba(${R},.07)`, border: `1px solid rgba(${R},.18)`, borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 700, color: pal.main, fontFamily: "'DM Sans', sans-serif" }}
+                onClick={() => setShowAllReviews(true)}
               >
-                {showAllReviews ? 'Show less' : `Show all ${reviews.length} reviews`}
+                See all {reviews.length} reviews →
               </button>
             </div>
+          )}
+
+          {/* All reviews modal */}
+          {showAllReviews && createPortal(
+            <div
+              style={{ position: 'fixed', inset: 0, zIndex: 500, background: 'rgba(0,0,0,.7)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
+              onClick={() => setShowAllReviews(false)}
+            >
+              <div
+                style={{ background: 'var(--surface)', borderRadius: 22, padding: isMobile ? '20px 18px' : '28px 32px', maxWidth: 620, width: '100%', maxHeight: '85vh', display: 'flex', flexDirection: 'column', border: '1px solid var(--border)', boxShadow: '0 32px 80px rgba(0,0,0,.35)' }}
+                onClick={e => e.stopPropagation()}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexShrink: 0 }}>
+                  <div>
+                    <div style={{ fontFamily: "'Cormorant Garamond',Georgia,serif", fontSize: 22, fontWeight: 700, color: 'var(--text)' }}>All Reviews</div>
+                    {summary && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+                        <Stars rating={Math.round(summary.average_rating)} size={13} />
+                        <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{summary.average_rating.toFixed(1)} · {reviews.length} review{reviews.length !== 1 ? 's' : ''}</span>
+                      </div>
+                    )}
+                  </div>
+                  <button onClick={() => setShowAllReviews(false)} style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--surface2)', border: '1px solid var(--border)', cursor: 'pointer', fontSize: 14, fontWeight: 700, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+                </div>
+                <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {reviews.map(r => (
+                    <div key={r.id} style={{ ...s.reviewCard, margin: 0 }}>
+                      <div style={s.reviewTop}>
+                        <div style={{ ...s.reviewAvatar, background: pal.main }}>{(r.client_name || 'A')[0].toUpperCase()}</div>
+                        <div style={{ flex: 1 }}>
+                          <div style={s.reviewName}>{r.client_name || 'Anonymous'}</div>
+                          <div style={s.reviewDate}>{new Date(r.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</div>
+                        </div>
+                        <Stars rating={r.rating} size={13} />
+                      </div>
+                      {r.comment && <p style={s.reviewText}>"{r.comment}"</p>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>,
+            document.body
           )}
 
           {isClient && (

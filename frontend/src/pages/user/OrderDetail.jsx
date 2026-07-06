@@ -115,8 +115,31 @@ export default function UserOrderDetail() {
   const [loading, setLoading]     = useState(true);
   const [err, setErr]             = useState('');
   const [lastUpdated, setLastUpdated] = useState(null);
+  const [reviews, setReviews]     = useState({});
   const intervalRef               = useRef(null);
   const orderRef                  = useRef(null);
+
+  const submitReview = async (productId) => {
+    const rev = reviews[productId];
+    if (!rev || rev.rating === 0) return;
+    setReviews(prev => ({ ...prev, [productId]: { ...prev[productId], submitting: true, error: '' } }));
+    try {
+      const fd = new FormData();
+      fd.append('rating', rev.rating);
+      if (rev.comment) fd.append('comment', rev.comment);
+      rev.photos.slice(0, 5).forEach((p, i) => fd.append(`photo_${i + 1}`, p.file));
+      await api.post(`/salons/${salonId}/cosmetics/${productId}/reviews/`, fd, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      setReviews(prev => ({ ...prev, [productId]: { ...prev[productId], submitted: true, submitting: false } }));
+    } catch (e) {
+      const msg = e.response?.data?.detail || Object.values(e.response?.data || {})[0] || 'Failed to submit review.';
+      setReviews(prev => ({ ...prev, [productId]: { ...prev[productId], submitting: false, error: Array.isArray(msg) ? msg[0] : msg } }));
+    }
+  };
+
+  const setRevField = (productId, patch) =>
+    setReviews(prev => ({ ...prev, [productId]: { ...(prev[productId] || { rating: 0, comment: '', photos: [], submitting: false, submitted: false, error: '' }), ...patch } }));
 
   const fetchOrder = useCallback(async (initial = false) => {
     if (!salonId) return;
@@ -249,12 +272,117 @@ export default function UserOrderDetail() {
 
       {/* Delivery info */}
       {order.delivery_type === 'delivery' && (
-        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, padding: 22 }}>
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, padding: 22, marginBottom: 20 }}>
           <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 14 }}>Delivery Address</div>
           <div style={{ fontSize: 14, color: 'var(--text)', lineHeight: 1.7 }}>
             <div>{order.delivery_address}</div>
             <div>{[order.delivery_city, order.delivery_postal].filter(Boolean).join(', ')}</div>
           </div>
+        </div>
+      )}
+
+      {/* Product reviews — shown only once delivered */}
+      {order.status === 'delivered' && (order.items || []).some(item => item.product) && (
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, padding: isMobile ? 18 : 24 }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 20 }}>
+            Rate Your Products
+          </div>
+          {(order.items || []).filter(item => item.product).map((item, idx, arr) => {
+            const rev = reviews[item.product] || { rating: 0, comment: '', photos: [], submitting: false, submitted: false, error: '' };
+            if (rev.submitted) {
+              return (
+                <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', background: 'rgba(22,163,74,.06)', border: '1px solid rgba(22,163,74,.18)', borderRadius: 12, marginBottom: idx < arr.length - 1 ? 14 : 0 }}>
+                  <span style={{ fontSize: 22 }}>✅</span>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: 13, color: '#16A34A' }}>Review submitted!</div>
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>{item.product_name}</div>
+                  </div>
+                </div>
+              );
+            }
+            return (
+              <div key={item.id} style={{ marginBottom: idx < arr.length - 1 ? 24 : 0, paddingBottom: idx < arr.length - 1 ? 24 : 0, borderBottom: idx < arr.length - 1 ? '1px solid var(--border)' : 'none' }}>
+                <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--text)', marginBottom: 12 }}>{item.product_name}</div>
+
+                {/* Stars */}
+                <div style={{ display: 'flex', gap: 4, marginBottom: 14 }}>
+                  {[1,2,3,4,5].map(star => (
+                    <button
+                      key={star}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px 3px', fontSize: 28, color: star <= rev.rating ? '#F59E0B' : 'var(--border)', lineHeight: 1, transition: 'color .12s ease' }}
+                      onClick={() => setRevField(item.product, { rating: star })}
+                    >★</button>
+                  ))}
+                  {rev.rating > 0 && (
+                    <span style={{ alignSelf: 'center', marginLeft: 6, fontSize: 12, color: 'var(--text-muted)', fontWeight: 600 }}>
+                      {['','Poor','Fair','Good','Great','Excellent'][rev.rating]}
+                    </span>
+                  )}
+                </div>
+
+                {/* Comment */}
+                <textarea
+                  style={{ width: '100%', minHeight: 76, padding: '10px 14px', borderRadius: 10, border: '1px solid var(--border)', background: 'var(--surface2)', color: 'var(--text)', fontSize: 13, fontFamily: "'DM Sans', sans-serif", resize: 'vertical', outline: 'none', boxSizing: 'border-box', transition: 'border-color .15s ease' }}
+                  placeholder="Share your experience with this product…"
+                  value={rev.comment}
+                  onChange={e => setRevField(item.product, { comment: e.target.value })}
+                />
+
+                {/* Photo uploads */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
+                  {rev.photos.map((p, i) => (
+                    <div key={i} style={{ position: 'relative', width: 60, height: 60, borderRadius: 8, overflow: 'hidden', border: '1px solid var(--border)', flexShrink: 0 }}>
+                      <img src={p.url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <button
+                        style={{ position: 'absolute', top: 2, right: 2, width: 18, height: 18, borderRadius: '50%', background: 'rgba(0,0,0,.65)', border: 'none', color: '#fff', fontSize: 9, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, lineHeight: 1 }}
+                        onClick={() => {
+                          URL.revokeObjectURL(p.url);
+                          setRevField(item.product, { photos: rev.photos.filter((_, j) => j !== i) });
+                        }}
+                      >✕</button>
+                    </div>
+                  ))}
+                  {rev.photos.length < 5 && (
+                    <label style={{ width: 60, height: 60, borderRadius: 8, border: '1.5px dashed var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 24, color: 'var(--text-muted)', flexShrink: 0 }}>
+                      +
+                      <input
+                        type="file" accept="image/*" multiple style={{ display: 'none' }}
+                        onChange={e => {
+                          const newFiles = Array.from(e.target.files)
+                            .slice(0, 5 - rev.photos.length)
+                            .map(f => ({ file: f, url: URL.createObjectURL(f) }));
+                          setRevField(item.product, { photos: [...rev.photos, ...newFiles] });
+                          e.target.value = '';
+                        }}
+                      />
+                    </label>
+                  )}
+                  {rev.photos.length > 0 && (
+                    <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{rev.photos.length}/5 photos</span>
+                  )}
+                </div>
+
+                {rev.error && (
+                  <div style={{ color: '#DC2626', fontSize: 12, marginTop: 8, padding: '7px 12px', background: '#FEF2F2', borderRadius: 8 }}>{rev.error}</div>
+                )}
+
+                <button
+                  style={{
+                    marginTop: 14, padding: '10px 24px', borderRadius: 10,
+                    background: rev.rating === 0 ? 'var(--surface2)' : 'linear-gradient(135deg,#0D9488,#14B8A8)',
+                    color: rev.rating === 0 ? 'var(--text-muted)' : '#fff',
+                    border: 'none', cursor: rev.rating === 0 ? 'not-allowed' : 'pointer',
+                    fontWeight: 700, fontSize: 13, transition: 'opacity .15s ease',
+                    opacity: rev.submitting ? 0.7 : 1,
+                  }}
+                  disabled={rev.rating === 0 || rev.submitting}
+                  onClick={() => submitReview(item.product)}
+                >
+                  {rev.submitting ? 'Submitting…' : '★ Submit Review'}
+                </button>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

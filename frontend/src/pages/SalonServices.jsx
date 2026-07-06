@@ -206,7 +206,7 @@ export default function SalonServices() {
       {/* ── Sticky bottom bar — always visible for clients ── */}
       {isClient && (
         <div style={{
-          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 90,
+          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 310,
           background: 'var(--surface)', borderTop: `1.5px solid ${selected.size > 0 ? pal.main + '40' : 'var(--border)'}`,
           padding: isMobile ? '10px 16px' : '12px 24px',
           display: 'flex', alignItems: 'center', gap: 12,
