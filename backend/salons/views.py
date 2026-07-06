@@ -739,57 +739,14 @@ class ClientFavouritesView(APIView):
 
 
 class SalonReviewListView(APIView):
-
-    def get_permissions(self):
-        if self.request.method == 'POST':
-            return [IsAuthenticated()]
-        return [AllowAny()]
+    permission_classes = [AllowAny]
 
     def get(self, request, pk):
         from bookings.models import Review
         from bookings.serializers import ReviewSerializer
         salon = get_object_or_404(Salon, pk=pk)
-        reviews = Review.objects.filter(salon=salon).select_related('client').order_by('-created_at')[:50]
+        reviews = Review.objects.filter(salon=salon).select_related('client').order_by('-created_at')[:20]
         return Response(ReviewSerializer(reviews, many=True).data)
-
-    def post(self, request, pk):
-        from bookings.models import Booking, Review
-        from bookings.serializers import ReviewSerializer
-        salon = get_object_or_404(Salon, pk=pk)
-
-        if request.user.role != 'client':
-            return Response({'detail': 'Only clients can leave reviews.'}, status=status.HTTP_403_FORBIDDEN)
-
-        # Find most recent completed booking at this salon with no review yet
-        booking = (
-            Booking.objects
-            .filter(client=request.user, salon=salon, status='completed', review__isnull=True)
-            .order_by('-created_at')
-            .first()
-        )
-        if not booking:
-            return Response(
-                {'detail': 'You need a completed booking at this salon to leave a review, or you have already reviewed all your visits.'},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        rating = request.data.get('rating')
-        comment = request.data.get('comment', '')
-        try:
-            rating = int(rating)
-            if not 1 <= rating <= 5:
-                raise ValueError
-        except (TypeError, ValueError):
-            return Response({'detail': 'Rating must be an integer between 1 and 5.'}, status=status.HTTP_400_BAD_REQUEST)
-
-        review = Review.objects.create(
-            booking=booking,
-            client=request.user,
-            salon=salon,
-            rating=rating,
-            comment=comment,
-        )
-        return Response(ReviewSerializer(review).data, status=status.HTTP_201_CREATED)
 
 
 class SalonReviewSummaryView(APIView):

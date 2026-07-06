@@ -526,10 +526,22 @@ class BookingListCreateView(APIView):
         service_objs_for_dur = SalonService.objects.filter(id__in=service_ids)
         new_duration = sum(ss.effective_duration for ss in service_objs_for_dur) or 30
 
-        if staff_member and _has_schedule_conflict(staff_member, requested_dt, new_duration):
-            return Response({'detail': 'This professional is already booked during that time.'}, status=status.HTTP_409_CONFLICT)
-        elif not staff_member and _is_slot_taken(salon, requested_dt):
-            return Response({'detail': 'Slot already taken'}, status=status.HTTP_409_CONFLICT)
+        if staff_member:
+            if _has_schedule_conflict(staff_member, requested_dt, new_duration):
+                return Response({'detail': 'This professional is already booked during that time.'}, status=status.HTTP_409_CONFLICT)
+        else:
+            # "Any Available" — only reject if every active staff member is busy at that time
+            active_staff = StaffMember.objects.filter(salon=salon, is_active=True)
+            if active_staff.exists():
+                any_free = any(
+                    not _has_schedule_conflict(sm, requested_dt, new_duration)
+                    for sm in active_staff
+                )
+                if not any_free:
+                    return Response(
+                        {'detail': 'No staff available at this time. Please choose a different slot.'},
+                        status=status.HTTP_409_CONFLICT,
+                    )
 
         promo = None
         discount_amount = 0

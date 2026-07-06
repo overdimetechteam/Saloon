@@ -46,12 +46,12 @@ function SalonCard({ salon, i, isFav, col, numCols, isMobile }) {
         transition={{ duration: 0.38, ease: [0.16, 1, 0.3, 1], delay: i * 0.04 }}
       >
         <Link to={`/salons/${salon.id}`} style={{ ...s.rowCard, ...(isFav ? s.cardFav : {}) }}>
-          {/* Thumbnail */}
+          {/* Thumbnail — profile pic first on mobile */}
           <div style={{ ...s.rowThumb, background: `linear-gradient(145deg, ${c1}, ${c2})`, overflow: 'hidden', flexShrink: 0 }}>
-            {coverPhoto
-              ? <img src={coverPhoto} alt={salon.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-              : salon.logo_url
-                ? <img src={salon.logo_url} alt={salon.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+            {salon.logo_url
+              ? <img src={salon.logo_url} alt={salon.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+              : coverPhoto
+                ? <img src={coverPhoto} alt={salon.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                 : <span style={{ fontSize: 22, fontWeight: 700, color: '#fff', fontFamily: "'Cormorant Garamond',Georgia,serif" }}>{salon.name[0].toUpperCase()}</span>
             }
           </div>
