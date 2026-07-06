@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useSearchParams, Link } from 'react-router-dom';
 import api from '../../api/axios';
 import { useIsMobile } from '../../hooks/useMobile';
+
+const TERMINAL = new Set(['delivered', 'cancelled']);
 
 const STEPS = [
   { key: 'pending',          label: 'Order Placed',     desc: 'We received your order!',                  icon: '📋' },
@@ -112,14 +114,51 @@ export default function UserOrderDetail() {
   const [order, setOrder]         = useState(null);
   const [loading, setLoading]     = useState(true);
   const [err, setErr]             = useState('');
+  const [lastUpdated, setLastUpdated] = useState(null);
+  const intervalRef               = useRef(null);
+  const orderRef                  = useRef(null);
+
+  const fetchOrder = useCallback(async (initial = false) => {
+    if (!salonId) return;
+    try {
+      const r = await api.get(`/salons/${salonId}/orders/${id}/`);
+      setOrder(prev => {
+        if (prev && prev.status !== r.data.status) setLastUpdated(new Date());
+        return r.data;
+      });
+      orderRef.current = r.data;
+      if (initial) setLoading(false);
+      // Stop polling once terminal
+      if (TERMINAL.has(r.data.status) && intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    } catch {
+      if (initial) { setErr('Failed to load order.'); setLoading(false); }
+    }
+  }, [id, salonId]);
 
   useEffect(() => {
     if (!salonId) { setErr('Missing salon info.'); setLoading(false); return; }
-    api.get(`/salons/${salonId}/orders/${id}/`)
-      .then(r => setOrder(r.data))
-      .catch(() => setErr('Failed to load order.'))
-      .finally(() => setLoading(false));
-  }, [id, salonId]);
+
+    fetchOrder(true);
+
+    // Start polling every 6 seconds
+    intervalRef.current = setInterval(() => {
+      if (!document.hidden && !TERMINAL.has(orderRef.current?.status)) fetchOrder();
+    }, 6000);
+
+    // Pause/resume on tab visibility change
+    const onVisibility = () => {
+      if (!document.hidden && !TERMINAL.has(orderRef.current?.status)) fetchOrder();
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+
+    return () => {
+      clearInterval(intervalRef.current);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, [fetchOrder, salonId]);
 
   if (loading) return <div style={{ padding: 48, textAlign: 'center', color: 'var(--text-muted)' }}>Loading…</div>;
   if (err) return <div style={{ padding: 48, textAlign: 'center', color: '#DC2626' }}>{err}</div>;
@@ -141,12 +180,21 @@ export default function UserOrderDetail() {
           <h2 style={{ fontFamily: "'Cormorant Garamond',Georgia,serif", fontSize: 22, fontWeight: 700, color: 'var(--text)', margin: 0 }}>
             ORD-{String(order.id).padStart(6,'0')}
           </h2>
-          <span style={{ padding: '5px 14px', borderRadius: 20, background: `${statusColor}18`, color: statusColor, fontSize: 12, fontWeight: 700 }}>
-            {order.status_label}
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            {!TERMINAL.has(order.status) && (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 10px', borderRadius: 20, background: 'rgba(13,148,136,.1)', border: '1px solid rgba(13,148,136,.2)', fontSize: 11, fontWeight: 700, color: '#0D9488' }}>
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#0D9488', animation: 'pulse 1.5s ease-in-out infinite' }} />
+                Live
+              </span>
+            )}
+            <span style={{ padding: '5px 14px', borderRadius: 20, background: `${statusColor}18`, color: statusColor, fontSize: 12, fontWeight: 700 }}>
+              {order.status_label}
+            </span>
+          </div>
         </div>
         <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 24 }}>
           Placed on {new Date(order.created_at).toLocaleString('en-US', { dateStyle: 'long', timeStyle: 'short' })}
+          {lastUpdated && <span style={{ marginLeft: 10, color: '#0D9488' }}>· Updated {lastUpdated.toLocaleTimeString()}</span>}
         </div>
 
         {/* Status tracker */}
