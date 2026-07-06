@@ -256,8 +256,8 @@ export default function SalonList() {
                 key={i}
                 style={{
                   position: 'absolute', top: em.top, right: em.right,
-                  fontSize: em.sz, opacity: 0,
-                  filter: 'grayscale(0.35) brightness(0.6)',
+                  fontSize: em.sz,
+                  filter: 'saturate(0.3) brightness(1.4)',
                   animation: `salonEmojiFloat ${em.dur}s linear ${em.del}s infinite`,
                   userSelect: 'none',
                 }}
