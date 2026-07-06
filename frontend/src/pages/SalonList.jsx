@@ -17,18 +17,18 @@ const PALETTE = [
 ];
 
 const BANNER_EMOJIS = [
-  { e: '✂️', top: '8%',  right: '4%',  sz: 20, dur: 22, del: 0    },
-  { e: '💇', top: '22%', right: '10%', sz: 17, dur: 19, del: -5   },
-  { e: '💅', top: '45%', right: '3%',  sz: 19, dur: 25, del: -9   },
-  { e: '💄', top: '65%', right: '14%', sz: 15, dur: 21, del: -13  },
-  { e: '🌸', top: '12%', right: '22%', sz: 13, dur: 28, del: -3   },
-  { e: '🪞', top: '33%', right: '28%', sz: 17, dur: 20, del: -7   },
-  { e: '💆', top: '55%', right: '18%', sz: 15, dur: 18, del: -11  },
-  { e: '🧴', top: '75%', right: '7%',  sz: 13, dur: 24, del: -15  },
-  { e: '✨', top: '18%', right: '38%', sz: 11, dur: 16, del: -2   },
-  { e: '💈', top: '88%', right: '22%', sz: 18, dur: 26, del: -17  },
-  { e: '✂️', top: '40%', right: '45%', sz: 12, dur: 23, del: -8   },
-  { e: '🌺', top: '5%',  right: '50%', sz: 14, dur: 30, del: -20  },
+  { e: '✂', top: '8%',  right: '4%',  sz: 22, dur: 22, del: 0    },
+  { e: '✦', top: '22%', right: '10%', sz: 18, dur: 19, del: -5   },
+  { e: '✿', top: '45%', right: '3%',  sz: 20, dur: 25, del: -9   },
+  { e: '♡', top: '65%', right: '14%', sz: 17, dur: 21, del: -13  },
+  { e: '✧', top: '12%', right: '22%', sz: 15, dur: 28, del: -3   },
+  { e: '◇', top: '33%', right: '28%', sz: 19, dur: 20, del: -7   },
+  { e: '✽', top: '55%', right: '18%', sz: 16, dur: 18, del: -11  },
+  { e: '❀', top: '75%', right: '7%',  sz: 15, dur: 24, del: -15  },
+  { e: '✸', top: '18%', right: '38%', sz: 13, dur: 16, del: -2   },
+  { e: '✂', top: '88%', right: '22%', sz: 21, dur: 26, del: -17  },
+  { e: '✦', top: '40%', right: '45%', sz: 14, dur: 23, del: -8   },
+  { e: '✿', top: '5%',  right: '50%', sz: 16, dur: 30, del: -20  },
 ];
 
 function SalonCard({ salon, i, isFav, col, numCols, isMobile }) {
@@ -256,8 +256,7 @@ export default function SalonList() {
                 key={i}
                 style={{
                   position: 'absolute', top: em.top, right: em.right,
-                  fontSize: em.sz,
-                  filter: 'saturate(0.3) brightness(1.4)',
+                  fontSize: em.sz, color: '#fff',
                   animation: `salonEmojiFloat ${em.dur}s linear ${em.del}s infinite`,
                   userSelect: 'none',
                 }}
