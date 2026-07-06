@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { createPortal } from 'react-dom';
 import api from '../../api/axios';
 
 export default function ClientBookingDetail() {
@@ -7,13 +8,14 @@ export default function ClientBookingDetail() {
   const navigate = useNavigate();
   const [booking, setBooking] = useState(null);
   const [error, setError] = useState('');
+  const [showCancelModal, setShowCancelModal] = useState(false);
 
   const load = () => api.get(`/bookings/${id}/`).then(r => setBooking(r.data)).catch(() => {});
 
   useEffect(() => { load(); }, [id]);
 
   const cancel = async () => {
-    if (!confirm('Cancel this booking?')) return;
+    setShowCancelModal(false);
     try {
       await api.post(`/bookings/${id}/cancel/`);
       load();
@@ -60,7 +62,22 @@ export default function ClientBookingDetail() {
       )}
 
       {!['cancelled', 'completed', 'flagged'].includes(booking.status) && (
-        <button style={s.cancelBtn} onClick={cancel}>Cancel Booking</button>
+        <button style={s.cancelBtn} onClick={() => setShowCancelModal(true)}>Cancel Booking</button>
+      )}
+
+      {showCancelModal && createPortal(
+        <div style={s.overlay} onClick={() => setShowCancelModal(false)}>
+          <div style={s.modal} onClick={e => e.stopPropagation()}>
+            <div style={s.modalIcon}>🗑️</div>
+            <div style={s.modalTitle}>Cancel Booking?</div>
+            <p style={s.modalBody}>Are you sure you want to cancel Booking #{booking.id}? This action cannot be undone.</p>
+            <div style={s.modalActions}>
+              <button style={s.modalKeep} onClick={() => setShowCancelModal(false)}>Keep Booking</button>
+              <button style={s.modalConfirm} onClick={cancel}>Yes, Cancel</button>
+            </div>
+          </div>
+        </div>,
+        document.body
       )}
     </div>
   );
@@ -72,4 +89,12 @@ const s = {
   slotRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
   btn: { padding: '6px 14px', background: '#27ae60', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer' },
   cancelBtn: { marginTop: 20, padding: '8px 18px', background: '#e74c3c', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer' },
+  overlay: { position: 'fixed', inset: 0, zIndex: 400, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 },
+  modal: { background: 'var(--surface)', borderRadius: 20, padding: '32px 28px', maxWidth: 380, width: '100%', textAlign: 'center', boxShadow: '0 24px 60px rgba(0,0,0,.4)', border: '1px solid var(--border)' },
+  modalIcon: { fontSize: 36, marginBottom: 12 },
+  modalTitle: { fontFamily: "'Cormorant Garamond',Georgia,serif", fontSize: 22, fontWeight: 700, color: 'var(--text)', marginBottom: 10 },
+  modalBody: { fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: 24 },
+  modalActions: { display: 'flex', gap: 10 },
+  modalKeep: { flex: 1, padding: '12px', border: '1.5px solid var(--border)', borderRadius: 12, background: 'none', color: 'var(--text)', fontSize: 14, fontWeight: 600, cursor: 'pointer' },
+  modalConfirm: { flex: 1, padding: '12px', background: '#DC2626', color: '#fff', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: 'pointer' },
 };

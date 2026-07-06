@@ -1,5 +1,6 @@
 ﻿import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { createPortal } from 'react-dom';
 import api from '../../api/axios';
 import { c, STATUS_META } from '../../styles/theme';
 import MiniCalendar from '../../components/MiniCalendar';
@@ -125,6 +126,7 @@ export default function OwnerBookingDetail() {
   const [salon, setSalon]     = useState(null);
   const [assignId, setAssignId]   = useState('');
   const [assigning, setAssigning] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
 
   const load = () => api.get(`/bookings/${id}/`).then(r => {
     setBooking(r.data);
@@ -152,7 +154,7 @@ export default function OwnerBookingDetail() {
   };
 
   const cancel = async () => {
-    if (!window.confirm('Cancel this booking?')) return;
+    setShowCancelModal(false);
     try { await api.post(`/bookings/${id}/cancel/`); setMsg('Booking cancelled.'); load(); }
     catch (err) { setError(err.response?.data?.detail || 'Error'); }
   };
@@ -321,7 +323,7 @@ export default function OwnerBookingDetail() {
             <button style={s.completeBtn} onClick={complete}>✓ Mark as Completed</button>
           )}
           {!['cancelled','completed'].includes(booking.status) && (
-            <button style={s.cancelBtn} onClick={cancel}>Cancel Booking</button>
+            <button style={s.cancelBtn} onClick={() => setShowCancelModal(true)}>Cancel Booking</button>
           )}
 
           {canAssign && staff.length > 0 && (
@@ -354,6 +356,27 @@ export default function OwnerBookingDetail() {
           )}
         </div>
       </div>
+
+      {showCancelModal && createPortal(
+        <div style={s.overlay} onClick={() => setShowCancelModal(false)}>
+          <div style={s.cancelModal} onClick={e => e.stopPropagation()}>
+            <div style={{ fontSize: 36, marginBottom: 12 }}>🗑️</div>
+            <div style={{ fontFamily: "'Cormorant Garamond',Georgia,serif", fontSize: 22, fontWeight: 700, color: 'var(--text)', marginBottom: 10 }}>Cancel Booking?</div>
+            <p style={{ fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: 24, margin: '0 0 24px' }}>
+              Are you sure you want to cancel Booking #{booking.id}? This cannot be undone.
+            </p>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button onClick={() => setShowCancelModal(false)} style={{ flex: 1, padding: '12px', border: '1.5px solid var(--border)', borderRadius: 12, background: 'none', color: 'var(--text)', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+                Keep Booking
+              </button>
+              <button onClick={cancel} style={{ flex: 1, padding: '12px', background: '#DC2626', color: '#fff', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
+                Yes, Cancel
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 }
@@ -398,6 +421,8 @@ const s = {
   rejectSection: {},
   rejectBtn: { padding: '11px 24px', background: '#FEF2F2', color: '#DC2626', border: '1px solid #FECACA', borderRadius: 12, cursor: 'pointer', fontWeight: 700, fontSize: 14, fontFamily: "'DM Sans', sans-serif", marginTop: 4 },
   cancelBtn: { width: '100%', padding: '11px', background: 'transparent', color: 'var(--text-muted)', border: '1.5px solid var(--border)', borderRadius: 12, cursor: 'pointer', fontWeight: 600, fontSize: 13, fontFamily: "'DM Sans', sans-serif" },
+  overlay: { position: 'fixed', inset: 0, zIndex: 400, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 },
+  cancelModal: { background: 'var(--surface)', borderRadius: 20, padding: '32px 28px', maxWidth: 380, width: '100%', textAlign: 'center', boxShadow: '0 24px 60px rgba(0,0,0,.4)', border: '1px solid var(--border)' },
   assignCard: { background: 'var(--surface)', borderRadius: 16, padding: 18, border: '1px solid var(--border)', boxShadow: '0 2px 10px rgba(13,148,136,.06)', display: 'flex', flexDirection: 'column', gap: 10 },
   select: { width: '100%', padding: '10px 12px', border: '1.5px solid var(--border)', borderRadius: 10, fontSize: 13, background: 'var(--input-bg)', color: 'var(--text)', fontFamily: "'DM Sans', sans-serif", outline: 'none' },
   assignBtn: { padding: '10px 16px', background: 'linear-gradient(135deg, #0D9488 0%, #0D9488 100%)', color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 700, fontSize: 13, boxShadow: '0 4px 12px rgba(13,148,136,.3)', fontFamily: "'DM Sans', sans-serif" },
