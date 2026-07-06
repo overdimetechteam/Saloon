@@ -164,7 +164,10 @@ export default function UserDashboard() {
               return (
                 <Link key={o.id} to={`/salons/${o.salon}`} style={{ ...s.offerCard, borderTop: `3px solid ${color}` }} className="lift-sm">
                   <div style={{ ...s.offerDiscount, color }}>
-                    {o.discount_value}{o.discount_type === 'percentage' ? '%' : ' LKR'} <span style={s.offLabel}>off</span>
+                    {o.offer_type === 'custom'
+                      ? <span style={{ fontSize: 13, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Custom Deal</span>
+                      : <>{o.discount_value}{o.discount_type === 'percentage' ? '%' : ' LKR'} <span style={s.offLabel}>off</span></>
+                    }
                   </div>
                   <div style={s.offerTitle}>{o.title}</div>
                   <div style={s.offerSalon}>{o.salon_name}</div>
