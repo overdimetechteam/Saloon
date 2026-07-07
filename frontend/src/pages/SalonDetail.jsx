@@ -242,10 +242,13 @@ export default function SalonDetail() {
   const fullAddress = `${salon.address_street}, ${salon.address_city} ${salon.address_postal}`;
   const isClient = profile?.role === 'client';
   const showBookBtn = profile?.role !== 'salon_owner';
-  // Guest guard: unauthenticated customers are sent to login with a ?next= redirect
   const bookUrl      = `/user/book/${id}`;
   const cosmeticsUrl = `/salons/${id}/cosmetics`;
-  const loginTo = (dest) => !profile ? `/login?next=${encodeURIComponent(dest)}` : dest;
+  // Guest modal state — null = closed, string = intended destination after login
+  const [authPromptDest, setAuthPromptDest] = useState(null);
+  const guestGuard = (e, dest) => {
+    if (!profile) { e.preventDefault(); setAuthPromptDest(dest); }
+  };
 
   const cats = Object.keys(grouped);
   const activeCat = activeServiceCat && cats.includes(activeServiceCat) ? activeServiceCat : cats[0];
@@ -360,7 +363,7 @@ export default function SalonDetail() {
                 </button>
               )}
               {showBookBtn && (
-                <Link to={loginTo(bookUrl)} style={{
+                <Link to={bookUrl} onClick={e => guestGuard(e, bookUrl)} style={{
                   flex: 1, padding: '16px 20px',
                   background: `linear-gradient(135deg, ${pal.main} 0%, ${pal.light} 100%)`,
                   color: '#fff', borderRadius: 16, fontWeight: 700, fontSize: 16,
@@ -370,7 +373,7 @@ export default function SalonDetail() {
                 }}>✦ Book Now</Link>
               )}
               {!showBookBtn && salon.cosmetics_enabled && (
-                <Link to={loginTo(cosmeticsUrl)} style={{
+                <Link to={cosmeticsUrl} onClick={e => guestGuard(e, cosmeticsUrl)} style={{
                   flex: 1, padding: '16px 20px',
                   background: 'linear-gradient(135deg,#C96B51,#D4AF37)',
                   color: '#fff', borderRadius: 16, fontWeight: 700, fontSize: 16,
@@ -379,7 +382,7 @@ export default function SalonDetail() {
               )}
             </div>
             {showBookBtn && salon.cosmetics_enabled && (
-              <Link to={loginTo(cosmeticsUrl)} style={{
+              <Link to={cosmeticsUrl} onClick={e => guestGuard(e, cosmeticsUrl)} style={{
                 width: '100%', padding: '13px 20px',
                 background: 'rgba(201,107,81,.1)', color: '#D4AF37',
                 border: '1px solid rgba(201,107,81,.25)', borderRadius: 16,
@@ -445,12 +448,12 @@ export default function SalonDetail() {
                 </button>
               )}
               {showBookBtn && (
-                <Link to={loginTo(bookUrl)} style={{ ...s.heroBookBtn, background: pal.main, boxShadow: `0 6px 20px rgba(${R},.45)`, padding: '14px 32px', fontSize: 16 }} className="lift-sm">
+                <Link to={bookUrl} onClick={e => guestGuard(e, bookUrl)} style={{ ...s.heroBookBtn, background: pal.main, boxShadow: `0 6px 20px rgba(${R},.45)`, padding: '14px 32px', fontSize: 16 }} className="lift-sm">
                   ✦ Book Now
                 </Link>
               )}
               {salon.cosmetics_enabled && (
-                <Link to={loginTo(cosmeticsUrl)} style={{ ...s.heroCosmeticsBtn, padding: '14px 26px', fontSize: 15 }} className="lift-sm">
+                <Link to={cosmeticsUrl} onClick={e => guestGuard(e, cosmeticsUrl)} style={{ ...s.heroCosmeticsBtn, padding: '14px 26px', fontSize: 15 }} className="lift-sm">
                   ✿ Cosmetics
                 </Link>
               )}
@@ -493,10 +496,10 @@ export default function SalonDetail() {
           {!isMobile && (
             <div style={{ display: 'flex', gap: 8, flexShrink: 0, marginLeft: 8 }}>
               {showBookBtn && (
-                <Link to={loginTo(bookUrl)} style={{ ...s.tabBookBtn, background: pal.main, boxShadow: `0 4px 14px rgba(${R},.3)`, opacity: heroVisible ? 0 : 1, transform: heroVisible ? 'translateY(-6px) scale(0.92)' : 'translateY(0) scale(1)', pointerEvents: heroVisible ? 'none' : 'auto', transition: 'opacity .25s ease, transform .25s ease' }}>✦ Book Now</Link>
+                <Link to={bookUrl} onClick={e => guestGuard(e, bookUrl)} style={{ ...s.tabBookBtn, background: pal.main, boxShadow: `0 4px 14px rgba(${R},.3)`, opacity: heroVisible ? 0 : 1, transform: heroVisible ? 'translateY(-6px) scale(0.92)' : 'translateY(0) scale(1)', pointerEvents: heroVisible ? 'none' : 'auto', transition: 'opacity .25s ease, transform .25s ease' }}>✦ Book Now</Link>
               )}
               {salon.cosmetics_enabled && (
-                <Link to={loginTo(cosmeticsUrl)} style={{ ...s.tabCosmeticsBtn, opacity: heroVisible ? 0 : 1, transform: heroVisible ? 'translateY(-6px) scale(0.92)' : 'translateY(0) scale(1)', pointerEvents: heroVisible ? 'none' : 'auto', transition: 'opacity .25s ease, transform .25s ease' }}>✿ Cosmetics</Link>
+                <Link to={cosmeticsUrl} onClick={e => guestGuard(e, cosmeticsUrl)} style={{ ...s.tabCosmeticsBtn, opacity: heroVisible ? 0 : 1, transform: heroVisible ? 'translateY(-6px) scale(0.92)' : 'translateY(0) scale(1)', pointerEvents: heroVisible ? 'none' : 'auto', transition: 'opacity .25s ease, transform .25s ease' }}>✿ Cosmetics</Link>
               )}
             </div>
           )}
@@ -1101,6 +1104,132 @@ export default function SalonDetail() {
           </div>
         )}
       </div>
+
+      {/* ── Guest auth prompt modal ───────────────────────────────────────────── */}
+      {authPromptDest && createPortal(
+      <div
+        onClick={() => setAuthPromptDest(null)}
+        style={{
+          position: 'fixed', inset: 0, zIndex: 9999,
+          background: 'rgba(0,0,0,.6)', backdropFilter: 'blur(10px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: 20, animation: 'guestBackdropIn .22s ease both',
+        }}
+      >
+        <style>{`
+          @keyframes guestBackdropIn { from { opacity:0 } to { opacity:1 } }
+          @keyframes guestCardIn { from { opacity:0; transform:scale(.88) translateY(18px) } to { opacity:1; transform:scale(1) translateY(0) } }
+          @keyframes guestShimmer {
+            0%,100% { opacity:.18 }
+            50%      { opacity:.32 }
+          }
+        `}</style>
+
+        <div
+          onClick={e => e.stopPropagation()}
+          style={{
+            background: 'linear-gradient(160deg,#0D0D16 0%,#0B3832 60%,#0D9488 200%)',
+            border: '1px solid rgba(13,148,136,.3)',
+            borderRadius: 24, padding: '40px 32px 32px',
+            maxWidth: 400, width: '100%',
+            boxShadow: '0 32px 80px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.04)',
+            animation: 'guestCardIn .32s cubic-bezier(.34,1.56,.64,1) both',
+            position: 'relative', overflow: 'hidden',
+            textAlign: 'center',
+          }}
+        >
+          {/* Glow orb */}
+          <div style={{
+            position: 'absolute', top: -60, right: -60,
+            width: 200, height: 200, borderRadius: '50%',
+            background: `radial-gradient(circle, rgba(13,148,136,.35) 0%, transparent 70%)`,
+            animation: 'guestShimmer 3s ease infinite',
+            pointerEvents: 'none',
+          }} />
+
+          {/* Icon */}
+          <div style={{
+            width: 64, height: 64, borderRadius: '50%', margin: '0 auto 20px',
+            background: 'rgba(13,148,136,.15)', border: '1.5px solid rgba(13,148,136,.4)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 28, position: 'relative', zIndex: 1,
+            boxShadow: '0 0 32px rgba(13,148,136,.3)',
+          }}>
+            {authPromptDest.includes('cosmetics') ? '✿' : '✦'}
+          </div>
+
+          {/* Text */}
+          <h3 style={{
+            fontFamily: "'Cormorant Garamond', Georgia, serif",
+            fontSize: 26, fontWeight: 700, color: '#fff',
+            margin: '0 0 10px', letterSpacing: '-0.02em',
+            position: 'relative', zIndex: 1,
+          }}>
+            {authPromptDest.includes('cosmetics') ? 'Shop Cosmetics' : 'Book Your Appointment'}
+          </h3>
+          <p style={{
+            fontSize: 14, color: 'rgba(255,255,255,.58)', lineHeight: 1.65,
+            margin: '0 0 28px', position: 'relative', zIndex: 1,
+          }}>
+            To explore more, sign in as a customer — book appointments, shop cosmetics and track your full beauty journey.
+          </p>
+
+          {/* Salon context pill */}
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: 8,
+            background: 'rgba(13,148,136,.12)', border: '1px solid rgba(13,148,136,.25)',
+            borderRadius: 30, padding: '6px 14px', marginBottom: 28,
+            position: 'relative', zIndex: 1,
+          }}>
+            {salon.logo_url && (
+              <img src={salon.logo_url} alt="" style={{ width: 20, height: 20, borderRadius: '50%', objectFit: 'cover' }} />
+            )}
+            <span style={{ fontSize: 12, color: 'rgba(255,255,255,.7)', fontWeight: 600 }}>{salon.name}</span>
+          </div>
+
+          {/* Buttons */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, position: 'relative', zIndex: 1 }}>
+            <button
+              onClick={() => navigate(`/login?next=${encodeURIComponent(authPromptDest)}`)}
+              style={{
+                padding: '14px 24px',
+                background: 'linear-gradient(135deg,#0D9488,#14B8A8)',
+                color: '#fff', border: 'none', borderRadius: 14,
+                fontSize: 15, fontWeight: 700, cursor: 'pointer',
+                fontFamily: "'DM Sans',sans-serif",
+                boxShadow: '0 6px 22px rgba(13,148,136,.45)',
+                letterSpacing: '0.01em',
+              }}
+            >
+              Sign In  →
+            </button>
+            <button
+              onClick={() => navigate(`/register/user`)}
+              style={{
+                padding: '13px 24px',
+                background: 'rgba(255,255,255,.06)', color: 'rgba(255,255,255,.78)',
+                border: '1px solid rgba(255,255,255,.12)', borderRadius: 14,
+                fontSize: 14, fontWeight: 600, cursor: 'pointer',
+                fontFamily: "'DM Sans',sans-serif",
+              }}
+            >
+              Create an Account
+            </button>
+            <button
+              onClick={() => setAuthPromptDest(null)}
+              style={{
+                padding: '8px', background: 'none', border: 'none',
+                color: 'rgba(255,255,255,.3)', fontSize: 12, cursor: 'pointer',
+                fontFamily: "'DM Sans',sans-serif",
+              }}
+            >
+              Continue browsing
+            </button>
+          </div>
+        </div>
+      </div>,
+      document.body
+    )}
     </div>
   );
 }
