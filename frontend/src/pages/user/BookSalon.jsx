@@ -133,11 +133,14 @@ export default function BookSalon() {
     } finally { setPromoLoading(false); }
   };
 
+  // True when the salon has no professionals at all (skip staff requirement)
+  const noStaff = !staffLoading && staffList.length === 0;
+
   const submit = async e => {
     e.preventDefault(); setError('');
     if (selected.length === 0) return setError('Please select at least one service');
     if (!slot) return setError('Please select a time slot');
-    if (staffId === null) return setError('Please select a professional to continue.');
+    if (staffId === null && !noStaff) return setError('Please select a professional to continue.');
     if (homeVisit && (!hvStreet.trim() || !hvCity.trim() || !hvDistrict.trim() || !hvPostal.trim())) return setError('Please fill in all address fields for the home visit');
     setSubmitting(true);
     const hvAddress = homeVisit ? `${hvStreet.trim()}, ${hvCity.trim()}, ${hvDistrict.trim()} ${hvPostal.trim()}` : '';
@@ -220,7 +223,7 @@ export default function BookSalon() {
   const selectedStaffName = staffId === 0 ? 'Any Available' : (selectedStaffMember ? `${selectedStaffMember.full_name} · ${selectedStaffMember.role?.charAt(0).toUpperCase()}${selectedStaffMember.role?.slice(1) || ''}` : '');
 
   const hvAddressFilled = !homeVisit || (hvStreet.trim() && hvCity.trim() && hvDistrict.trim() && hvPostal.trim());
-  const stepDone = [selected.length > 0 && hvAddressFilled, !!date && !!slot && staffId !== null, true];
+  const stepDone = [selected.length > 0 && hvAddressFilled, !!date && !!slot && (staffId !== null || noStaff), true];
   const canAdvance = stepDone[step];
 
   const goNext = () => {
@@ -527,8 +530,8 @@ export default function BookSalon() {
                 </div>
               </div>
 
-              {/* Compact professional selector */}
-              {!staffLoading && (
+              {/* Compact professional selector — hidden when salon has no staff */}
+              {!staffLoading && !noStaff && (
                 <div style={s.proRow}>
                   <span style={s.proLabel}>★ Professional{homeVisit ? ' (Home Visit)' : ''}</span>
                   <div style={s.proChips}>
@@ -597,41 +600,63 @@ export default function BookSalon() {
                 {/* Time slots */}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={s.subLabel}>Select Time</div>
-                  {!date && (
-                    <div style={s.noSlotsHint}>
-                      <span style={{ fontSize: 22, opacity: .35 }}>◷</span>
-                      <span>Pick a date to see available times</span>
-                    </div>
-                  )}
-                  {date && slotsLoading && (
-                    <div style={s.slotLoading}>
-                      <div style={s.loaderSpinner} />
-                      <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>Loading slots…</span>
-                    </div>
-                  )}
-                  {date && !slotsLoading && slots.length === 0 && (
-                    <div style={s.noSlots}>
-                      No available slots for this date. Try another day.
-                    </div>
-                  )}
-                  {date && !slotsLoading && slots.length > 0 && (
-                    <div style={{ ...s.slotGrid, ...(isMobile ? { display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 } : {}) }}>
-                      {slots.filter(sl => sl.available).map(sl => {
-                        const time = sl.datetime.split('T')[1]?.substring(0, 5);
-                        const isOn = slot === sl.datetime;
-                        return (
-                          <button
-                            key={sl.datetime}
-                            type="button"
-                            onClick={() => setSlot(sl.datetime)}
-                            style={{ ...s.slotBtn, ...(isMobile ? { padding: '8px 0', fontSize: 13, borderRadius: 10, minWidth: 0 } : {}), ...(isOn ? { ...s.slotOn, background: pal.main, boxShadow: `0 5px 14px rgba(${R},.38)` } : {}) }}
-                          >
-                            {time}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
+                  {(() => {
+                    // Filter out past + too-soon slots when viewing today's date
+                    const _d = new Date();
+                    const todayStr = `${_d.getFullYear()}-${String(_d.getMonth()+1).padStart(2,'0')}-${String(_d.getDate()).padStart(2,'0')}`;
+                    const nowMins  = _d.getHours() * 60 + _d.getMinutes();
+                    const BUFFER   = 30; // minutes — slots within 30 min of now are hidden
+                    const visibleSlots = slots.filter(sl => {
+                      if (!sl.available) return false;
+                      if (date !== todayStr) return true;
+                      const tp = sl.datetime.split('T')[1]?.substring(0, 5);
+                      if (!tp) return false;
+                      const [h, m] = tp.split(':').map(Number);
+                      return (h * 60 + m) > nowMins + BUFFER;
+                    });
+                    const allPast = date === todayStr && slots.some(sl => sl.available) && visibleSlots.length === 0;
+
+                    return (
+                      <>
+                        {!date && (
+                          <div style={s.noSlotsHint}>
+                            <span style={{ fontSize: 22, opacity: .35 }}>◷</span>
+                            <span>Pick a date to see available times</span>
+                          </div>
+                        )}
+                        {date && slotsLoading && (
+                          <div style={s.slotLoading}>
+                            <div style={s.loaderSpinner} />
+                            <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>Loading slots…</span>
+                          </div>
+                        )}
+                        {date && !slotsLoading && slots.length === 0 && (
+                          <div style={s.noSlots}>No available slots for this date. Try another day.</div>
+                        )}
+                        {date && !slotsLoading && allPast && (
+                          <div style={s.noSlots}>No more slots available for today. Please select a future date.</div>
+                        )}
+                        {date && !slotsLoading && visibleSlots.length > 0 && (
+                          <div style={{ ...s.slotGrid, ...(isMobile ? { display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 } : {}) }}>
+                            {visibleSlots.map(sl => {
+                              const time = sl.datetime.split('T')[1]?.substring(0, 5);
+                              const isOn = slot === sl.datetime;
+                              return (
+                                <button
+                                  key={sl.datetime}
+                                  type="button"
+                                  onClick={() => setSlot(sl.datetime)}
+                                  style={{ ...s.slotBtn, ...(isMobile ? { padding: '8px 0', fontSize: 13, borderRadius: 10, minWidth: 0 } : {}), ...(isOn ? { ...s.slotOn, background: pal.main, boxShadow: `0 5px 14px rgba(${R},.38)` } : {}) }}
+                                >
+                                  {time}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
                 </div>
               </div>
             </div>
