@@ -233,9 +233,10 @@ function WalkInModal({ salonId, onClose, onCreated }) {
   const submit = async () => {
     setError('');
     if (!form.client_email) return setError('Client email is required.');
+    if (!form.client_name.trim()) return setError('Client name is required.');
+    if (!form.client_phone.trim()) return setError('Phone number is required.');
     if (!form.appointment_date) return setError('Appointment date is required.');
     if (!form.appointment_time) return setError('Appointment time is required.');
-    if (!form.staff_id) return setError('Assigning an analyst is required — please select a specific analyst.');
     if (selectedServices.length === 0) return setError('Select at least one service.');
     if (availCheck === 'busy') return setError('That stylist already has a booking at this time. Please choose a different time or stylist.');
     setSubmitting(true);
@@ -282,17 +283,17 @@ function WalkInModal({ salonId, onClose, onCreated }) {
             />
           </div>
           <div style={m.field}>
-            <label style={m.label}>Client Name</label>
+            <label style={m.label}>Client Name *</label>
             <input
               style={m.input}
               type="text"
-              placeholder="Full name (optional)"
+              placeholder="Full name"
               value={form.client_name}
               onChange={e => setForm(f => ({ ...f, client_name: e.target.value }))}
             />
           </div>
           <div style={m.field}>
-            <label style={m.label}>Phone</label>
+            <label style={m.label}>Phone *</label>
             <input
               style={m.input}
               type="tel"
@@ -326,22 +327,17 @@ function WalkInModal({ salonId, onClose, onCreated }) {
             </select>
           </div>
           <div style={m.field}>
-            <label style={m.label}>Assign Analyst * <span style={{ color: '#DC2626' }}>Required</span></label>
+            <label style={m.label}>Assign a Professional</label>
             <select
-              style={{ ...m.input, borderColor: !form.staff_id ? '#D4AF37' : 'var(--border)' }}
+              style={m.input}
               value={form.staff_id}
               onChange={e => setForm(f => ({ ...f, staff_id: e.target.value }))}
             >
-              <option value="">— Select Analyst —</option>
+              <option value="">— Select Professional —</option>
               {staff.map(st => (
                 <option key={st.id} value={st.id}>{st.full_name}{st.role ? ` — ${st.role}` : ''}</option>
               ))}
             </select>
-            {!form.staff_id && (
-              <div style={{ fontSize: 11, color: '#D4AF37', fontWeight: 600, marginTop: 4 }}>
-                ⚠ You must assign a specific analyst
-              </div>
-            )}
             {availCheck === 'checking' && (
               <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>Checking availability…</div>
             )}

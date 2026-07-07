@@ -67,6 +67,9 @@ export default function OwnerDashboard() {
   const [paletteSaving, setPaletteSaving] = useState(false);
   const [genderFocus, setGenderFocus] = useState('unisex');
   const [genderSaving, setGenderSaving] = useState(false);
+  const [editingName, setEditingName] = useState(false);
+  const [nameValue, setNameValue] = useState('');
+  const [nameSaving, setNameSaving] = useState(false);
   const [hours, setHours] = useState({});
   const [hoursOpen, setHoursOpen] = useState(false);
   const [hoursSaving, setHoursSaving] = useState(false);
@@ -110,6 +113,18 @@ export default function OwnerDashboard() {
       await api.patch(`/salons/${salon.id}/services/${ss.id}/`, { home_visit_available: next });
     } catch {
       setSalonServices(prev => prev.map(s => s.id === ss.id ? { ...s, home_visit_available: !next } : s));
+    }
+  };
+
+  const saveName = async () => {
+    if (!nameValue.trim() || nameSaving) return;
+    setNameSaving(true);
+    try {
+      const r = await api.patch(`/salons/${salon.id}/`, { name: nameValue.trim() });
+      setSalon(r.data);
+      setEditingName(false);
+    } catch { /* leave modal open on error */ } finally {
+      setNameSaving(false);
     }
   };
 
@@ -262,7 +277,52 @@ export default function OwnerDashboard() {
       <div style={{ ...s.header, flexDirection: isMobile ? 'column' : 'row' }} className="fade-up">
         <div>
           <div style={s.eyebrow}>Dashboard</div>
-          <h2 style={{ ...s.title, fontSize: isMobile ? 24 : isTablet ? 26 : 30 }}>{salon.name}</h2>
+
+          {/* Salon name — inline editable */}
+          {editingName ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
+              <input
+                autoFocus
+                value={nameValue}
+                onChange={e => setNameValue(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') saveName();
+                  if (e.key === 'Escape') setEditingName(false);
+                }}
+                style={{
+                  fontFamily: "'Cormorant Garamond', Georgia, serif",
+                  fontSize: isMobile ? 22 : isTablet ? 24 : 26,
+                  fontWeight: 700, background: 'var(--surface2)',
+                  border: '1.5px solid var(--border)', borderRadius: 8,
+                  padding: '4px 10px', color: 'var(--text)', outline: 'none',
+                  width: isMobile ? '100%' : 280,
+                }}
+              />
+              <button
+                onClick={saveName}
+                disabled={nameSaving}
+                style={{ padding: '6px 16px', background: 'linear-gradient(135deg,#0D9488,#14B8A8)', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+              >
+                {nameSaving ? '…' : 'Save'}
+              </button>
+              <button
+                onClick={() => setEditingName(false)}
+                style={{ padding: '6px 12px', background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-muted)', borderRadius: 8, fontSize: 13, cursor: 'pointer' }}
+              >
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+              <h2 style={{ ...s.title, fontSize: isMobile ? 24 : isTablet ? 26 : 30, margin: 0 }}>{salon.name}</h2>
+              <button
+                title="Rename salon"
+                onClick={() => { setNameValue(salon.name); setEditingName(true); }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: 14, padding: '2px 6px', borderRadius: 6, lineHeight: 1 }}
+              >✎</button>
+            </div>
+          )}
+
           <div style={s.statusRow}>
             <span style={{ ...s.statusDot, background: salon.status === 'active' ? '#14B8A8' : '#D4AF37', boxShadow: salon.status === 'active' ? '0 0 0 4px rgba(13,148,136,.2)' : '0 0 0 4px rgba(212,175,55,.2)' }} />
             <span style={s.statusText}>
