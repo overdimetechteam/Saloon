@@ -225,7 +225,7 @@ export default function SalonDetail() {
     </div>
   );
 
-  const pal = SALON_PALETTES[salon.color_palette || 'teal'];
+  const pal = SALON_PALETTES[salon.color_palette] || SALON_PALETTES['teal'];
   const R = pal.rgb;
   const s = makeS(pal);
   const catColors = { Hair: pal.main, Nails: '#D4AF37', Skin: pal.dark, Makeup: '#C96B51', Cosmetics: '#C96B51', Other: pal.main };

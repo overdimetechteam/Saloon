@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, Component } from 'react';
 import { motion } from 'framer-motion';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { OwnerProvider } from './context/OwnerContext';
@@ -76,6 +76,38 @@ import OwnerOrderDetail from './pages/owner/OrderDetail';
 import UserOrders from './pages/user/Orders';
 import UserOrderDetail from './pages/user/OrderDetail';
 
+// ── Error boundary — prevents a single-page crash from blacking out the app ──
+class PageErrorBoundary extends Component {
+  state = { crashed: false };
+  static getDerivedStateFromError() { return { crashed: true }; }
+  componentDidCatch(err) { console.error('[PageErrorBoundary]', err); }
+  render() {
+    if (this.state.crashed) {
+      return (
+        <div style={{
+          minHeight: '60vh', display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center', gap: 16, padding: 32,
+        }}>
+          <div style={{ fontSize: 36 }}>✦</div>
+          <p style={{ fontSize: 15, color: 'var(--text-muted)', textAlign: 'center', maxWidth: 340 }}>
+            Something went wrong loading this page.
+          </p>
+          <button
+            onClick={() => { this.setState({ crashed: false }); window.location.reload(); }}
+            style={{
+              padding: '11px 28px', background: 'linear-gradient(135deg,#0D9488,#14B8A8)',
+              color: '#fff', border: 'none', borderRadius: 10, fontSize: 14,
+              fontWeight: 600, cursor: 'pointer', fontFamily: "'DM Sans',sans-serif",
+            }}
+          >
+            Refresh page
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 // ── Session timeout ──────────────────────────────────────────────────────────
 // Placed inside BrowserRouter so useNavigate works, but above <Routes> so it
 // never unmounts during navigation (unlike layout components).
@@ -221,11 +253,11 @@ export default function App() {
           {/* Salon browsing — UserLayout for logged-in clients, PublicLayout for guests */}
           <Route element={<ClientAwareLayout />}>
             <Route path="/salons" element={<SalonList />} />
-            <Route path="/salons/:id" element={<SalonDetail />} />
-            <Route path="/salons/:id/reviews" element={<SalonDetail />} />
-            <Route path="/salons/:id/services" element={<SalonServices />} />
-            <Route path="/salons/:id/cosmetics" element={<SalonCosmetics />} />
-            <Route path="/salons/:id/cosmetics/:productId" element={<ProductDetail />} />
+            <Route path="/salons/:id" element={<PageErrorBoundary><SalonDetail /></PageErrorBoundary>} />
+            <Route path="/salons/:id/reviews" element={<PageErrorBoundary><SalonDetail /></PageErrorBoundary>} />
+            <Route path="/salons/:id/services" element={<PageErrorBoundary><SalonServices /></PageErrorBoundary>} />
+            <Route path="/salons/:id/cosmetics" element={<PageErrorBoundary><SalonCosmetics /></PageErrorBoundary>} />
+            <Route path="/salons/:id/cosmetics/:productId" element={<PageErrorBoundary><ProductDetail /></PageErrorBoundary>} />
           </Route>
 
           {/* Standalone auth pages */}
