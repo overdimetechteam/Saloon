@@ -26,7 +26,7 @@ export default function PortalSelect() {
       accent: '#0D9488',
       title: 'Salon Customer',
       desc: 'Browse salons, book appointments, track your beauty journey',
-      route: '/login',
+      route: '/salons',
     },
     {
       key: 'owner',

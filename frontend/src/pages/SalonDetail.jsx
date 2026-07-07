@@ -242,6 +242,10 @@ export default function SalonDetail() {
   const fullAddress = `${salon.address_street}, ${salon.address_city} ${salon.address_postal}`;
   const isClient = profile?.role === 'client';
   const showBookBtn = profile?.role !== 'salon_owner';
+  // Guest guard: unauthenticated customers are sent to login with a ?next= redirect
+  const bookUrl      = `/user/book/${id}`;
+  const cosmeticsUrl = `/salons/${id}/cosmetics`;
+  const loginTo = (dest) => !profile ? `/login?next=${encodeURIComponent(dest)}` : dest;
 
   const cats = Object.keys(grouped);
   const activeCat = activeServiceCat && cats.includes(activeServiceCat) ? activeServiceCat : cats[0];
@@ -356,7 +360,7 @@ export default function SalonDetail() {
                 </button>
               )}
               {showBookBtn && (
-                <Link to={`/user/book/${id}`} style={{
+                <Link to={loginTo(bookUrl)} style={{
                   flex: 1, padding: '16px 20px',
                   background: `linear-gradient(135deg, ${pal.main} 0%, ${pal.light} 100%)`,
                   color: '#fff', borderRadius: 16, fontWeight: 700, fontSize: 16,
@@ -366,7 +370,7 @@ export default function SalonDetail() {
                 }}>✦ Book Now</Link>
               )}
               {!showBookBtn && salon.cosmetics_enabled && (
-                <Link to={`/salons/${id}/cosmetics`} style={{
+                <Link to={loginTo(cosmeticsUrl)} style={{
                   flex: 1, padding: '16px 20px',
                   background: 'linear-gradient(135deg,#C96B51,#D4AF37)',
                   color: '#fff', borderRadius: 16, fontWeight: 700, fontSize: 16,
@@ -375,7 +379,7 @@ export default function SalonDetail() {
               )}
             </div>
             {showBookBtn && salon.cosmetics_enabled && (
-              <Link to={`/salons/${id}/cosmetics`} style={{
+              <Link to={loginTo(cosmeticsUrl)} style={{
                 width: '100%', padding: '13px 20px',
                 background: 'rgba(201,107,81,.1)', color: '#D4AF37',
                 border: '1px solid rgba(201,107,81,.25)', borderRadius: 16,
@@ -441,12 +445,12 @@ export default function SalonDetail() {
                 </button>
               )}
               {showBookBtn && (
-                <Link to={`/user/book/${id}`} style={{ ...s.heroBookBtn, background: pal.main, boxShadow: `0 6px 20px rgba(${R},.45)`, padding: '14px 32px', fontSize: 16 }} className="lift-sm">
+                <Link to={loginTo(bookUrl)} style={{ ...s.heroBookBtn, background: pal.main, boxShadow: `0 6px 20px rgba(${R},.45)`, padding: '14px 32px', fontSize: 16 }} className="lift-sm">
                   ✦ Book Now
                 </Link>
               )}
               {salon.cosmetics_enabled && (
-                <Link to={`/salons/${id}/cosmetics`} style={{ ...s.heroCosmeticsBtn, padding: '14px 26px', fontSize: 15 }} className="lift-sm">
+                <Link to={loginTo(cosmeticsUrl)} style={{ ...s.heroCosmeticsBtn, padding: '14px 26px', fontSize: 15 }} className="lift-sm">
                   ✿ Cosmetics
                 </Link>
               )}
@@ -489,10 +493,10 @@ export default function SalonDetail() {
           {!isMobile && (
             <div style={{ display: 'flex', gap: 8, flexShrink: 0, marginLeft: 8 }}>
               {showBookBtn && (
-                <Link to={`/user/book/${id}`} style={{ ...s.tabBookBtn, background: pal.main, boxShadow: `0 4px 14px rgba(${R},.3)`, opacity: heroVisible ? 0 : 1, transform: heroVisible ? 'translateY(-6px) scale(0.92)' : 'translateY(0) scale(1)', pointerEvents: heroVisible ? 'none' : 'auto', transition: 'opacity .25s ease, transform .25s ease' }}>✦ Book Now</Link>
+                <Link to={loginTo(bookUrl)} style={{ ...s.tabBookBtn, background: pal.main, boxShadow: `0 4px 14px rgba(${R},.3)`, opacity: heroVisible ? 0 : 1, transform: heroVisible ? 'translateY(-6px) scale(0.92)' : 'translateY(0) scale(1)', pointerEvents: heroVisible ? 'none' : 'auto', transition: 'opacity .25s ease, transform .25s ease' }}>✦ Book Now</Link>
               )}
               {salon.cosmetics_enabled && (
-                <Link to={`/salons/${id}/cosmetics`} style={{ ...s.tabCosmeticsBtn, opacity: heroVisible ? 0 : 1, transform: heroVisible ? 'translateY(-6px) scale(0.92)' : 'translateY(0) scale(1)', pointerEvents: heroVisible ? 'none' : 'auto', transition: 'opacity .25s ease, transform .25s ease' }}>✿ Cosmetics</Link>
+                <Link to={loginTo(cosmeticsUrl)} style={{ ...s.tabCosmeticsBtn, opacity: heroVisible ? 0 : 1, transform: heroVisible ? 'translateY(-6px) scale(0.92)' : 'translateY(0) scale(1)', pointerEvents: heroVisible ? 'none' : 'auto', transition: 'opacity .25s ease, transform .25s ease' }}>✿ Cosmetics</Link>
               )}
             </div>
           )}
