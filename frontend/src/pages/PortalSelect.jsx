@@ -123,9 +123,14 @@ export default function PortalSelect() {
           ))}
         </div>
 
-        <button style={s.back} onClick={() => navigate('/')}>
-          ← Back to home
-        </button>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+          <button style={s.back} onClick={() => navigate('/')}>
+            ← Back to home
+          </button>
+          <button style={{ ...s.back, color: 'rgba(255,255,255,.18)', fontSize: 11 }} onClick={() => navigate('/salon-portal')}>
+            Admin Portal →
+          </button>
+        </div>
       </div>
     </div>
   );

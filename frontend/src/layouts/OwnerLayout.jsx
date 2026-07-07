@@ -33,9 +33,9 @@ const PLAN_ICONS  = { free_trial: '🆓', starter: '🚀', professional: '💎',
 
 const GROUPS = [
   { key: 'main',    label: 'Workspace'    },
-  { key: 'admin',   label: 'Admin Portal' },
   { key: 'stock',   label: 'Inventory'    },
   { key: 'account', label: 'Account'      },
+  { key: 'admin',   label: 'Admin Portal' },
 ];
 
 export default function OwnerLayout() {
@@ -234,7 +234,18 @@ export default function OwnerLayout() {
         <nav style={s.nav}>
           {GROUPS.map(group => (
             <div key={group.key}>
-              {!(collapsed || isTablet) && <div style={s.groupLabel}>{group.label}</div>}
+              {!(collapsed || isTablet) && (
+                <div style={{
+                  ...s.groupLabel,
+                  ...(group.key === 'admin' ? {
+                    color: 'rgba(94,234,212,.55)',
+                    borderTop: '1px solid rgba(13,148,136,.18)',
+                    paddingTop: 14, marginTop: 4,
+                  } : {}),
+                }}>
+                  {group.label}
+                </div>
+              )}
               {NAV.filter(n => n.group === group.key).map(item => (
                 <NavLink
                   key={item.to}
@@ -252,7 +263,7 @@ export default function OwnerLayout() {
                   {!(collapsed || isTablet) && <span style={s.navLabel}>{item.label}</span>}
                 </NavLink>
               ))}
-              {!(collapsed || isTablet) && <div style={s.groupDivider} />}
+              {!(collapsed || isTablet) && group.key !== 'admin' && <div style={s.groupDivider} />}
             </div>
           ))}
         </nav>
