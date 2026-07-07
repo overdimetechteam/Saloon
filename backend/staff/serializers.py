@@ -33,6 +33,7 @@ class StaffMemberPublicSerializer(serializers.ModelSerializer):
 class StaffMemberOwnerSerializer(serializers.ModelSerializer):
     """Owner sees everything including login email, working days, specialties."""
     photo_url    = serializers.SerializerMethodField()
+    photo        = serializers.ImageField(write_only=True, required=False)
     login_email  = serializers.SerializerMethodField()
     specialty_ids = serializers.PrimaryKeyRelatedField(
         source='specialties', many=True, read_only=True
@@ -54,7 +55,7 @@ class StaffMemberOwnerSerializer(serializers.ModelSerializer):
     class Meta:
         model = StaffMember
         fields = [
-            'id', 'full_name', 'role', 'bio', 'photo_url',
+            'id', 'full_name', 'role', 'bio', 'photo', 'photo_url',
             'phone', 'is_active', 'is_online', 'created_at', 'login_email',
             'working_days', 'home_visit_available',
             'specialties', 'specialty_ids', 'specialty_names',

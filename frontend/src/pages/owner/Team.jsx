@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import api from '../../api/axios';
 import { useOwner } from '../../context/OwnerContext';
 import { useBreakpoint } from '../../hooks/useMobile';
@@ -17,7 +17,7 @@ const ROLE_OPTIONS = [
 ];
 const ROLE_LABEL = Object.fromEntries(ROLE_OPTIONS.map(r => [r.value, r.label]));
 
-const emptyForm = () => ({ full_name: '', role: 'stylist', phone: '', specialties: [], working_days: [] });
+const emptyForm = () => ({ full_name: '', role: 'stylist', phone: '', bio: '', specialties: [], working_days: [] });
 
 export default function OwnerTeam() {
   const { salon } = useOwner();
@@ -31,7 +31,10 @@ export default function OwnerTeam() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [msg, setMsg] = useState('');
-  const [confirmTarget, setConfirmTarget] = useState(null); // member pending delete
+  const [confirmTarget, setConfirmTarget] = useState(null);
+  const [photoFile, setPhotoFile] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState(null);
+  const photoInputRef = useRef(null);
 
   const load = () => {
     if (!salon) return;
@@ -56,12 +59,14 @@ export default function OwnerTeam() {
       full_name: member.full_name,
       role: member.role || 'other',
       phone: member.phone || '',
+      bio: member.bio || '',
       specialties: member.specialty_ids || [],
       working_days: member.working_days || [],
     });
+    setPhotoFile(null);
+    setPhotoPreview(member.photo_url || null);
     setError(''); setShowForm(true);
 
-    // Re-fetch this member's latest details so the popup never shows stale specialties/role.
     api.get(`/salons/${salon.id}/staff-members/${member.id}/`)
       .then(res => {
         const fresh = res.data;
@@ -70,14 +75,28 @@ export default function OwnerTeam() {
           full_name: fresh.full_name,
           role: fresh.role || 'other',
           phone: fresh.phone || '',
+          bio: fresh.bio || '',
           specialties: fresh.specialty_ids || [],
           working_days: fresh.working_days || [],
         });
+        setPhotoPreview(fresh.photo_url || null);
       })
       .catch(() => {});
   };
 
-  const closeForm = () => { setShowForm(false); setEditing(null); };
+  const closeForm = () => {
+    setShowForm(false); setEditing(null);
+    setPhotoFile(null);
+    if (photoPreview && photoPreview.startsWith('blob:')) URL.revokeObjectURL(photoPreview);
+    setPhotoPreview(null);
+  };
+
+  const handlePhotoChange = e => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPhotoFile(file);
+    setPhotoPreview(URL.createObjectURL(file));
+  };
 
   const toggleDay = day => setForm(f => ({
     ...f,
@@ -102,9 +121,15 @@ export default function OwnerTeam() {
         full_name: form.full_name,
         role: form.role,
         phone: form.phone,
+        bio: form.bio,
         working_days: form.working_days,
         specialties: form.specialties,
       });
+      if (photoFile) {
+        const fd = new FormData();
+        fd.append('photo', photoFile);
+        await api.patch(`/salons/${salon.id}/staff-members/${editing.id}/`, fd);
+      }
       setMsg('Team member updated.');
       closeForm(); load();
     } catch (err) {
@@ -166,6 +191,42 @@ export default function OwnerTeam() {
             {error && <div style={s.alert}>{error}</div>}
 
             <form onSubmit={save}>
+              {/* Photo picker */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 18, marginBottom: 8 }}>
+                <button
+                  type="button"
+                  onClick={() => photoInputRef.current?.click()}
+                  style={{
+                    width: 72, height: 72, borderRadius: '50%', flexShrink: 0,
+                    background: 'linear-gradient(135deg,#0D9488,#14B8A8)',
+                    border: '2.5px solid var(--border)', cursor: 'pointer',
+                    position: 'relative', overflow: 'hidden', padding: 0,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}
+                  title="Click to upload photo"
+                >
+                  {photoPreview
+                    ? <img src={photoPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+                    : <span style={{ fontSize: 26, fontWeight: 700, color: '#fff' }}>{(form.full_name || editing?.full_name)?.[0]?.toUpperCase()}</span>
+                  }
+                  <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, opacity: 0, transition: 'opacity .15s' }}
+                    onMouseEnter={e => e.currentTarget.style.opacity = 1}
+                    onMouseLeave={e => e.currentTarget.style.opacity = 0}
+                  >📷</div>
+                </button>
+                <input ref={photoInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhotoChange} />
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', marginBottom: 3 }}>Profile Photo</div>
+                  <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Click the photo to upload a new image</div>
+                  {photoFile && (
+                    <button type="button" onClick={() => { setPhotoFile(null); setPhotoPreview(editing?.photo_url || null); }}
+                      style={{ fontSize: 11, color: '#EF4444', background: 'none', border: 'none', cursor: 'pointer', marginTop: 4, padding: 0 }}>
+                      Remove new photo
+                    </button>
+                  )}
+                </div>
+              </div>
+
               <div style={{ ...s.formGrid, gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr' }}>
                 <div style={s.field}>
                   <label style={s.label}>Full Name *</label>
@@ -188,6 +249,13 @@ export default function OwnerTeam() {
                     onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
                     placeholder="e.g. 077 123 4567" />
                 </div>
+              </div>
+
+              <div style={s.field}>
+                <label style={s.label}>Bio / Description</label>
+                <textarea style={{ ...s.input, minHeight: 68, resize: 'vertical' }} value={form.bio}
+                  onChange={e => setForm(f => ({ ...f, bio: e.target.value }))}
+                  placeholder="Short introduction about this team member…" />
               </div>
 
               <div style={{ marginTop: 20 }}>
@@ -299,6 +367,7 @@ export default function OwnerTeam() {
                 )}
 
                 {member.phone && <div style={s.phone}>📞 {member.phone}</div>}
+                {member.bio   && <div style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.5, fontStyle: 'italic' }}>{member.bio}</div>}
 
                 <div style={{ ...s.hvRow, background: member.home_visit_available ? 'rgba(13,148,136,.07)' : 'var(--surface2)', borderColor: member.home_visit_available ? 'rgba(13,148,136,.25)' : 'var(--border)' }}>
                   <div style={s.hvRowText}>

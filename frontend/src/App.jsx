@@ -49,9 +49,6 @@ import OwnerReports from './pages/owner/Reports';
 import OwnerTeam from './pages/owner/Team';
 import OwnerStaffManager from './pages/owner/StaffManager';
 import SalonPortalSelect from './pages/SalonPortalSelect';
-import EmployeeLogin from './pages/EmployeeLogin';
-import EmployeeProfileEditor from './pages/EmployeeProfileEditor';
-import { RequireEmployee } from './context/AuthContext';
 import OwnerGallery from './pages/owner/Gallery';
 import OwnerPromotions from './pages/owner/Promotions';
 import OwnerAnalytics  from './pages/owner/Analytics';
@@ -271,12 +268,8 @@ export default function App() {
           <Route path="/payment/success" element={<PaymentSuccess />} />
           <Route path="/payment/cancel"  element={<PaymentCancel />} />
 
-          {/* Salon portal select + employee login */}
+          {/* Admin portal select (Portal 2) */}
           <Route path="/salon-portal" element={<SalonPortalSelect />} />
-          <Route path="/employee/login" element={<EmployeeLogin />} />
-          <Route path="/employee/profile" element={
-            <RequireEmployee><EmployeeProfileEditor /></RequireEmployee>
-          } />
 
           {/* Admin standalone pages — no auth required */}
           <Route path="/admin/login" element={<AdminLogin />} />

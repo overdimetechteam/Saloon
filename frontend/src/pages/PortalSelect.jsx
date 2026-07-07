@@ -42,7 +42,7 @@ export default function PortalSelect() {
       accent: '#D4AF37',
       title: 'Salon Owner',
       desc: 'Manage bookings, staff, inventory and grow your business',
-      route: '/salon-portal',
+      route: '/owner/login',
     },
   ];
 

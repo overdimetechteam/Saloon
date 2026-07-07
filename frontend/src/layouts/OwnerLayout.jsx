@@ -11,13 +11,13 @@ const NAV = [
   { to: '/owner/dashboard',             icon: '◈', label: 'Dashboard',     group: 'main'  },
   { to: '/owner/bookings',              icon: '◉', label: 'Bookings',      group: 'main'  },
   { to: '/owner/services',              icon: '◇', label: 'Services',      group: 'main'  },
-  { to: '/owner/team',                  icon: '✦', label: 'Team',          group: 'main'  },
-  { to: '/owner/staff',                 icon: '◈', label: 'Staff Profiles', group: 'main'  },
   { to: '/owner/promotions',            icon: '⬡', label: 'Promotions',    group: 'main'  },
-  { to: '/owner/offers',               icon: '◑', label: 'Offers',         group: 'main'  },
+  { to: '/owner/offers',                icon: '◑', label: 'Offers',        group: 'main'  },
   { to: '/owner/gallery',               icon: '◫', label: 'Gallery',       group: 'main'  },
   { to: '/owner/analytics',             icon: '◱', label: 'Analytics',     group: 'main'  },
   { to: '/owner/subscription',          icon: '◆', label: 'Subscription',  group: 'main'  },
+  { to: '/owner/team',                  icon: '✦', label: 'Team',          group: 'admin' },
+  { to: '/owner/staff',                 icon: '◈', label: 'Staff Profiles', group: 'admin' },
   { to: '/owner/orders',                icon: '◫', label: 'Orders',        group: 'stock' },
   { to: '/owner/inventory',             icon: '▦', label: 'Products',      group: 'stock' },
   { to: '/owner/inventory/grn',         icon: '⊕', label: 'Receive Stock', group: 'stock' },
@@ -32,9 +32,10 @@ const PLAN_COLORS = { free_trial: '#6B7280', starter: '#14B8A8', professional: '
 const PLAN_ICONS  = { free_trial: '🆓', starter: '🚀', professional: '💎', premium: '👑' };
 
 const GROUPS = [
-  { key: 'main',    label: 'Workspace' },
-  { key: 'stock',   label: 'Inventory' },
-  { key: 'account', label: 'Account'   },
+  { key: 'main',    label: 'Workspace'    },
+  { key: 'admin',   label: 'Admin Portal' },
+  { key: 'stock',   label: 'Inventory'    },
+  { key: 'account', label: 'Account'      },
 ];
 
 export default function OwnerLayout() {
