@@ -25,6 +25,7 @@ class StaffMember(models.Model):
     working_days         = models.JSONField(default=list, blank=True)
     home_visit_available = models.BooleanField(default=False)
     is_active            = models.BooleanField(default=True)
+    is_online            = models.BooleanField(default=False)
     created_at           = models.DateTimeField(auto_now_add=True)
 
     class Meta:

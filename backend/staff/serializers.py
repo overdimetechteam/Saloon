@@ -55,12 +55,12 @@ class StaffMemberOwnerSerializer(serializers.ModelSerializer):
         model = StaffMember
         fields = [
             'id', 'full_name', 'role', 'bio', 'photo_url',
-            'phone', 'is_active', 'created_at', 'login_email',
+            'phone', 'is_active', 'is_online', 'created_at', 'login_email',
             'working_days', 'home_visit_available',
             'specialties', 'specialty_ids', 'specialty_names',
         ]
         read_only_fields = ['id', 'created_at', 'photo_url', 'login_email',
-                            'specialty_ids', 'specialty_names']
+                            'is_online', 'specialty_ids', 'specialty_names']
         extra_kwargs = {
             'specialties': {'write_only': True, 'required': False},
         }
@@ -79,8 +79,8 @@ class StaffMemberSelfSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = StaffMember
-        fields = ['id', 'full_name', 'role', 'bio', 'phone', 'photo', 'photo_url', 'is_active', 'created_at']
-        read_only_fields = ['id', 'role', 'is_active', 'created_at', 'photo_url']
+        fields = ['id', 'full_name', 'role', 'bio', 'phone', 'photo', 'photo_url', 'is_active', 'is_online', 'created_at']
+        read_only_fields = ['id', 'role', 'is_active', 'is_online', 'created_at', 'photo_url']
 
 
 class StaffMemberCreateSerializer(serializers.Serializer):

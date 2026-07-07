@@ -5,6 +5,7 @@ from .views import (
     SalonStaffDetail,
     SalonStaffResetCredentials,
     EmployeeProfileView,
+    EmployeeStatusView,
 )
 
 urlpatterns = [
@@ -18,4 +19,5 @@ urlpatterns = [
 
     # Employee self-service
     path('employee/profile/', EmployeeProfileView.as_view(), name='employee-profile'),
+    path('employee/status/',  EmployeeStatusView.as_view(),  name='employee-status'),
 ]

@@ -283,9 +283,20 @@ export default function StaffManager() {
                     }
                   </div>
                   <div style={s.info}>
-                    <div style={s.name}>{m.full_name} {!m.is_active && <span style={s.inactiveBadge}>Inactive</span>}</div>
-                    <div style={s.roleBadge}>{ROLE_LABEL[m.role] || m.role}</div>
-                    {m.login_email && <div style={s.email}>✉ {m.login_email}</div>}
+                    <div style={s.name}>
+                      {m.full_name}
+                      {!m.is_active && <span style={s.inactiveBadge}>Inactive</span>}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                      <div style={s.roleBadge}>{ROLE_LABEL[m.role] || m.role}</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <span style={{ width: 7, height: 7, borderRadius: '50%', background: m.is_online ? '#22C55E' : '#9CA3AF', display: 'inline-block', flexShrink: 0 }} />
+                        <span style={{ fontSize: 11, color: m.is_online ? '#16A34A' : 'var(--text-muted)', fontWeight: 600 }}>
+                          {m.is_online ? 'Online' : 'Offline'}
+                        </span>
+                      </div>
+                    </div>
+                    {m.login_email && <div style={{ ...s.email, marginTop: 0 }}>✉ {m.login_email}</div>}
                     {m.phone       && <div style={s.phone}>☏ {m.phone}</div>}
                     {m.bio         && <div style={s.bio}>{m.bio}</div>}
                   </div>
@@ -354,7 +365,7 @@ const s = {
     display: 'inline-block', padding: '2px 10px',
     background: 'rgba(13,148,136,.12)', color: '#0D9488',
     borderRadius: 20, fontSize: 11, fontWeight: 600,
-    textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6,
+    textTransform: 'uppercase', letterSpacing: '0.06em',
   },
   email: { fontSize: 13, color: 'var(--text-muted)', marginTop: 3 },
   phone: { fontSize: 13, color: 'var(--text-muted)', marginTop: 2 },

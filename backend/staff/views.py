@@ -136,6 +136,24 @@ class SalonStaffResetCredentials(APIView):
         return Response({'detail': 'Credentials updated.'})
 
 
+class EmployeeStatusView(APIView):
+    """
+    POST /api/employee/status/  — employee sets online/offline
+    Body: { "is_online": true | false }
+    """
+    permission_classes = [IsAuthenticated, IsEmployeeOfSalon]
+
+    def post(self, request):
+        try:
+            staff = StaffMember.objects.get(user=request.user, is_active=True)
+        except StaffMember.DoesNotExist:
+            return Response({'detail': 'Profile not found.'}, status=status.HTTP_404_NOT_FOUND)
+        is_online = bool(request.data.get('is_online', False))
+        staff.is_online = is_online
+        staff.save(update_fields=['is_online'])
+        return Response({'is_online': staff.is_online})
+
+
 class EmployeeProfileView(APIView):
     """
     GET   /api/employee/profile/  — employee reads their own profile

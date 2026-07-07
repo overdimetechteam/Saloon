@@ -8,12 +8,13 @@ export default function EmployeeProfileEditor() {
   const navigate = useNavigate();
   const fileRef  = useRef(null);
 
-  const [staff, setStaff]     = useState(null);
-  const [form, setForm]       = useState({ full_name: '', bio: '', phone: '' });
-  const [saving, setSaving]   = useState(false);
+  const [staff, setStaff]       = useState(null);
+  const [form, setForm]         = useState({ full_name: '', bio: '', phone: '' });
+  const [saving, setSaving]     = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [msg, setMsg]         = useState('');
-  const [error, setError]     = useState('');
+  const [togglingStatus, setTogglingStatus] = useState(false);
+  const [msg, setMsg]           = useState('');
+  const [error, setError]       = useState('');
 
   useEffect(() => {
     api.get('/employee/profile/')
@@ -49,7 +50,22 @@ export default function EmployeeProfileEditor() {
     } finally { setUploading(false); }
   };
 
-  const handleLogout = () => { navigate('/salon-portal'); logout(); };
+  const handleToggleStatus = async () => {
+    setTogglingStatus(true); setMsg(''); setError('');
+    try {
+      const r = await api.post('/employee/status/', { is_online: !staff.is_online });
+      setStaff(prev => ({ ...prev, is_online: r.data.is_online }));
+      setMsg(r.data.is_online ? 'You are now shown as Online.' : 'You are now shown as Offline.');
+    } catch {
+      setError('Could not update status.');
+    } finally { setTogglingStatus(false); }
+  };
+
+  const handleLogout = async () => {
+    // Mark offline on logout
+    try { await api.post('/employee/status/', { is_online: false }); } catch { /* ignore */ }
+    navigate('/salon-portal'); logout();
+  };
 
   if (!staff && !error) {
     return (
@@ -87,6 +103,27 @@ export default function EmployeeProfileEditor() {
             <div style={s.staffName}>{staff?.full_name}</div>
             <div style={s.staffRole}>{staff?.role}</div>
           </div>
+        </div>
+
+        {/* Online / Offline status toggle */}
+        <div style={s.statusRow}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ ...s.statusDot, background: staff?.is_online ? '#22C55E' : '#9CA3AF' }} />
+            <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>
+              {staff?.is_online ? 'Online' : 'Offline'}
+            </span>
+            <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+              · visible to salon owner
+            </span>
+          </div>
+          <button
+            type="button"
+            style={{ ...s.statusBtn, ...(staff?.is_online ? s.statusBtnOff : s.statusBtnOn) }}
+            onClick={handleToggleStatus}
+            disabled={togglingStatus}
+          >
+            {togglingStatus ? '…' : staff?.is_online ? 'Go Offline' : 'Go Online'}
+          </button>
         </div>
 
         {/* Messages */}
@@ -182,6 +219,28 @@ const s = {
     textTransform: 'uppercase', letterSpacing: '0.08em',
   },
 
+  statusRow: {
+    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    background: 'var(--surface2)', border: '1px solid var(--border)',
+    borderRadius: 12, padding: '12px 16px', marginBottom: 20,
+  },
+  statusDot: {
+    width: 10, height: 10, borderRadius: '50%', flexShrink: 0,
+    boxShadow: '0 0 0 3px rgba(0,0,0,.06)',
+  },
+  statusBtn: {
+    padding: '7px 16px', border: 'none', borderRadius: 8,
+    fontSize: 13, fontWeight: 600, cursor: 'pointer',
+    fontFamily: "'DM Sans', sans-serif",
+  },
+  statusBtnOn: {
+    background: 'linear-gradient(135deg, #22C55E, #16A34A)',
+    color: '#fff', boxShadow: '0 3px 10px rgba(34,197,94,.3)',
+  },
+  statusBtnOff: {
+    background: 'var(--surface)', color: 'var(--text-muted)',
+    border: '1px solid var(--border)',
+  },
   successMsg: {
     background: '#F0FDF4', border: '1px solid #86EFAC', color: '#16A34A',
     borderRadius: 10, padding: '10px 14px', fontSize: 13, marginBottom: 20,
