@@ -40,7 +40,7 @@ export default function Navbar() {
   const isExplore = location.pathname === '/salons';
   const isCosmetics = location.pathname.includes('cosmetics');
   const navSearch = searchParams.get('q') || '';
-  const showNavSearch = isExplore && !isMobile && !isTablet;
+  const showNavSearch = isExplore && !isMobile && !isTablet && !!profile;
 
   const cosmAccent  = '#C96B51';
   const cosmAccent2 = '#D4AF37';
