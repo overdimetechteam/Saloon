@@ -1171,7 +1171,7 @@ export default function SalonDetail() {
             fontSize: 14, color: 'rgba(255,255,255,.58)', lineHeight: 1.65,
             margin: '0 0 28px', position: 'relative', zIndex: 1,
           }}>
-            To explore more, sign in as a customer — book appointments, shop cosmetics and track your full beauty journey.
+            To explore more, sign in as a customer.
           </p>
 
           {/* Salon context pill */}
@@ -1201,7 +1201,7 @@ export default function SalonDetail() {
                 letterSpacing: '0.01em',
               }}
             >
-              Sign In  →
+              Navigate to Login portal
             </button>
             <button
               onClick={() => navigate(`/register/user`)}
