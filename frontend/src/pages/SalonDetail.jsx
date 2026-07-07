@@ -88,6 +88,7 @@ export default function SalonDetail() {
   const [reviewMsg, setReviewMsg] = useState('');
   const [selectedMember, setSelectedMember] = useState(null);
   const [showAllReviews, setShowAllReviews] = useState(false);
+  const [authPromptDest, setAuthPromptDest] = useState(null);
 
   const servicesRef  = useRef(null);
   const teamRef      = useRef(null);
@@ -244,8 +245,6 @@ export default function SalonDetail() {
   const showBookBtn = profile?.role !== 'salon_owner';
   const bookUrl      = `/user/book/${id}`;
   const cosmeticsUrl = `/salons/${id}/cosmetics`;
-  // Guest modal state — null = closed, string = intended destination after login
-  const [authPromptDest, setAuthPromptDest] = useState(null);
   const guestGuard = (e, dest) => {
     if (!profile) { e.preventDefault(); setAuthPromptDest(dest); }
   };
