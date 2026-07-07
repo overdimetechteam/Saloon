@@ -84,6 +84,16 @@ class StaffMemberSelfSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'role', 'is_active', 'is_online', 'created_at', 'photo_url']
 
 
+class StaffMemberDirectCreateSerializer(serializers.ModelSerializer):
+    """Creates a staff profile only — no login account needed."""
+    class Meta:
+        model = StaffMember
+        fields = ['full_name', 'role', 'bio', 'phone']
+
+    def create(self, validated_data):
+        return StaffMember.objects.create(salon=self.context['salon'], **validated_data)
+
+
 class StaffMemberCreateSerializer(serializers.Serializer):
     """Owner creates a staff member + employee login account atomically.
 

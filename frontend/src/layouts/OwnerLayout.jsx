@@ -16,8 +16,6 @@ const NAV = [
   { to: '/owner/gallery',               icon: '◫', label: 'Gallery',       group: 'main'  },
   { to: '/owner/analytics',             icon: '◱', label: 'Analytics',     group: 'main'  },
   { to: '/owner/subscription',          icon: '◆', label: 'Subscription',  group: 'main'  },
-  { to: '/owner/team',                  icon: '✦', label: 'Team',          group: 'admin' },
-  { to: '/owner/staff',                 icon: '◈', label: 'Staff Profiles', group: 'admin' },
   { to: '/owner/orders',                icon: '◫', label: 'Orders',        group: 'stock' },
   { to: '/owner/inventory',             icon: '▦', label: 'Products',      group: 'stock' },
   { to: '/owner/inventory/grn',         icon: '⊕', label: 'Receive Stock', group: 'stock' },
@@ -32,10 +30,9 @@ const PLAN_COLORS = { free_trial: '#6B7280', starter: '#14B8A8', professional: '
 const PLAN_ICONS  = { free_trial: '🆓', starter: '🚀', professional: '💎', premium: '👑' };
 
 const GROUPS = [
-  { key: 'main',    label: 'Workspace'    },
-  { key: 'stock',   label: 'Inventory'    },
-  { key: 'account', label: 'Account'      },
-  { key: 'admin',   label: 'Admin Portal' },
+  { key: 'main',    label: 'Workspace' },
+  { key: 'stock',   label: 'Inventory' },
+  { key: 'account', label: 'Account'   },
 ];
 
 export default function OwnerLayout() {
@@ -234,18 +231,7 @@ export default function OwnerLayout() {
         <nav style={s.nav}>
           {GROUPS.map(group => (
             <div key={group.key}>
-              {!(collapsed || isTablet) && (
-                <div style={{
-                  ...s.groupLabel,
-                  ...(group.key === 'admin' ? {
-                    color: 'rgba(94,234,212,.55)',
-                    borderTop: '1px solid rgba(13,148,136,.18)',
-                    paddingTop: 14, marginTop: 4,
-                  } : {}),
-                }}>
-                  {group.label}
-                </div>
-              )}
+              {!(collapsed || isTablet) && <div style={s.groupLabel}>{group.label}</div>}
               {NAV.filter(n => n.group === group.key).map(item => (
                 <NavLink
                   key={item.to}
@@ -263,7 +249,7 @@ export default function OwnerLayout() {
                   {!(collapsed || isTablet) && <span style={s.navLabel}>{item.label}</span>}
                 </NavLink>
               ))}
-              {!(collapsed || isTablet) && group.key !== 'admin' && <div style={s.groupDivider} />}
+              {!(collapsed || isTablet) && <div style={s.groupDivider} />}
             </div>
           ))}
         </nav>

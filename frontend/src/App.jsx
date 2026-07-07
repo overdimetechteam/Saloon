@@ -12,6 +12,7 @@ import CookieConsent from './components/CookieConsent';
 
 import AdminLayout from './layouts/AdminLayout';
 import OwnerLayout from './layouts/OwnerLayout';
+import AdminPortalLayout from './layouts/AdminPortalLayout';
 import UserLayout from './layouts/UserLayout';
 
 import LandingPage from './pages/LandingPage';
@@ -233,6 +234,14 @@ function OwnerLayoutWithProvider() {
   );
 }
 
+function AdminPortalLayoutWithProvider() {
+  return (
+    <OwnerProvider>
+      <AdminPortalLayout />
+    </OwnerProvider>
+  );
+}
+
 export default function App() {
   return (
     <AuthProvider>
@@ -290,6 +299,15 @@ export default function App() {
             </Route>
           </Route>
 
+          {/* Admin portal (Team + Staff only) — /admin-portal/* */}
+          <Route path="/admin-portal" element={<RequireRole roles={['salon_owner']} />}>
+            <Route element={<AdminPortalLayoutWithProvider />}>
+              <Route index element={<Navigate to="team" replace />} />
+              <Route path="team" element={<OwnerTeam />} />
+              <Route path="staff" element={<OwnerStaffManager />} />
+            </Route>
+          </Route>
+
           {/* Owner portal — /owner/* */}
           <Route path="/owner" element={<RequireRole roles={['salon_owner']} />}>
             <Route element={<OwnerLayoutWithProvider />}>
@@ -298,8 +316,6 @@ export default function App() {
               <Route path="bookings" element={<OwnerBookingList />} />
               <Route path="bookings/:id" element={<OwnerBookingDetail />} />
               <Route path="services" element={<OwnerServices />} />
-              <Route path="team" element={<OwnerTeam />} />
-              <Route path="staff" element={<OwnerStaffManager />} />
               <Route path="gallery" element={<OwnerGallery />} />
               <Route path="promotions" element={<OwnerPromotions />} />
               <Route path="analytics"  element={<OwnerAnalytics />} />

@@ -1,0 +1,376 @@
+import { useState, useEffect, useRef } from 'react';
+import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { useOwner } from '../context/OwnerContext';
+import { useTheme } from '../context/ThemeContext';
+import { useBreakpoint } from '../hooks/useMobile';
+import api from '../api/axios';
+
+const NAV = [
+  { to: '/admin-portal/team',  icon: '✦', label: 'Team'          },
+  { to: '/admin-portal/staff', icon: '◈', label: 'Staff Profiles' },
+];
+
+export default function AdminPortalLayout() {
+  const { profile, logout } = useAuth();
+  const { salon }           = useOwner();
+  const { isDark, toggle }  = useTheme();
+  const navigate            = useNavigate();
+  const location            = useLocation();
+  const { isMobile, isTablet } = useBreakpoint();
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [notifs, setNotifs]       = useState([]);
+  const [showNotifs, setShowNotifs] = useState(false);
+  const bellRef = useRef(null);
+
+  useEffect(() => { setDrawerOpen(false); }, [location.pathname]);
+
+  useEffect(() => {
+    const fetchCount = () =>
+      api.get('/users/notifications/unread-count/').then(r => setUnreadCount(r.data.count)).catch(() => {});
+    fetchCount();
+    const iv = setInterval(fetchCount, 30000);
+    return () => clearInterval(iv);
+  }, []);
+
+  const openNotifs = () => {
+    if (!showNotifs) api.get('/users/notifications/').then(r => setNotifs(r.data)).catch(() => {});
+    setShowNotifs(v => !v);
+  };
+
+  const markAllRead = async () => {
+    await api.post('/users/notifications/mark-read/').catch(() => {});
+    setNotifs(prev => prev.map(n => ({ ...n, is_read: true })));
+    setUnreadCount(0);
+  };
+
+  useEffect(() => {
+    const handler = e => { if (bellRef.current && !bellRef.current.contains(e.target)) setShowNotifs(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const handleLogout = async () => { await logout(); navigate('/owner/login'); };
+  const initials = (profile?.full_name || 'A').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+
+  const sidebarWidth = isMobile ? 272 : (isTablet ? 68 : 252);
+
+  return (
+    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg)' }}>
+
+      {/* Mobile top bar */}
+      {isMobile && (
+        <header style={s.mobileHeader}>
+          <button style={s.burgerBtn} onClick={() => setDrawerOpen(v => !v)}>
+            {[0,1,2].map(i => <span key={i} style={s.burgerLine} />)}
+          </button>
+          <div style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontWeight: 700, fontSize: 18, color: 'var(--text)' }}>
+            Admin Portal
+          </div>
+          <button onClick={toggle} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: isDark ? '#5EEAD4' : '#0D9488' }}>
+            {isDark ? '☀' : '☾'}
+          </button>
+        </header>
+      )}
+
+      {/* Mobile backdrop */}
+      {isMobile && drawerOpen && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.55)', zIndex: 99, backdropFilter: 'blur(2px)' }}
+          onClick={() => setDrawerOpen(false)} />
+      )}
+
+      {/* Sidebar */}
+      <aside style={{
+        ...s.sidebar,
+        width: sidebarWidth,
+        ...(isMobile ? {
+          position: 'fixed', left: 0, top: 0, zIndex: 110,
+          transform: drawerOpen ? 'translateX(0)' : 'translateX(-100%)',
+          transition: 'transform .28s cubic-bezier(.4,0,.2,1)',
+        } : { width: isTablet ? 68 : 252 }),
+      }}>
+
+        {/* Brand */}
+        <div style={s.brandArea}>
+          <div style={s.brandIcon}>✦</div>
+          {!isTablet && (
+            <>
+              <div style={s.brandText}>
+                <div style={s.brandName}>{salon?.name || 'My Salon'}</div>
+                <div style={s.brandSub}>Admin Portal</div>
+              </div>
+              <div style={{ display: 'flex', gap: 5, flexShrink: 0 }}>
+                {/* Bell */}
+                <div ref={bellRef} style={{ position: 'relative' }}>
+                  <button onClick={openNotifs} style={s.sideToggle} title="Notifications">
+                    🔔
+                    {unreadCount > 0 && <span style={s.bellBadge}>{unreadCount > 9 ? '9+' : unreadCount}</span>}
+                  </button>
+                  {showNotifs && (
+                    <div style={s.notifDropdown}>
+                      <div style={s.notifHeader}>
+                        <span style={s.notifTitle}>Notifications</span>
+                        {unreadCount > 0 && <button style={s.markReadBtn} onClick={markAllRead}>Mark all read</button>}
+                      </div>
+                      <div style={s.notifList}>
+                        {notifs.length === 0 && <div style={s.notifEmpty}>No notifications yet</div>}
+                        {notifs.slice(0, 10).map(n => (
+                          <div key={n.id} style={{ ...s.notifItem, ...(n.is_read ? {} : s.notifUnread) }}>
+                            {!n.is_read && <span style={s.notifDot} />}
+                            <div style={{ flex: 1 }}>
+                              <div style={s.notifMsg}>{n.message}</div>
+                              <div style={s.notifTime}>{new Date(n.created_at).toLocaleString()}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <button onClick={toggle} style={s.sideToggle}>{isDark ? '☀' : '☾'}</button>
+              </div>
+            </>
+          )}
+          {isTablet && !isMobile && (
+            <button onClick={toggle} style={{ ...s.sideToggle, margin: '0 auto' }}>{isDark ? '☀' : '☾'}</button>
+          )}
+        </div>
+
+        {/* Portal badge */}
+        {!isTablet && (
+          <div style={s.portalBadge}>
+            <span style={s.portalDot} />
+            <span style={s.portalText}>Admin Portal</span>
+          </div>
+        )}
+
+        <div style={s.divider} />
+
+        {/* Nav */}
+        <nav style={s.nav}>
+          {!isTablet && <div style={s.groupLabel}>Management</div>}
+          {NAV.map(item => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              className="nav-salon"
+              style={({ isActive }) => ({
+                ...s.navItem,
+                ...(isTablet ? s.navItemCollapsed : {}),
+                ...(isActive ? s.navActive : {}),
+              })}
+              title={isTablet ? item.label : undefined}
+            >
+              <span style={s.navIcon}>{item.icon}</span>
+              {!isTablet && <span style={s.navLabel}>{item.label}</span>}
+            </NavLink>
+          ))}
+
+          {/* Back to Owner Dashboard */}
+          <div style={{ marginTop: 'auto', paddingTop: 20 }}>
+            {!isTablet && <div style={{ ...s.groupLabel, marginTop: 16 }}>Switch Portal</div>}
+            <NavLink
+              to="/owner/dashboard"
+              className="nav-salon"
+              style={{ ...s.navItem, ...(isTablet ? s.navItemCollapsed : {}) }}
+              title={isTablet ? 'Owner Dashboard' : undefined}
+            >
+              <span style={s.navIcon}>◉</span>
+              {!isTablet && <span style={s.navLabel}>Owner Dashboard</span>}
+            </NavLink>
+          </div>
+        </nav>
+
+        {/* Footer */}
+        <div style={s.footer}>
+          <div style={s.divider} />
+          {isTablet ? (
+            <div style={s.avatarCollapsed} title={profile?.full_name}>{initials}</div>
+          ) : (
+            <div style={s.footerInner}>
+              <div style={s.footerAvatar}>{initials}</div>
+              <div style={s.footerInfo}>
+                <div style={s.footerName}>{profile?.full_name}</div>
+                <div style={s.footerEmail}>{profile?.email}</div>
+              </div>
+            </div>
+          )}
+          <button style={{ ...s.logoutBtn, justifyContent: isTablet ? 'center' : 'flex-start' }} onClick={handleLogout}>
+            <span style={s.logoutIcon}>⎋</span>
+            {!isTablet && ' Sign Out'}
+          </button>
+        </div>
+      </aside>
+
+      {/* Main content */}
+      <main style={{
+        ...s.main,
+        marginLeft: isMobile ? 0 : sidebarWidth,
+        padding: isMobile ? '16px 16px 80px' : isTablet ? '20px 20px 80px' : '36px 40px',
+        marginTop: isMobile ? 56 : 0,
+      }}>
+        <Outlet />
+      </main>
+
+      {/* Mobile bottom tab */}
+      {isMobile && (
+        <nav className="bottom-tab-bar owner-bottom-bar">
+          {NAV.map(item => (
+            <NavLink key={item.to} to={item.to}>
+              <span className="tab-icon">{item.icon}</span>
+              {item.label}
+            </NavLink>
+          ))}
+        </nav>
+      )}
+    </div>
+  );
+}
+
+const s = {
+  sidebar: {
+    background: 'linear-gradient(180deg, #111120 0%, #0D0D16 100%)',
+    display: 'flex', flexDirection: 'column',
+    position: 'fixed', top: 0, left: 0, height: '100vh',
+    zIndex: 100, flexShrink: 0,
+    transition: 'width .28s cubic-bezier(.4,0,.2,1)',
+    borderRight: '1px solid rgba(13,148,136,.1)',
+  },
+  brandArea: {
+    display: 'flex', alignItems: 'center', gap: 10, padding: '22px 14px 14px', flexShrink: 0,
+  },
+  brandIcon: {
+    width: 36, height: 36, borderRadius: 10, flexShrink: 0,
+    background: 'linear-gradient(145deg, #0D9488 0%, #14B8A8 100%)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    color: '#fff', fontSize: 14, fontWeight: 900,
+    boxShadow: '0 4px 16px rgba(13,148,136,.5)',
+  },
+  brandText: { overflow: 'hidden', flex: 1, minWidth: 0 },
+  brandName: {
+    fontFamily: "'Cormorant Garamond', Georgia, serif",
+    color: '#FFFFFF', fontWeight: 700, fontSize: 15,
+    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+  },
+  brandSub: {
+    color: '#5EEAD4', fontSize: 9, letterSpacing: '0.14em',
+    textTransform: 'uppercase', marginTop: 2, fontWeight: 600,
+  },
+  sideToggle: {
+    width: 30, height: 30, borderRadius: 8, flexShrink: 0,
+    background: 'rgba(255,255,255,.07)', border: '1px solid rgba(255,255,255,.1)',
+    color: '#5EEAD4', cursor: 'pointer', fontSize: 14,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    position: 'relative',
+  },
+  bellBadge: {
+    position: 'absolute', top: -5, right: -5,
+    background: '#0D9488', color: '#fff',
+    fontSize: 9, fontWeight: 800, borderRadius: 20,
+    padding: '1px 4px', lineHeight: 1.4, minWidth: 14, textAlign: 'center',
+  },
+  notifDropdown: {
+    position: 'absolute', top: 38, left: 0,
+    width: 300, background: '#12121C',
+    border: '1px solid rgba(13,148,136,.25)',
+    borderRadius: 16, boxShadow: '0 20px 48px rgba(0,0,0,.55)',
+    zIndex: 200, overflow: 'hidden',
+  },
+  notifHeader: {
+    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+    padding: '14px 18px', borderBottom: '1px solid rgba(255,255,255,.06)',
+  },
+  notifTitle: {
+    fontFamily: "'Cormorant Garamond', Georgia, serif",
+    fontSize: 13, fontWeight: 700, color: '#99F6E4',
+  },
+  markReadBtn: { fontSize: 11, color: '#5EEAD4', background: 'transparent', border: 'none', cursor: 'pointer' },
+  notifList: { maxHeight: 320, overflowY: 'auto' },
+  notifEmpty: { padding: '28px 18px', textAlign: 'center', color: '#6B7280', fontSize: 13 },
+  notifItem: {
+    display: 'flex', alignItems: 'flex-start', gap: 10,
+    padding: '11px 18px', borderBottom: '1px solid rgba(255,255,255,.04)',
+  },
+  notifUnread: { background: 'rgba(13,148,136,.1)' },
+  notifDot: { width: 7, height: 7, borderRadius: '50%', background: '#5EEAD4', flexShrink: 0, marginTop: 5 },
+  notifMsg: { fontSize: 12, color: '#E5E7EB', lineHeight: 1.5 },
+  notifTime: { fontSize: 10, color: '#6B7280', marginTop: 3 },
+
+  portalBadge: {
+    display: 'flex', alignItems: 'center', gap: 8,
+    padding: '2px 16px 12px', flexShrink: 0,
+  },
+  portalDot: {
+    width: 7, height: 7, borderRadius: '50%', flexShrink: 0,
+    background: '#14B8A8', boxShadow: '0 0 8px rgba(20,184,166,.5)',
+  },
+  portalText: { fontSize: 11, color: '#5EEAD4', fontWeight: 500 },
+
+  divider: { height: 1, background: 'rgba(13,148,136,.14)', margin: '0 14px', flexShrink: 0 },
+
+  nav: { flex: 1, padding: '12px 10px', overflowY: 'auto', display: 'flex', flexDirection: 'column' },
+  groupLabel: {
+    fontSize: 9, fontWeight: 700, color: 'rgba(13,148,136,.55)',
+    letterSpacing: '0.14em', padding: '10px 10px 5px', textTransform: 'uppercase',
+  },
+  navItem: {
+    display: 'flex', alignItems: 'center', gap: 11,
+    padding: '10px 13px', borderRadius: 10,
+    color: '#5EEAD4', textDecoration: 'none',
+    fontSize: 13, fontWeight: 500, whiteSpace: 'nowrap',
+  },
+  navItemCollapsed: { padding: '11px', justifyContent: 'center' },
+  navActive: {
+    background: 'rgba(13,148,136,.22)', color: '#FFFFFF',
+    boxShadow: 'inset 0 0 0 1px rgba(13,148,136,.3)',
+  },
+  navIcon: { fontSize: 15, width: 18, textAlign: 'center', flexShrink: 0 },
+  navLabel: { flex: 1 },
+
+  footer: { padding: '0 10px 16px', flexShrink: 0 },
+  footerInner: { display: 'flex', alignItems: 'center', gap: 10, padding: '13px 6px' },
+  footerAvatar: {
+    width: 33, height: 33, borderRadius: '50%', flexShrink: 0,
+    background: 'linear-gradient(145deg, #0D9488, #14B8A8)',
+    color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+    fontSize: 12, fontWeight: 700,
+  },
+  avatarCollapsed: {
+    width: 34, height: 34, borderRadius: '50%', margin: '10px auto',
+    background: 'linear-gradient(145deg, #0D9488, #14B8A8)',
+    color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+    fontSize: 12, fontWeight: 700,
+  },
+  footerInfo: { flex: 1, minWidth: 0 },
+  footerName: { color: '#FFFFFF', fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
+  footerEmail: { color: '#5EEAD4', fontSize: 10, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: 1 },
+  logoutBtn: {
+    width: '100%', padding: '9px 10px',
+    background: 'transparent', border: '1px solid rgba(13,148,136,.22)',
+    color: '#5EEAD4', borderRadius: 9, cursor: 'pointer',
+    fontSize: 12, display: 'flex', alignItems: 'center', gap: 7, marginTop: 4,
+  },
+  logoutIcon: { fontSize: 14 },
+
+  main: {
+    flex: 1, minHeight: '100vh', padding: '36px 40px',
+    background: 'var(--bg)',
+    transition: 'margin-left .28s cubic-bezier(.4,0,.2,1)',
+  },
+
+  mobileHeader: {
+    position: 'fixed', top: 0, left: 0, right: 0, height: 56,
+    background: 'var(--surface)', borderBottom: '1px solid var(--border)',
+    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    padding: '0 16px', zIndex: 100,
+  },
+  burgerBtn: {
+    background: 'none', border: 'none', cursor: 'pointer',
+    display: 'flex', flexDirection: 'column', gap: 5, padding: '8px 4px',
+  },
+  burgerLine: {
+    display: 'block', width: 22, height: 2, borderRadius: 2,
+    background: 'var(--text)',
+  },
+};

@@ -7,13 +7,14 @@ export default function OwnerLogin() {
   const { login, profile } = useAuth();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  const [form, setForm]       = useState({ email: '', password: '' });
-  const [showPw, setShowPw]   = useState(false);
-  const [error, setError]     = useState('');
-  const [loading, setLoading] = useState(false);
+  const [form, setForm]             = useState({ email: '', password: '' });
+  const [showPw, setShowPw]         = useState(false);
+  const [error, setError]           = useState('');
+  const [loading, setLoading]       = useState(false);
+  const [showPortalChoice, setShowPortalChoice] = useState(false);
 
   useEffect(() => {
-    if (profile?.role === 'salon_owner') navigate('/owner/dashboard', { replace: true });
+    if (profile?.role === 'salon_owner') setShowPortalChoice(true);
   }, [profile]);
 
   const handleLogin = async e => {
@@ -24,7 +25,7 @@ export default function OwnerLogin() {
         setError('This portal is for salon owners only. Please use the Customer portal instead.');
         return;
       }
-      window.location.href = '/owner/dashboard';
+      setShowPortalChoice(true);
     } catch (err) {
       setError(err.response?.data?.detail || 'Invalid email or password');
     } finally { setLoading(false); }
@@ -141,11 +142,117 @@ export default function OwnerLogin() {
 
         </div>
       </div>
+      {/* ── Portal choice modal ── */}
+      {showPortalChoice && (
+        <div style={p.overlay}>
+          <div style={p.card}>
+            <div style={p.logoRow}>
+              <span style={p.logoMark}>✦</span>
+              <span style={p.logoBrand}>BookMyStyle</span>
+            </div>
+            <h2 style={p.heading}>Choose Your Portal</h2>
+            <p style={p.sub}>How would you like to continue?</p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%', marginBottom: 12 }}>
+              {/* Super Admin */}
+              <button
+                style={p.optBtn}
+                onClick={() => { window.location.href = '/owner/dashboard'; }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = GOLD; e.currentTarget.style.background = 'rgba(212,175,55,.06)'; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,.1)'; e.currentTarget.style.background = 'rgba(255,255,255,.04)'; }}
+              >
+                <div style={{ ...p.optIcon, background: 'linear-gradient(135deg,#92701a,#D4AF37)' }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" />
+                    <rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" />
+                  </svg>
+                </div>
+                <div style={{ flex: 1, textAlign: 'left' }}>
+                  <div style={p.optTitle}>Super Admin</div>
+                  <div style={p.optDesc}>Full salon management dashboard — bookings, services, analytics</div>
+                </div>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </button>
+
+              {/* Admin */}
+              <button
+                style={p.optBtn}
+                onClick={() => { window.location.href = '/admin-portal/team'; }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = '#14B8A8'; e.currentTarget.style.background = 'rgba(13,148,136,.06)'; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,.1)'; e.currentTarget.style.background = 'rgba(255,255,255,.04)'; }}
+              >
+                <div style={{ ...p.optIcon, background: 'linear-gradient(135deg,#0D9488,#14B8A8)' }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" />
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                  </svg>
+                </div>
+                <div style={{ flex: 1, textAlign: 'left' }}>
+                  <div style={p.optTitle}>Admin</div>
+                  <div style={p.optDesc}>Manage your team members and staff profiles</div>
+                </div>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#14B8A8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 const GOLD = '#D4AF37';
+
+const p = {
+  overlay: {
+    position: 'fixed', inset: 0, zIndex: 9999,
+    background: 'rgba(0,0,0,.82)', backdropFilter: 'blur(12px)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    padding: 20,
+  },
+  card: {
+    background: 'linear-gradient(145deg,#0d0d16,#111120)',
+    border: '1px solid rgba(255,255,255,.08)',
+    borderRadius: 24, padding: '44px 40px',
+    width: '100%', maxWidth: 440,
+    display: 'flex', flexDirection: 'column', alignItems: 'center',
+    boxShadow: '0 40px 100px rgba(0,0,0,.6)',
+  },
+  logoRow: { display: 'flex', alignItems: 'center', gap: 8, marginBottom: 28 },
+  logoMark: { fontSize: 18, color: '#14B8A8', filter: 'drop-shadow(0 0 8px rgba(20,184,166,.4))' },
+  logoBrand: {
+    fontFamily: "'Cormorant Garamond', Georgia, serif",
+    fontSize: 20, fontWeight: 700, color: '#ffffff', letterSpacing: '-0.01em',
+  },
+  heading: {
+    fontFamily: "'Cormorant Garamond', Georgia, serif",
+    fontSize: 30, fontWeight: 700, color: '#ffffff',
+    margin: '0 0 8px', letterSpacing: '-0.02em',
+  },
+  sub: { color: 'rgba(255,255,255,.38)', fontSize: 14, margin: '0 0 28px', fontFamily: "'DM Sans',sans-serif" },
+  optBtn: {
+    width: '100%', display: 'flex', alignItems: 'center', gap: 14,
+    background: 'rgba(255,255,255,.04)', border: '1.5px solid rgba(255,255,255,.1)',
+    borderRadius: 16, padding: '16px 18px', cursor: 'pointer',
+    transition: 'border-color .15s ease, background .15s ease',
+  },
+  optIcon: {
+    width: 44, height: 44, borderRadius: 12, flexShrink: 0,
+    display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff',
+  },
+  optTitle: {
+    fontSize: 16, fontWeight: 800, color: '#fff',
+    marginBottom: 3, fontFamily: "'DM Sans',sans-serif",
+  },
+  optDesc: {
+    fontSize: 12, color: 'rgba(255,255,255,.4)', lineHeight: 1.4,
+    fontFamily: "'DM Sans',sans-serif",
+  },
+};
 
 const s = {
   page: { minHeight: '100vh', display: 'flex', background: 'var(--bg)' },

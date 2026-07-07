@@ -5,7 +5,7 @@ import { useOwner } from '../../context/OwnerContext';
 const ROLES = ['stylist', 'barber', 'colorist', 'receptionist', 'manager', 'other'];
 const ROLE_LABEL = { stylist: 'Stylist', barber: 'Barber', colorist: 'Colorist', receptionist: 'Receptionist', manager: 'Manager', other: 'Other' };
 
-const blankCreate = { full_name: '', role: 'stylist', bio: '', phone: '', login_email: '', password: '' };
+const blankCreate = { full_name: '', role: 'stylist', bio: '', phone: '' };
 const blankReset  = { login_email: '', password: '' };
 
 export default function StaffManager() {
@@ -18,9 +18,7 @@ export default function StaffManager() {
   const [createForm, setCreateForm] = useState(blankCreate);
   const [creating, setCreating]     = useState(false);
   const [createErr, setCreateErr]   = useState('');
-  const [showCreatePw, setShowCreatePw] = useState(false);
-  const [showResetPw, setShowResetPw]   = useState(false);
-  const [generatedCreds, setGeneratedCreds] = useState(null);
+  const [showResetPw, setShowResetPw] = useState(false);
 
   const [editId, setEditId]         = useState(null);
   const [editForm, setEditForm]     = useState({});
@@ -48,14 +46,9 @@ export default function StaffManager() {
   const handleCreate = async e => {
     e.preventDefault(); setCreating(true); setCreateErr('');
     try {
-      const payload = { ...createForm };
-      if (!payload.password) delete payload.password;
-      const r = await api.post(`/salons/${salon.id}/staff-members/`, payload);
+      const r = await api.post(`/salons/${salon.id}/staff-members/`, createForm);
       setStaff(prev => [...prev, r.data]);
       setShowCreate(false); setCreateForm(blankCreate);
-      if (r.data.generated_password) {
-        setGeneratedCreds({ email: createForm.login_email, password: r.data.generated_password });
-      }
     } catch (err) {
       const data = err.response?.data;
       if (data && typeof data === 'object') {
@@ -175,20 +168,6 @@ export default function StaffManager() {
               <Field label="Bio / Description">
                 <textarea style={{ ...s.input, minHeight: 72, resize: 'vertical' }} value={createForm.bio} onChange={e => setCreateForm({ ...createForm, bio: e.target.value })} placeholder="Short introduction about this staff member…" />
               </Field>
-              <div style={s.divider} />
-              <p style={s.sectionLabel}>Login Credentials</p>
-              <div style={s.row2}>
-                <Field label="Login Email" required>
-                  <input style={s.input} type="email" name="staff-login-email" value={createForm.login_email} onChange={e => setCreateForm({ ...createForm, login_email: e.target.value })} required autoComplete="new-password" />
-                </Field>
-                <Field label="Password (optional)">
-                  <div style={{ position: 'relative' }}>
-                    <input style={{ ...s.input, paddingRight: 40 }} type={showCreatePw ? 'text' : 'password'} name="staff-password-new" value={createForm.password} onChange={e => setCreateForm({ ...createForm, password: e.target.value })} minLength={6} autoComplete="new-password" placeholder="Leave blank to auto-generate" />
-                    <button type="button" onClick={() => setShowCreatePw(v => !v)} style={s.eyeBtn}>{showCreatePw ? '🙈' : '👁'}</button>
-                  </div>
-                  <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>Leave blank — a secure password will be generated and shown to you.</div>
-                </Field>
-              </div>
               <div style={s.modalFooter}>
                 <button type="button" style={s.cancelBtn} onClick={() => setShowCreate(false)}>Cancel</button>
                 <button type="submit" style={{ ...s.saveBtn, opacity: creating ? 0.75 : 1 }} disabled={creating}>
@@ -230,32 +209,6 @@ export default function StaffManager() {
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
-
-      {/* ── Generated credentials dialog ── */}
-      {generatedCreds && (
-        <div style={s.modalBack} onClick={() => setGeneratedCreds(null)}>
-          <div style={{ ...s.modal, maxWidth: 400 }} onClick={e => e.stopPropagation()}>
-            <div style={s.modalHeader}>
-              <span style={s.modalTitle}>Staff Account Created ✓</span>
-              <button style={s.closeBtn} onClick={() => setGeneratedCreds(null)}>✕</button>
-            </div>
-            <div style={{ padding: '4px 0 16px', fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.6 }}>
-              Share these login details with your staff member. This password <strong>won't be shown again</strong>.
-            </div>
-            <div style={{ background: 'var(--surface2)', borderRadius: 12, padding: '16px 18px', border: '1.5px solid var(--border)', marginBottom: 18 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
-                <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Email</span>
-                <span style={{ fontSize: 13, color: 'var(--text)', fontWeight: 600 }}>{generatedCreds.email}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Password</span>
-                <span style={{ fontSize: 14, color: '#0D9488', fontWeight: 800, fontFamily: 'monospace', letterSpacing: '0.1em' }}>{generatedCreds.password}</span>
-              </div>
-            </div>
-            <button style={{ ...s.saveBtn, width: '100%' }} onClick={() => setGeneratedCreds(null)}>Got it, I've noted these down</button>
           </div>
         </div>
       )}

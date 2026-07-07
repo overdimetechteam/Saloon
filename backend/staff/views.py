@@ -12,6 +12,7 @@ from .serializers import (
     StaffMemberPublicSerializer,
     StaffMemberOwnerSerializer,
     StaffMemberSelfSerializer,
+    StaffMemberDirectCreateSerializer,
     StaffMemberCreateSerializer,
     StaffResetCredentialsSerializer,
 )
@@ -53,14 +54,11 @@ class SalonStaffListCreate(APIView):
         salon = self._get_salon(salon_id, request.user)
         if salon is None:
             return Response({'detail': 'Not found.'}, status=status.HTTP_404_NOT_FOUND)
-        ser = StaffMemberCreateSerializer(data=request.data, context={'salon': salon, 'request': request})
+        ser = StaffMemberDirectCreateSerializer(data=request.data, context={'salon': salon, 'request': request})
         ser.is_valid(raise_exception=True)
         staff = ser.save()
-        data = StaffMemberOwnerSerializer(staff, context={'request': request}).data
-        if getattr(staff, '_generated_password', None):
-            data['generated_password'] = staff._generated_password
         return Response(
-            data,
+            StaffMemberOwnerSerializer(staff, context={'request': request}).data,
             status=status.HTTP_201_CREATED,
         )
 
