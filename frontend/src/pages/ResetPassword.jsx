@@ -34,7 +34,7 @@ export default function ResetPassword() {
         <div style={s.errorIcon}>⚠</div>
         <h2 style={s.title}>Invalid Reset Link</h2>
         <p style={s.sub}>This password reset link is missing required parameters.</p>
-        <Link to="/login" style={s.btn}>Back to Login</Link>
+        <Link to="/owner/login" style={s.btn}>Back to Owner Login</Link>
       </div>
     </div>
   );
@@ -50,8 +50,9 @@ export default function ResetPassword() {
         {msg   && (
           <div style={s.alertOk}>
             {msg}
-            <div style={{ marginTop: 14 }}>
-              <Link to="/login" style={s.btn}>Go to Login</Link>
+            <div style={{ marginTop: 14, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+              <Link to="/owner/login" style={s.btn}>Owner Login</Link>
+              <Link to="/login" style={{ ...s.btn, background: 'linear-gradient(135deg,#1e3a2f,#166534)', boxShadow: 'none' }}>Customer Login</Link>
             </div>
           </div>
         )}

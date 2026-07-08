@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useIsMobile } from '../hooks/useMobile';
+import api from '../api/axios';
 
 export default function OwnerLogin() {
   const { login, profile } = useAuth();
@@ -12,6 +13,28 @@ export default function OwnerLogin() {
   const [error, setError]           = useState('');
   const [loading, setLoading]       = useState(false);
   const [showPortalChoice, setShowPortalChoice] = useState(false);
+
+  const [showForgot, setShowForgot]     = useState(false);
+  const [forgotEmail, setForgotEmail]   = useState('');
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotMsg, setForgotMsg]       = useState('');
+  const [forgotErr, setForgotErr]       = useState('');
+
+  const handleForgot = async e => {
+    e.preventDefault();
+    setForgotErr(''); setForgotMsg(''); setForgotLoading(true);
+    try {
+      const r = await api.post('/auth/forgot-password/', { email: forgotEmail });
+      setForgotMsg(r.data.message || 'If that email is registered, a reset link has been sent.');
+    } catch {
+      setForgotErr('Something went wrong. Please try again.');
+    } finally { setForgotLoading(false); }
+  };
+
+  const closeForgot = () => {
+    setShowForgot(false);
+    setForgotEmail(''); setForgotMsg(''); setForgotErr('');
+  };
 
   useEffect(() => {
     if (profile?.role === 'salon_owner') setShowPortalChoice(true);
@@ -124,6 +147,15 @@ export default function OwnerLogin() {
                 </button>
               </div>
             </div>
+            <div style={{ textAlign: 'right', marginTop: -6 }}>
+              <button
+                type="button"
+                style={s.forgotLink}
+                onClick={() => setShowForgot(true)}
+              >
+                Forgot your password?
+              </button>
+            </div>
             <button
               style={{ ...s.btn, opacity: loading ? 0.75 : 1 }}
               type="submit"
@@ -142,6 +174,61 @@ export default function OwnerLogin() {
 
         </div>
       </div>
+      {/* ── Forgot password modal ── */}
+      {showForgot && (
+        <div style={p.overlay} onClick={closeForgot}>
+          <div style={{ ...p.card, maxWidth: 400 }} onClick={e => e.stopPropagation()}>
+            <div style={p.logoRow}>
+              <span style={p.logoMark}>✦</span>
+              <span style={p.logoBrand}>BookMyStyle</span>
+            </div>
+            <h2 style={p.heading}>Reset Password</h2>
+            <p style={{ ...p.sub, marginBottom: forgotMsg ? 20 : 28 }}>
+              Enter your owner email and we'll send a reset link.
+            </p>
+
+            {forgotMsg ? (
+              <>
+                <div style={f.successBox}>
+                  <div style={f.successIcon}>✓</div>
+                  <div style={f.successText}>{forgotMsg}</div>
+                </div>
+                <p style={f.successNote}>Check your inbox and follow the link to set a new password. The link expires in 24 hours.</p>
+                <button style={{ ...f.submitBtn, width: '100%' }} onClick={closeForgot}>Got it</button>
+              </>
+            ) : (
+              <form onSubmit={handleForgot} style={{ width: '100%' }}>
+                {forgotErr && (
+                  <div style={f.errBox}><span>⚠</span> {forgotErr}</div>
+                )}
+                <div style={f.field}>
+                  <label style={f.label}>Email address</label>
+                  <input
+                    style={f.input}
+                    type="email"
+                    placeholder="owner@yoursalon.com"
+                    value={forgotEmail}
+                    onChange={e => setForgotEmail(e.target.value)}
+                    required
+                    autoFocus
+                  />
+                </div>
+                <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
+                  <button type="button" style={f.cancelBtn} onClick={closeForgot}>Cancel</button>
+                  <button
+                    type="submit"
+                    style={{ ...f.submitBtn, flex: 1, opacity: forgotLoading ? 0.75 : 1 }}
+                    disabled={forgotLoading}
+                  >
+                    {forgotLoading ? 'Sending…' : 'Send Reset Link'}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* ── Portal choice modal ── */}
       {showPortalChoice && (
         <div style={p.overlay}>
@@ -355,4 +442,47 @@ const s = {
   },
   footer: { marginTop: 28, textAlign: 'center', fontSize: 13, color: 'var(--text-muted)' },
   footerLink: { color: GOLD, fontWeight: 600, textDecoration: 'none' },
+  forgotLink: {
+    background: 'none', border: 'none', cursor: 'pointer',
+    fontSize: 13, color: `rgba(212,175,55,.7)`, fontFamily: "'DM Sans', sans-serif",
+    padding: 0, textDecoration: 'underline', textUnderlineOffset: 3,
+  },
+};
+
+const f = {
+  field: { display: 'flex', flexDirection: 'column', gap: 7, width: '100%' },
+  label: { fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,.45)', textTransform: 'uppercase', letterSpacing: '0.07em' },
+  input: {
+    padding: '13px 16px', border: '1.5px solid rgba(255,255,255,.12)', borderRadius: 12,
+    fontSize: 15, background: 'rgba(255,255,255,.06)', color: '#fff',
+    outline: 'none', width: '100%', boxSizing: 'border-box',
+    fontFamily: "'DM Sans', sans-serif",
+  },
+  errBox: {
+    background: 'rgba(239,68,68,.12)', border: '1px solid rgba(239,68,68,.3)',
+    color: '#FCA5A5', borderRadius: 10, padding: '10px 14px',
+    fontSize: 13, marginBottom: 14, display: 'flex', gap: 8, alignItems: 'center',
+  },
+  successBox: {
+    background: 'rgba(212,175,55,.1)', border: '1px solid rgba(212,175,55,.25)',
+    borderRadius: 12, padding: '16px 18px', marginBottom: 14,
+    display: 'flex', alignItems: 'flex-start', gap: 12, width: '100%', boxSizing: 'border-box',
+  },
+  successIcon: { fontSize: 18, color: GOLD, flexShrink: 0, fontWeight: 700 },
+  successText: { fontSize: 14, color: 'rgba(255,255,255,.75)', lineHeight: 1.55 },
+  successNote: { fontSize: 12, color: 'rgba(255,255,255,.35)', lineHeight: 1.6, margin: '0 0 20px', textAlign: 'center' },
+  cancelBtn: {
+    padding: '13px 18px', background: 'rgba(255,255,255,.06)',
+    border: '1.5px solid rgba(255,255,255,.1)', borderRadius: 12,
+    cursor: 'pointer', fontSize: 14, color: 'rgba(255,255,255,.5)',
+    fontFamily: "'DM Sans', sans-serif", flexShrink: 0,
+  },
+  submitBtn: {
+    padding: '13px 22px',
+    background: `linear-gradient(135deg, #92701a, ${GOLD})`,
+    color: '#1a1200', border: 'none', borderRadius: 12,
+    fontSize: 14, fontWeight: 700, cursor: 'pointer',
+    fontFamily: "'DM Sans', sans-serif",
+    boxShadow: `0 6px 20px rgba(212,175,55,.25)`,
+  },
 };
