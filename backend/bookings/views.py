@@ -64,7 +64,22 @@ def _send_booking_confirmation_email(booking):
     ) if discount > 0 else ''
 
     frontend_url = getattr(settings, 'FRONTEND_URL', 'http://localhost:5173')
+    backend_url  = getattr(settings, 'BACKEND_URL',  'http://localhost:8000')
     booking_url  = f"{frontend_url}/user/bookings/{booking.pk}"
+
+    # Salon logo for email — absolute URL or fallback initial letter
+    if salon.logo:
+        salon_logo_html = (
+            f'<img src="{backend_url}{salon.logo.url}" alt="{salon.name}" '
+            f'width="62" height="62" style="width:62px;height:62px;border-radius:50%;object-fit:cover;display:block;border:2px solid rgba(20,184,166,0.4)">'
+        )
+    else:
+        initial = (salon.name or 'S')[0].upper()
+        salon_logo_html = (
+            f'<div style="width:62px;height:62px;background:linear-gradient(135deg,#0D9488,#14B8A8);'
+            f'border-radius:50%;margin:0 auto;text-align:center;line-height:62px;font-size:26px;'
+            f'color:#ffffff;font-weight:800">{initial}</div>'
+        )
 
     if salon.latitude and salon.longitude:
         maps_url = f"https://maps.google.com/?q={salon.latitude},{salon.longitude}"
@@ -107,7 +122,7 @@ def _send_booking_confirmation_email(booking):
     <!-- ── HERO ── -->
     <tr>
       <td align="center" bgcolor="#0c1f1c" style="background:#0c1f1c;padding:40px 40px 32px">
-        <div style="width:62px;height:62px;background:linear-gradient(135deg,#0D9488,#14B8A8);border-radius:50%;margin:0 auto 20px;text-align:center;line-height:62px;font-size:26px;color:#ffffff">&#10003;</div>
+        <div style="margin:0 auto 20px;width:62px;height:62px">{salon_logo_html}</div>
         <div style="font-size:26px;font-weight:800;color:#ffffff;letter-spacing:-0.02em;margin-bottom:12px">Appointment Confirmed!</div>
         <div style="font-size:15px;color:rgba(255,255,255,0.55);line-height:1.65">
           Hi <span style="color:#ffffff;font-weight:700">{client.full_name or 'there'}</span>, your appointment at

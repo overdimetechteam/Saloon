@@ -54,8 +54,11 @@ export default function UserFavourites() {
               onClick={() => navigate(`/salons/${salon.id}`)}
             >
               <div style={{ ...s.cardBanner, background: `linear-gradient(135deg, ${color}22 0%, ${color}08 100%)` }}>
-                <div style={{ ...s.salonAvatar, background: `linear-gradient(135deg, ${color} 0%, ${color}CC 100%)` }}>
-                  {salon.name[0].toUpperCase()}
+                <div style={{ ...s.salonAvatar, background: `linear-gradient(135deg, ${color} 0%, ${color}CC 100%)`, overflow: 'hidden', padding: 0 }}>
+                  {salon.logo_url
+                    ? <img src={salon.logo_url} alt={salon.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', borderRadius: 14 }} />
+                    : salon.name[0].toUpperCase()
+                  }
                 </div>
                 <div style={{ ...s.categoryDot, background: color }} />
               </div>

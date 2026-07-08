@@ -43,8 +43,15 @@ class BookingSerializer(serializers.ModelSerializer):
     client_email = serializers.EmailField(source='client.email', read_only=True)
     client_name = serializers.CharField(source='client.full_name', read_only=True)
     client_phone = serializers.CharField(source='client.phone', read_only=True, default='')
-    salon_name = serializers.CharField(source='salon.name', read_only=True)
+    salon_name      = serializers.CharField(source='salon.name', read_only=True)
+    salon_logo_url  = serializers.SerializerMethodField()
     staff_member_name = serializers.CharField(source='staff_member.full_name', read_only=True, default=None)
+
+    def get_salon_logo_url(self, obj):
+        request = self.context.get('request')
+        if obj.salon.logo:
+            return request.build_absolute_uri(obj.salon.logo.url) if request else obj.salon.logo.url
+        return None
     review = ReviewSerializer(read_only=True)
     has_review = serializers.SerializerMethodField()
     discount_amount = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
@@ -59,7 +66,7 @@ class BookingSerializer(serializers.ModelSerializer):
         model = Booking
         fields = [
             'id', 'client', 'client_email', 'client_name', 'client_phone',
-            'salon', 'salon_name',
+            'salon', 'salon_name', 'salon_logo_url',
             'staff_member', 'staff_member_name',
             'requested_datetime', 'status', 'negotiation_round', 'notes',
             'promo_code', 'discount_amount', 'is_walk_in', 'home_visit', 'home_visit_address',

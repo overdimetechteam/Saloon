@@ -190,6 +190,9 @@ else:
 # e.g. https://saloon-frontend-67z0.onrender.com
 FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:5173')
 
+# Backend base URL — used to build absolute media/image URLs in emails.
+BACKEND_URL  = os.getenv('BACKEND_URL', 'http://localhost:8000')
+
 # PayHere payment gateway
 PAYHERE_MERCHANT_ID     = os.getenv('PAYHERE_MERCHANT_ID', '')
 PAYHERE_MERCHANT_SECRET = os.getenv('PAYHERE_MERCHANT_SECRET', '')

@@ -154,8 +154,11 @@ export default function UserDashboard() {
           <div style={s.favScroll}>
             {favourites.map((fav, i) => (
               <Link key={fav.id} to={`/salons/${fav.id}`} style={s.favCard} className="lift-sm">
-                <div style={{ ...s.favAvatar, background: FAV_PALETTE[i % FAV_PALETTE.length] }}>
-                  {fav.name[0]}
+                <div style={{ ...s.favAvatar, background: FAV_PALETTE[i % FAV_PALETTE.length], overflow: 'hidden', padding: 0 }}>
+                  {fav.logo_url
+                    ? <img src={fav.logo_url} alt={fav.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', borderRadius: 10 }} />
+                    : fav.name[0]
+                  }
                 </div>
                 <div style={s.favName}>{fav.name}</div>
                 <div style={s.favCity}>{fav.address_city}</div>

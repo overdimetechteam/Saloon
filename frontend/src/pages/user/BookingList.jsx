@@ -130,8 +130,11 @@ export default function UserBookingList() {
 
               <div style={{ display: 'flex', alignItems: 'center', flex: 1, padding: isMobile ? '14px 16px 10px' : 0 }}>
                 <div style={{ ...s.cardLeft, padding: isMobile ? '0 14px 0 0' : '18px 14px 18px 18px' }}>
-                  <div style={{ ...s.salonInitial, background: meta.bg, color: meta.color, boxShadow: `0 4px 14px ${meta.color}28` }}>
-                    {b.salon_name?.[0]?.toUpperCase()}
+                  <div style={{ ...s.salonInitial, background: meta.bg, color: meta.color, boxShadow: `0 4px 14px ${meta.color}28`, overflow: 'hidden', padding: 0 }}>
+                    {b.salon_logo_url
+                      ? <img src={b.salon_logo_url} alt={b.salon_name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', borderRadius: 13 }} />
+                      : b.salon_name?.[0]?.toUpperCase()
+                    }
                   </div>
                 </div>
 

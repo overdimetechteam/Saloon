@@ -25,7 +25,9 @@ from django.utils.encoding import force_bytes, force_str
 from django.shortcuts import get_object_or_404
 from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
-from .models import CustomUser, Notification
+from django.utils import timezone
+from datetime import timedelta
+from .models import CustomUser, Notification, PasswordResetToken
 from .serializers import RegisterSerializer, UserSerializer, NotificationSerializer
 
 
@@ -386,6 +388,10 @@ class ForgotPasswordView(APIView):
             uid   = urlsafe_base64_encode(force_bytes(user.pk))
             token = default_token_generator.make_token(user)
             reset_url = f"{settings.FRONTEND_URL}/reset-password?uid={uid}&token={token}"
+            PasswordResetToken.objects.create(
+                user=user, uid=uid, token=token,
+                expires_at=timezone.now() + timedelta(hours=24),
+            )
             _send_password_reset_email(user, reset_url)
         except CustomUser.DoesNotExist:
             pass
@@ -401,18 +407,41 @@ class ResetPasswordView(APIView):
         uid      = request.data.get('uid', '')
         token    = request.data.get('token', '')
         password = request.data.get('password', '')
-        if not password or len(password) < 8:
+        if not password or len(password) < 6:
             return Response({'detail': 'Password must be at least 6 characters.'}, status=status.HTTP_400_BAD_REQUEST)
         try:
             user_id = force_str(urlsafe_base64_decode(uid))
             user    = CustomUser.objects.get(pk=user_id)
-            if not default_token_generator.check_token(user, token):
-                return Response({'detail': 'Reset link is invalid or has expired.'}, status=status.HTTP_400_BAD_REQUEST)
-            user.set_password(password)
-            user.save()
-            return Response({'message': 'Password has been reset successfully. You can now log in.'})
         except Exception:
-            return Response({'detail': 'Invalid reset link.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'detail': 'This reset link is invalid.', 'code': 'invalid'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check our token record first for precise error messages
+        record = PasswordResetToken.objects.filter(user=user, uid=uid, token=token).first()
+        if record:
+            if record.used:
+                return Response(
+                    {'detail': 'This reset link has already been used. Please request a new one.', 'code': 'used'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            if record.expires_at < timezone.now():
+                return Response(
+                    {'detail': 'This reset link has expired. Please request a new one.', 'code': 'expired'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+        # Django's HMAC validation (catches tampering or password-already-changed)
+        if not default_token_generator.check_token(user, token):
+            return Response(
+                {'detail': 'This reset link has expired or is no longer valid. Please request a new one.', 'code': 'expired'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        user.set_password(password)
+        user.save()
+        if record:
+            record.used = True
+            record.save(update_fields=['used'])
+        return Response({'message': 'Password has been reset successfully. You can now log in.'})
 
 
 class UserProfileView(APIView):

@@ -45,6 +45,21 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         return self.email
 
 
+class PasswordResetToken(models.Model):
+    user       = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='reset_tokens')
+    uid        = models.CharField(max_length=100)
+    token      = models.CharField(max_length=200)
+    used       = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"ResetToken → {self.user.email} used={self.used}"
+
+
 class Notification(models.Model):
     NOTIF_TYPES = [
         ('booking_confirmed', 'Booking Confirmed'),
