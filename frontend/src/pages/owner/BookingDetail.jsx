@@ -128,6 +128,7 @@ export default function OwnerBookingDetail() {
   const [assigning, setAssigning] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [completing, setCompleting] = useState(false);
+  const [rejectError, setRejectError] = useState('');
 
   const load = () => api.get(`/bookings/${id}/`).then(r => {
     setBooking(r.data);
@@ -146,12 +147,15 @@ export default function OwnerBookingDetail() {
   };
 
   const reject = async () => {
-    if (slots.some(s => !s || !s.includes('T') || s.split('T')[1] === ''))
-      return setError('All 3 alternative slots need both a date and time.');
+    if (slots.some(s => !s || !s.includes('T') || s.split('T')[1] === '')) {
+      setRejectError('All 3 alternative slots need both a date and time.');
+      return;
+    }
+    setRejectError('');
     try {
       await api.post(`/bookings/${id}/reject/`, { proposed_slots: slots });
       setMsg('Booking rejected with 3 alternative slots proposed.'); load();
-    } catch (err) { setError(err.response?.data?.detail || JSON.stringify(err.response?.data) || 'Error'); }
+    } catch (err) { setRejectError(err.response?.data?.detail || JSON.stringify(err.response?.data) || 'Error'); }
   };
 
   const cancel = async () => {
@@ -313,10 +317,13 @@ export default function OwnerBookingDetail() {
                 </p>
                 <MultiSlotPicker
                   slots={slots}
-                  setSlots={setSlots}
+                  setSlots={v => { setSlots(v); setRejectError(''); }}
                   operatingHours={opHours}
                 />
-                <button style={{ ...s.rejectBtn, marginTop: 16 }} onClick={reject}>✗ Reject & Send Alternatives</button>
+                {rejectError && (
+                  <div style={{ ...s.alertErr, marginTop: 14, marginBottom: 0 }}>{rejectError}</div>
+                )}
+                <button style={{ ...s.rejectBtn, marginTop: 12 }} onClick={reject}>✗ Reject & Send Alternatives</button>
               </div>
             </div>
           )}
