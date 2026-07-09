@@ -26,7 +26,7 @@ TAKEN_STATUSES = ['pending', 'confirmed', 'rescheduled', 'awaiting_client']
 
 # ── Booking confirmation email ─────────────────────────────────────────────────
 
-def _send_booking_confirmation_email(booking):
+def _send_booking_confirmation_email(booking, request=None):
     client   = booking.client
     salon    = booking.salon
     dt       = booking.requested_datetime
@@ -69,8 +69,12 @@ def _send_booking_confirmation_email(booking):
 
     # Salon logo for email — absolute URL or fallback initial letter
     if salon.logo:
+        if request is not None:
+            logo_abs = request.build_absolute_uri(salon.logo.url)
+        else:
+            logo_abs = f"{backend_url}{salon.logo.url}"
         salon_logo_html = (
-            f'<img src="{backend_url}{salon.logo.url}" alt="{salon.name}" '
+            f'<img src="{logo_abs}" alt="{salon.name}" '
             f'width="62" height="62" style="width:62px;height:62px;border-radius:50%;object-fit:cover;display:block;border:2px solid rgba(20,184,166,0.4)">'
         )
     else:
@@ -675,7 +679,7 @@ class BookingConfirmView(APIView):
             notif_type='booking_confirmed',
             booking_id=booking.pk,
         )
-        _send_booking_confirmation_email(booking)
+        _send_booking_confirmation_email(booking, request=request)
         logger.info(f"Booking #{booking.pk} confirmed")
         return Response(BookingSerializer(booking, context={'request': request}).data)
 
@@ -956,7 +960,7 @@ class WalkInBookingView(APIView):
         for ss in service_objs:
             BookingService.objects.create(booking=booking, salon_service=ss)
 
-        _send_booking_confirmation_email(booking)
+        _send_booking_confirmation_email(booking, request=request)
         logger.info(f"Walk-in booking #{booking.pk} created for {client_email}")
         return Response(BookingSerializer(booking, context={'request': request}).data, status=status.HTTP_201_CREATED)
 
