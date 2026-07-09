@@ -43,6 +43,7 @@ import OwnerBookingList from './pages/owner/BookingList';
 import OwnerBookingDetail from './pages/owner/BookingDetail';
 import OwnerServices from './pages/owner/Services';
 import OwnerInventory from './pages/owner/Inventory';
+import OwnerSuppliers from './pages/owner/Suppliers';
 import OwnerGRN from './pages/owner/GRN';
 import OwnerSales from './pages/owner/Sales';
 import OwnerAdjustments from './pages/owner/Adjustments';
@@ -322,6 +323,7 @@ export default function App() {
               <Route path="offers"     element={<OwnerOffers />} />
               <Route path="subscription" element={<OwnerSubscription />} />
               <Route path="inventory" element={<OwnerInventory />} />
+              <Route path="inventory/suppliers" element={<OwnerSuppliers />} />
               <Route path="inventory/grn" element={<OwnerGRN />} />
               <Route path="inventory/sales" element={<OwnerSales />} />
               <Route path="inventory/adjustments" element={<OwnerAdjustments />} />

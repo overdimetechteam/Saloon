@@ -6,6 +6,22 @@ from salons.models import Salon
 from utils.encryption import EncryptedTextField
 
 
+class Supplier(models.Model):
+    salon          = models.ForeignKey(Salon, on_delete=models.CASCADE, related_name='suppliers')
+    name           = models.CharField(max_length=255)
+    contact_person = models.CharField(max_length=255, blank=True)
+    phone          = models.CharField(max_length=50, blank=True)
+    email          = models.EmailField(blank=True)
+    address        = models.TextField(blank=True)
+    created_at     = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['name']
+
+    def __str__(self):
+        return f"{self.name} ({self.salon.name})"
+
+
 class Product(models.Model):
     CATEGORY_CHOICES = [
         ('Hair Care', 'Hair Care'),

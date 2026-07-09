@@ -6,6 +6,7 @@ export default function OwnerGRN() {
   const { salon } = useOwner();
   const [grns, setGrns] = useState([]);
   const [products, setProducts] = useState([]);
+  const [suppliers, setSuppliers] = useState([]);
   const [supplier, setSupplier] = useState('');
   const [items, setItems] = useState([{ product: '', quantity_received: 1, unit_cost: '', expiry_date: '' }]);
   const [error, setError] = useState('');
@@ -16,6 +17,7 @@ export default function OwnerGRN() {
     if (!salon) return;
     api.get(`/salons/${salon.id}/grn/`).then(r => setGrns(r.data)).catch(() => {});
     api.get(`/salons/${salon.id}/products/`).then(r => setProducts(r.data)).catch(() => {});
+    api.get(`/salons/${salon.id}/suppliers/`).then(r => setSuppliers(r.data)).catch(() => {});
   };
   useEffect(() => { load(); }, [salon]);
 
@@ -72,7 +74,10 @@ export default function OwnerGRN() {
           <div style={s.formTitle}>Create New GRN</div>
           <form onSubmit={submit}>
             <label style={s.label}>Supplier Name *</label>
-            <input style={s.input} placeholder="e.g. Beauty Supplies Ltd" value={supplier} onChange={e => setSupplier(e.target.value)} required />
+            <select style={s.input} value={supplier} onChange={e => setSupplier(e.target.value)} required>
+              <option value="">— Select supplier —</option>
+              {suppliers.map(sup => <option key={sup.id} value={sup.name}>{sup.name}</option>)}
+            </select>
 
             <div style={s.itemsHeader}>
               <span style={s.label}>Items</span>

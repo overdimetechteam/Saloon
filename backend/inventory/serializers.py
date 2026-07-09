@@ -1,5 +1,12 @@
 from rest_framework import serializers
-from .models import Product, GRN, GRNItem, Sale, SaleItem, StockAdjustment, ProductImage, CosmeticOrder, CosmeticOrderItem, ProductBatch
+from .models import Supplier, Product, GRN, GRNItem, Sale, SaleItem, StockAdjustment, ProductImage, CosmeticOrder, CosmeticOrderItem, ProductBatch
+
+
+class SupplierSerializer(serializers.ModelSerializer):
+    class Meta:
+        model  = Supplier
+        fields = ['id', 'name', 'contact_person', 'phone', 'email', 'address', 'created_at']
+        read_only_fields = ['created_at']
 
 
 class ProductImageSerializer(serializers.ModelSerializer):

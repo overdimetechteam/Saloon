@@ -10,9 +10,9 @@ from django.db.models import Q, F, Sum
 from django.http import HttpResponse
 
 from datetime import date as date_type
-from .models import Product, GRN, GRNItem, Sale, SaleItem, StockAdjustment, ProductImage, CosmeticOrder, ProductBatch, ProductReview, ProductReviewPhoto
+from .models import Supplier, Product, GRN, GRNItem, Sale, SaleItem, StockAdjustment, ProductImage, CosmeticOrder, ProductBatch, ProductReview, ProductReviewPhoto
 from .serializers import (
-    ProductSerializer, GRNSerializer, SaleSerializer, StockAdjustmentSerializer,
+    SupplierSerializer, ProductSerializer, GRNSerializer, SaleSerializer, StockAdjustmentSerializer,
     ProductImageSerializer, CosmeticOrderSerializer, ProductBatchSerializer,
 )
 from salons.models import Salon
@@ -1013,3 +1013,43 @@ class ProductReviewListCreateView(APIView):
             'photos':      photos,
             'created_at':  review.created_at,
         }, status=status.HTTP_201_CREATED)
+
+
+class SupplierListCreateView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, salon_pk):
+        salon, err = _get_salon_for_owner(request, salon_pk)
+        if err: return err
+        suppliers = Supplier.objects.filter(salon=salon)
+        return Response(SupplierSerializer(suppliers, many=True).data)
+
+    def post(self, request, salon_pk):
+        salon, err = _get_salon_for_owner(request, salon_pk)
+        if err: return err
+        serializer = SupplierSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(salon=salon)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class SupplierDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def put(self, request, salon_pk, pk):
+        salon, err = _get_salon_for_owner(request, salon_pk)
+        if err: return err
+        supplier = get_object_or_404(Supplier, pk=pk, salon=salon)
+        serializer = SupplierSerializer(supplier, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, salon_pk, pk):
+        salon, err = _get_salon_for_owner(request, salon_pk)
+        if err: return err
+        supplier = get_object_or_404(Supplier, pk=pk, salon=salon)
+        supplier.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

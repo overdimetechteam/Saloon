@@ -106,10 +106,15 @@ function InlinePhotoUpload({ productId, salonId }) {
 
 function ProductModal({ product, onClose, onSaved, salonId }) {
   const editing = !!product;
-  const [form, setForm]       = useState(editing ? { ...product } : { ...EMPTY_FORM });
-  const [error, setError]     = useState('');
-  const [saving, setSaving]   = useState(false);
-  const [savedId, setSavedId] = useState(editing ? product.id : null);
+  const [form, setForm]         = useState(editing ? { ...product } : { ...EMPTY_FORM });
+  const [error, setError]       = useState('');
+  const [saving, setSaving]     = useState(false);
+  const [savedId, setSavedId]   = useState(editing ? product.id : null);
+  const [suppliers, setSuppliers] = useState([]);
+
+  useEffect(() => {
+    api.get(`/salons/${salonId}/suppliers/`).then(r => setSuppliers(r.data)).catch(() => {});
+  }, [salonId]);
 
   const f = k => e => setForm(p => ({ ...p, [k]: e.target.value }));
 
@@ -205,7 +210,12 @@ function ProductModal({ product, onClose, onSaved, salonId }) {
             </div>
             <div style={s.mSection}>Supplier & Dates</div>
             <div style={s.mGrid3}>
-              <MField label="Supplier" placeholder="e.g. Beauty Depot" value={form.supplier} onChange={f('supplier')} />
+              <MField label="Supplier">
+                <select style={s.mInput} value={form.supplier || ''} onChange={f('supplier')}>
+                  <option value="">— Select supplier —</option>
+                  {suppliers.map(sup => <option key={sup.id} value={sup.name}>{sup.name}</option>)}
+                </select>
+              </MField>
               <MField label="Manufacturing Date" type="date" value={form.manufacturing_date} onChange={f('manufacturing_date')} />
             </div>
             <div style={s.mGrid3}>

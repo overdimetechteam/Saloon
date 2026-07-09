@@ -12,6 +12,7 @@ from .views import (
     StockReportView, LowStockReportView, MovementsReportView,
     ProductBatchListCreateView,
     ProductReviewListCreateView,
+    SupplierListCreateView, SupplierDetailView,
 )
 
 urlpatterns = [
@@ -33,6 +34,10 @@ urlpatterns = [
     path('salons/<int:salon_pk>/products/<int:product_pk>/images/', ProductImageListCreateView.as_view(), name='product-image-list'),
     path('salons/<int:salon_pk>/products/<int:product_pk>/images/<int:pk>/', ProductImageDetailView.as_view(), name='product-image-detail'),
     path('salons/<int:salon_pk>/products/<int:product_pk>/batches/', ProductBatchListCreateView.as_view(), name='product-batch-list'),
+
+    # Suppliers
+    path('salons/<int:salon_pk>/suppliers/', SupplierListCreateView.as_view(), name='supplier-list'),
+    path('salons/<int:salon_pk>/suppliers/<int:pk>/', SupplierDetailView.as_view(), name='supplier-detail'),
 
     # GRN / Sales / Adjustments / Reports
     path('salons/<int:salon_pk>/grn/', GRNListCreateView.as_view(), name='grn-list'),
