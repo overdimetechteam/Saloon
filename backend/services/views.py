@@ -98,6 +98,11 @@ class SalonServiceDetailView(APIView):
         serializer = SalonServiceUpdateSerializer(ss, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
+            if request.data.get('remove_image') in ('1', 'true', True):
+                if ss.image:
+                    ss.image.delete(save=False)
+                ss.image = None
+                ss.save(update_fields=['image'])
             return Response(SalonServiceSerializer(ss, context={'request': request}).data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

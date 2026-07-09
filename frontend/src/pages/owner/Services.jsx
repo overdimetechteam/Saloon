@@ -4,7 +4,7 @@ import { useOwner } from '../../context/OwnerContext';
 import { useBreakpoint } from '../../hooks/useMobile';
 import { formatDuration } from '../../utils/format';
 
-function ImgUpload({ current, onChange, label = 'Service Image' }) {
+function ImgUpload({ current, onChange, onRemove, label = 'Service Image' }) {
   const ref = useRef(null);
   const [preview, setPreview] = useState(current || null);
   const pick = e => {
@@ -12,6 +12,12 @@ function ImgUpload({ current, onChange, label = 'Service Image' }) {
     if (!f) return;
     setPreview(URL.createObjectURL(f));
     onChange(f);
+  };
+  const handleRemove = () => {
+    setPreview(null);
+    if (ref.current) ref.current.value = '';
+    if (onRemove) onRemove();
+    else onChange(null);
   };
   return (
     <div>
@@ -22,7 +28,7 @@ function ImgUpload({ current, onChange, label = 'Service Image' }) {
             <img src={preview} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             <button
               type="button"
-              onClick={() => { setPreview(null); onChange(null); if (ref.current) ref.current.value = ''; }}
+              onClick={handleRemove}
               style={{ position: 'absolute', top: 3, right: 3, width: 18, height: 18, borderRadius: '50%', background: 'rgba(0,0,0,.6)', border: 'none', color: '#fff', fontSize: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             >✕</button>
           </div>
@@ -88,6 +94,7 @@ function EditModal({ ss, onSave, onClose }) {
   const [startingFrom, setStartingFrom] = useState(ss.is_price_starting_from ?? false);
   const [description, setDescription]  = useState(ss.description ?? '');
   const [imageFile, setImageFile]   = useState(null);
+  const [removeImage, setRemoveImage] = useState(false);
   const [loading, setLoading]       = useState(false);
   const [err, setErr]               = useState('');
 
@@ -101,7 +108,8 @@ function EditModal({ ss, onSave, onClose }) {
       fd.append('custom_duration', Number(durTotal));
       fd.append('is_price_starting_from', startingFrom);
       fd.append('description', description);
-      if (imageFile) fd.append('image', imageFile);
+      if (removeImage && !imageFile) fd.append('remove_image', '1');
+      else if (imageFile) fd.append('image', imageFile);
       await onSave(ss.id, fd);
       onClose();
     } catch (e) {
@@ -154,7 +162,11 @@ function EditModal({ ss, onSave, onClose }) {
         </label>
 
         <div style={{ marginTop: 14 }}>
-          <ImgUpload current={ss.image_url} onChange={setImageFile} />
+          <ImgUpload
+            current={ss.image_url}
+            onChange={f => { setImageFile(f); setRemoveImage(false); }}
+            onRemove={() => { setImageFile(null); setRemoveImage(true); }}
+          />
         </div>
 
         <div style={m.btnRow}>
