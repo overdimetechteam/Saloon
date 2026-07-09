@@ -24,6 +24,68 @@ logger = logging.getLogger(__name__)
 TAKEN_STATUSES = ['pending', 'confirmed', 'rescheduled', 'awaiting_client']
 
 
+# ── Booking cancellation email (sent to client when salon cancels) ─────────────
+
+def _send_booking_cancellation_email(booking, request=None):
+    from utils.email import send_bms_email
+    client  = booking.client
+    salon   = booking.salon
+    dt      = booking.requested_datetime
+    date_str = dt.strftime('%A, %B %d, %Y')
+    time_str = dt.strftime('%I:%M %p')
+
+    services = list(booking.booking_services.select_related('salon_service__service').all())
+    svc_list = ', '.join(bs.salon_service.service.name for bs in services) if services else 'your appointment'
+
+    frontend_url = getattr(settings, 'FRONTEND_URL', 'http://localhost:5173')
+    backend_url  = getattr(settings, 'BACKEND_URL',  'http://localhost:8000')
+    explore_url  = f'{frontend_url}/salons'
+
+    name = client.full_name or client.email.split('@')[0]
+
+    if salon.logo:
+        logo_abs = request.build_absolute_uri(salon.logo.url) if request else f'{backend_url}{salon.logo.url}'
+        salon_logo_html = (
+            f'<img src="{logo_abs}" alt="{salon.name}" width="62" height="62" '
+            f'style="width:62px;height:62px;border-radius:50%;object-fit:cover;display:block;border:2px solid rgba(220,38,38,0.4)">'
+        )
+    else:
+        initial = (salon.name or 'S')[0].upper()
+        salon_logo_html = (
+            f'<div style="width:62px;height:62px;background:linear-gradient(135deg,#DC2626,#EF4444);'
+            f'border-radius:50%;margin:0 auto;text-align:center;line-height:62px;font-size:26px;'
+            f'color:#ffffff;font-weight:800">{initial}</div>'
+        )
+
+    try:
+        send_bms_email(
+            subject=f'Your Booking at {salon.name} Has Been Cancelled',
+            to_email=client.email,
+            heading=f'Booking Cancelled',
+            preheader=f'Your appointment at {salon.name} on {date_str} has been cancelled.',
+            body_html=f'''
+              <div style="margin:0 auto 20px;width:62px;height:62px">{salon_logo_html}</div>
+              <p style="color:#374151;font-size:15px;line-height:1.7;margin:0 0 16px;font-family:Arial,Helvetica,sans-serif">
+                Hi <strong>{name}</strong>, we're sorry to let you know that your appointment at
+                <strong>{salon.name}</strong> scheduled for
+                <strong>{date_str} at {time_str}</strong> for <strong>{svc_list}</strong>
+                has been <span style="color:#DC2626;font-weight:700">cancelled by the salon</span>.
+              </p>
+              <p style="color:#374151;font-size:15px;line-height:1.7;margin:0;font-family:Arial,Helvetica,sans-serif">
+                We apologise for the inconvenience. You can explore other salons and book a new appointment anytime.
+              </p>''',
+            cta_url=explore_url,
+            cta_label='Explore Other Salons',
+            plain_text=(
+                f'Hi {name},\n\nYour appointment at {salon.name} on {date_str} at {time_str} '
+                f'for {svc_list} has been cancelled by the salon.\n\n'
+                f'Explore other salons at {explore_url}\n\nBookMyStyle Team'
+            ),
+        )
+    except Exception as e:
+        logger.error('[EMAIL] Cancellation email failed for booking #%s: %s', booking.pk, e)
+
+
 # ── Booking confirmation email ─────────────────────────────────────────────────
 
 def _send_booking_confirmation_email(booking, request=None):
@@ -840,6 +902,7 @@ class BookingCancelView(APIView):
                 notif_type='booking_cancelled',
                 booking_id=booking.pk,
             )
+            _send_booking_cancellation_email(booking, request=request)
         elif request.user.role == 'client':
             # Notify owner when client cancels
             dt_str = booking.requested_datetime.strftime('%b %d at %I:%M %p')
