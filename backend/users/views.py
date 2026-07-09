@@ -82,7 +82,7 @@ def _email_html(heading, preheader, body_html, cta_url, cta_label, footnote):
           <tr>
             <td style="padding:0 32px 24px">
               <p style="margin:0 0 8px;font-size:13px;color:#6b7280;line-height:1.6;font-family:Arial,Helvetica,sans-serif">{footnote}</p>
-              <p style="margin:0;font-size:13px;color:#6b7280;line-height:1.6;font-family:Arial,Helvetica,sans-serif">This link is valid for 24 hours.</p>
+              <p style="margin:0;font-size:13px;color:#6b7280;line-height:1.6;font-family:Arial,Helvetica,sans-serif"><strong>This link is valid for 10 minutes.</strong></p>
             </td>
           </tr>
           <!-- Fallback URL -->
@@ -390,7 +390,7 @@ class ForgotPasswordView(APIView):
             reset_url = f"{settings.FRONTEND_URL}/reset-password?uid={uid}&token={token}"
             PasswordResetToken.objects.create(
                 user=user, uid=uid, token=token,
-                expires_at=timezone.now() + timedelta(hours=24),
+                expires_at=timezone.now() + timedelta(minutes=10),
             )
             _send_password_reset_email(user, reset_url)
         except CustomUser.DoesNotExist:
