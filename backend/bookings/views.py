@@ -794,7 +794,7 @@ class BookingRejectView(APIView):
             salon  = booking.salon
             name   = client.full_name or 'there'
             frontend_url = getattr(settings, 'FRONTEND_URL', 'http://localhost:5173')
-            booking_url  = f'{frontend_url}/bookings/{booking.pk}'
+            booking_url  = f'{frontend_url}/user/bookings/{booking.pk}'
             slots_html = ''.join(
                 f'<li style="color:#374151;font-size:14px;line-height:1.8;font-family:Arial,Helvetica,sans-serif">'
                 f'{dt.strftime("%A, %B %d, %Y at %I:%M %p")}</li>'
