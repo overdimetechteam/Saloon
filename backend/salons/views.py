@@ -1445,6 +1445,12 @@ class AdminSalonDetailView(APIView):
             'payments':            payments_list,
         })
 
+    def delete(self, request, pk):
+        salon = get_object_or_404(Salon, pk=pk)
+        salon_name = salon.name
+        salon.delete()
+        return Response({'detail': f'Salon "{salon_name}" has been permanently deleted.'}, status=status.HTTP_200_OK)
+
 
 class CosmeticsGalleryListCreateView(APIView):
     def get_permissions(self):

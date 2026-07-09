@@ -520,7 +520,7 @@ class BookingListCreateView(APIView):
             bookings = Booking.objects.filter(salon__in=salons).order_by('-created_at')
         else:
             bookings = Booking.objects.all().order_by('-created_at')
-        return Response(BookingSerializer(bookings, many=True).data)
+        return Response(BookingSerializer(bookings, many=True, context={'request': request}).data)
 
     def post(self, request):
         serializer = BookingCreateSerializer(data=request.data)
@@ -608,7 +608,7 @@ class BookingListCreateView(APIView):
             logger.error(f"[EMAIL] Owner notification failed for booking #{booking.pk}: {e}")
 
         logger.info(f"New booking #{booking.pk} created by {request.user.email}")
-        return Response(BookingSerializer(booking).data, status=status.HTTP_201_CREATED)
+        return Response(BookingSerializer(booking, context={'request': request}).data, status=status.HTTP_201_CREATED)
 
 
 class SalonBookingListView(APIView):
@@ -629,7 +629,7 @@ class SalonBookingListView(APIView):
         status_filter = request.query_params.get('status')
         if status_filter:
             bookings = bookings.filter(status=status_filter)
-        return Response(BookingSerializer(bookings, many=True).data)
+        return Response(BookingSerializer(bookings, many=True, context={'request': request}).data)
 
 
 class SalonPendingBookingsView(APIView):
@@ -640,7 +640,7 @@ class SalonPendingBookingsView(APIView):
         if request.user.role == 'salon_owner' and salon.owner_id != request.user.id:
             return Response({'detail': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
         bookings = Booking.objects.filter(salon=salon, status='pending').order_by('-created_at')
-        return Response(BookingSerializer(bookings, many=True).data)
+        return Response(BookingSerializer(bookings, many=True, context={'request': request}).data)
 
 
 class BookingDetailView(APIView):
@@ -652,7 +652,7 @@ class BookingDetailView(APIView):
             return Response({'detail': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
         if request.user.role == 'salon_owner' and booking.salon.owner_id != request.user.id:
             return Response({'detail': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
-        return Response(BookingSerializer(booking).data)
+        return Response(BookingSerializer(booking, context={'request': request}).data)
 
 
 class BookingConfirmView(APIView):
@@ -677,7 +677,7 @@ class BookingConfirmView(APIView):
         )
         _send_booking_confirmation_email(booking)
         logger.info(f"Booking #{booking.pk} confirmed")
-        return Response(BookingSerializer(booking).data)
+        return Response(BookingSerializer(booking, context={'request': request}).data)
 
 
 class BookingRejectView(APIView):
@@ -755,7 +755,7 @@ class BookingRejectView(APIView):
         except Exception as e:
             logger.error('[EMAIL] Booking rejection email failed for #%s: %s', booking.pk, e)
         logger.info(f"Booking #{booking.pk} rejected, {len(slot_datetimes)} alt slots proposed (round {round_num})")
-        return Response(BookingSerializer(booking).data)
+        return Response(BookingSerializer(booking, context={'request': request}).data)
 
 
 class BookingSelectSlotView(APIView):
@@ -788,7 +788,7 @@ class BookingSelectSlotView(APIView):
         )
 
         logger.info(f"Booking #{booking.pk} rescheduled to {slot.proposed_datetime}")
-        return Response(BookingSerializer(booking).data)
+        return Response(BookingSerializer(booking, context={'request': request}).data)
 
 
 class BookingRequestMoreSlotsView(APIView):
@@ -813,7 +813,7 @@ class BookingRequestMoreSlotsView(APIView):
             booking_id=booking.pk,
         )
         logger.info(f"Booking #{booking.pk} — client requested more slots (round {booking.negotiation_round})")
-        return Response(BookingSerializer(booking).data)
+        return Response(BookingSerializer(booking, context={'request': request}).data)
 
 
 class BookingCancelView(APIView):
@@ -846,7 +846,7 @@ class BookingCancelView(APIView):
                 booking_id=booking.pk,
             )
         logger.info(f"Booking #{booking.pk} cancelled by {request.user.email}")
-        return Response(BookingSerializer(booking).data)
+        return Response(BookingSerializer(booking, context={'request': request}).data)
 
 
 class BookingAssignStaffView(APIView):
@@ -866,7 +866,7 @@ class BookingAssignStaffView(APIView):
             staff = get_object_or_404(StaffMember, pk=staff_id, salon=booking.salon, is_active=True)
             booking.staff_member = staff
         booking.save()
-        return Response(BookingSerializer(booking).data)
+        return Response(BookingSerializer(booking, context={'request': request}).data)
 
 
 class WalkInBookingView(APIView):
@@ -958,7 +958,7 @@ class WalkInBookingView(APIView):
 
         _send_booking_confirmation_email(booking)
         logger.info(f"Walk-in booking #{booking.pk} created for {client_email}")
-        return Response(BookingSerializer(booking).data, status=status.HTTP_201_CREATED)
+        return Response(BookingSerializer(booking, context={'request': request}).data, status=status.HTTP_201_CREATED)
 
 
 class BookingReviewView(APIView):
@@ -1159,4 +1159,4 @@ class BookingCompleteView(APIView):
             logger.error('[EMAIL] Booking complete email failed for #%s: %s', booking.pk, e)
 
         logger.info(f"Booking #{booking.pk} marked completed by {request.user.email}")
-        return Response(BookingSerializer(booking).data)
+        return Response(BookingSerializer(booking, context={'request': request}).data)

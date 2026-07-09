@@ -47,6 +47,8 @@ export default function AdminSalonDetail() {
   const [err, setErr] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
   const [msg, setMsg] = useState('');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const load = () => {
     setLoading(true);
@@ -59,6 +61,18 @@ export default function AdminSalonDetail() {
   useEffect(() => { load(); }, [id]);
 
   const flash = text => { setMsg(text); setTimeout(() => setMsg(''), 3000); };
+
+  const handleDelete = async () => {
+    setDeleting(true);
+    try {
+      await api.delete(`/admin/salons/${id}/detail/`);
+      navigate('/admin/salons', { state: { deleted: true } });
+    } catch (e) {
+      setErr(e.response?.data?.detail || 'Failed to delete salon.');
+      setTimeout(() => setErr(''), 4000);
+      setShowDeleteConfirm(false);
+    } finally { setDeleting(false); }
+  };
 
   const doAction = async (fn, successMsg) => {
     setActionLoading(true);
@@ -115,8 +129,33 @@ export default function AdminSalonDetail() {
           {isActive    && <button style={s.suspendBtn} disabled={actionLoading} onClick={() => doAction(() => api.post(`/salons/${id}/toggle-suspend/`), 'Salon suspended.')}>⏸ Suspend</button>}
           {isSuspended && <button style={s.enableBtn}  disabled={actionLoading} onClick={() => doAction(() => api.post(`/salons/${id}/toggle-suspend/`), 'Salon reinstated.')}>▶ Reinstate</button>}
           {isInactive  && <button style={s.enableBtn}  disabled={actionLoading} onClick={() => doAction(() => api.post(`/salons/${id}/reactivate/`),     'Salon reactivated.')}>↑ Reactivate</button>}
+          <button style={s.deleteBtn} disabled={actionLoading} onClick={() => setShowDeleteConfirm(true)}>🗑 Delete Salon</button>
         </div>
       </div>
+
+      {/* Delete confirmation modal */}
+      {showDeleteConfirm && (
+        <div style={s.modalBack} onClick={() => setShowDeleteConfirm(false)}>
+          <div style={s.modalCard} onClick={e => e.stopPropagation()}>
+            <div style={{ fontSize: 38, marginBottom: 12 }}>⚠</div>
+            <h3 style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 24, fontWeight: 700, color: 'var(--text)', margin: '0 0 10px' }}>
+              Delete Salon?
+            </h3>
+            <p style={{ fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.65, margin: '0 0 8px' }}>
+              You are about to permanently delete <strong style={{ color: 'var(--text)' }}>{salon.name}</strong>.
+            </p>
+            <p style={{ fontSize: 13, color: '#DC2626', margin: '0 0 28px', lineHeight: 1.6 }}>
+              This will remove all associated bookings, services, staff, and data. This action cannot be undone.
+            </p>
+            <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+              <button style={s.cancelBtn} onClick={() => setShowDeleteConfirm(false)} disabled={deleting}>Cancel</button>
+              <button style={{ ...s.confirmDeleteBtn, opacity: deleting ? 0.75 : 1 }} onClick={handleDelete} disabled={deleting}>
+                {deleting ? 'Deleting…' : 'Yes, Delete Permanently'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div style={s.grid}>
         {/* Left column */}
@@ -355,4 +394,26 @@ const s = {
   rejectBtn:  { padding: '8px 16px', background: '#FEF2F2', color: '#DC2626', border: '1px solid rgba(220,38,38,.3)',  borderRadius: 9, cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: "'DM Sans', sans-serif" },
   suspendBtn: { padding: '8px 16px', background: 'rgba(249,115,22,.1)', color: '#F97316', border: '1px solid rgba(249,115,22,.3)', borderRadius: 9, cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: "'DM Sans', sans-serif" },
   enableBtn:  { padding: '8px 16px', background: '#F0FDFA', color: '#0D9488', border: '1px solid rgba(13,148,136,.3)', borderRadius: 9, cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: "'DM Sans', sans-serif" },
+  deleteBtn:  { padding: '8px 16px', background: '#FEF2F2', color: '#DC2626', border: '1px solid rgba(220,38,38,.3)',  borderRadius: 9, cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: "'DM Sans', sans-serif" },
+  modalBack: {
+    position: 'fixed', inset: 0, zIndex: 9999,
+    background: 'rgba(0,0,0,.6)', backdropFilter: 'blur(6px)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
+  },
+  modalCard: {
+    background: 'var(--surface)', borderRadius: 20, padding: '40px 36px',
+    maxWidth: 420, width: '100%', textAlign: 'center',
+    boxShadow: '0 24px 64px rgba(0,0,0,.25)', border: '1px solid var(--border)',
+  },
+  cancelBtn: {
+    padding: '11px 24px', background: 'transparent', border: '1px solid var(--border)',
+    borderRadius: 10, cursor: 'pointer', fontSize: 14, color: 'var(--text-muted)',
+    fontFamily: "'DM Sans', sans-serif",
+  },
+  confirmDeleteBtn: {
+    padding: '11px 24px', background: '#DC2626', color: '#fff',
+    border: 'none', borderRadius: 10, cursor: 'pointer',
+    fontSize: 14, fontWeight: 700, fontFamily: "'DM Sans', sans-serif",
+    boxShadow: '0 4px 14px rgba(220,38,38,.35)',
+  },
 };
