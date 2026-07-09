@@ -24,14 +24,30 @@ class SalonRegisterView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        serializer = SalonRegisterSerializer(data=request.data, context={'request': request})
+        # Support multipart (when files are attached) — json_data carries all text fields
+        import json as _json
+        raw = request.data.get('json_data')
+        data = _json.loads(raw) if raw else request.data
+
+        serializer = SalonRegisterSerializer(data=data, context={'request': request})
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         salon = serializer.save()
 
+        # Attach uploaded logo / cover image if provided
+        logo_file  = request.FILES.get('logo')
+        cover_file = request.FILES.get('cover_image')
+        if logo_file:
+            salon.logo = logo_file
+        if cover_file:
+            salon.cover_image = cover_file
+        if logo_file or cover_file:
+            fields = ['logo'] * bool(logo_file) + ['cover_image'] * bool(cover_file)
+            salon.save(update_fields=fields)
+
         # Optional: initial custom services from step 4
         from services.models import Service, SalonService
-        for svc in request.data.get('initial_services', []):
+        for svc in data.get('initial_services', []):
             name     = str(svc.get('name', '')).strip()
             category = svc.get('category', 'Hair')
             price    = svc.get('price')
@@ -45,7 +61,7 @@ class SalonRegisterView(APIView):
                 SalonService.objects.create(salon=salon, service=service)
 
         # Optional: initial offer from step 4
-        offer_data = request.data.get('initial_offer')
+        offer_data = data.get('initial_offer')
         if offer_data and offer_data.get('title') and offer_data.get('start_date') and offer_data.get('end_date'):
             Offer.objects.create(
                 salon=salon,

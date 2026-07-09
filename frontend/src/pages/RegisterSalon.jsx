@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+﻿import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../api/axios';
 import { useBreakpoint } from '../hooks/useMobile';
@@ -128,6 +128,13 @@ export default function RegisterSalon() {
   const [success, setSuccess]     = useState(false);
   const [loading, setLoading]     = useState(false);
 
+  const [logoFile, setLogoFile]         = useState(null);
+  const [logoPreview, setLogoPreview]   = useState(null);
+  const [coverFile, setCoverFile]       = useState(null);
+  const [coverPreview, setCoverPreview] = useState(null);
+  const logoRef  = useRef(null);
+  const coverRef = useRef(null);
+
   const f = k => e => setForm({ ...form, [k]: e.target.value });
   const setHours = (day, field, val) => setForm({
     ...form,
@@ -159,7 +166,15 @@ export default function RegisterSalon() {
         payload.initial_offer = { ...offer, discount_value: Number(offer.discount_value) };
       }
 
-      await api.post('/salons/register/', payload);
+      if (logoFile || coverFile) {
+        const fd = new FormData();
+        fd.append('json_data', JSON.stringify(payload));
+        if (logoFile)  fd.append('logo',        logoFile);
+        if (coverFile) fd.append('cover_image', coverFile);
+        await api.post('/salons/register/', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+      } else {
+        await api.post('/salons/register/', payload);
+      }
       setSuccess(true);
     } catch (err) {
       const data = err.response?.data;
@@ -257,6 +272,66 @@ export default function RegisterSalon() {
               <div style={s.field}>
                 <label style={s.label}>Contact Number</label>
                 <input style={s.input} value={form.contact_number} onChange={f('contact_number')} required />
+              </div>
+
+              {/* Logo & Cover Photo */}
+              <div style={s.field}>
+                <label style={s.label}>Salon Logo <span style={s.optTag}>optional</span></label>
+                <p style={s.hint}>Shown on booking cards and in search results. Square image recommended.</p>
+                <div style={s.photoRow}>
+                  <button
+                    type="button"
+                    onClick={() => logoRef.current?.click()}
+                    style={{ ...s.photoPicker, width: 72, height: 72, borderRadius: 16 }}
+                    title="Upload logo"
+                  >
+                    {logoPreview
+                      ? <img src={logoPreview} alt="logo" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 14 }} />
+                      : <span style={s.photoPlus}>+</span>
+                    }
+                  </button>
+                  <input ref={logoRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={e => {
+                    const f = e.target.files?.[0];
+                    if (!f) return;
+                    if (logoPreview?.startsWith('blob:')) URL.revokeObjectURL(logoPreview);
+                    setLogoFile(f);
+                    setLogoPreview(URL.createObjectURL(f));
+                  }} />
+                  {logoPreview && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      <span style={{ fontSize: 13, color: '#0D9488', fontWeight: 600 }}>{logoFile?.name}</span>
+                      <button type="button" onClick={() => { setLogoFile(null); if (logoPreview?.startsWith('blob:')) URL.revokeObjectURL(logoPreview); setLogoPreview(null); }} style={s.removePhotoBtn}>Remove</button>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div style={s.field}>
+                <label style={s.label}>Cover Photo <span style={s.optTag}>optional</span></label>
+                <p style={s.hint}>Wide banner image shown on your salon's profile page. Landscape image recommended.</p>
+                <div style={s.coverPickerWrap}>
+                  <button
+                    type="button"
+                    onClick={() => coverRef.current?.click()}
+                    style={s.coverPicker}
+                    title="Upload cover photo"
+                  >
+                    {coverPreview
+                      ? <img src={coverPreview} alt="cover" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 11 }} />
+                      : <div style={s.coverPlaceholder}><span style={{ fontSize: 22, marginBottom: 4 }}>🖼</span><span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Click to upload cover photo</span></div>
+                    }
+                  </button>
+                  <input ref={coverRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={e => {
+                    const f = e.target.files?.[0];
+                    if (!f) return;
+                    if (coverPreview?.startsWith('blob:')) URL.revokeObjectURL(coverPreview);
+                    setCoverFile(f);
+                    setCoverPreview(URL.createObjectURL(f));
+                  }} />
+                  {coverPreview && (
+                    <button type="button" onClick={() => { setCoverFile(null); if (coverPreview?.startsWith('blob:')) URL.revokeObjectURL(coverPreview); setCoverPreview(null); }} style={{ ...s.removePhotoBtn, marginTop: 6 }}>Remove cover photo</button>
+                  )}
+                </div>
               </div>
 
               {/* Gender Focus */}
@@ -594,6 +669,30 @@ const s = {
   successSub:   { color: 'var(--text-muted)', fontSize: 15, textAlign: 'center', lineHeight: 1.7, marginBottom: 28 },
   footer:       { marginTop: 20, textAlign: 'center', fontSize: 14, color: 'var(--text-muted)' },
   footerLink:   { color: '#0D9488', fontWeight: 600 },
+
+  photoRow: { display: 'flex', alignItems: 'center', gap: 14, marginTop: 4 },
+  photoPicker: {
+    flexShrink: 0, border: '2px dashed rgba(13,148,136,.4)',
+    background: 'var(--surface2)', cursor: 'pointer',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    overflow: 'hidden', padding: 0, position: 'relative',
+  },
+  photoPlus: { fontSize: 28, color: 'rgba(13,148,136,.5)', lineHeight: 1, fontWeight: 300 },
+  removePhotoBtn: {
+    background: 'none', border: 'none', cursor: 'pointer',
+    fontSize: 12, color: '#DC2626', fontWeight: 600, padding: 0,
+    fontFamily: "'DM Sans',sans-serif", textDecoration: 'underline',
+  },
+  coverPickerWrap: { display: 'flex', flexDirection: 'column', marginTop: 4 },
+  coverPicker: {
+    width: '100%', height: 120, border: '2px dashed rgba(13,148,136,.4)',
+    background: 'var(--surface2)', borderRadius: 12, cursor: 'pointer',
+    overflow: 'hidden', padding: 0, position: 'relative',
+  },
+  coverPlaceholder: {
+    width: '100%', height: '100%', display: 'flex', flexDirection: 'column',
+    alignItems: 'center', justifyContent: 'center', gap: 4,
+  },
 
   genderGrid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginTop: 4 },
   genderCard: {
