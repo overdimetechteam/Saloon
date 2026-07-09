@@ -755,7 +755,9 @@ class ClientFavouritesView(APIView):
 
 
 class SalonReviewListView(APIView):
-    permission_classes = [AllowAny]
+
+    def get_permissions(self):
+        return [AllowAny()] if self.request.method == 'GET' else [IsAuthenticated()]
 
     def get(self, request, pk):
         from bookings.models import Review
@@ -763,6 +765,34 @@ class SalonReviewListView(APIView):
         salon = get_object_or_404(Salon, pk=pk)
         reviews = Review.objects.filter(salon=salon).select_related('client').order_by('-created_at')[:20]
         return Response(ReviewSerializer(reviews, many=True).data)
+
+    def post(self, request, pk):
+        from bookings.models import Booking, Review
+        from bookings.serializers import ReviewSerializer
+        if request.user.role != 'client':
+            return Response({'detail': 'Only clients can submit reviews.'}, status=status.HTTP_403_FORBIDDEN)
+        salon = get_object_or_404(Salon, pk=pk)
+        booking = (
+            Booking.objects.filter(salon=salon, client=request.user, status='completed')
+            .exclude(review__isnull=False)
+            .order_by('-requested_datetime')
+            .first()
+        )
+        if not booking:
+            return Response({'detail': 'You need a completed appointment at this salon before leaving a review.'}, status=status.HTTP_400_BAD_REQUEST)
+        rating = request.data.get('rating')
+        comment = request.data.get('comment', '')
+        try:
+            rating = int(rating)
+            if not 1 <= rating <= 5:
+                raise ValueError
+        except (TypeError, ValueError):
+            return Response({'detail': 'Rating must be a number between 1 and 5.'}, status=status.HTTP_400_BAD_REQUEST)
+        review = Review.objects.create(
+            booking=booking, client=request.user, salon=salon,
+            rating=rating, comment=comment,
+        )
+        return Response(ReviewSerializer(review).data, status=status.HTTP_201_CREATED)
 
 
 class SalonReviewSummaryView(APIView):

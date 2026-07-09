@@ -127,6 +127,7 @@ export default function OwnerBookingDetail() {
   const [assignId, setAssignId]   = useState('');
   const [assigning, setAssigning] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [completing, setCompleting] = useState(false);
 
   const load = () => api.get(`/bookings/${id}/`).then(r => {
     setBooking(r.data);
@@ -160,9 +161,12 @@ export default function OwnerBookingDetail() {
   };
 
   const complete = async () => {
+    if (completing) return;
     if (!window.confirm('Mark this booking as completed? The customer will receive a review request email.')) return;
+    setCompleting(true); setError('');
     try { await api.post(`/bookings/${id}/complete/`); setMsg('Booking marked as completed!'); load(); }
     catch (err) { setError(err.response?.data?.detail || 'Error'); }
+    finally { setCompleting(false); }
   };
 
   const assignStaff = async () => {
@@ -320,7 +324,9 @@ export default function OwnerBookingDetail() {
 
         <div style={s.sideCol}>
           {booking.status === 'confirmed' && (
-            <button style={s.completeBtn} onClick={complete}>✓ Mark as Completed</button>
+            <button style={{ ...s.completeBtn, opacity: completing ? 0.7 : 1 }} onClick={complete} disabled={completing}>
+              {completing ? 'Completing…' : '✓ Mark as Completed'}
+            </button>
           )}
           {!['cancelled','completed'].includes(booking.status) && (
             <button style={s.cancelBtn} onClick={() => setShowCancelModal(true)}>Cancel Booking</button>
