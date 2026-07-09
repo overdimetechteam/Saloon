@@ -211,6 +211,20 @@ export default function SalonList() {
         >
           <div style={s.glow1} />
           <div style={s.glow2} />
+          {/* Floating salon emoji rain */}
+          <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 1 }}>
+            {BANNER_EMOJIS.map((em, i) => (
+              <span
+                key={i}
+                style={{
+                  position: 'absolute', top: em.top, right: em.right,
+                  fontSize: em.sz, color: '#fff',
+                  animation: `salonEmojiFloat ${em.dur}s linear ${em.del}s infinite`,
+                  userSelect: 'none',
+                }}
+              >{em.e}</span>
+            ))}
+          </div>
           <div style={s.heroContent} className="fade-up">
             <div style={s.eyebrow}>
               <span style={{ color: '#D4AF37', fontSize: 10 }}>✦</span>
