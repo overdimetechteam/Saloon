@@ -60,7 +60,7 @@ export default function OwnerSettings() {
       setSForm({
         name:             data.name             || '',
         contact_number:   data.contact_number   || '',
-        email:            data.email            || '',
+        email:            data.email            || profile?.email || '',
         address_street:   data.address_street   || '',
         address_city:     data.address_city     || '',
         address_district: data.address_district || '',
