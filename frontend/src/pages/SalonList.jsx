@@ -188,10 +188,11 @@ export default function SalonList() {
   const isClient = profile?.role === 'client';
   const numCols  = isMobile ? 1 : isTablet ? 2 : 3;
 
-  const favGroup   = isClient ? salons.filter(sl => favIds.has(sl.id))  : [];
-  const otherGroup = isClient ? salons.filter(sl => !favIds.has(sl.id)) : salons;
-  const hasFavs    = favGroup.length > 0;
-  const gridCols   = isMobile ? '1fr' : isTablet ? 'repeat(2,1fr)' : 'repeat(3,1fr)';
+  const favGroup       = isClient ? salons.filter(sl => favIds.has(sl.id))  : [];
+  const otherGroup     = isClient ? salons.filter(sl => !favIds.has(sl.id)) : salons;
+  const hasFavs        = favGroup.length > 0;
+  const displayedCount = favGroup.length + otherGroup.length;
+  const gridCols       = isMobile ? '1fr' : isTablet ? 'repeat(2,1fr)' : 'repeat(3,1fr)';
 
   return (
     <div style={s.page}>
