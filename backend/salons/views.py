@@ -1302,8 +1302,9 @@ class QuickSearchView(APIView):
                 pass
 
         # — radius filter (Haversine) —
-        # Salons WITH coordinates that fall within the radius are sorted by distance.
-        # Salons WITHOUT coordinates are appended at the end (location unknown).
+        # When the user provides a location, only return salons within the radius
+        # that have coordinates set. Salons without lat/lng are excluded from
+        # proximity searches to avoid irrelevant "Unknown distance" results.
         distances = {}
         if user_lat and user_lng:
             try:
@@ -1312,11 +1313,9 @@ class QuickSearchView(APIView):
                 R    = 6371.0
                 km   = min(float(radius_km), 50.0)
                 within_radius = []
-                no_coords     = []
                 for salon in salons:
                     slat, slng = salon.latitude, salon.longitude
                     if slat is None or slng is None:
-                        no_coords.append(salon)
                         continue
                     lat2 = math.radians(slat)
                     lng2 = math.radians(slng)
@@ -1327,8 +1326,7 @@ class QuickSearchView(APIView):
                     if dist <= km:
                         distances[salon.id] = dist
                         within_radius.append(salon)
-                # closest first, then salons whose location is not set
-                salons = sorted(within_radius, key=lambda s: distances[s.id]) + no_coords
+                salons = sorted(within_radius, key=lambda s: distances[s.id])
             except (ValueError, TypeError):
                 pass
 

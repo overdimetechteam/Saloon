@@ -446,8 +446,8 @@ export default function QuickSearchModal({ onClose }) {
                 >
                   <span style={{ fontSize: 22, color: '#0D9488' }}>{opt.icon}</span>
                   <div>
-                    <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--text)' }}>{opt.label}</div>
-                    <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>{opt.sub}</div>
+                    <div style={{ fontWeight: 700, fontSize: 14, color: gender === opt.val ? '#0f766e' : 'var(--text)' }}>{opt.label}</div>
+                    <div style={{ fontSize: 12, color: gender === opt.val ? '#0f766e' : 'var(--text-muted)', marginTop: 2 }}>{opt.sub}</div>
                   </div>
                   {gender === opt.val && <span style={{ marginLeft: 'auto', color: '#0D9488', fontSize: 16 }}>✓</span>}
                 </div>
