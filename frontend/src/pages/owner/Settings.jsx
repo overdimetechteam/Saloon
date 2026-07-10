@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api/axios';
+import MapLocationPicker from '../../components/MapLocationPicker';
 
 const ALL_FACILITIES = [
   { key: 'parking',          label: 'Free Parking',             emoji: '🅿️' },
@@ -46,10 +47,13 @@ export default function OwnerSettings() {
     name: '', contact_number: '', email: '',
     address_street: '', address_city: '', address_district: '', address_postal: '',
     home_visit_enabled: false, gender_focus: 'unisex', facilities: [],
+    latitude: null, longitude: null,
   });
-  const [sSaving, setSSaving] = useState(false);
-  const [sMsg, setSMsg]       = useState(null);
-  const [salonId, setSalonId] = useState(null);
+  const [sSaving, setSSaving]         = useState(false);
+  const [sMsg, setSMsg]               = useState(null);
+  const [salonId, setSalonId]         = useState(null);
+  const [showLocPicker, setShowLocPicker] = useState(false);
+  const [locDisplayName, setLocDisplayName] = useState('');
 
   useEffect(() => {
     api.get('/profile/').then(({ data }) => {
@@ -68,6 +72,8 @@ export default function OwnerSettings() {
         home_visit_enabled: data.home_visit_enabled ?? false,
         gender_focus:     data.gender_focus     || 'unisex',
         facilities:       Array.isArray(data.facilities) ? data.facilities : [],
+        latitude:         data.latitude  ?? null,
+        longitude:        data.longitude ?? null,
       });
     }).catch(() => {});
   }, []);
@@ -268,6 +274,43 @@ export default function OwnerSettings() {
               </div>
             </div>
 
+            <div style={s.sectionDivider}>Salon Location</div>
+            <div>
+              <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: '0 0 12px', lineHeight: 1.6 }}>
+                Pin your salon on the map so customers can find you in proximity searches. Drag the marker to fine-tune the exact spot.
+              </p>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', border: '1.5px solid var(--border)', borderRadius: 12, background: 'var(--surface2)', gap: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0, flex: 1 }}>
+                  <div style={{ width: 42, height: 42, borderRadius: '50%', background: sForm.latitude ? 'rgba(13,148,136,.12)' : 'var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>
+                    📍
+                  </div>
+                  <div style={{ minWidth: 0 }}>
+                    {sForm.latitude ? (
+                      <>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {locDisplayName || 'Location pinned'}
+                        </div>
+                        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
+                          {sForm.latitude.toFixed(5)}, {sForm.longitude.toFixed(5)}
+                        </div>
+                      </>
+                    ) : (
+                      <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>
+                        No location set — customers won't see you in proximity searches
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowLocPicker(true)}
+                  style={{ padding: '9px 18px', background: 'linear-gradient(135deg,#0D9488,#14B8A8)', color: '#fff', border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer', flexShrink: 0, fontFamily: "'DM Sans',sans-serif", boxShadow: '0 2px 8px rgba(13,148,136,.3)' }}
+                >
+                  {sForm.latitude ? 'Move Pin' : 'Pin on Map'}
+                </button>
+              </div>
+            </div>
+
             <div style={s.sectionDivider}>Facilities &amp; Amenities</div>
             <div style={{ marginBottom: 4 }}>
               <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: '0 0 14px', lineHeight: 1.6 }}>
@@ -344,6 +387,21 @@ export default function OwnerSettings() {
             </div>
           </form>
         </div>
+      )}
+
+      {showLocPicker && (
+        <MapLocationPicker
+          initialPos={sForm.latitude ? { lat: sForm.latitude, lng: sForm.longitude } : null}
+          showRadius={false}
+          title="Your Salon Location"
+          applyLabel="Set Location"
+          onClose={() => setShowLocPicker(false)}
+          onApply={(pos, _rad, label) => {
+            setSForm(f => ({ ...f, latitude: pos.lat, longitude: pos.lng }));
+            setLocDisplayName(label);
+            setShowLocPicker(false);
+          }}
+        />
       )}
     </div>
   );

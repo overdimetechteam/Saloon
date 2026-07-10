@@ -374,21 +374,26 @@ export default function QuickSearchModal({ onClose }) {
 
             {/* Location confirmed card */}
             {userPos && (
-              <div style={{ ...m.locGranted, flexDirection: 'column', alignItems: 'stretch', gap: 10 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ fontSize: 16 }}>📍</span>
+              <div style={{ background: 'var(--surface2)', border: '1.5px solid var(--border)', borderRadius: 16, overflow: 'hidden' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px' }}>
+                  <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'linear-gradient(135deg, #0D9488, #14B8A8)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0, boxShadow: '0 4px 10px rgba(13,148,136,.3)' }}>📍</div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 11, color: '#0D9488', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Location set</div>
-                    <div style={{ fontSize: 13, color: '#0D9488', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {locLabel || `${userPos.lat.toFixed(4)}, ${userPos.lng.toFixed(4)}`}
+                    <div style={{ fontSize: 11, color: '#0D9488', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 2 }}>Location confirmed</div>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {locLabel || 'Your current location'}
+                    </div>
+                    <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
+                      {userPos.lat.toFixed(4)}, {userPos.lng.toFixed(4)}
                     </div>
                   </div>
                   <button style={m.changeBtn} onClick={() => setShowMapPicker(true)}>Change</button>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ fontSize: 13, color: '#0D9488' }}>⊙</span>
-                  <span style={{ fontSize: 13, color: '#0D9488' }}>Radius: <strong>{radius} km</strong></span>
-                  <button style={{ ...m.changeBtn, marginLeft: 0 }} onClick={() => setShowMapPicker(true)}>Adjust</button>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '9px 16px', background: 'rgba(13,148,136,.07)', borderTop: '1px solid rgba(13,148,136,.15)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ fontSize: 14, color: '#0D9488' }}>◎</span>
+                    <span style={{ fontSize: 13, color: '#0D9488', fontWeight: 500 }}>Searching within <strong>{radius} km</strong></span>
+                  </div>
+                  <button style={{ ...m.changeBtn, marginLeft: 0, fontSize: 12 }} onClick={() => setShowMapPicker(true)}>Adjust</button>
                 </div>
               </div>
             )}
