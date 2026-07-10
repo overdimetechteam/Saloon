@@ -140,10 +140,22 @@ export default function QuickSearchModal({ onClose }) {
     if (!navigator.geolocation) return;
     setGpsLoading(true);
     navigator.geolocation.getCurrentPosition(
-      ({ coords }) => {
+      async ({ coords }) => {
         const p = { lat: coords.latitude, lng: coords.longitude };
         setUserPos(p);
-        setLocLabel('');  // reverseGeocode will fill it in MapLocationPicker
+        // Reverse-geocode via Google to show a readable label
+        try {
+          const key = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+          const res = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${p.lat},${p.lng}&key=${key}&language=en`);
+          const data = await res.json();
+          if (data.status === 'OK' && data.results[0]) {
+            const parts = data.results[0].address_components;
+            const get = type => parts.find(c => c.types.includes(type))?.long_name || '';
+            const sub  = get('sublocality_level_1') || get('neighborhood');
+            const city = get('locality') || get('administrative_area_level_2');
+            setLocLabel([sub, city].filter(Boolean).join(', ') || data.results[0].formatted_address);
+          }
+        } catch { /* label stays as coordinates */ }
         setGpsLoading(false);
       },
       () => setGpsLoading(false),
