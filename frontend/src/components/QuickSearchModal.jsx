@@ -120,6 +120,7 @@ export default function QuickSearchModal({ onClose }) {
   const [radius, setRadius]       = useState(10);
   const [locLabel, setLocLabel]   = useState('');     // reverse-geocoded display name
   const [showMapPicker, setShowMapPicker] = useState(false);
+  const [autoLocDone, setAutoLocDone] = useState(false); // only auto-fetch once
 
   // step 3 — gender
   const [gender, setGender] = useState('any');
@@ -131,6 +132,24 @@ export default function QuickSearchModal({ onClose }) {
   useEffect(() => {
     api.get('/services/all/').then(r => setServices(r.data)).catch(() => {});
   }, []);
+
+  // Auto-request GPS the moment the location step opens (PickMe / Uber style)
+  useEffect(() => {
+    if (step !== 2 || autoLocDone || userPos || gpsLoading) return;
+    setAutoLocDone(true);
+    if (!navigator.geolocation) return;
+    setGpsLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        const p = { lat: coords.latitude, lng: coords.longitude };
+        setUserPos(p);
+        setLocLabel('');  // reverseGeocode will fill it in MapLocationPicker
+        setGpsLoading(false);
+      },
+      () => setGpsLoading(false),
+      { timeout: 12000, enableHighAccuracy: true }
+    );
+  }, [step]); // eslint-disable-line
 
   // ── Search ──
   const runSearch = async () => {
@@ -329,14 +348,27 @@ export default function QuickSearchModal({ onClose }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             <p style={m.hint}>Where are you? We'll find salons near you.</p>
 
-            {/* Location card — shown after picking */}
-            {userPos ? (
+            {/* Auto-fetching state */}
+            {gpsLoading && !userPos && (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, padding: '24px 0' }}>
+                <div style={{ width: 52, height: 52, borderRadius: '50%', border: '3px solid #e5e7eb', borderTopColor: '#0D9488', animation: 'spin 0.8s linear infinite' }} />
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', marginBottom: 4 }}>Getting your location…</div>
+                  <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Please allow location access when prompted</div>
+                </div>
+              </div>
+            )}
+
+            {/* Location confirmed card */}
+            {userPos && (
               <div style={{ ...m.locGranted, flexDirection: 'column', alignItems: 'stretch', gap: 10 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <span style={{ fontSize: 16 }}>📍</span>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 11, color: '#0D9488', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Location set</div>
-                    <div style={{ fontSize: 13, color: '#0D9488', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{locLabel || `${userPos.lat.toFixed(4)}, ${userPos.lng.toFixed(4)}`}</div>
+                    <div style={{ fontSize: 13, color: '#0D9488', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {locLabel || `${userPos.lat.toFixed(4)}, ${userPos.lng.toFixed(4)}`}
+                    </div>
                   </div>
                   <button style={m.changeBtn} onClick={() => setShowMapPicker(true)}>Change</button>
                 </div>
@@ -346,16 +378,18 @@ export default function QuickSearchModal({ onClose }) {
                   <button style={{ ...m.changeBtn, marginLeft: 0 }} onClick={() => setShowMapPicker(true)}>Adjust</button>
                 </div>
               </div>
-            ) : (
-              <button style={m.locBtn} onClick={() => setShowMapPicker(true)}>
-                📍 Set My Location on Map
-              </button>
             )}
 
-            {!userPos && (
-              <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0, textAlign: 'center' }}>
-                Skip this step to show all matching salons regardless of distance.
-              </p>
+            {/* Fallback — shown if GPS was denied / unavailable */}
+            {!gpsLoading && !userPos && (
+              <>
+                <button style={m.locBtn} onClick={() => setShowMapPicker(true)}>
+                  📍 Set My Location on Map
+                </button>
+                <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0, textAlign: 'center' }}>
+                  Skip this step to show all matching salons regardless of distance.
+                </p>
+              </>
             )}
           </div>
         )}

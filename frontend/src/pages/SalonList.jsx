@@ -1,5 +1,5 @@
 ﻿import { useEffect, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
@@ -160,8 +160,6 @@ function SalonCard({ salon, i, isFav, col, numCols, isMobile }) {
 export default function SalonList() {
   const { profile }            = useAuth();
   const { isMobile, isTablet } = useBreakpoint();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const search = searchParams.get('q') || '';
 
   const [salons, setSalons]   = useState([]);
   const [favIds, setFavIds]   = useState(new Set());
@@ -172,13 +170,13 @@ export default function SalonList() {
   const fetchSalons = () => {
     setLoading(true);
     setFetchError(false);
-    api.get(`/salons/?name=${search}`)
+    api.get('/salons/')
       .then(r => { setSalons(r.data); setFetchError(false); })
       .catch(() => setFetchError(true))
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { fetchSalons(); }, [search]);
+  useEffect(() => { fetchSalons(); }, []);
 
   useEffect(() => {
     if (profile?.role !== 'client') return;
@@ -190,12 +188,10 @@ export default function SalonList() {
   const isClient = profile?.role === 'client';
   const numCols  = isMobile ? 1 : isTablet ? 2 : 3;
 
-  const favGroup       = isClient ? salons.filter(sl => favIds.has(sl.id))  : [];
-  const otherGroup     = isClient ? salons.filter(sl => !favIds.has(sl.id)) : salons;
-  const hasFavs        = favGroup.length > 0;
-
-  const displayedCount = favGroup.length + otherGroup.length;
-  const gridCols    = isMobile ? '1fr' : isTablet ? 'repeat(2,1fr)' : 'repeat(3,1fr)';
+  const favGroup   = isClient ? salons.filter(sl => favIds.has(sl.id))  : [];
+  const otherGroup = isClient ? salons.filter(sl => !favIds.has(sl.id)) : salons;
+  const hasFavs    = favGroup.length > 0;
+  const gridCols   = isMobile ? '1fr' : isTablet ? 'repeat(2,1fr)' : 'repeat(3,1fr)';
 
   return (
     <div style={s.page}>
@@ -237,19 +233,6 @@ export default function SalonList() {
             <p style={{ ...s.heroSub, fontSize: isMobile ? 13 : 16 }}>
               Browse curated premium salons and book your next beauty appointment in seconds.
             </p>
-            <div style={{ ...s.heroSearch, maxWidth: isMobile ? '100%' : 480 }} className="fade-up d2 search-bar-wrap">
-              <span className="search-icon" style={{ color: '#0D9488', fontSize: isMobile ? 12 : 14, flexShrink: 0 }}>✦</span>
-              <input
-                className="hero-search"
-                style={{ ...s.heroSearchInput, fontSize: isMobile ? 13 : 15 }}
-                placeholder="Search by salon name…"
-                value={search}
-                onChange={e => setSearchParams(e.target.value ? { q: e.target.value } : {})}
-              />
-              {search && (
-                <button style={s.clearBtn} onClick={() => setSearchParams({})}>✕</button>
-              )}
-            </div>
           </div>
         </div>
       )}
@@ -282,23 +265,10 @@ export default function SalonList() {
               <span style={{ color: '#D4AF37', fontSize: 10 }}>✦</span>
               {salons.length > 0 ? `${salons.length} salons available` : 'Discover · Book · Glow'}
             </div>
-            <h2 style={{ ...s.heroTitle, fontSize: isMobile ? 23 : isTablet ? 28 : 34, marginBottom: 14 }}>
+            <h2 style={{ ...s.heroTitle, fontSize: isMobile ? 23 : isTablet ? 28 : 34, marginBottom: 0 }}>
               Welcome back,{' '}
               <em style={s.heroItalic}>{safeFirstName(profile.full_name, profile.email)}</em>
             </h2>
-            <div style={{ ...s.heroSearch, maxWidth: isMobile ? '100%' : 500, margin: '0 auto', padding: isMobile ? '8px 12px' : '10px 16px' }} className="search-bar-wrap">
-              <span className="search-icon" style={{ color: '#0D9488', fontSize: isMobile ? 12 : 14, flexShrink: 0 }}>✦</span>
-              <input
-                className="hero-search"
-                style={{ ...s.heroSearchInput, fontSize: isMobile ? 13 : 15 }}
-                placeholder="Search by salon name…"
-                value={search}
-                onChange={e => setSearchParams(e.target.value ? { q: e.target.value } : {})}
-              />
-              {search && (
-                <button style={s.clearBtn} onClick={() => setSearchParams({})}>✕</button>
-              )}
-            </div>
           </div>
         </div>
       )}
@@ -328,12 +298,6 @@ export default function SalonList() {
           Book Now!
         </button>
       </div>
-
-      {search && !loading && (
-        <p style={{ ...s.resultsNote, padding: isMobile ? '8px 12px 0' : '10px 40px 0' }}>
-          {displayedCount} result{displayedCount !== 1 ? 's' : ''} for &ldquo;{search}&rdquo;
-        </p>
-      )}
 
       {/* ── Grid ── */}
       <div style={{
@@ -377,7 +341,7 @@ export default function SalonList() {
             </div>
             <h3 style={s.emptyTitle}>No salons found</h3>
             <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 0 }}>
-              {search ? `Nothing matched "${search}". Try a different term.` : 'No salons available yet.'}
+              No salons available yet.
             </p>
           </div>
         )}
