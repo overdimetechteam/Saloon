@@ -116,11 +116,12 @@ export default function QuickSearchModal({ onClose }) {
   });
 
   // step 2 — location (map picker)
-  const [userPos, setUserPos]     = useState(null);   // { lat, lng }
-  const [radius, setRadius]       = useState(10);
-  const [locLabel, setLocLabel]   = useState('');     // reverse-geocoded display name
+  const [userPos, setUserPos]         = useState(null);
+  const [radius, setRadius]           = useState(10);
+  const [locLabel, setLocLabel]       = useState('');
   const [showMapPicker, setShowMapPicker] = useState(false);
-  const [autoLocDone, setAutoLocDone] = useState(false); // only auto-fetch once
+  const [autoLocDone, setAutoLocDone] = useState(false);
+  const [gpsLoading, setGpsLoading]   = useState(false);
 
   // step 3 — gender
   const [gender, setGender] = useState('any');
