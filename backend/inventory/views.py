@@ -101,9 +101,11 @@ class AllCosmeticsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        today = date_type.today()
         products = (
             Product.objects
             .filter(is_active=True, current_stock__gt=0, salon__status='active', salon__cosmetics_enabled=True)
+            .filter(Q(expiry_date__isnull=True) | Q(expiry_date__gt=today))
             .select_related('salon')
             .order_by('category', 'name')
         )
@@ -131,7 +133,13 @@ class SalonPublicCosmeticsView(APIView):
         salon = get_object_or_404(Salon, pk=salon_pk, status='active', cosmetics_enabled=True)
         qs = request.query_params.get('q', '').lower()
         cat = request.query_params.get('category', '')
-        products = Product.objects.filter(salon=salon, is_active=True).order_by('category', 'name')
+        today = date_type.today()
+        products = (
+            Product.objects
+            .filter(salon=salon, is_active=True)
+            .filter(Q(expiry_date__isnull=True) | Q(expiry_date__gt=today))
+            .order_by('category', 'name')
+        )
         if cat:
             products = products.filter(category=cat)
         if qs:
