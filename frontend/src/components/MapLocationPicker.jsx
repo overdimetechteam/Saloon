@@ -147,33 +147,33 @@ export default function MapLocationPicker({
             </div>
           )}
 
-          {/* Floating search bar — sits on top of the map */}
+          {/* Floating search bar — Autocomplete must wrap the input directly */}
           {isLoaded && (
-            <div style={{ position: 'absolute', top: 12, left: 12, right: 12, zIndex: 20 }}>
+            <div style={{
+              position: 'absolute', top: 12, left: 12, right: 12, zIndex: 20,
+              display: 'flex', alignItems: 'center', gap: 8,
+              background: 'rgba(255,255,255,0.97)',
+              backdropFilter: 'blur(12px)',
+              borderRadius: 14,
+              boxShadow: '0 4px 24px rgba(0,0,0,.18)',
+              padding: '0 14px',
+              overflow: 'hidden',
+            }}>
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="none" style={{ flexShrink: 0, color: '#9ca3af' }}>
+                <circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" strokeWidth="1.6"/>
+                <path d="M13 13l3.5 3.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
+              </svg>
               <Autocomplete
                 onLoad={ac => { autocompleteRef.current = ac; }}
                 onPlaceChanged={handlePlaceSelect}
                 options={{ componentRestrictions: { country: 'lk' } }}
+                style={{ flex: 1 }}
               >
-                <div style={{
-                  display: 'flex', alignItems: 'center', gap: 8,
-                  background: 'rgba(255,255,255,0.97)',
-                  backdropFilter: 'blur(12px)',
-                  borderRadius: 14,
-                  boxShadow: '0 4px 24px rgba(0,0,0,.18)',
-                  padding: '0 14px',
-                  overflow: 'hidden',
-                }}>
-                  <svg width="16" height="16" viewBox="0 0 20 20" fill="none" style={{ flexShrink: 0, color: '#9ca3af' }}>
-                    <circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" strokeWidth="1.6"/>
-                    <path d="M13 13l3.5 3.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
-                  </svg>
-                  <input
-                    style={{ border: 'none', outline: 'none', background: 'transparent', flex: 1, fontSize: 14, color: '#111827', padding: '13px 6px', fontFamily: "'DM Sans', sans-serif" }}
-                    placeholder="Search city, area or address…"
-                    autoComplete="off"
-                  />
-                </div>
+                <input
+                  style={{ border: 'none', outline: 'none', background: 'transparent', width: '100%', fontSize: 14, color: '#111827', padding: '13px 0', fontFamily: "'DM Sans', sans-serif" }}
+                  placeholder="Search city, area or address…"
+                  autoComplete="off"
+                />
               </Autocomplete>
             </div>
           )}
