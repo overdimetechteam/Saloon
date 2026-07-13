@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../../api/axios';
+import ConfirmDialog from '../../components/ConfirmDialog';
 
 const DISC_LABEL = { percentage: '%', fixed: 'LKR' };
 const EMPTY = {
@@ -102,6 +103,7 @@ export default function OwnerOffers() {
   const [saveLoading, setSave]  = useState(false);
   const [msg, setMsg]           = useState('');
   const [err, setErr]           = useState('');
+  const [confirm, setConfirm]   = useState(null);
 
   const load = () => api.get('/owner/offers/').then(r => setOffers(r.data)).catch(() => {});
   useEffect(() => { load(); }, []);
@@ -154,10 +156,17 @@ export default function OwnerOffers() {
     } catch { flash('Error toggling offer.', true); }
   };
 
-  const deleteOffer = async id => {
-    if (!window.confirm('Delete this offer permanently?')) return;
-    try { await api.delete(`/owner/offers/${id}/`); load(); flash('Offer deleted.'); }
-    catch { flash('Error deleting offer.', true); }
+  const deleteOffer = (id) => {
+    setConfirm({
+      title: 'Delete Offer?',
+      message: 'This offer will be permanently removed and clients will no longer see it.',
+      confirmLabel: 'Delete Offer',
+      onConfirm: async () => {
+        setConfirm(null);
+        try { await api.delete(`/owner/offers/${id}/`); load(); flash('Offer deleted.'); }
+        catch { flash('Error deleting offer.', true); }
+      },
+    });
   };
 
   const isLive = o => {
@@ -167,6 +176,14 @@ export default function OwnerOffers() {
 
   return (
     <div>
+      <ConfirmDialog
+        open={!!confirm}
+        title={confirm?.title}
+        message={confirm?.message}
+        confirmLabel={confirm?.confirmLabel}
+        onConfirm={confirm?.onConfirm}
+        onClose={() => setConfirm(null)}
+      />
       <div style={s.pageHeader} className="fade-up">
         <div>
           <div style={s.eyebrow}>Promotions</div>

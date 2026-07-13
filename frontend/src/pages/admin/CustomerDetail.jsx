@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
+import ConfirmDialog from '../../components/ConfirmDialog';
 
 function initials(name) {
   if (!name) return '?';
@@ -70,6 +71,7 @@ export default function AdminCustomerDetail() {
   const [err, setErr]         = useState('');
   const [toggling, setToggling]   = useState(false);
   const [deleting, setDeleting]   = useState(false);
+  const [confirm, setConfirm]     = useState(null);
 
   const load = () => {
     setLoading(true);
@@ -90,16 +92,22 @@ export default function AdminCustomerDetail() {
     finally { setToggling(false); }
   };
 
-  const deleteAccount = async () => {
-    if (!window.confirm('Permanently delete this account? This cannot be undone.')) return;
-    setDeleting(true);
-    try {
-      await api.delete(`/admin/customers/${id}/`);
-      navigate('/admin/customers');
-    } catch {
-      alert('Failed to delete account. Please try again.');
-      setDeleting(false);
-    }
+  const deleteAccount = () => {
+    setConfirm({
+      title: 'Delete Account?',
+      message: 'This customer account will be permanently deleted along with all their data. This cannot be undone.',
+      confirmLabel: 'Delete Account',
+      onConfirm: async () => {
+        setConfirm(null);
+        setDeleting(true);
+        try {
+          await api.delete(`/admin/customers/${id}/`);
+          navigate('/admin/customers');
+        } catch {
+          setDeleting(false);
+        }
+      },
+    });
   };
 
   if (loading) return <div style={s.loader}><div style={s.spin} /></div>;
@@ -110,6 +118,14 @@ export default function AdminCustomerDetail() {
 
   return (
     <div>
+      <ConfirmDialog
+        open={!!confirm}
+        title={confirm?.title}
+        message={confirm?.message}
+        confirmLabel={confirm?.confirmLabel}
+        onConfirm={confirm?.onConfirm}
+        onClose={() => setConfirm(null)}
+      />
       {/* Back */}
       <button style={s.backBtn} onClick={() => navigate('/admin/customers')}>
         ← Back to Customers

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import api from '../../api/axios';
+import ConfirmDialog from '../../components/ConfirmDialog';
 
 export default function AdminSettings() {
   const [form, setForm] = useState({ payhere_merchant_id: '', payhere_merchant_secret: '', payhere_sandbox: true });
@@ -18,6 +19,7 @@ export default function AdminSettings() {
   const [notifSaving, setNotifSaving] = useState(false);
   const [notifMsg, setNotifMsg] = useState('');
   const [notifErr, setNotifErr] = useState('');
+  const [confirm, setConfirm]   = useState(null);
   const [notifEditing, setNotifEditing] = useState(false);
   const [verifyBanner, setVerifyBanner] = useState(false);
 
@@ -77,17 +79,32 @@ export default function AdminSettings() {
     } finally { setNotifSaving(false); }
   };
 
-  const removeNotifEmail = async () => {
-    if (!window.confirm('Remove notification email?')) return;
-    try {
-      await api.delete('/payments/admin/settings/notification-email/');
-      setNotifEmail(''); setNotifEmailInput(''); setNotifVerified(false);
-      setNotifMsg('Notification email removed.');
-    } catch { setNotifErr('Failed to remove.'); }
+  const removeNotifEmail = () => {
+    setConfirm({
+      title: 'Remove Notification Email?',
+      message: 'You will stop receiving admin alerts when salons register or request reinstatement.',
+      confirmLabel: 'Remove Email',
+      onConfirm: async () => {
+        setConfirm(null);
+        try {
+          await api.delete('/payments/admin/settings/notification-email/');
+          setNotifEmail(''); setNotifEmailInput(''); setNotifVerified(false);
+          setNotifMsg('Notification email removed.');
+        } catch { setNotifErr('Failed to remove.'); }
+      },
+    });
   };
 
   return (
     <div>
+      <ConfirmDialog
+        open={!!confirm}
+        title={confirm?.title}
+        message={confirm?.message}
+        confirmLabel={confirm?.confirmLabel}
+        onConfirm={confirm?.onConfirm}
+        onClose={() => setConfirm(null)}
+      />
       <div style={s.pageHeader} className="fade-up">
         <div style={s.eyebrow}>Configuration</div>
         <h2 style={s.title}>Platform Settings</h2>

@@ -1,6 +1,7 @@
 ﻿import { useState, useEffect } from 'react';
 import api from '../../api/axios';
 import { useOwner } from '../../context/OwnerContext';
+import ConfirmDialog from '../../components/ConfirmDialog';
 
 const EMPTY_FORM = {
   code: '', discount_type: 'percentage', discount_value: '',
@@ -17,6 +18,7 @@ export default function OwnerPromotions() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [msg, setMsg] = useState('');
+  const [confirm, setConfirm] = useState(null);
 
   const load = () => {
     if (!salon) return;
@@ -59,16 +61,23 @@ export default function OwnerPromotions() {
     } catch {}
   };
 
-  const deletePromo = async (promo) => {
-    if (!window.confirm(`Delete promo code "${promo.code}"?`)) return;
-    try {
-      await api.delete(`/salons/${salon.id}/promotions/${promo.id}/`);
-      setMsg('Promotion deleted.');
-      load();
-    } catch (err) {
-      setMsg('');
-      setError(err.response?.data?.detail || 'Cannot delete this promotion.');
-    }
+  const deletePromo = (promo) => {
+    setConfirm({
+      title: 'Delete Promo Code?',
+      message: `"${promo.code}" will be permanently removed. Clients will no longer be able to use it.`,
+      confirmLabel: 'Delete Code',
+      onConfirm: async () => {
+        setConfirm(null);
+        try {
+          await api.delete(`/salons/${salon.id}/promotions/${promo.id}/`);
+          setMsg('Promotion deleted.');
+          load();
+        } catch (err) {
+          setMsg('');
+          setError(err.response?.data?.detail || 'Cannot delete this promotion.');
+        }
+      },
+    });
   };
 
   const today = new Date().toISOString().split('T')[0];
@@ -77,6 +86,14 @@ export default function OwnerPromotions() {
 
   return (
     <div>
+      <ConfirmDialog
+        open={!!confirm}
+        title={confirm?.title}
+        message={confirm?.message}
+        confirmLabel={confirm?.confirmLabel}
+        onConfirm={confirm?.onConfirm}
+        onClose={() => setConfirm(null)}
+      />
       <div style={s.header} className="fade-up">
         <div>
           <div style={s.eyebrow}>Marketing</div>

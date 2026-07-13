@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import api from '../../api/axios';
 import { useOwner } from '../../context/OwnerContext';
 import { useBreakpoint } from '../../hooks/useMobile';
+import ConfirmDialog from '../../components/ConfirmDialog';
 
 /* ── Upload Modal ─────────────────────────────────────────────────── */
 function UploadModal({ onClose, onUpload, uploading, error, accentGradient, accentShadow, title }) {
@@ -257,6 +258,7 @@ export default function OwnerGallery() {
   const [cosError, setCosError]         = useState('');
   const [cosUploading, setCosUploading] = useState(false);
   const cosFileRef = useRef(null);
+  const [confirm, setConfirm] = useState(null);
 
   const load = () => {
     if (!salon) return;
@@ -300,13 +302,20 @@ export default function OwnerGallery() {
     finally { setLogoUploading(false); }
   };
 
-  const removeLogo = async () => {
-    if (!window.confirm('Remove the salon logo?')) return;
-    try {
-      await api.delete(`/salons/${salon.id}/logo/`);
-      setSalon(prev => ({ ...prev, logo_url: null }));
-      setMsg('Logo removed.');
-    } catch { setMsg('Error removing logo.'); }
+  const removeLogo = () => {
+    setConfirm({
+      title: 'Remove Salon Logo?',
+      message: 'The logo will be permanently deleted from your profile.',
+      confirmLabel: 'Remove Logo',
+      onConfirm: async () => {
+        setConfirm(null);
+        try {
+          await api.delete(`/salons/${salon.id}/logo/`);
+          setSalon(prev => ({ ...prev, logo_url: null }));
+          setMsg('Logo removed.');
+        } catch { setMsg('Error removing logo.'); }
+      },
+    });
   };
 
   const cancelLogoChange = () => {
@@ -339,13 +348,20 @@ export default function OwnerGallery() {
     finally { setCoverUploading(false); }
   };
 
-  const removeCover = async () => {
-    if (!window.confirm('Remove the hero cover image?')) return;
-    try {
-      await api.delete(`/salons/${salon.id}/cover/`);
-      setSalon(prev => ({ ...prev, cover_image_url: null }));
-      setMsg('Cover image removed.');
-    } catch { setMsg('Error removing cover image.'); }
+  const removeCover = () => {
+    setConfirm({
+      title: 'Remove Cover Image?',
+      message: 'The hero cover image will be permanently deleted from your profile.',
+      confirmLabel: 'Remove Cover',
+      onConfirm: async () => {
+        setConfirm(null);
+        try {
+          await api.delete(`/salons/${salon.id}/cover/`);
+          setSalon(prev => ({ ...prev, cover_image_url: null }));
+          setMsg('Cover image removed.');
+        } catch { setMsg('Error removing cover image.'); }
+      },
+    });
   };
 
   const cancelCoverChange = () => {
@@ -369,12 +385,19 @@ export default function OwnerGallery() {
     } finally { setUploading(false); }
   };
 
-  const deleteImage = async img => {
-    if (!window.confirm('Remove this photo?')) return;
-    try {
-      await api.delete(`/salons/${salon.id}/images/${img.id}/`);
-      setMsg('Photo removed.'); load();
-    } catch { setMsg('Error removing photo.'); }
+  const deleteImage = (img) => {
+    setConfirm({
+      title: 'Remove Photo?',
+      message: 'This gallery photo will be permanently deleted.',
+      confirmLabel: 'Remove Photo',
+      onConfirm: async () => {
+        setConfirm(null);
+        try {
+          await api.delete(`/salons/${salon.id}/images/${img.id}/`);
+          setMsg('Photo removed.'); load();
+        } catch { setMsg('Error removing photo.'); }
+      },
+    });
   };
 
   const updateCaption = async (img, newCaption) => {
@@ -414,12 +437,19 @@ export default function OwnerGallery() {
     } finally { setCosUploading(false); }
   };
 
-  const deleteCosImage = async img => {
-    if (!window.confirm('Remove this cosmetics gallery photo?')) return;
-    try {
-      await api.delete(`/salons/${salon.id}/cosmetics-gallery/${img.id}/`);
-      setMsg('Photo removed.'); loadCosGallery();
-    } catch { setMsg('Error removing photo.'); }
+  const deleteCosImage = (img) => {
+    setConfirm({
+      title: 'Remove Cosmetics Photo?',
+      message: 'This cosmetics gallery photo will be permanently deleted.',
+      confirmLabel: 'Remove Photo',
+      onConfirm: async () => {
+        setConfirm(null);
+        try {
+          await api.delete(`/salons/${salon.id}/cosmetics-gallery/${img.id}/`);
+          setMsg('Photo removed.'); loadCosGallery();
+        } catch { setMsg('Error removing photo.'); }
+      },
+    });
   };
 
   if (!salon) return <div style={{ color: 'var(--text-muted)', padding: 40 }}>Loading salon…</div>;
@@ -429,6 +459,14 @@ export default function OwnerGallery() {
 
   return (
     <div style={s.page}>
+      <ConfirmDialog
+        open={!!confirm}
+        title={confirm?.title}
+        message={confirm?.message}
+        confirmLabel={confirm?.confirmLabel}
+        onConfirm={confirm?.onConfirm}
+        onClose={() => setConfirm(null)}
+      />
       {/* ── Header ── */}
       <div style={{ ...s.header, flexDirection: isMobile ? 'column' : 'row' }} className="fade-up">
         <div>

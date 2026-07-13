@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import api from '../../api/axios';
 import { useOwner } from '../../context/OwnerContext';
 import { useBreakpoint } from '../../hooks/useMobile';
+import ConfirmDialog from '../../components/ConfirmDialog';
 
 const STEPS = [
   { key: 'pending',          label: 'Order Placed',      desc: 'Order received, awaiting confirmation',    icon: '📋' },
@@ -103,6 +104,7 @@ export default function OwnerOrderDetail() {
   const [advancing, setAdvancing] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [msg, setMsg]           = useState('');
+  const [confirm, setConfirm]   = useState(null);
 
   const load = () => {
     if (!salon) return;
@@ -127,16 +129,23 @@ export default function OwnerOrderDetail() {
     } finally { setAdvancing(false); }
   };
 
-  const cancel = async () => {
-    if (!window.confirm('Cancel this order? This cannot be undone.')) return;
-    setCancelling(true); setErr(''); setMsg('');
-    try {
-      const r = await api.patch(`/salons/${salon.id}/orders/${id}/`, { status: 'cancelled' });
-      setOrder(r.data);
-      setMsg('Order cancelled.');
-    } catch (e) {
-      setErr(e.response?.data?.detail || 'Failed to cancel order.');
-    } finally { setCancelling(false); }
+  const cancel = () => {
+    setConfirm({
+      title: 'Cancel Order?',
+      message: 'This order will be permanently cancelled. This cannot be undone.',
+      confirmLabel: 'Cancel Order',
+      onConfirm: async () => {
+        setConfirm(null);
+        setCancelling(true); setErr(''); setMsg('');
+        try {
+          const r = await api.patch(`/salons/${salon.id}/orders/${id}/`, { status: 'cancelled' });
+          setOrder(r.data);
+          setMsg('Order cancelled.');
+        } catch (e) {
+          setErr(e.response?.data?.detail || 'Failed to cancel order.');
+        } finally { setCancelling(false); }
+      },
+    });
   };
 
   if (loading) return <div style={{ padding: 48, textAlign: 'center', color: 'var(--text-muted)' }}>Loading…</div>;
@@ -150,6 +159,14 @@ export default function OwnerOrderDetail() {
 
   return (
     <div style={{ maxWidth: 900, margin: '0 auto' }}>
+      <ConfirmDialog
+        open={!!confirm}
+        title={confirm?.title}
+        message={confirm?.message}
+        confirmLabel={confirm?.confirmLabel}
+        onConfirm={confirm?.onConfirm}
+        onClose={() => setConfirm(null)}
+      />
       <Link to="/owner/orders" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--text-muted)', fontSize: 13, textDecoration: 'none', marginBottom: 20 }}>
         ← Back to Orders
       </Link>

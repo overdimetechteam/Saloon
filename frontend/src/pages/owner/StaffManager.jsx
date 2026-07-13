@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import api from '../../api/axios';
 import { useOwner } from '../../context/OwnerContext';
+import ConfirmDialog from '../../components/ConfirmDialog';
 
 const ROLES = ['stylist', 'barber', 'colorist', 'receptionist', 'manager', 'other'];
 const ROLE_LABEL = { stylist: 'Stylist', barber: 'Barber', colorist: 'Colorist', receptionist: 'Receptionist', manager: 'Manager', other: 'Other' };
@@ -31,6 +32,7 @@ export default function StaffManager() {
   const [resetForm, setResetForm] = useState(blankReset);
   const [resetting, setResetting] = useState(false);
   const [resetMsg, setResetMsg]   = useState('');
+  const [confirm, setConfirm]     = useState(null);
 
   const load = () => {
     if (!salon) return;
@@ -99,10 +101,17 @@ export default function StaffManager() {
     setEditPreview(null);
   };
 
-  const softDelete = async id => {
-    if (!window.confirm('Deactivate this staff member? They will lose login access.')) return;
-    await api.delete(`/salons/${salon.id}/staff-members/${id}/`);
-    setStaff(prev => prev.map(m => m.id === id ? { ...m, is_active: false } : m));
+  const softDelete = (id) => {
+    setConfirm({
+      title: 'Deactivate Staff Member?',
+      message: 'They will immediately lose login access and will not appear in bookings.',
+      confirmLabel: 'Deactivate',
+      onConfirm: async () => {
+        setConfirm(null);
+        await api.delete(`/salons/${salon.id}/staff-members/${id}/`);
+        setStaff(prev => prev.map(m => m.id === id ? { ...m, is_active: false } : m));
+      },
+    });
   };
 
   const handleReset = async e => {
@@ -128,6 +137,14 @@ export default function StaffManager() {
 
   return (
     <div style={s.page}>
+      <ConfirmDialog
+        open={!!confirm}
+        title={confirm?.title}
+        message={confirm?.message}
+        confirmLabel={confirm?.confirmLabel}
+        onConfirm={confirm?.onConfirm}
+        onClose={() => setConfirm(null)}
+      />
       <div style={s.topBar}>
         <div>
           <h2 style={s.heading}>Staff Profiles</h2>

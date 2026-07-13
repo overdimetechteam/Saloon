@@ -2,6 +2,7 @@
 import { useParams, Link } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import api from '../../api/axios';
+import ConfirmDialog from '../../components/ConfirmDialog';
 import { c, STATUS_META } from '../../styles/theme';
 import MiniCalendar from '../../components/MiniCalendar';
 import { useBreakpoint } from '../../hooks/useMobile';
@@ -129,6 +130,7 @@ export default function OwnerBookingDetail() {
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [completing, setCompleting] = useState(false);
   const [rejectError, setRejectError] = useState('');
+  const [confirmDlg, setConfirmDlg] = useState(null);
 
   const load = () => api.get(`/bookings/${id}/`).then(r => {
     setBooking(r.data);
@@ -164,13 +166,21 @@ export default function OwnerBookingDetail() {
     catch (err) { setError(err.response?.data?.detail || 'Error'); }
   };
 
-  const complete = async () => {
+  const complete = () => {
     if (completing) return;
-    if (!window.confirm('Mark this booking as completed? The customer will receive a review request email.')) return;
-    setCompleting(true); setError('');
-    try { await api.post(`/bookings/${id}/complete/`); setMsg('Booking marked as completed!'); load(); }
-    catch (err) { setError(err.response?.data?.detail || 'Error'); }
-    finally { setCompleting(false); }
+    setConfirmDlg({
+      title: 'Mark as Completed?',
+      message: 'The customer will receive a review request email once this booking is marked complete.',
+      confirmLabel: 'Mark Completed',
+      danger: false,
+      onConfirm: async () => {
+        setConfirmDlg(null);
+        setCompleting(true); setError('');
+        try { await api.post(`/bookings/${id}/complete/`); setMsg('Booking marked as completed!'); load(); }
+        catch (err) { setError(err.response?.data?.detail || 'Error'); }
+        finally { setCompleting(false); }
+      },
+    });
   };
 
   const assignStaff = async () => {
@@ -195,6 +205,15 @@ export default function OwnerBookingDetail() {
 
   return (
     <div style={s.page}>
+      <ConfirmDialog
+        open={!!confirmDlg}
+        title={confirmDlg?.title}
+        message={confirmDlg?.message}
+        confirmLabel={confirmDlg?.confirmLabel}
+        danger={confirmDlg?.danger ?? true}
+        onConfirm={confirmDlg?.onConfirm}
+        onClose={() => setConfirmDlg(null)}
+      />
       <Link to="/owner/bookings" style={s.back}>← Back to Bookings</Link>
 
       <div style={s.layout}>

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import api from '../../api/axios';
 import { useOwner } from '../../context/OwnerContext';
+import ConfirmDialog from '../../components/ConfirmDialog';
 
 const BLANK = { name: '', contact_person: '', phone: '', email: '', address: '' };
 
@@ -14,6 +15,7 @@ export default function Suppliers() {
   const [saving, setSaving]       = useState(false);
   const [err, setErr]             = useState('');
   const [deleting, setDeleting]   = useState(null);
+  const [confirm, setConfirm]     = useState(null);
 
   const load = useCallback(async () => {
     if (!salon?.id) return;
@@ -51,19 +53,34 @@ export default function Suppliers() {
     }
   };
 
-  const del = async (sup) => {
-    if (!window.confirm(`Delete "${sup.name}"? This cannot be undone.`)) return;
-    setDeleting(sup.id);
-    try {
-      await api.delete(`/salons/${salon.id}/suppliers/${sup.id}/`);
-      setSuppliers(p => p.filter(s => s.id !== sup.id));
-    } finally {
-      setDeleting(null);
-    }
+  const del = (sup) => {
+    setConfirm({
+      title: 'Delete Supplier?',
+      message: `"${sup.name}" will be permanently removed. This cannot be undone.`,
+      confirmLabel: 'Delete Supplier',
+      onConfirm: async () => {
+        setDeleting(sup.id);
+        setConfirm(null);
+        try {
+          await api.delete(`/salons/${salon.id}/suppliers/${sup.id}/`);
+          setSuppliers(p => p.filter(s => s.id !== sup.id));
+        } finally {
+          setDeleting(null);
+        }
+      },
+    });
   };
 
   return (
     <div>
+      <ConfirmDialog
+        open={!!confirm}
+        title={confirm?.title}
+        message={confirm?.message}
+        confirmLabel={confirm?.confirmLabel}
+        onConfirm={confirm?.onConfirm}
+        onClose={() => setConfirm(null)}
+      />
       {/* ── Page header ── */}
       <div style={s.pageHeader} className="fade-up">
         <div>
