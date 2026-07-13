@@ -135,7 +135,7 @@ function EditModal({ ss, onSave, onClose }) {
           <button
             type="button"
             onClick={() => setStartingFrom(v => !v)}
-            style={{ ...m.toggle, background: startingFrom ? '#0D9488' : 'var(--surface2)', border: startingFrom ? 'none' : '1.5px solid var(--border)' }}
+            style={{ ...m.toggle, background: startingFrom ? '#0D9488' : 'var(--surface2)', boxShadow: startingFrom ? 'none' : 'inset 0 0 0 1.5px var(--border)' }}
             aria-pressed={startingFrom}
           >
             <span style={{ ...m.knob, transform: startingFrom ? 'translateX(20px)' : 'translateX(2px)' }} />
@@ -405,7 +405,7 @@ export default function OwnerServices() {
             <button
               type="button"
               onClick={() => setForm(f => ({ ...f, is_price_starting_from: !f.is_price_starting_from }))}
-              style={{ ...s.sfToggle, background: form.is_price_starting_from ? '#0D9488' : 'var(--surface2)', border: form.is_price_starting_from ? 'none' : '1.5px solid var(--border)' }}
+              style={{ ...s.sfToggle, background: form.is_price_starting_from ? '#0D9488' : 'var(--surface2)', boxShadow: form.is_price_starting_from ? 'none' : 'inset 0 0 0 1.5px var(--border)' }}
             >
               <span style={{ ...s.sfKnob, transform: form.is_price_starting_from ? 'translateX(20px)' : 'translateX(2px)' }} />
             </button>
@@ -600,8 +600,8 @@ const s = {
   sfRow:    { display: 'flex', alignItems: 'center', gap: 14, padding: '12px 14px', background: 'var(--surface2)', borderRadius: 12, border: '1px solid var(--border)', marginTop: 4, marginBottom: 4 },
   sfTitle:  { fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 2 },
   sfSub:    { fontSize: 11, color: 'var(--text-muted)' },
-  sfToggle: { width: 44, height: 24, borderRadius: 99, cursor: 'pointer', position: 'relative', transition: 'background .2s', flexShrink: 0 },
-  sfKnob:   { position: 'absolute', top: 2, width: 20, height: 20, borderRadius: '50%', background: '#fff', boxShadow: '0 1px 4px rgba(0,0,0,.2)', transition: 'transform .2s' },
+  sfToggle: { width: 44, height: 24, borderRadius: 99, cursor: 'pointer', position: 'relative', transition: 'background .2s', flexShrink: 0, padding: 0, border: 'none', outline: 'none' },
+  sfKnob:   { position: 'absolute', top: 2, left: 0, width: 20, height: 20, borderRadius: '50%', background: '#fff', boxShadow: '0 1px 4px rgba(0,0,0,.2)', transition: 'transform .2s', pointerEvents: 'none' },
   rmOverlay: { position: 'fixed', inset: 0, background: 'rgba(8,6,17,.6)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1500, padding: 20 },
   rmBox: { background: 'var(--surface)', borderRadius: 22, padding: '36px 32px', maxWidth: 460, width: '100%', textAlign: 'center', boxShadow: '0 32px 80px rgba(0,0,0,.35)', border: '1px solid var(--border)' },
   rmIcon: { width: 56, height: 56, borderRadius: '50%', background: '#FFFBEB', border: '2px solid #FCD34D', color: '#D97706', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, margin: '0 auto 16px' },
@@ -629,6 +629,6 @@ const m = {
   toggleRow:   { display: 'flex', alignItems: 'center', gap: 14, padding: '12px 14px', background: 'var(--surface2)', borderRadius: 12, border: '1px solid var(--border)', marginBottom: 16 },
   toggleTitle: { fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 2 },
   toggleSub:   { fontSize: 11, color: 'var(--text-muted)' },
-  toggle: { width: 44, height: 24, borderRadius: 99, cursor: 'pointer', position: 'relative', transition: 'background .2s', flexShrink: 0 },
-  knob:   { position: 'absolute', top: 2, width: 20, height: 20, borderRadius: '50%', background: '#fff', boxShadow: '0 1px 4px rgba(0,0,0,.2)', transition: 'transform .2s' },
+  toggle: { width: 44, height: 24, borderRadius: 99, cursor: 'pointer', position: 'relative', transition: 'background .2s', flexShrink: 0, padding: 0, border: 'none', outline: 'none' },
+  knob:   { position: 'absolute', top: 2, left: 0, width: 20, height: 20, borderRadius: '50%', background: '#fff', boxShadow: '0 1px 4px rgba(0,0,0,.2)', transition: 'transform .2s', pointerEvents: 'none' },
 };
