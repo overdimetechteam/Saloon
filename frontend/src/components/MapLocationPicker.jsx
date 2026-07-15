@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { GoogleMap, useJsApiLoader, Marker, Circle, Autocomplete } from '@react-google-maps/api';
+import { GoogleMap, useJsApiLoader, Marker, Circle } from '@react-google-maps/api';
 
 const LIBRARIES = ['places'];
 const DEFAULT_CENTER = { lat: 6.9271, lng: 79.8612 }; // Colombo, LK
@@ -45,8 +45,18 @@ export default function MapLocationPicker({
   const [displayName, setDisplayName]   = useState('');
   const [gpsLoading, setGpsLoading]     = useState(false);
   const [mapRef, setMapRef]             = useState(null);
-  const autocompleteRef                 = useRef(null);
-  const revDebRef                       = useRef(null);
+
+  // Search state
+  const [searchText, setSearchText]     = useState('');
+  const [predictions, setPredictions]   = useState([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [searching, setSearching]       = useState(false);
+
+  const autoSvcRef    = useRef(null);
+  const placesSvcRef  = useRef(null);
+  const debounceRef   = useRef(null);
+  const revDebRef     = useRef(null);
+  const dropdownRef   = useRef(null);
 
   // Debounced reverse-geocode on pin move
   useEffect(() => {
@@ -65,23 +75,79 @@ export default function MapLocationPicker({
     }
   }, []); // eslint-disable-line
 
-  const onMapLoad = useCallback(map => setMapRef(map), []);
+  const onMapLoad = useCallback(map => {
+    setMapRef(map);
+    if (window.google?.maps?.places) {
+      autoSvcRef.current   = new window.google.maps.places.AutocompleteService();
+      placesSvcRef.current = new window.google.maps.places.PlacesService(map);
+    }
+  }, []);
 
   const handleMapClick = useCallback(e => {
     setPos({ lat: e.latLng.lat(), lng: e.latLng.lng() });
+    setShowDropdown(false);
   }, []);
 
   const handleMarkerDrag = useCallback(e => {
     setPos({ lat: e.latLng.lat(), lng: e.latLng.lng() });
   }, []);
 
-  const handlePlaceSelect = () => {
-    const place = autocompleteRef.current?.getPlace();
-    if (!place?.geometry?.location) return;
-    const p = { lat: place.geometry.location.lat(), lng: place.geometry.location.lng() };
-    setPos(p);
-    setDisplayName(place.formatted_address || place.name || '');
-    if (mapRef) { mapRef.panTo(p); mapRef.setZoom(15); }
+  // Search input — debounced AutocompleteService call
+  const handleSearchInput = (e) => {
+    const val = e.target.value;
+    setSearchText(val);
+    clearTimeout(debounceRef.current);
+
+    if (!val.trim() || val.length < 2) {
+      setPredictions([]);
+      setShowDropdown(false);
+      return;
+    }
+
+    setSearching(true);
+    debounceRef.current = setTimeout(() => {
+      if (!autoSvcRef.current) { setSearching(false); return; }
+      autoSvcRef.current.getPlacePredictions(
+        { input: val, componentRestrictions: { country: 'lk' } },
+        (results, status) => {
+          setSearching(false);
+          const OK = window.google.maps.places.PlacesServiceStatus.OK;
+          if (status === OK && results?.length) {
+            setPredictions(results);
+            setShowDropdown(true);
+          } else {
+            setPredictions([]);
+            setShowDropdown(false);
+          }
+        }
+      );
+    }, 280);
+  };
+
+  // Click a prediction → getDetails → pin on map
+  const selectPrediction = (pred) => {
+    setSearchText(pred.description);
+    setPredictions([]);
+    setShowDropdown(false);
+    if (!placesSvcRef.current) return;
+    placesSvcRef.current.getDetails(
+      { placeId: pred.place_id, fields: ['geometry', 'formatted_address', 'name'] },
+      (place, status) => {
+        const OK = window.google.maps.places.PlacesServiceStatus.OK;
+        if (status === OK && place?.geometry?.location) {
+          const p = { lat: place.geometry.location.lat(), lng: place.geometry.location.lng() };
+          setPos(p);
+          setDisplayName(place.formatted_address || place.name || pred.description);
+          if (mapRef) { mapRef.panTo(p); mapRef.setZoom(15); }
+        }
+      }
+    );
+  };
+
+  const clearSearch = () => {
+    setSearchText('');
+    setPredictions([]);
+    setShowDropdown(false);
   };
 
   const handleGps = () => {
@@ -99,6 +165,17 @@ export default function MapLocationPicker({
     );
   };
 
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handler = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
   return createPortal(
     <>
       {/* Backdrop */}
@@ -110,8 +187,8 @@ export default function MapLocationPicker({
         zIndex: 1101, width: 'min(580px, 96vw)',
         background: 'var(--surface)', borderRadius: 24,
         boxShadow: '0 32px 80px rgba(0,0,0,.3)',
-        overflow: 'hidden', display: 'flex', flexDirection: 'column',
-        maxHeight: '92vh',
+        display: 'flex', flexDirection: 'column',
+        maxHeight: '92vh', overflow: 'hidden',
       }}>
 
         {/* Header */}
@@ -123,8 +200,8 @@ export default function MapLocationPicker({
           <button onClick={onClose} style={{ background: 'none', border: '1px solid var(--border)', borderRadius: '50%', width: 32, height: 32, cursor: 'pointer', fontSize: 13, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
         </div>
 
-        {/* Map area — explicit height so GoogleMap's height:100% resolves correctly */}
-        <div style={{ position: 'relative', height: 380, flexShrink: 0, overflow: 'hidden' }}>
+        {/* Map area — no overflow:hidden so the dropdown can overflow */}
+        <div style={{ position: 'relative', height: 380, flexShrink: 0 }}>
 
           {loadError && (
             <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--surface)', zIndex: 10, padding: 28 }}>
@@ -147,34 +224,103 @@ export default function MapLocationPicker({
             </div>
           )}
 
-          {/* Floating search bar — Autocomplete must wrap the input directly */}
+          {/* ── Custom search bar + autocomplete dropdown ── */}
           {isLoaded && (
-            <div style={{
-              position: 'absolute', top: 12, left: 12, right: 12, zIndex: 20,
-              display: 'flex', alignItems: 'center', gap: 8,
-              background: 'rgba(255,255,255,0.97)',
-              backdropFilter: 'blur(12px)',
-              borderRadius: 14,
-              boxShadow: '0 4px 24px rgba(0,0,0,.18)',
-              padding: '0 14px',
-              overflow: 'hidden',
-            }}>
-              <svg width="16" height="16" viewBox="0 0 20 20" fill="none" style={{ flexShrink: 0, color: '#9ca3af' }}>
-                <circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" strokeWidth="1.6"/>
-                <path d="M13 13l3.5 3.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
-              </svg>
-              <Autocomplete
-                onLoad={ac => { autocompleteRef.current = ac; }}
-                onPlaceChanged={handlePlaceSelect}
-                options={{ componentRestrictions: { country: 'lk' } }}
-                style={{ flex: 1 }}
-              >
+            <div
+              ref={dropdownRef}
+              style={{
+                position: 'absolute', top: 12, left: 12, right: 12,
+                zIndex: 25,   /* above map tiles */
+              }}
+            >
+              {/* Input pill */}
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: 8,
+                background: 'rgba(255,255,255,0.97)',
+                backdropFilter: 'blur(12px)',
+                borderRadius: showDropdown && predictions.length ? '14px 14px 0 0' : 14,
+                boxShadow: showDropdown && predictions.length
+                  ? '0 2px 0 rgba(0,0,0,.04), 0 4px 24px rgba(0,0,0,.18)'
+                  : '0 4px 24px rgba(0,0,0,.18)',
+                padding: '0 14px',
+                border: '1px solid rgba(0,0,0,.08)',
+                borderBottomColor: showDropdown && predictions.length ? '#e5e7eb' : 'rgba(0,0,0,.08)',
+              }}>
+                {searching ? (
+                  <div style={{ width: 15, height: 15, borderRadius: '50%', border: '2px solid #e5e7eb', borderTopColor: '#0D9488', animation: 'spin 0.7s linear infinite', flexShrink: 0 }} />
+                ) : (
+                  <svg width="15" height="15" viewBox="0 0 20 20" fill="none" style={{ flexShrink: 0, color: '#9ca3af' }}>
+                    <circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" strokeWidth="1.6"/>
+                    <path d="M13 13l3.5 3.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
+                  </svg>
+                )}
                 <input
-                  style={{ border: 'none', outline: 'none', background: 'transparent', width: '100%', fontSize: 14, color: '#111827', padding: '13px 0', fontFamily: "'DM Sans', sans-serif" }}
-                  placeholder="Search city, area or address…"
+                  value={searchText}
+                  onChange={handleSearchInput}
+                  onFocus={() => predictions.length && setShowDropdown(true)}
+                  style={{
+                    flex: 1, border: 'none', outline: 'none', background: 'transparent',
+                    fontSize: 14, color: '#111827', padding: '12px 0',
+                    fontFamily: "'DM Sans', sans-serif",
+                  }}
+                  placeholder="Search city, area or address in Sri Lanka…"
                   autoComplete="off"
+                  spellCheck={false}
                 />
-              </Autocomplete>
+                {searchText && (
+                  <button
+                    onMouseDown={e => { e.preventDefault(); clearSearch(); }}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', fontSize: 14, lineHeight: 1, padding: '2px', flexShrink: 0 }}
+                  >✕</button>
+                )}
+              </div>
+
+              {/* Results dropdown */}
+              {showDropdown && predictions.length > 0 && (
+                <div style={{
+                  background: '#fff',
+                  border: '1px solid #e5e7eb',
+                  borderTop: 'none',
+                  borderRadius: '0 0 14px 14px',
+                  boxShadow: '0 12px 32px rgba(0,0,0,.16)',
+                  overflow: 'hidden',
+                  maxHeight: 230,
+                  overflowY: 'auto',
+                }}>
+                  {predictions.map((pred, i) => (
+                    <button
+                      key={pred.place_id}
+                      onMouseDown={(e) => { e.preventDefault(); selectPrediction(pred); }}
+                      style={{
+                        width: '100%', display: 'flex', alignItems: 'flex-start', gap: 10,
+                        padding: '10px 14px',
+                        background: 'none', border: 'none',
+                        borderBottom: i < predictions.length - 1 ? '1px solid #f3f4f6' : 'none',
+                        cursor: 'pointer', textAlign: 'left',
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.background = '#f9fafb'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'none'}
+                    >
+                      <svg width="14" height="16" viewBox="0 0 14 18" fill="none" style={{ flexShrink: 0, marginTop: 1, color: '#0D9488' }}>
+                        <path d="M7 0C4.24 0 2 2.24 2 5c0 3.75 5 11 5 11s5-7.25 5-11c0-2.76-2.24-5-5-5zm0 6.5A1.5 1.5 0 1 1 7 3.5a1.5 1.5 0 0 1 0 3z" fill="currentColor"/>
+                      </svg>
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: '#111827', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {pred.structured_formatting?.main_text || pred.description}
+                        </div>
+                        {pred.structured_formatting?.secondary_text && (
+                          <div style={{ fontSize: 11, color: '#6b7280', marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {pred.structured_formatting.secondary_text}
+                          </div>
+                        )}
+                      </div>
+                    </button>
+                  ))}
+                  <div style={{ padding: '6px 14px', borderTop: '1px solid #f3f4f6', display: 'flex', justifyContent: 'flex-end' }}>
+                    <img src="https://maps.gstatic.com/mapfiles/api-3/images/powered-by-google-on-white3.png" alt="" style={{ height: 14, opacity: 0.6 }} />
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -225,7 +371,7 @@ export default function MapLocationPicker({
             </GoogleMap>
           )}
 
-          {/* GPS button — bottom-right of map */}
+          {/* GPS button */}
           <button
             onClick={handleGps}
             disabled={gpsLoading}

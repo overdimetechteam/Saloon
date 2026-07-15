@@ -4,6 +4,7 @@ from .models import CustomUser, Notification
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=6)
+    phone = serializers.CharField(required=True)
 
     class Meta:
         model = CustomUser

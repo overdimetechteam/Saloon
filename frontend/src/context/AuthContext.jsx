@@ -66,21 +66,19 @@ export function AuthProvider({ children }) {
     return updated;
   };
 
-  const logout = async () => {
+  const logout = () => {
     const refresh = localStorage.getItem('refresh');
-    // Blacklist the refresh token server-side so it can't be reused
-    if (refresh) {
-      try {
-        await api.post('/auth/logout/', { refresh });
-      } catch {
-        // proceed with local logout even if server call fails
-      }
-    }
+    // Clear local state immediately — no await before this so no race condition
+    // where re-login can happen while the blacklist call is still in flight.
     localStorage.removeItem('access');
     localStorage.removeItem('refresh');
     localStorage.removeItem('profile');
     setUser(null);
     setProfile(null);
+    // Blacklist server-side in the background (best-effort)
+    if (refresh) {
+      api.post('/auth/logout/', { refresh }).catch(() => {});
+    }
   };
 
   return (

@@ -194,10 +194,8 @@ export default function RegisterClient() {
               <input style={s.input} type="email" placeholder="jane@example.com" value={form.email} onChange={f('email')} autoComplete="off" required />
             </div>
             <div style={s.field}>
-              <label style={s.label}>
-                Phone <span style={s.opt}>(optional)</span>
-              </label>
-              <input style={s.input} placeholder="+94 77 123 4567" value={form.phone} onChange={f('phone')} autoComplete="off" />
+              <label style={s.label}>Phone</label>
+              <input style={s.input} placeholder="+94 77 123 4567" value={form.phone} onChange={f('phone')} autoComplete="off" required />
             </div>
             <div style={s.field}>
               <label style={s.label}>Password</label>

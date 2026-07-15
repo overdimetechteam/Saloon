@@ -80,12 +80,24 @@ export default function OwnerAdjustments() {
             <div style={s.reasonGrid}>
               {REASONS.map(r => {
                 const meta = REASON_META[r];
+                const sel = form.reason === r;
                 return (
-                  <label key={r} style={{ ...s.reasonCard, ...(form.reason === r ? { ...s.reasonSelected, borderColor: meta.color, background: meta.color + '12' } : {}) }}>
-                    <input type="radio" name="reason" value={r} checked={form.reason === r} onChange={f('reason')} style={{ display: 'none' }} />
+                  <button
+                    key={r}
+                    type="button"
+                    onClick={() => setForm(prev => ({ ...prev, reason: r }))}
+                    style={{
+                      ...s.reasonCard,
+                      ...(sel ? {
+                        borderColor: meta.color,
+                        background: meta.color + '1A',
+                        boxShadow: `0 0 0 1px ${meta.color}55`,
+                      } : {}),
+                    }}
+                  >
                     <span style={s.reasonIcon}>{meta.icon}</span>
-                    <span style={{ ...s.reasonLabel, color: form.reason === r ? meta.color : 'var(--text-muted)' }}>{r}</span>
-                  </label>
+                    <span style={{ ...s.reasonLabel, color: sel ? meta.color : 'var(--text-muted)' }}>{r}</span>
+                  </button>
                 );
               })}
             </div>
@@ -160,9 +172,9 @@ const s = {
   reasonCard: {
     display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
     padding: '10px 6px', border: '2px solid var(--border)', borderRadius: 11, cursor: 'pointer',
-    background: 'var(--surface2)', transition: 'all .15s ease',
+    background: 'var(--surface2)', transition: 'border-color .15s, background .15s, box-shadow .15s',
+    outline: 'none', fontFamily: "'DM Sans', sans-serif", WebkitTapHighlightColor: 'transparent',
   },
-  reasonSelected: {},
   reasonIcon: { fontSize: 20 },
   reasonLabel: { fontSize: 10, fontWeight: 700, textTransform: 'capitalize', textAlign: 'center', letterSpacing: '0.04em' },
   submitBtn: {
