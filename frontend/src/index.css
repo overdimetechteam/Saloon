@@ -88,9 +88,9 @@ button:focus { outline: none; }
 button:focus-visible { outline: 2px solid var(--brand-label); outline-offset: 2px; }
 
 /* ── Reason-card tiles — never show focus border or ring ── */
-.reason-btn { -webkit-appearance: none; appearance: none; }
+.reason-btn { -webkit-appearance: none; appearance: none; box-shadow: none; }
 .reason-btn:focus,
-.reason-btn:focus-visible { outline: none !important; box-shadow: inherit !important; }
+.reason-btn:focus-visible { outline: none !important; box-shadow: none !important; }
 
 /* ── Dark mode form overrides ── */
 [data-theme="dark"] input,

@@ -174,7 +174,7 @@ const s = {
     display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
     padding: '10px 6px', border: '2px solid var(--border)', borderRadius: 11, cursor: 'pointer',
     background: 'var(--surface2)', transition: 'border-color .15s, background .15s, box-shadow .15s',
-    outline: 'none', fontFamily: "'DM Sans', sans-serif", WebkitTapHighlightColor: 'transparent',
+    outline: 'none', boxShadow: 'none', fontFamily: "'DM Sans', sans-serif", WebkitTapHighlightColor: 'transparent',
   },
   reasonIcon: { fontSize: 20 },
   reasonLabel: { fontSize: 10, fontWeight: 700, textTransform: 'capitalize', textAlign: 'center', letterSpacing: '0.04em' },

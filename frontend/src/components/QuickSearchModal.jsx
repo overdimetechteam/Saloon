@@ -102,9 +102,9 @@ export default function QuickSearchModal({ onClose }) {
     return () => window.removeEventListener('resize', fn);
   }, []);
 
-  // step 0 — service
+  // step 0 — service (multi-select)
   const [services, setServices] = useState([]);
-  const [selService, setSelSvc] = useState(null);
+  const [selServices, setSelServices] = useState([]);
   const [svcQuery, setSvcQuery] = useState('');
 
   // step 1 — time
@@ -168,7 +168,7 @@ export default function QuickSearchModal({ onClose }) {
   const runSearch = async () => {
     setSearching(true);
     const params = new URLSearchParams();
-    if (selService) params.set('service_id', selService.id);
+    if (selServices.length > 0) params.set('service_ids', selServices.map(s => s.id).join(','));
     params.set('time', to24h(time));
     if (userPos) { params.set('lat', userPos.lat); params.set('lng', userPos.lng); params.set('radius', radius); }
     if (gender !== 'any') params.set('gender', gender);
@@ -206,7 +206,7 @@ export default function QuickSearchModal({ onClose }) {
       <Overlay onClose={onClose}>
         <div style={m.header}>
           <button style={m.backLink} onClick={() => setResults(null)}>← Back</button>
-          <span style={m.title}>{results.length} Salon{results.length !== 1 ? 's' : ''} Found</span>
+          <span style={m.title}>{results.length} Salon{results.length !== 1 ? 's' : ''} {selServices.length > 0 ? `for ${selServices.length} service${selServices.length > 1 ? 's' : ''}` : 'Found'}</span>
           <button style={m.closeBtn} onClick={onClose}>✕</button>
         </div>
         <div style={{ padding: '16px 24px', overflowY: 'auto', flex: 1 }}>
@@ -286,7 +286,20 @@ export default function QuickSearchModal({ onClose }) {
         {/* ── Step 0: Service ── */}
         {step === 0 && (
           <div>
-            <p style={{ ...m.hint, fontSize: narrow ? 13 : 15, marginBottom: narrow ? 8 : 14 }}>What service are you looking for?</p>
+            <p style={{ ...m.hint, fontSize: narrow ? 13 : 15, marginBottom: narrow ? 4 : 8 }}>
+              Select services you want
+              {selServices.length > 0 && <span style={{ marginLeft: 8, fontSize: 12, fontWeight: 600, color: '#0D9488', background: '#F0FDFA', border: '1px solid #99F6E4', borderRadius: 20, padding: '2px 10px' }}>{selServices.length} selected</span>}
+            </p>
+            {selServices.length > 0 && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: narrow ? 8 : 12 }}>
+                {selServices.map(s => (
+                  <span key={s.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 10px', borderRadius: 20, background: '#0D9488', color: '#fff', fontSize: 11, fontWeight: 600 }}>
+                    {s.name}
+                    <button onClick={() => setSelServices(prev => prev.filter(x => x.id !== s.id))} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', padding: 0, fontSize: 11, lineHeight: 1, opacity: 0.8 }}>✕</button>
+                  </span>
+                ))}
+              </div>
+            )}
 
             {/* Search bar */}
             <div style={{ ...m.svcSearchWrap, marginBottom: narrow ? 8 : 14 }}>
@@ -310,12 +323,12 @@ export default function QuickSearchModal({ onClose }) {
             {/* Any Service chip — hidden while searching */}
             {!svcQuery && (
               <div
-                style={{ ...m.anyCard, padding: narrow ? '6px 12px' : '9px 14px', marginBottom: narrow ? 8 : 14, border: !selService ? '2px solid #0D9488' : '2px solid var(--border)' }}
-                onClick={() => setSelSvc(null)}
+                style={{ ...m.anyCard, padding: narrow ? '6px 12px' : '9px 14px', marginBottom: narrow ? 8 : 14, border: selServices.length === 0 ? '2px solid #0D9488' : '2px solid var(--border)' }}
+                onClick={() => setSelServices([])}
               >
                 <span style={{ fontSize: narrow ? 14 : 18 }}>✦</span>
                 <span style={{ fontSize: narrow ? 12 : 14, fontWeight: 600 }}>Any Service</span>
-                {!selService && <span style={{ marginLeft: 'auto', color: '#0D9488', fontSize: 13 }}>✓</span>}
+                {selServices.length === 0 && <span style={{ marginLeft: 'auto', color: '#0D9488', fontSize: 13 }}>✓</span>}
               </div>
             )}
 
@@ -328,14 +341,17 @@ export default function QuickSearchModal({ onClose }) {
                 <div key={cat} style={{ marginBottom: narrow ? 8 : 14 }}>
                   <div style={{ ...m.catLabel, marginBottom: narrow ? 5 : 8 }}>{CAT_ICON[cat] || '•'} {cat === 'Bridal' ? 'Bridal & Party' : cat}</div>
                   <div style={{ ...m.serviceGrid, gap: narrow ? 5 : 8 }}>
-                    {svcs.map(svc => (
-                      <div key={svc.id}
-                        style={{ ...m.serviceChip, padding: narrow ? '5px 10px' : '7px 14px', fontSize: narrow ? 11 : 13, background: selService?.id === svc.id ? '#0D9488' : 'var(--surface2)', color: selService?.id === svc.id ? '#fff' : 'var(--text)', border: selService?.id === svc.id ? '2px solid #0D9488' : '2px solid var(--border)' }}
-                        onClick={() => setSelSvc(svc)}
-                      >
-                        {svc.name}
-                      </div>
-                    ))}
+                    {svcs.map(svc => {
+                      const isSel = selServices.some(s => s.id === svc.id);
+                      return (
+                        <div key={svc.id}
+                          style={{ ...m.serviceChip, padding: narrow ? '5px 10px' : '7px 14px', fontSize: narrow ? 11 : 13, background: isSel ? '#0D9488' : 'var(--surface2)', color: isSel ? '#fff' : 'var(--text)', border: isSel ? '2px solid #0D9488' : '2px solid var(--border)' }}
+                          onClick={() => setSelServices(prev => isSel ? prev.filter(s => s.id !== svc.id) : [...prev, svc])}
+                        >
+                          {svc.name}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               ))

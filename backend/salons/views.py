@@ -1208,7 +1208,8 @@ class QuickSearchView(APIView):
         import math
         from services.models import SalonService
 
-        service_id = request.query_params.get('service_id')
+        service_id      = request.query_params.get('service_id')
+        service_ids_str = request.query_params.get('service_ids')  # comma-separated list
         time_str   = request.query_params.get('time')       # HH:MM (24h)
         date_str   = request.query_params.get('date')       # YYYY-MM-DD
         user_lat   = request.query_params.get('lat')
@@ -1218,8 +1219,15 @@ class QuickSearchView(APIView):
 
         salons = Salon.objects.filter(status='active', is_suspended=False)
 
-        # — service filter —
-        if service_id:
+        # — service filter — salons must offer ALL selected services —
+        if service_ids_str:
+            id_list = [int(x) for x in service_ids_str.split(',') if x.strip().isdigit()]
+            for sid in id_list:
+                offering = SalonService.objects.filter(
+                    service_id=sid, is_active=True
+                ).values_list('salon_id', flat=True)
+                salons = salons.filter(id__in=offering)
+        elif service_id:
             salon_ids = SalonService.objects.filter(
                 service_id=service_id, is_active=True
             ).values_list('salon_id', flat=True)
