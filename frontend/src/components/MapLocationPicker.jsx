@@ -7,6 +7,27 @@ const DEFAULT_CENTER = { lat: 6.9271, lng: 79.8612 }; // Colombo, LK
 const RADIUS_OPTIONS = [1, 2, 5, 10, 20, 50];
 const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
+async function geocodeSearch(query) {
+  try {
+    const res = await fetch(
+      `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(query)}&key=${API_KEY}&region=lk&language=en`
+    );
+    const data = await res.json();
+    if (data.status === 'OK' && data.results.length) {
+      return data.results.slice(0, 6).map(r => ({
+        place_id: r.place_id,
+        description: r.formatted_address,
+        structured_formatting: {
+          main_text: r.address_components?.[0]?.long_name || r.formatted_address,
+          secondary_text: r.formatted_address,
+        },
+        _latlng: { lat: r.geometry.location.lat, lng: r.geometry.location.lng },
+      }));
+    }
+    return [];
+  } catch { return []; }
+}
+
 async function reverseGeocode(lat, lng) {
   try {
     const res = await fetch(
@@ -51,7 +72,7 @@ export default function MapLocationPicker({
   const [predictions, setPredictions]   = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [searching, setSearching]       = useState(false);
-  const [placesError, setPlacesError]   = useState(false);
+  const usingGeocoderRef                = useRef(false);
 
   const autoSvcRef    = useRef(null);
   const placesSvcRef  = useRef(null);
@@ -82,7 +103,7 @@ export default function MapLocationPicker({
     if (window.google?.maps?.places?.AutocompleteService) {
       autoSvcRef.current = new window.google.maps.places.AutocompleteService();
     } else {
-      setPlacesError(true);
+      usingGeocoderRef.current = true; // silent fallback — Geocoding REST API
     }
   }, [isLoaded]);
 
@@ -102,7 +123,7 @@ export default function MapLocationPicker({
     setPos({ lat: e.latLng.lat(), lng: e.latLng.lng() });
   }, []);
 
-  // Search input — debounced AutocompleteService call
+  // Search input — Places AutocompleteService with Geocoding REST API as fallback
   const handleSearchInput = (e) => {
     const val = e.target.value;
     setSearchText(val);
@@ -115,38 +136,56 @@ export default function MapLocationPicker({
     }
 
     setSearching(true);
-    debounceRef.current = setTimeout(() => {
-      if (!autoSvcRef.current) {
+    debounceRef.current = setTimeout(async () => {
+      if (!autoSvcRef.current || usingGeocoderRef.current) {
+        // Geocoding REST API fallback
+        const results = await geocodeSearch(val);
         setSearching(false);
-        setPlacesError(true);
+        setPredictions(results);
+        setShowDropdown(true);
         return;
       }
       autoSvcRef.current.getPlacePredictions(
         { input: val },
-        (results, status) => {
-          setSearching(false);
+        async (results, status) => {
           const S = window.google.maps.places.PlacesServiceStatus;
-          if (status === S.REQUEST_DENIED || status === S.UNKNOWN_ERROR) {
-            setPlacesError(true);
+          if (status === S.REQUEST_DENIED || status === S.UNKNOWN_ERROR || status === S.NOT_FOUND) {
+            usingGeocoderRef.current = true;
+            const fallback = await geocodeSearch(val);
+            setSearching(false);
+            setPredictions(fallback);
+            setShowDropdown(true);
             return;
           }
+          setSearching(false);
           if (status === S.OK && results?.length) {
             setPredictions(results);
             setShowDropdown(true);
           } else {
             setPredictions([]);
-            setShowDropdown(true); // show "no results" row
+            setShowDropdown(true);
           }
         }
       );
     }, 280);
   };
 
-  // Click a prediction → getDetails → pin on map
+  // Click a prediction → pin on map
   const selectPrediction = (pred) => {
-    setSearchText(pred.description);
+    setSearchText(pred.structured_formatting?.main_text || pred.description);
     setPredictions([]);
     setShowDropdown(false);
+
+    // Geocoded result — lat/lng already embedded
+    if (pred._latlng) {
+      const p = pred._latlng;
+      setPos(p);
+      setDisplayName(pred.description);
+      if (mapRef) { mapRef.panTo(p); mapRef.setZoom(15); }
+      return;
+    }
+
+    // Places result — need getDetails for lat/lng
     if (!placesSvcRef.current) return;
     placesSvcRef.current.getDetails(
       { placeId: pred.place_id, fields: ['geometry', 'formatted_address', 'name'] },
@@ -251,20 +290,6 @@ export default function MapLocationPicker({
                 zIndex: 25,   /* above map tiles */
               }}
             >
-              {placesError ? (
-                <div style={{
-                  display: 'flex', alignItems: 'center', gap: 10,
-                  background: 'rgba(255,255,255,0.97)', borderRadius: 14,
-                  boxShadow: '0 4px 24px rgba(0,0,0,.18)',
-                  padding: '10px 14px',
-                  border: '1px solid #fca5a5',
-                }}>
-                  <span style={{ fontSize: 14 }}>⚠️</span>
-                  <span style={{ fontSize: 12, color: '#dc2626', fontFamily: "'DM Sans', sans-serif", lineHeight: 1.4 }}>
-                    Places API not enabled — enable it in Google Cloud Console &amp; ensure billing is active.
-                  </span>
-                </div>
-              ) : (
               <>
               {/* Input pill */}
               <div style={{
@@ -360,7 +385,6 @@ export default function MapLocationPicker({
                 </div>
               )}
               </>
-              )}
             </div>
           )}
 
