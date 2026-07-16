@@ -317,6 +317,7 @@ export default function MapLocationPicker({
                   value={searchText}
                   onChange={handleSearchInput}
                   onFocus={() => predictions.length && setShowDropdown(true)}
+                  className="map-search-input"
                   style={{
                     flex: 1, border: 'none', outline: 'none', background: 'transparent',
                     fontSize: 14, color: '#111827', padding: '12px 0',

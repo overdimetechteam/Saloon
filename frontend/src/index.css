@@ -92,6 +92,13 @@ button:focus-visible { outline: 2px solid var(--brand-label); outline-offset: 2p
 .reason-btn:focus,
 .reason-btn:focus-visible { outline: none !important; box-shadow: none !important; }
 
+/* ── Map location picker search — always light regardless of theme ── */
+[data-theme="dark"] input.map-search-input {
+  background: transparent !important;
+  color: #111827 !important;
+  border-color: transparent !important;
+}
+
 /* ── Dark mode form overrides ── */
 [data-theme="dark"] input,
 [data-theme="dark"] select,
