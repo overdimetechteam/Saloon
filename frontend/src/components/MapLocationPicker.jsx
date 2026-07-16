@@ -10,21 +10,22 @@ const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 async function geocodeSearch(query) {
   try {
     const res = await fetch(
-      `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(query)}&key=${API_KEY}&region=lk&language=en`
+      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&countrycodes=lk&format=json&limit=8&accept-language=en&addressdetails=1`
     );
     const data = await res.json();
-    if (data.status === 'OK' && data.results.length) {
-      return data.results.slice(0, 6).map(r => ({
-        place_id: r.place_id,
-        description: r.formatted_address,
+    if (!data.length) return [];
+    return data.map(r => {
+      const parts = r.display_name.split(',');
+      return {
+        place_id: String(r.place_id),
+        description: r.display_name,
         structured_formatting: {
-          main_text: r.address_components?.[0]?.long_name || r.formatted_address,
-          secondary_text: r.formatted_address,
+          main_text: r.name || parts[0].trim(),
+          secondary_text: parts.slice(1).join(',').trim(),
         },
-        _latlng: { lat: r.geometry.location.lat, lng: r.geometry.location.lng },
-      }));
-    }
-    return [];
+        _latlng: { lat: parseFloat(r.lat), lng: parseFloat(r.lon) },
+      };
+    });
   } catch { return []; }
 }
 
@@ -380,7 +381,7 @@ export default function MapLocationPicker({
                     </button>
                   ))}
                   <div style={{ padding: '6px 14px', borderTop: '1px solid #f3f4f6', display: 'flex', justifyContent: 'flex-end' }}>
-                    <img src="https://maps.gstatic.com/mapfiles/api-3/images/powered-by-google-on-white3.png" alt="" style={{ height: 14, opacity: 0.6 }} />
+                    <span style={{ fontSize: 10, color: '#9ca3af', fontFamily: 'sans-serif' }}>© OpenStreetMap contributors</span>
                   </div>
                 </div>
               )}
