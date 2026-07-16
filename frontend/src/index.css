@@ -83,6 +83,15 @@ input[type="week"] {
   background: var(--input-bg) !important;
 }
 
+/* ── Button focus — suppress browser default ring; restore only for keyboard nav ── */
+button:focus { outline: none; }
+button:focus-visible { outline: 2px solid var(--brand-label); outline-offset: 2px; }
+
+/* ── Reason-card tiles — never show focus border or ring ── */
+.reason-btn { -webkit-appearance: none; appearance: none; }
+.reason-btn:focus,
+.reason-btn:focus-visible { outline: none !important; box-shadow: inherit !important; }
+
 /* ── Dark mode form overrides ── */
 [data-theme="dark"] input,
 [data-theme="dark"] select,

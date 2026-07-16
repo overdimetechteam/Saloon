@@ -111,7 +111,6 @@ export default function Navbar() {
           </>
         ) : (
           <>
-            {!isMobile && <Link to="/salons" style={s.ghostLink}>Browse Salons</Link>}
             <Link to="/login" style={s.ghostLink}>Sign In</Link>
             <button onClick={toggle} className="theme-toggle" title={isDark ? 'Light mode' : 'Dark mode'}
               style={{ color: toggleColor }}>
@@ -145,7 +144,6 @@ export default function Navbar() {
             </>
           ) : (
             <>
-              <Link to="/salons" style={s.mobileLink} onClick={() => setMenuOpen(false)}>Browse Salons</Link>
               <Link to="/register/user" style={s.mobileLink} onClick={() => setMenuOpen(false)}>Get Started</Link>
             </>
           )}

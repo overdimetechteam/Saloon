@@ -85,7 +85,8 @@ export default function OwnerAdjustments() {
                   <button
                     key={r}
                     type="button"
-                    onClick={() => setForm(prev => ({ ...prev, reason: r }))}
+                    className="reason-btn"
+                    onClick={e => { e.currentTarget.blur(); setForm(prev => ({ ...prev, reason: r })); }}
                     style={{
                       ...s.reasonCard,
                       ...(sel ? {

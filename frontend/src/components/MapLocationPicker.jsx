@@ -51,6 +51,7 @@ export default function MapLocationPicker({
   const [predictions, setPredictions]   = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [searching, setSearching]       = useState(false);
+  const [placesError, setPlacesError]   = useState(false);
 
   const autoSvcRef    = useRef(null);
   const placesSvcRef  = useRef(null);
@@ -75,10 +76,19 @@ export default function MapLocationPicker({
     }
   }, []); // eslint-disable-line
 
+  // Init AutocompleteService as soon as the API loads (no map needed)
+  useEffect(() => {
+    if (!isLoaded) return;
+    if (window.google?.maps?.places?.AutocompleteService) {
+      autoSvcRef.current = new window.google.maps.places.AutocompleteService();
+    } else {
+      setPlacesError(true);
+    }
+  }, [isLoaded]);
+
   const onMapLoad = useCallback(map => {
     setMapRef(map);
-    if (window.google?.maps?.places) {
-      autoSvcRef.current   = new window.google.maps.places.AutocompleteService();
+    if (window.google?.maps?.places?.PlacesService) {
       placesSvcRef.current = new window.google.maps.places.PlacesService(map);
     }
   }, []);
@@ -106,18 +116,26 @@ export default function MapLocationPicker({
 
     setSearching(true);
     debounceRef.current = setTimeout(() => {
-      if (!autoSvcRef.current) { setSearching(false); return; }
+      if (!autoSvcRef.current) {
+        setSearching(false);
+        setPlacesError(true);
+        return;
+      }
       autoSvcRef.current.getPlacePredictions(
-        { input: val, componentRestrictions: { country: 'lk' } },
+        { input: val },
         (results, status) => {
           setSearching(false);
-          const OK = window.google.maps.places.PlacesServiceStatus.OK;
-          if (status === OK && results?.length) {
+          const S = window.google.maps.places.PlacesServiceStatus;
+          if (status === S.REQUEST_DENIED || status === S.UNKNOWN_ERROR) {
+            setPlacesError(true);
+            return;
+          }
+          if (status === S.OK && results?.length) {
             setPredictions(results);
             setShowDropdown(true);
           } else {
             setPredictions([]);
-            setShowDropdown(false);
+            setShowDropdown(true); // show "no results" row
           }
         }
       );
@@ -233,18 +251,33 @@ export default function MapLocationPicker({
                 zIndex: 25,   /* above map tiles */
               }}
             >
+              {placesError ? (
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  background: 'rgba(255,255,255,0.97)', borderRadius: 14,
+                  boxShadow: '0 4px 24px rgba(0,0,0,.18)',
+                  padding: '10px 14px',
+                  border: '1px solid #fca5a5',
+                }}>
+                  <span style={{ fontSize: 14 }}>⚠️</span>
+                  <span style={{ fontSize: 12, color: '#dc2626', fontFamily: "'DM Sans', sans-serif", lineHeight: 1.4 }}>
+                    Places API not enabled — enable it in Google Cloud Console &amp; ensure billing is active.
+                  </span>
+                </div>
+              ) : (
+              <>
               {/* Input pill */}
               <div style={{
                 display: 'flex', alignItems: 'center', gap: 8,
                 background: 'rgba(255,255,255,0.97)',
                 backdropFilter: 'blur(12px)',
-                borderRadius: showDropdown && predictions.length ? '14px 14px 0 0' : 14,
-                boxShadow: showDropdown && predictions.length
+                borderRadius: showDropdown ? '14px 14px 0 0' : 14,
+                boxShadow: showDropdown
                   ? '0 2px 0 rgba(0,0,0,.04), 0 4px 24px rgba(0,0,0,.18)'
                   : '0 4px 24px rgba(0,0,0,.18)',
                 padding: '0 14px',
                 border: '1px solid rgba(0,0,0,.08)',
-                borderBottomColor: showDropdown && predictions.length ? '#e5e7eb' : 'rgba(0,0,0,.08)',
+                borderBottomColor: showDropdown ? '#e5e7eb' : 'rgba(0,0,0,.08)',
               }}>
                 {searching ? (
                   <div style={{ width: 15, height: 15, borderRadius: '50%', border: '2px solid #e5e7eb', borderTopColor: '#0D9488', animation: 'spin 0.7s linear infinite', flexShrink: 0 }} />
@@ -276,7 +309,7 @@ export default function MapLocationPicker({
               </div>
 
               {/* Results dropdown */}
-              {showDropdown && predictions.length > 0 && (
+              {showDropdown && (
                 <div style={{
                   background: '#fff',
                   border: '1px solid #e5e7eb',
@@ -287,6 +320,11 @@ export default function MapLocationPicker({
                   maxHeight: 230,
                   overflowY: 'auto',
                 }}>
+                  {predictions.length === 0 && (
+                    <div style={{ padding: '14px 16px', fontSize: 13, color: '#6b7280', fontFamily: "'DM Sans', sans-serif" }}>
+                      No results found
+                    </div>
+                  )}
                   {predictions.map((pred, i) => (
                     <button
                       key={pred.place_id}
@@ -320,6 +358,8 @@ export default function MapLocationPicker({
                     <img src="https://maps.gstatic.com/mapfiles/api-3/images/powered-by-google-on-white3.png" alt="" style={{ height: 14, opacity: 0.6 }} />
                   </div>
                 </div>
+              )}
+              </>
               )}
             </div>
           )}
