@@ -72,12 +72,11 @@ export default function OwnerLogin() {
       {/* Left panel — desktop only */}
       {!isMobile && <div style={s.left}>
         <div style={s.leftInner}>
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 22 }}>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 36 }}>
             <div style={{ background: '#fff', borderRadius: 14, padding: '14px 26px', boxShadow: '0 0 50px rgba(212,175,55,.3), 0 12px 30px rgba(0,0,0,.45)' }}>
               <img src="/logo.png" alt="BookMyStyle" style={{ width: 150, height: 'auto', display: 'block' }} />
             </div>
           </div>
-          <div style={s.leftMark}>◉</div>
           <div style={s.leftTitle}>Owner Portal</div>
           <div style={s.leftTagline}>Salon Management Suite</div>
           <div style={s.leftDivider} />
@@ -110,11 +109,6 @@ export default function OwnerLogin() {
           </button>
 
           <div style={s.formHeader}>
-            <div style={{ ...s.logoRow, justifyContent: 'center' }}>
-              <div style={{ background: '#fff', border: '1px solid rgba(0,0,0,.08)', borderRadius: 12, padding: '10px 20px', boxShadow: '0 2px 12px rgba(0,0,0,.12)' }}>
-                <img src="/logo.png" alt="BookMyStyle" style={{ width: 110, height: 'auto', display: 'block' }} />
-              </div>
-            </div>
             <h1 style={s.formTitle}>Salon Owner Sign In</h1>
             <p style={s.formSub}>Access your salon management dashboard</p>
           </div>
