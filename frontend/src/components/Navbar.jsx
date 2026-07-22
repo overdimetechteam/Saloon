@@ -54,8 +54,14 @@ export default function Navbar() {
     <header style={{ ...s.header, padding: isMobile ? '0 16px' : '0 40px' }}>
 
       <Link to={dashTo || '/salons'} style={s.brand}>
-        <div style={{ background: '#fff', borderRadius: 11, padding: isMobile ? '5px 12px' : '6px 16px', boxShadow: '0 2px 14px rgba(0,0,0,.2)', display: 'flex', alignItems: 'center' }}>
-          <img src="/logo.png" alt="BookMyStyle" style={{ height: isMobile ? 34 : 44, width: 'auto', display: 'block' }} />
+        <div style={{
+          background: '#fff', borderRadius: 12,
+          width: isMobile ? 44 : 52, height: isMobile ? 44 : 52,
+          boxShadow: '0 2px 14px rgba(0,0,0,.2)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          flexShrink: 0, overflow: 'hidden',
+        }}>
+          <img src="/logo.png" alt="BookMyStyle" style={{ width: '80%', height: '80%', objectFit: 'contain', display: 'block' }} />
         </div>
       </Link>
 

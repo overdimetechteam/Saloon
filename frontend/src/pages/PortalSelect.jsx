@@ -62,8 +62,8 @@ export default function PortalSelect() {
 
         {/* Brand */}
         <div style={{ ...s.logoRow, justifyContent: 'center' }}>
-          <div style={{ background: '#fff', borderRadius: 16, padding: isMobile ? '12px 20px' : '14px 28px', boxShadow: '0 0 50px rgba(13,148,136,.45), 0 10px 28px rgba(0,0,0,.45)' }}>
-            <img src="/logo.png" alt="BookMyStyle" style={{ height: isMobile ? 52 : 64, width: 'auto', display: 'block' }} />
+          <div style={{ background: '#fff', borderRadius: 16, padding: isMobile ? '14px 22px' : '16px 28px', boxShadow: '0 0 50px rgba(13,148,136,.45), 0 10px 28px rgba(0,0,0,.45)' }}>
+            <img src="/logo.png" alt="BookMyStyle" style={{ width: isMobile ? 120 : 150, height: 'auto', display: 'block' }} />
           </div>
         </div>
 

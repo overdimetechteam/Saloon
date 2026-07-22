@@ -138,8 +138,8 @@ export default function RegisterClient() {
       {!(isMobile || isTablet) && (
         <div style={s.left}>
           <div style={s.leftInner}>
-            <div style={{ background: '#fff', borderRadius: 16, padding: '14px 28px', marginBottom: 22, boxShadow: '0 0 60px rgba(13,148,136,.45), 0 14px 36px rgba(0,0,0,.45)' }}>
-              <img src="/logo.png" alt="BookMyStyle" style={{ width: 200, display: 'block' }} />
+            <div style={{ background: '#fff', borderRadius: 16, padding: '16px 30px', marginBottom: 22, boxShadow: '0 0 60px rgba(13,148,136,.45), 0 14px 36px rgba(0,0,0,.45)' }}>
+              <img src="/logo.png" alt="BookMyStyle" style={{ width: 180, height: 'auto', display: 'block' }} />
             </div>
             <div style={s.leftTagline}>Beauty & Wellness</div>
             <div style={s.leftDivider} />
@@ -164,8 +164,8 @@ export default function RegisterClient() {
       {(isMobile || isTablet) && (
         <div style={{ background: 'linear-gradient(145deg, #0D0D16 0%, #0B3832 50%, #0D9488 100%)', padding: isMobile ? '28px 20px 22px' : '32px 24px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
           <div style={{ position: 'relative', zIndex: 2 }}>
-            <div style={{ background: '#fff', borderRadius: 12, padding: '8px 18px', marginBottom: 8, display: 'inline-block', boxShadow: '0 4px 24px rgba(0,0,0,.35)' }}>
-              <img src="/logo.png" alt="BookMyStyle" style={{ height: 42, width: 'auto', display: 'block' }} />
+            <div style={{ background: '#fff', borderRadius: 12, padding: '10px 20px', marginBottom: 8, display: 'inline-block', boxShadow: '0 4px 24px rgba(0,0,0,.35)' }}>
+              <img src="/logo.png" alt="BookMyStyle" style={{ width: 100, height: 'auto', display: 'block' }} />
             </div>
             <div style={{ fontSize: 10, color: 'rgba(153,246,228,.75)', letterSpacing: '0.2em', textTransform: 'uppercase', marginTop: 4 }}>Beauty & Wellness</div>
           </div>

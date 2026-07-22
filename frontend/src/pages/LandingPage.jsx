@@ -71,14 +71,14 @@ export default function LandingPage() {
         <div style={{
           background: '#ffffff',
           borderRadius: 20,
-          padding: isMobile ? '14px 24px' : '18px 36px',
+          padding: isMobile ? '16px 28px' : '20px 40px',
           marginBottom: isMobile ? 20 : 28,
           boxShadow: '0 0 70px rgba(13,148,136,.55), 0 0 140px rgba(13,148,136,.2), 0 20px 48px rgba(0,0,0,.6)',
         }}>
           <img
             src="/logo.png"
             alt="BookMyStyle"
-            style={{ width: isMobile ? 170 : 240, display: 'block' }}
+            style={{ width: isMobile ? 150 : 210, height: 'auto', display: 'block' }}
           />
         </div>
 
