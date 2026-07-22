@@ -138,8 +138,7 @@ export default function RegisterClient() {
       {!(isMobile || isTablet) && (
         <div style={s.left}>
           <div style={s.leftInner}>
-            <div style={s.leftMark}>✦</div>
-            <div style={s.leftTitle}>Join BookMyStyle</div>
+            <img src="/logo.png" alt="BookMyStyle" style={{ width: 200, borderRadius: 10, marginBottom: 16 }} />
             <div style={s.leftTagline}>Beauty & Wellness</div>
             <div style={s.leftDivider} />
             <p style={s.leftQuote}>
@@ -163,9 +162,8 @@ export default function RegisterClient() {
       {(isMobile || isTablet) && (
         <div style={{ background: 'linear-gradient(145deg, #0D0D16 0%, #0B3832 50%, #0D9488 100%)', padding: isMobile ? '28px 20px 22px' : '32px 24px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
           <div style={{ position: 'relative', zIndex: 2 }}>
-            <div style={{ fontSize: 22, color: '#99F6E4', marginBottom: 6 }}>✦</div>
-            <div style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: isMobile ? 28 : 34, fontWeight: 700, color: '#fff', lineHeight: 1, letterSpacing: '-0.02em' }}>Join BookMyStyle</div>
-            <div style={{ fontSize: 10, color: 'rgba(153,246,228,.75)', letterSpacing: '0.2em', textTransform: 'uppercase', marginTop: 6 }}>Beauty & Wellness</div>
+            <img src="/logo.png" alt="BookMyStyle" style={{ height: 40, width: 'auto', borderRadius: 6, marginBottom: 8 }} />
+            <div style={{ fontSize: 10, color: 'rgba(153,246,228,.75)', letterSpacing: '0.2em', textTransform: 'uppercase', marginTop: 2 }}>Beauty & Wellness</div>
           </div>
         </div>
       )}

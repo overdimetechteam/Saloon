@@ -72,6 +72,7 @@ export default function OwnerLogin() {
       {/* Left panel — desktop only */}
       {!isMobile && <div style={s.left}>
         <div style={s.leftInner}>
+          <img src="/logo.png" alt="BookMyStyle" style={{ width: 170, borderRadius: 10, marginBottom: 20 }} />
           <div style={s.leftMark}>◉</div>
           <div style={s.leftTitle}>Owner Portal</div>
           <div style={s.leftTagline}>Salon Management Suite</div>
@@ -106,8 +107,7 @@ export default function OwnerLogin() {
 
           <div style={s.formHeader}>
             <div style={s.logoRow}>
-              <span style={s.logoMark}>✦</span>
-              <span style={s.logoBrand}>BookMyStyle</span>
+              <img src="/logo.png" alt="BookMyStyle" style={{ height: 36, width: 'auto', borderRadius: 6 }} />
             </div>
             <h1 style={s.formTitle}>Salon Owner Sign In</h1>
             <p style={s.formSub}>Access your salon management dashboard</p>
@@ -179,8 +179,7 @@ export default function OwnerLogin() {
         <div style={p.overlay} onClick={closeForgot}>
           <div style={{ ...p.card, maxWidth: 400 }} onClick={e => e.stopPropagation()}>
             <div style={p.logoRow}>
-              <span style={p.logoMark}>✦</span>
-              <span style={p.logoBrand}>BookMyStyle</span>
+              <img src="/logo.png" alt="BookMyStyle" style={{ height: 36, width: 'auto', borderRadius: 6 }} />
             </div>
             <h2 style={p.heading}>Reset Password</h2>
             <p style={{ ...p.sub, marginBottom: forgotMsg ? 20 : 28 }}>
@@ -234,8 +233,7 @@ export default function OwnerLogin() {
         <div style={p.overlay}>
           <div style={p.card}>
             <div style={p.logoRow}>
-              <span style={p.logoMark}>✦</span>
-              <span style={p.logoBrand}>BookMyStyle</span>
+              <img src="/logo.png" alt="BookMyStyle" style={{ height: 36, width: 'auto', borderRadius: 6 }} />
             </div>
             <h2 style={p.heading}>Choose Your Portal</h2>
             <p style={p.sub}>How would you like to continue?</p>

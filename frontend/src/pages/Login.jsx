@@ -179,8 +179,7 @@ export default function Login() {
       {(isMobile || isTablet) ? (
         <div style={s.mobileBrand}>
           <div style={s.mobileBrandInner}>
-            <div style={{ fontSize: 22, color: '#0D9488', marginBottom: 4 }}>✦</div>
-            <div style={s.leftTitle}>BookMyStyle</div>
+            <img src="/logo.png" alt="BookMyStyle" style={{ height: 40, width: 'auto', borderRadius: 6, marginBottom: 4 }} />
             <div style={{ ...s.leftTagline, fontSize: 10 }}>Beauty & Wellness</div>
           </div>
           <div style={s.leftBlob1} />
@@ -188,8 +187,7 @@ export default function Login() {
       ) : (
         <div style={s.left}>
           <div style={s.leftInner}>
-            <div style={s.leftMark}>✦</div>
-            <div style={s.leftTitle}>BookMyStyle</div>
+            <img src="/logo.png" alt="BookMyStyle" style={{ width: 200, borderRadius: 10, marginBottom: 16 }} />
             <div style={s.leftTagline}>Beauty & Wellness</div>
             <div style={s.leftDivider} />
             <p style={s.leftQuote}>

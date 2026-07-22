@@ -54,10 +54,8 @@ export default function Navbar() {
     <header style={{ ...s.header, padding: isMobile ? '0 16px' : '0 40px' }}>
 
       <Link to={dashTo || '/salons'} style={s.brand}>
-        <div style={{ ...s.brandMark, background: `linear-gradient(145deg, ${accentColor} 0%, ${accentColor2} 100%)`, boxShadow: `0 4px 16px ${accentShadow}.4), inset 0 1px 0 rgba(255,255,255,.2)` }}>✦</div>
-        <div style={s.brandText}>
-          <div style={{ ...s.brandName, fontSize: isMobile ? 18 : 20 }}>BookMyStyle</div>
-          {!isMobile && <div style={{ ...s.brandTagline, color: accentColor }}>Beauty & Wellness</div>}
+        <div style={{ background: '#fff', borderRadius: 10, padding: isMobile ? '4px 8px' : '5px 10px', boxShadow: '0 2px 10px rgba(0,0,0,.15)', display: 'flex', alignItems: 'center' }}>
+          <img src="/logo.png" alt="BookMyStyle" style={{ height: isMobile ? 28 : 34, width: 'auto', display: 'block' }} />
         </div>
       </Link>
 

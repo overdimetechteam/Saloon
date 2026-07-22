@@ -61,13 +61,8 @@ export default function PortalSelect() {
       }}>
 
         {/* Brand */}
-        <div style={s.logoRow}>
-          <div style={s.logoMark}>
-            <svg width="18" height="18" viewBox="0 0 48 48" fill="none">
-              <path d="M24,10 L25.8,22.2 L38,24 L25.8,25.8 L24,38 L22.2,25.8 L10,24 L22.2,22.2 Z" fill="#14B8A8"/>
-            </svg>
-          </div>
-          <span style={s.brand}>BookMyStyle</span>
+        <div style={{ ...s.logoRow, justifyContent: 'center' }}>
+          <img src="/logo.png" alt="BookMyStyle" style={{ height: isMobile ? 48 : 56, width: 'auto', borderRadius: 10 }} />
         </div>
 
         <h2 style={{ ...s.heading, fontSize: isMobile ? 22 : 28 }}>
