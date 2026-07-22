@@ -9,7 +9,10 @@ export default function UserSettings() {
   const { profile, updateProfile, logout } = useAuth();
   const { isMobile } = useBreakpoint();
   const navigate = useNavigate();
-  const [form, setForm]   = useState({ full_name: '', phone: '' });
+  const [form, setForm] = useState({
+    full_name: looksEncrypted(profile?.full_name) ? '' : (profile?.full_name || ''),
+    phone:     looksEncrypted(profile?.phone)     ? '' : (profile?.phone     || ''),
+  });
   const [saving, setSaving] = useState(false);
   const [msg, setMsg]       = useState(null); // { type: 'ok'|'err', text }
 
@@ -17,7 +20,7 @@ export default function UserSettings() {
     api.get('/profile/').then(({ data }) => {
       setForm({
         full_name: looksEncrypted(data.full_name) ? '' : (data.full_name || ''),
-        phone:     looksEncrypted(data.phone)     ? '' : (data.phone     || ''),
+        phone:     looksEncrypted(data.phone)     ? (looksEncrypted(profile?.phone) ? '' : (profile?.phone || '')) : (data.phone || ''),
       });
     });
   }, []);

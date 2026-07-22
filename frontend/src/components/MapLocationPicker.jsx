@@ -258,8 +258,8 @@ export default function MapLocationPicker({
           <button onClick={onClose} style={{ background: 'none', border: '1px solid var(--border)', borderRadius: '50%', width: 32, height: 32, cursor: 'pointer', fontSize: 13, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
         </div>
 
-        {/* Map area — no overflow:hidden so the dropdown can overflow */}
-        <div style={{ position: 'relative', height: 380, flexShrink: 0 }}>
+        {/* Map area — flex:1 so it shrinks on small screens, keeping footer visible */}
+        <div style={{ position: 'relative', flex: 1, minHeight: 200 }}>
 
           {loadError && (
             <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--surface)', zIndex: 10, padding: 28 }}>
