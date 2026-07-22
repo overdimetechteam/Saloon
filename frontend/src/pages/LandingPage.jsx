@@ -67,14 +67,21 @@ export default function LandingPage() {
         padding: isMobile ? '0 20px' : '0 24px',
       }}>
 
-        {/* Logo mark */}
-        <div style={s.markWrap}>
-          <svg width="22" height="22" viewBox="0 0 48 48" fill="none">
-            <path d="M24,10 L25.8,22.2 L38,24 L25.8,25.8 L24,38 L22.2,25.8 L10,24 L22.2,22.2 Z" fill="#14B8A8"/>
-          </svg>
+        {/* Logo */}
+        <div style={{
+          background: '#ffffff',
+          borderRadius: 20,
+          padding: isMobile ? '14px 24px' : '18px 36px',
+          marginBottom: isMobile ? 20 : 28,
+          boxShadow: '0 0 70px rgba(13,148,136,.55), 0 0 140px rgba(13,148,136,.2), 0 20px 48px rgba(0,0,0,.6)',
+        }}>
+          <img
+            src="/logo.png"
+            alt="BookMyStyle"
+            style={{ width: isMobile ? 170 : 240, display: 'block' }}
+          />
         </div>
 
-        <h1 style={{ ...s.brand, fontSize: isMobile ? 42 : 68 }}>BookMyStyle</h1>
         <div style={{ ...s.tagline, letterSpacing: isMobile ? '0.18em' : '0.3em', fontSize: isMobile ? 9 : 10 }}>
           BEAUTY &amp; WELLNESS PLATFORM
         </div>

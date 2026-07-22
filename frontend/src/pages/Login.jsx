@@ -179,7 +179,9 @@ export default function Login() {
       {(isMobile || isTablet) ? (
         <div style={s.mobileBrand}>
           <div style={s.mobileBrandInner}>
-            <img src="/logo.png" alt="BookMyStyle" style={{ height: 40, width: 'auto', borderRadius: 6, marginBottom: 4 }} />
+            <div style={{ background: '#fff', borderRadius: 12, padding: '8px 18px', marginBottom: 8, boxShadow: '0 4px 24px rgba(0,0,0,.35)' }}>
+              <img src="/logo.png" alt="BookMyStyle" style={{ height: 40, width: 'auto', display: 'block' }} />
+            </div>
             <div style={{ ...s.leftTagline, fontSize: 10 }}>Beauty & Wellness</div>
           </div>
           <div style={s.leftBlob1} />
@@ -187,7 +189,9 @@ export default function Login() {
       ) : (
         <div style={s.left}>
           <div style={s.leftInner}>
-            <img src="/logo.png" alt="BookMyStyle" style={{ width: 200, borderRadius: 10, marginBottom: 16 }} />
+            <div style={{ background: '#fff', borderRadius: 16, padding: '14px 28px', marginBottom: 22, boxShadow: '0 0 60px rgba(13,148,136,.45), 0 14px 36px rgba(0,0,0,.45)' }}>
+              <img src="/logo.png" alt="BookMyStyle" style={{ width: 200, display: 'block' }} />
+            </div>
             <div style={s.leftTagline}>Beauty & Wellness</div>
             <div style={s.leftDivider} />
             <p style={s.leftQuote}>

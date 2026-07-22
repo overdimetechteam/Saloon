@@ -72,7 +72,9 @@ export default function OwnerLogin() {
       {/* Left panel — desktop only */}
       {!isMobile && <div style={s.left}>
         <div style={s.leftInner}>
-          <img src="/logo.png" alt="BookMyStyle" style={{ width: 170, borderRadius: 10, marginBottom: 20 }} />
+          <div style={{ background: '#fff', borderRadius: 14, padding: '12px 22px', marginBottom: 22, boxShadow: '0 0 50px rgba(212,175,55,.3), 0 12px 30px rgba(0,0,0,.45)' }}>
+            <img src="/logo.png" alt="BookMyStyle" style={{ width: 160, display: 'block' }} />
+          </div>
           <div style={s.leftMark}>◉</div>
           <div style={s.leftTitle}>Owner Portal</div>
           <div style={s.leftTagline}>Salon Management Suite</div>
@@ -107,7 +109,9 @@ export default function OwnerLogin() {
 
           <div style={s.formHeader}>
             <div style={s.logoRow}>
-              <img src="/logo.png" alt="BookMyStyle" style={{ height: 36, width: 'auto', borderRadius: 6 }} />
+              <div style={{ background: '#fff', border: '1px solid rgba(0,0,0,.08)', borderRadius: 12, padding: '8px 18px', boxShadow: '0 2px 12px rgba(0,0,0,.12)' }}>
+                <img src="/logo.png" alt="BookMyStyle" style={{ height: 40, width: 'auto', display: 'block' }} />
+              </div>
             </div>
             <h1 style={s.formTitle}>Salon Owner Sign In</h1>
             <p style={s.formSub}>Access your salon management dashboard</p>
@@ -179,7 +183,9 @@ export default function OwnerLogin() {
         <div style={p.overlay} onClick={closeForgot}>
           <div style={{ ...p.card, maxWidth: 400 }} onClick={e => e.stopPropagation()}>
             <div style={p.logoRow}>
-              <img src="/logo.png" alt="BookMyStyle" style={{ height: 36, width: 'auto', borderRadius: 6 }} />
+              <div style={{ background: '#fff', borderRadius: 12, padding: '8px 18px', boxShadow: '0 4px 20px rgba(0,0,0,.4)' }}>
+                <img src="/logo.png" alt="BookMyStyle" style={{ height: 36, width: 'auto', display: 'block' }} />
+              </div>
             </div>
             <h2 style={p.heading}>Reset Password</h2>
             <p style={{ ...p.sub, marginBottom: forgotMsg ? 20 : 28 }}>
@@ -233,7 +239,9 @@ export default function OwnerLogin() {
         <div style={p.overlay}>
           <div style={p.card}>
             <div style={p.logoRow}>
-              <img src="/logo.png" alt="BookMyStyle" style={{ height: 36, width: 'auto', borderRadius: 6 }} />
+              <div style={{ background: '#fff', borderRadius: 12, padding: '8px 18px', boxShadow: '0 4px 20px rgba(0,0,0,.4)' }}>
+                <img src="/logo.png" alt="BookMyStyle" style={{ height: 36, width: 'auto', display: 'block' }} />
+              </div>
             </div>
             <h2 style={p.heading}>Choose Your Portal</h2>
             <p style={p.sub}>How would you like to continue?</p>
