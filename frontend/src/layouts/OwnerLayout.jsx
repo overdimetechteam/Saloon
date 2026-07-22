@@ -148,7 +148,15 @@ export default function OwnerLayout() {
 
         {/* Brand / header */}
         <div style={s.brandArea}>
-          <div style={s.brandIcon} onClick={() => !isMobile && setCollapsed(v => !v)} title={(collapsed || isTablet) ? 'Expand' : 'Collapse'}>✦</div>
+          <div
+            style={{ ...s.brandIcon, background: salon?.logo_url ? 'transparent' : undefined, boxShadow: salon?.logo_url ? 'none' : undefined, padding: salon?.logo_url ? 0 : undefined, overflow: 'hidden' }}
+            onClick={() => !isMobile && setCollapsed(v => !v)}
+            title={(collapsed || isTablet) ? 'Expand' : 'Collapse'}
+          >
+            {salon?.logo_url
+              ? <img src={salon.logo_url} alt={salon.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 10 }} />
+              : '✦'}
+          </div>
           {!(collapsed || isTablet) && (
             <>
               <div style={s.brandText}>
