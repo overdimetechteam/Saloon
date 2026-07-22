@@ -138,8 +138,10 @@ export default function RegisterClient() {
       {!(isMobile || isTablet) && (
         <div style={s.left}>
           <div style={s.leftInner}>
-            <div style={{ background: '#fff', borderRadius: 16, padding: '16px 30px', marginBottom: 22, boxShadow: '0 0 60px rgba(13,148,136,.45), 0 14px 36px rgba(0,0,0,.45)' }}>
-              <img src="/logo.png" alt="BookMyStyle" style={{ width: 180, height: 'auto', display: 'block' }} />
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 22 }}>
+              <div style={{ background: '#fff', borderRadius: 16, padding: '16px 30px', boxShadow: '0 0 60px rgba(13,148,136,.45), 0 14px 36px rgba(0,0,0,.45)' }}>
+                <img src="/logo.png" alt="BookMyStyle" style={{ width: 180, height: 'auto', display: 'block' }} />
+              </div>
             </div>
             <div style={s.leftTagline}>Beauty & Wellness</div>
             <div style={s.leftDivider} />

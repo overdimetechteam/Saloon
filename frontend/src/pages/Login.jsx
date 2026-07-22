@@ -178,7 +178,7 @@ export default function Login() {
       {/* Left panel — brand / visual (hidden on mobile/tablet, replaced by header strip) */}
       {(isMobile || isTablet) ? (
         <div style={s.mobileBrand}>
-          <div style={s.mobileBrandInner}>
+          <div style={{ ...s.mobileBrandInner, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <div style={{ background: '#fff', borderRadius: 12, padding: '10px 20px', marginBottom: 8, boxShadow: '0 4px 24px rgba(0,0,0,.35)' }}>
               <img src="/logo.png" alt="BookMyStyle" style={{ width: 100, height: 'auto', display: 'block' }} />
             </div>
@@ -189,8 +189,10 @@ export default function Login() {
       ) : (
         <div style={s.left}>
           <div style={s.leftInner}>
-            <div style={{ background: '#fff', borderRadius: 16, padding: '16px 30px', marginBottom: 22, boxShadow: '0 0 60px rgba(13,148,136,.45), 0 14px 36px rgba(0,0,0,.45)' }}>
-              <img src="/logo.png" alt="BookMyStyle" style={{ width: 180, height: 'auto', display: 'block' }} />
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 22 }}>
+              <div style={{ background: '#fff', borderRadius: 16, padding: '16px 30px', boxShadow: '0 0 60px rgba(13,148,136,.45), 0 14px 36px rgba(0,0,0,.45)' }}>
+                <img src="/logo.png" alt="BookMyStyle" style={{ width: 180, height: 'auto', display: 'block' }} />
+              </div>
             </div>
             <div style={s.leftTagline}>Beauty & Wellness</div>
             <div style={s.leftDivider} />
