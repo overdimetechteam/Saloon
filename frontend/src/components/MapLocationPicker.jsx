@@ -258,8 +258,8 @@ export default function MapLocationPicker({
           <button onClick={onClose} style={{ background: 'none', border: '1px solid var(--border)', borderRadius: '50%', width: 32, height: 32, cursor: 'pointer', fontSize: 13, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
         </div>
 
-        {/* Map area — flex:1 so it shrinks on small screens, keeping footer visible */}
-        <div style={{ position: 'relative', flex: 1, minHeight: 200 }}>
+        {/* Map area — clamp height so it's smaller on mobile, keeping footer visible */}
+        <div style={{ position: 'relative', height: 'clamp(180px, 45vh, 380px)', flexShrink: 0 }}>
 
           {loadError && (
             <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--surface)', zIndex: 10, padding: 28 }}>
